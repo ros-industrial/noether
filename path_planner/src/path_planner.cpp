@@ -5,6 +5,7 @@
  */
 
 #include <path_planner/path_planner.h>
+#include <limits>
 
 #include <vtkIntersectionPolyDataFilter.h>
 #include <vtkDelaunay2D.h>
@@ -12,6 +13,9 @@
 #include <vtkParametricSpline.h>
 #include <vtkParametricFunctionSource.h>
 #include <vtkCellLinks.h>
+#include <vtkPolyDataNormals.h>
+
+#include <vtkCellData.h>
 
 namespace path_planner
 {
@@ -40,10 +44,6 @@ namespace path_planner
     //delaunay->SetProjectionPlaneMode(3);
     polydata2 = delaunay->GetOutput();
 
-
-    cout << "number of input points : " << _input_mesh->GetPolys()->GetNumberOfCells() << "\n";
-    cout << "number of plane points : " << polydata2->GetPolys()->GetNumberOfCells() << "\n";
-
     // use Intersection filter
     vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionPolyDataFilter =
       vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
@@ -52,94 +52,159 @@ namespace path_planner
     intersectionPolyDataFilter->Update();
 
     // return results
+    return intersectionPolyDataFilter->GetOutput();
 
-    cout << "build links" << "\n";
-    vtkSmartPointer<vtkCellLinks> cellLinksFilter =
-        vtkSmartPointer<vtkCellLinks>::New();
-
-    vtkSmartPointer<vtkPolyData> polylines;
-    polylines = (intersectionPolyDataFilter->GetOutput());
-
-    // Sort points using line data
-    vtkSmartPointer<vtkPoints> line_points;
-    vtkSmartPointer<vtkPoints> line_points2 = vtkSmartPointer<vtkPoints>::New();
-
-    line_points = intersectionPolyDataFilter->GetOutput()->GetPoints();
-    vtkSmartPointer<vtkCellArray> lines = polylines->GetLines();
-
-    lines->InitTraversal();
-
-    cout << "lines: " << polylines->GetNumberOfLines() << "\n";
-    cout << "cells: " << polylines->GetNumberOfCells() << "\n";
-
-    vtkSmartPointer<vtkIdList> pt = vtkSmartPointer<vtkIdList>::New();
-    int cell = lines->GetNextCell(pt);
-    int next_cell = 0;
-
-    while(cell != 0)
-    //for(int i = 0; i < polylines->GetNumberOfLines(); ++i)
-    {
-      lines->InitTraversal();
-      for(int j = 0; j < polylines->GetNumberOfLines(); ++j)
-      {
-        cell = lines->GetNextCell(pt);
-//        if(i == polylines->GetNumberOfLines() - 1)
-//        {
-//        cout << "  "  << pt->GetId(0) << " " << pt->GetId(1) << "\n";
-//        }
-
-
-        if(cell == 0)
-        {
-          next_cell += 2;
-          break;
-        }
-
-        if(pt->GetId(0) == next_cell)
-        {
-          cout << " found cell " << next_cell << "   "  << pt->GetId(0) << " " << pt->GetId(1) << "\n";
-          if(next_cell == 0)
-          {
-            double d[3];
-            line_points->GetPoint(j, d);
-            cout << "first point " << d[0] << " " << d[1] << " " << d[2] << "\n";
-            line_points2->InsertNextPoint(d[0], d[1], d[2]);
-          }
-            double d[3];
-            line_points->GetPoint(pt->GetId(1), d);
-            cout << "next point " << d[0] << " " << d[1] << " " << d[2] << "\n";
-            line_points2->InsertNextPoint(d[0], d[1], d[2]);
-          next_cell = pt->GetId(1);
-          break;
-        }
-
-      }
-    }
-
-    vtkSmartPointer<vtkPolyData> output_data = vtkSmartPointer<vtkPolyData>::New();
-    output_data->SetPoints(line_points2);
-
-    return output_data;
-    //return intersectionPolyDataFilter->GetOutput();
-    //return polydata2;
   }
 
   vtkSmartPointer<vtkPolyData> PathPlanner::smoothData(vtkSmartPointer<vtkPoints> points)
   {
+    vtkSmartPointer<vtkPoints> points2 = vtkSmartPointer<vtkPoints>::New();
+
+    points2 = sortPoints(points);
+
     vtkSmartPointer<vtkParametricSpline> spline = vtkSmartPointer<vtkParametricSpline>::New();
-      spline->SetPoints(points);
 
-      vtkSmartPointer<vtkParametricFunctionSource> functionSource =
-        vtkSmartPointer<vtkParametricFunctionSource>::New();
-      functionSource->SetParametricFunction(spline);
-      functionSource->Update();
+    //spline->ParameterizeByLengthOn();
+    //spline->SetParameterizeByLength(1);
 
-    return functionSource->GetOutput();
+    spline->SetPoints(points2);
+
+    vtkSmartPointer<vtkParametricFunctionSource> functionSource =
+      vtkSmartPointer<vtkParametricFunctionSource>::New();
+    functionSource->SetParametricFunction(spline);
+
+    functionSource->SetScalarModeToDistance();
+    functionSource->Update();
+
+    vtkSmartPointer<vtkPolyData> output = vtkSmartPointer<vtkPolyData>::New();
+    output = functionSource->GetOutput();
+
+    vtkSmartPointer<vtkPoints> points3 = vtkSmartPointer<vtkPoints>::New();
+
+    //int max = output->GetPoints()->GetNumberOfPoints();
+    int max = 10;
+    double u[3], pt[3], d[9];
+    for( int i = 0; i <= max; ++i)
+    {
+
+      u[0] = double(i)/double(max);
+      u[1] = double(i)/double(max);
+      u[2] = double(i)/double(max);
+      spline->Evaluate(u, pt, d);
+      //cout << pt[0] << " " << pt[1] << " " << pt[2] << "\n";
+      //cout << d[0] << " " << d[1] << " " << pt[2] << "\n";
+      //cout << d[3] << " " << d[4] << " " << d[5] << "\n";
+      //cout << d[6] << " " << d[7] << " " << d[8] << "\n";
+      //cout << "\n";
+      points3->InsertNextPoint(pt);
+    }
+    output->SetPoints(points3);
+
+    //return functionSource->GetOutput();
+    return output;
   }
 
   // Sort points in linear order
-  void PathPlanner::sortPoints(vtkSmartPointer<vtkPoints>& points)
+  vtkSmartPointer<vtkPoints> PathPlanner::sortPoints(vtkSmartPointer<vtkPoints>& points)
   {
+    std::vector<std::vector<double> > new_points;
+    double d[3];
+    for(int i = 0; i < points->GetNumberOfPoints(); ++i)
+    {
+        points->GetPoint(i, d);
+        std::vector<double> pt;
+        pt.push_back(d[0]);
+        pt.push_back(d[1]);
+        pt.push_back(d[2]);
+        new_points.push_back(pt);
+    }
+
+    std::vector<std::vector<double> > sorted_points;
+
+    // create new vector of sorted points
+    int size = new_points.size();
+    while(sorted_points.size() != size)
+    {
+      if(sorted_points.size() == 0)
+      {
+        sorted_points.push_back(new_points.front());
+        new_points.erase(new_points.begin());
+      }
+      else
+      {
+        int next = findClosestPoint(sorted_points.back(), new_points);
+        if (dist(sorted_points.back(), new_points[next]) < dist(sorted_points.front(), new_points[next]))
+        {
+          sorted_points.push_back(new_points[next]);
+          new_points.erase(new_points.begin() + next);
+        }
+        else
+        {
+          next = findClosestPoint(sorted_points.front(), new_points);
+          sorted_points.insert(sorted_points.begin(), new_points[next]);
+          new_points.erase(new_points.begin() + next);
+        }
+      }
+    }
+
+    // convert array to vtkPoints and return
+    vtkSmartPointer<vtkPoints> line_points = vtkSmartPointer<vtkPoints>::New();
+    for(int i = 0; i < size; ++i)
+    {
+      line_points->InsertNextPoint(sorted_points[i][0], sorted_points[i][1], sorted_points[i][2]);
+    }
+
+    return line_points;
+  }
+
+  int PathPlanner::findClosestPoint(std::vector<double>& pt,  std::vector<std::vector<double> >& pts)
+  {
+    double min = std::numeric_limits<double>::max();
+    int index = -1;
+    for(int i = 0; i < pts.size(); ++i)
+    {
+      double d = dist(pt, pts[i]);
+      if(d < min)
+      {
+        index = i;
+        min = d;
+      }
+    }
+    return index;
+  }
+
+  double PathPlanner::dist(std::vector<double>& pt1, std::vector<double>& pt2)
+  {
+    return (pow(pt1[0] - pt2[0], 2) + pow(pt1[1] - pt2[1], 2 ) + pow((pt1[2] - pt2[2]), 2 ));
+  }
+
+  vtkSmartPointer<vtkPolyData> PathPlanner::generateNormals(vtkSmartPointer<vtkPolyData> data)
+  {
+    vtkSmartPointer<vtkPolyData> polydata;
+    vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
+    normalGenerator->SetInputData(data);
+    normalGenerator->ComputePointNormalsOn();
+    normalGenerator->ComputeCellNormalsOff();
+    normalGenerator->Update();
+    /*
+    // Optional settings
+    normalGenerator->SetFeatureAngle(0.1);
+    normalGenerator->SetSplitting(1);
+    normalGenerator->SetConsistency(0);
+    normalGenerator->SetAutoOrientNormals(0);
+    normalGenerator->SetComputePointNormals(1);
+    normalGenerator->SetComputeCellNormals(0);
+    normalGenerator->SetFlipNormals(0);
+    normalGenerator->SetNonManifoldTraversal(1);
+    */
+
+    polydata = normalGenerator->GetOutput();
+    vtkDataArray* normalsGeneric = polydata->GetCellData()->GetNormals(); //works
+      if(normalsGeneric)
+      {
+        cout << "normals exist" ;
+      }
+    return polydata;
 
   }
 }

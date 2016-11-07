@@ -22,10 +22,16 @@ namespace path_planner
 
     vtkSmartPointer<vtkPolyData> smoothData(vtkSmartPointer<vtkPoints> points);
 
+    vtkSmartPointer<vtkPolyData> generateNormals(vtkSmartPointer<vtkPolyData> data);
   private:
     vtkSmartPointer<vtkPolyData> _input_mesh;
 
-    void sortPoints(vtkSmartPointer<vtkPoints>& points);
+    vtkSmartPointer<vtkPoints> sortPoints(vtkSmartPointer<vtkPoints>& points);
+
+    int findClosestPoint(std::vector<double>& pt,  std::vector<std::vector<double> >& pts);
+
+    double dist(std::vector<double>& pt1, std::vector<double>& pt2);
+
   };
 }
 

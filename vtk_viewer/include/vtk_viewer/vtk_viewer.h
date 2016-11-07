@@ -13,6 +13,7 @@
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include <vtkPolyData.h>
+#include <vtkGlyph3D.h>
 
 namespace vtk_viewer
 {
@@ -25,6 +26,7 @@ namespace vtk_viewer
     ~VTKViewer();
 
     void addPolyDataDisplay(vtkSmartPointer<vtkPolyData> &polydata, std::vector<float> color);
+    void addPolyNormalsDisplay(vtkSmartPointer<vtkPolyData> &polydata, std::vector<float> color, vtkSmartPointer<vtkGlyph3D> glyph);
     void addPointDataDisplay(vtkSmartPointer<vtkPoints> &points, std::vector<float> color);
     void renderDisplay();
 
@@ -35,6 +37,8 @@ namespace vtk_viewer
 
     std::vector<vtkSmartPointer<vtkActor> > _actors;
     std::vector<vtkSmartPointer<vtkPolyDataMapper> >_poly_mappers;
+
+    void MakeGlyphs(vtkSmartPointer<vtkPolyData>& src, bool const & reverseNormals, vtkSmartPointer<vtkGlyph3D> glyph);
   };
 
 }

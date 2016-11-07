@@ -7,6 +7,13 @@
 #include "vtk_viewer/vtk_viewer.h"
 #include <vtkProperty.h>
 #include <vtkVertexGlyphFilter.h>
+#include <vtkReverseSense.h>
+#include <vtkMaskPoints.h>
+#include <vtkArrowSource.h>
+
+
+#define VTK_SP(type, name)\
+  vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
 
 namespace vtk_viewer
 {
@@ -92,5 +99,93 @@ namespace vtk_viewer
     renderer->Delete();
     iren->Delete();
   }
+
+  void VTKViewer::MakeGlyphs(vtkSmartPointer<vtkPolyData>& src, bool const & reverseNormals , vtkSmartPointer<vtkGlyph3D> glyph)
+  {
+
+    // Sometimes the contouring algorithm can create a volume whose gradient
+    // vector and ordering of polygon(using the right hand rule) are
+    // inconsistent. vtkReverseSense cures this problem.
+    VTK_SP(vtkReverseSense, reverse);
+    VTK_SP(vtkMaskPoints, maskPts);
+    maskPts->SetOnRatio(5);
+    maskPts->RandomModeOn();
+    if (reverseNormals)
+    {
+      reverse->SetInputData(src);
+      reverse->ReverseCellsOn();
+      reverse->ReverseNormalsOn();
+      maskPts->SetInputConnection(reverse->GetOutputPort());
+    }
+    else
+    {
+      maskPts->SetInputData(src);
+    }
+
+    // Source for the glyph filter
+    VTK_SP(vtkArrowSource, arrow);
+    arrow->SetTipResolution(10);
+    arrow->SetTipLength(0.3);
+    arrow->SetTipRadius(0.1);
+
+    glyph->SetSourceConnection(arrow->GetOutputPort());
+    glyph->SetInputConnection(maskPts->GetOutputPort());
+    glyph->SetVectorModeToUseNormal();
+    glyph->SetScaleFactor(1);
+    glyph->SetColorModeToColorByVector();
+    glyph->SetScaleModeToScaleByVector();
+    glyph->OrientOn();
+    glyph->Update();
+  }
+
+  void VTKViewer::addPolyNormalsDisplay(vtkSmartPointer<vtkPolyData> &polydata, std::vector<float> color, vtkSmartPointer<vtkGlyph3D> glyph)
+  {
+    MakeGlyphs(polydata, true, glyph);
+
+    // create mapper and add to list
+//    VTK_SP(vtkPolyDataMapper, glyphMapper);
+//        glyphMapper->SetInputConnection(glyph->GetOutputPort());
+//        glyphMapper->SetScalarModeToUsePointFieldData();
+//        glyphMapper->SetColorModeToMapScalars();
+//        glyphMapper->ScalarVisibilityOn();
+//        glyphMapper->SelectColorArray("Elevation");
+//        // Color by scalars.
+//        // The default lookup table is used but you can
+//        // use whatever lookup table you like.
+//        glyphMapper->SetScalarRange(scalarRange);
+
+//        VTK_SP(vtkActor, glyphActor);
+//        glyphActor->SetMapper(glyphMapper);
+
+
+
+
+    vtkSmartPointer<vtkPolyDataMapper> triangulatedMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    triangulatedMapper->SetInputData(glyph->GetOutput());
+    triangulatedMapper->SetScalarModeToUsePointFieldData();
+        triangulatedMapper->SetColorModeToMapScalars();
+        triangulatedMapper->ScalarVisibilityOn();
+        triangulatedMapper->SelectColorArray("Elevation");
+        // Color by scalars.
+        // The default lookup table is used but you can
+        // use whatever lookup table you like.
+        double scalarRange[2];
+            polydata->GetScalarRange(scalarRange);
+        triangulatedMapper->SetScalarRange(scalarRange);
+
+
+    this->_poly_mappers.push_back(triangulatedMapper);
+
+    // create actor and add to list
+    vtkSmartPointer<vtkActor> triangulatedActor = vtkSmartPointer<vtkActor>::New();
+    triangulatedActor->SetMapper(_poly_mappers.back());
+    triangulatedActor->GetProperty()->SetColor(color[0],color[1],color[2]);
+
+    this->_actors.push_back(triangulatedActor);
+
+    // Add actor to renderer
+    this->renderer->AddActor(_actors.back());
+  }
+
 }
 

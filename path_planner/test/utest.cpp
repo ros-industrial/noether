@@ -35,7 +35,12 @@ TEST(IntersectTest, TestCase1)
 
   //float color[3] {0.5, 0.5, 0.5};
 
-  viz.addPolyDataDisplay(data, color);
+  vtkSmartPointer<vtkPolyData> normals_data = vtkSmartPointer<vtkPolyData>::New();
+  normals_data = planner.generateNormals(data);
+  vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
+  viz.addPolyNormalsDisplay(normals_data, color, glyph);
+  //viz.addPolyDataDisplay(data, color);
+
   //std::vector<double> color2[3] (0.9, 0.5, 0.5);
   color[0] = 0.7;
   color[1] = 0.2;
@@ -49,57 +54,27 @@ TEST(IntersectTest, TestCase1)
   color[2] = 0.9;
   vtkSmartPointer<vtkPolyData> smooth_data;
   vtkSmartPointer<vtkPoints> points, points2;
-  vtkSmartPointer<vtkCellArray> lines;
+
   points = intersect_data->GetPoints();
-  //lines = intersect_data->GetLines();
   cout << "number of intersect points : " << float(points->GetNumberOfPoints()) << "\n";
 
-//  lines->InitTraversal();
-//  cout << lines->GetNumberOfConnectivityEntries()  << "\n";
 
+  // Display old points
+  //viz.addPointDataDisplay(points, color);
 
-//  vtkSmartPointer<vtkIdList> pt = vtkSmartPointer<vtkIdList>::New();
-//  vtkSmartPointer<vtkIdTypeArray> pt2 = vtkSmartPointer<vtkIdTypeArray>::New();
-//  pt2 = lines->GetData();
-
-  //vtkIdList* pt;
-  //lines->GetCell(1,pt);
-  //cout << pt->GetNumberOfIds()  << "\n";
-
-//  int cell = lines->GetNextCell(pt);
-//  int count = 0;
-//  while(cell != 0)
-//  {
-//    //cout << cell << "\n";
-//    if (pt->GetNumberOfIds() == 2)
-//    {
-//      cout << pt->GetId(0) << " " <<  pt->GetId(1) << "    ";
-
-//      double* data2 = pt2->GetTuple(count);
-
-//      cout << *data2 << "\n";
-//      //cout << pt2[2] << "\n";
-//    }
-//    else
-//    {
-//      cout << pt->GetNumberOfIds()  << "\n";
-//    }
-//    cell = lines->GetNextCell(pt);
-//    //cout << pt->GetNumberOfIds()  << "\n";
-//    ++count;
-
-//  }
-//  cout << count;
-
-  viz.addPointDataDisplay(points, color);
-
+  // Smooth data and get evenly spaced points
   smooth_data = planner.smoothData(points);
 
   color[0] = 0.2;
   color[1] = 0.9;
   color[2] = 0.9;
 
+  // display smooth line
   viz.addPolyDataDisplay(smooth_data, color);
+
+  // display evenly spaced points
+  points2 = smooth_data->GetPoints();
+  viz.addPointDataDisplay(points2, color);
 
   viz.renderDisplay();
   //vtk_viewer::visualizePlane(data);
