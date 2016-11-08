@@ -15,7 +15,9 @@
 #include <vtkCellLinks.h>
 #include <vtkPolyDataNormals.h>
 
+#include <vtkDoubleArray.h>
 #include <vtkCellData.h>
+#include <vtkPointData.h>
 
 namespace path_planner
 {
@@ -82,6 +84,7 @@ namespace path_planner
     vtkSmartPointer<vtkPoints> points3 = vtkSmartPointer<vtkPoints>::New();
 
     //int max = output->GetPoints()->GetNumberOfPoints();
+    // get points which are evenly spaced along the spline
     int max = 10;
     double u[3], pt[3], d[9];
     for( int i = 0; i <= max; ++i)
@@ -91,11 +94,6 @@ namespace path_planner
       u[1] = double(i)/double(max);
       u[2] = double(i)/double(max);
       spline->Evaluate(u, pt, d);
-      //cout << pt[0] << " " << pt[1] << " " << pt[2] << "\n";
-      //cout << d[0] << " " << d[1] << " " << pt[2] << "\n";
-      //cout << d[3] << " " << d[4] << " " << d[5] << "\n";
-      //cout << d[6] << " " << d[7] << " " << d[8] << "\n";
-      //cout << "\n";
       points3->InsertNextPoint(pt);
     }
     output->SetPoints(points3);
@@ -180,30 +178,42 @@ namespace path_planner
 
   vtkSmartPointer<vtkPolyData> PathPlanner::generateNormals(vtkSmartPointer<vtkPolyData> data)
   {
-    vtkSmartPointer<vtkPolyData> polydata;
+
+    vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
     vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
     normalGenerator->SetInputData(data);
     normalGenerator->ComputePointNormalsOn();
     normalGenerator->ComputeCellNormalsOff();
-    normalGenerator->Update();
-    /*
+
     // Optional settings
     normalGenerator->SetFeatureAngle(0.1);
-    normalGenerator->SetSplitting(1);
-    normalGenerator->SetConsistency(0);
+    normalGenerator->SetSplitting(0);
+    normalGenerator->SetConsistency(1);
     normalGenerator->SetAutoOrientNormals(0);
     normalGenerator->SetComputePointNormals(1);
     normalGenerator->SetComputeCellNormals(0);
-    normalGenerator->SetFlipNormals(0);
+    normalGenerator->SetFlipNormals(1);
     normalGenerator->SetNonManifoldTraversal(1);
-    */
+
+    normalGenerator->Update();
 
     polydata = normalGenerator->GetOutput();
-    vtkDataArray* normalsGeneric = polydata->GetCellData()->GetNormals(); //works
+
+    vtkDataArray* normalsGeneric = polydata->GetPointData()->GetNormals(); //works
       if(normalsGeneric)
       {
         cout << "normals exist" ;
       }
+
+//    vtkSmartPointer<vtkDoubleArray> pointNormalsRetrieved =
+//        vtkDoubleArray::SafeDownCast(polydata->GetPolys()->GetData());
+//      if(pointNormalsRetrieved)
+//        {
+//        std::cout << "There are " << pointNormalsRetrieved->GetNumberOfTuples()
+//                  << " point normals." << std::endl;
+
+//      }
+
     return polydata;
 
   }

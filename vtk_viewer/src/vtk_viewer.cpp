@@ -108,7 +108,7 @@ namespace vtk_viewer
     // inconsistent. vtkReverseSense cures this problem.
     VTK_SP(vtkReverseSense, reverse);
     VTK_SP(vtkMaskPoints, maskPts);
-    maskPts->SetOnRatio(5);
+    maskPts->SetOnRatio(1);  // number of arrows to skip for visualizing, 1 means no skipping
     maskPts->RandomModeOn();
     if (reverseNormals)
     {
@@ -124,7 +124,7 @@ namespace vtk_viewer
 
     // Source for the glyph filter
     VTK_SP(vtkArrowSource, arrow);
-    arrow->SetTipResolution(10);
+    arrow->SetTipResolution(5);
     arrow->SetTipLength(0.3);
     arrow->SetTipRadius(0.1);
 
@@ -142,39 +142,11 @@ namespace vtk_viewer
   {
     MakeGlyphs(polydata, true, glyph);
 
-    // create mapper and add to list
-//    VTK_SP(vtkPolyDataMapper, glyphMapper);
-//        glyphMapper->SetInputConnection(glyph->GetOutputPort());
-//        glyphMapper->SetScalarModeToUsePointFieldData();
-//        glyphMapper->SetColorModeToMapScalars();
-//        glyphMapper->ScalarVisibilityOn();
-//        glyphMapper->SelectColorArray("Elevation");
-//        // Color by scalars.
-//        // The default lookup table is used but you can
-//        // use whatever lookup table you like.
-//        glyphMapper->SetScalarRange(scalarRange);
+    vtkSmartPointer<vtkPolyDataMapper> Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    Mapper->SetInputData(glyph->GetOutput());
+    Mapper->SetScalarModeToUsePointFieldData();
 
-//        VTK_SP(vtkActor, glyphActor);
-//        glyphActor->SetMapper(glyphMapper);
-
-
-
-
-    vtkSmartPointer<vtkPolyDataMapper> triangulatedMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    triangulatedMapper->SetInputData(glyph->GetOutput());
-    triangulatedMapper->SetScalarModeToUsePointFieldData();
-        triangulatedMapper->SetColorModeToMapScalars();
-        triangulatedMapper->ScalarVisibilityOn();
-        triangulatedMapper->SelectColorArray("Elevation");
-        // Color by scalars.
-        // The default lookup table is used but you can
-        // use whatever lookup table you like.
-        double scalarRange[2];
-            polydata->GetScalarRange(scalarRange);
-        triangulatedMapper->SetScalarRange(scalarRange);
-
-
-    this->_poly_mappers.push_back(triangulatedMapper);
+    this->_poly_mappers.push_back(Mapper);
 
     // create actor and add to list
     vtkSmartPointer<vtkActor> triangulatedActor = vtkSmartPointer<vtkActor>::New();

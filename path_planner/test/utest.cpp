@@ -26,53 +26,48 @@ TEST(IntersectTest, TestCase1)
   vtkSmartPointer<vtkPolyData> intersect_data;
   intersect_data = planner.getFirstPath();
 
-  // Display results
   vtk_viewer::VTKViewer viz;
   std::vector<float> color(3);
+
+  // Display mesh results
   color[0] = 0.9;
   color[1] = 0.9;
   color[2] = 0.9;
+  viz.addPolyDataDisplay(data, color);
 
-  //float color[3] {0.5, 0.5, 0.5};
 
+  // Display surface normals
+  color[0] = 0.9;
+  color[1] = 0.1;
+  color[2] = 0.1;
   vtkSmartPointer<vtkPolyData> normals_data = vtkSmartPointer<vtkPolyData>::New();
   normals_data = planner.generateNormals(data);
   vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
   viz.addPolyNormalsDisplay(normals_data, color, glyph);
-  //viz.addPolyDataDisplay(data, color);
 
-  //std::vector<double> color2[3] (0.9, 0.5, 0.5);
+  // Display line intersection
   color[0] = 0.7;
   color[1] = 0.2;
   color[2] = 0.2;
-
   viz.addPolyDataDisplay(intersect_data, color);
 
-  // Get points?
+  // Smooth the intersection points and display evenly spaced points
   color[0] = 0.2;
   color[1] = 0.2;
   color[2] = 0.9;
   vtkSmartPointer<vtkPolyData> smooth_data;
-  vtkSmartPointer<vtkPoints> points, points2;
-
+  vtkSmartPointer<vtkPoints> points;
   points = intersect_data->GetPoints();
-  cout << "number of intersect points : " << float(points->GetNumberOfPoints()) << "\n";
-
-
-  // Display old points
-  //viz.addPointDataDisplay(points, color);
-
-  // Smooth data and get evenly spaced points
   smooth_data = planner.smoothData(points);
 
+  // display smooth line
   color[0] = 0.2;
   color[1] = 0.9;
   color[2] = 0.9;
-
-  // display smooth line
   viz.addPolyDataDisplay(smooth_data, color);
 
   // display evenly spaced points
+  vtkSmartPointer<vtkPoints> points2;
   points2 = smooth_data->GetPoints();
   viz.addPointDataDisplay(points2, color);
 
