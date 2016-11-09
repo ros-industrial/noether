@@ -19,6 +19,6 @@ vtkSmartPointer<vtkPoints> createPlane();
 
 void visualizePlane(vtkSmartPointer<vtkPolyData>& polydata);
 
-vtkSmartPointer<vtkPolyData> createMesh();
+vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points);
 }
 #endif // VTK_UTILS_H

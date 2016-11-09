@@ -4,12 +4,13 @@ project(vtk_viewer)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED cmake_modules)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
 FIND_PACKAGE(VTK 7.0 REQUIRED)
+FIND_PACKAGE(Eigen REQUIRED)
 
 INCLUDE(${VTK_USE_FILE})
 
@@ -27,7 +28,7 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES vtk_viewer
 #  CATKIN_DEPENDS other_catkin_pkg
-#  DEPENDS system_lib
+  DEPENDS Eigen
 )
 
 ###########
@@ -41,6 +42,7 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${EIGEN_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library

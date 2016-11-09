@@ -11,6 +11,7 @@
 #include <vtkPointData.h>
 #include <vtkMath.h>
 
+#include <vtkTransform.h>
 #include <vtkVersion.h>
 #include <vtkProperty.h>
 #include <vtkDelaunay2D.h>
@@ -35,7 +36,7 @@ vtkSmartPointer<vtkPoints> createPlane()
     {
     for(unsigned int y = 0; y < gridSize; y++)
       {
-      points->InsertNextPoint(x, y, vtkMath::Random(0.0, 0.5));
+      points->InsertNextPoint(x, y, 2.0 * cos(double(x)/2.0) - 2.0 * sin(double(y)/2.0) + vtkMath::Random(0.0, 0.1));
       }
     }
 
@@ -46,15 +47,56 @@ vtkSmartPointer<vtkPoints> createPlane()
   return points;
 }
 
-vtkSmartPointer<vtkPolyData> createMesh()
+vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points )
 {
-  vtkSmartPointer<vtkPoints> points = createPlane();
+  if(!points)
+  {
+    points = createPlane();
+  }
 
   vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
   polydata->SetPoints(points);
 
   vtkSmartPointer<vtkDelaunay2D> delaunay = vtkSmartPointer<vtkDelaunay2D>::New();
   delaunay->SetInputData(polydata);
+
+  // find the bounds of the data, use this to set the transform
+  points->ComputeBounds();
+  double* bounds = points->GetBounds();  // xmin,xmax,ymin,ymax,zmin,zmax
+  double x = fabs(bounds[0]- bounds[1]);
+  double y = fabs(bounds[2]- bounds[3]);
+  double z = fabs(bounds[4]- bounds[5]);
+
+  double m = sqrt(pow(x,2.0) + pow(y,2.0) + pow(z,2.0));
+
+  x = m/x;
+  y = m/y;
+  z = m/z;
+
+  m = sqrt(pow(x,2.0) + pow(y,2.0) + pow(z,2.0));
+  x = x/m;
+  y = y/m;
+  z = z/m;
+
+  //cout << "normal direction : " << x << " " << y << " " << z << "\n";
+
+  vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+  transform->PostMultiply();
+
+  double theta = atan2(y,x);
+  //double s = y/x < 1.0 ? y/x : y/x - 1.0;
+  double s = y/x;
+  double phi = asin(s);
+
+  //cout << "theta/phi : " << theta << " " << phi  << "\n";
+
+  // TODO: verify that the rotation for performing Delaunay triangulation is correct
+  transform->RotateZ(theta );
+  transform->RotateX(phi );
+
+  delaunay->SetTransform(transform);
+
+  // Update and return the results
   delaunay->Update();
 
   return delaunay->GetOutput();
