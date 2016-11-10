@@ -41,6 +41,8 @@
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
 
+  <build_depend>vtk_viewer</build_depend>
+  <run_depend>vtk_viewer</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

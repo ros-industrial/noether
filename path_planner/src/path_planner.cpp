@@ -13,69 +13,183 @@
 #include <vtkIntersectionPolyDataFilter.h>
 #include <vtkDelaunay2D.h>
 #include <vtkMath.h>
-#include <vtkParametricSpline.h>
-#include <vtkParametricFunctionSource.h>
-#include <vtkCellLinks.h>
+#include <vtkSpline.h>
 #include <vtkPolyDataNormals.h>
 #include <vtkKdTreePointLocator.h>
-
 #include <vtkDoubleArray.h>
-#include <vtkCellData.h>
 #include <vtkPointData.h>
-
 #include <vtk_viewer/vtk_utils.h>
 
 using namespace vtk_viewer;
 
 namespace path_planner
 {
-  vtkSmartPointer<vtkPolyData> PathPlanner::getFirstPath()
+  void PathPlanner::setInputMesh(vtkSmartPointer<vtkPolyData> mesh)
+  {
+    input_mesh_ = mesh;
+    generateNormals(input_mesh_);
+  }
+
+  void PathPlanner::computePaths()
+  {
+    if(paths_.size() != 1)
+    {
+      return;
+    }
+
+
+    // could potentially make these two loops run in parallel but then we would need to add locks on the data
+    bool done = false;
+    int max = 100;
+    int count = 0;
+    while(!done && count < max)
+    {
+      ProcessPath path2;
+      if(getNextPath(paths_.back(), path2, tool_.line_spacing))
+      {
+        paths_.push_back(path2);
+      }
+      else
+      {
+        done = true;
+      }
+      ++count;
+    }
+    count = 0;
+    done = false;
+    while(!done && count < max)
+    {
+      ProcessPath path2;
+      if(getNextPath(paths_.front(), path2, -tool_.line_spacing))
+      {
+        paths_.insert(paths_.begin(), path2 );
+      }
+      else
+      {
+        done = true;
+      }
+      ++count;
+    }
+  }
+
+  void PathPlanner::getFirstPath(ProcessPath& path)
   {
     // create vertical plane
-    vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+    vtkSmartPointer<vtkPoints> mesh_points = vtkSmartPointer<vtkPoints>::New();
     unsigned int gridSize = 10;
     for(unsigned int x = 0; x < gridSize; x++)
       {
       for( int z = -5; z < 5; z++)
         {
-        points->InsertNextPoint( x , (5 - z + vtkMath::Random(0.0, 0.1)) , z);
+        mesh_points->InsertNextPoint( x , (5 - z + vtkMath::Random(0.0, 0.1)) , z);
         }
       }
 
-    vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
-    vtkSmartPointer<vtkPolyData> polydata2 = vtkSmartPointer<vtkPolyData>::New();
-    polydata->SetPoints(points);
-    vtkSmartPointer<vtkDelaunay2D> delaunay = vtkSmartPointer<vtkDelaunay2D>::New();
-    delaunay->SetInputData(polydata);
-    delaunay->Update();
+    // using points create cutting mesh
+    vtkSmartPointer<vtkPolyData> cutting_mesh = vtk_viewer::createMesh(mesh_points);
 
-    delaunay->SetAlpha(3);
-    delaunay->SetOffset(3);
-    //delaunay->SetProjectionPlaneMode(3);
-    polydata2 = delaunay->GetOutput();
+    // use cutting mesh to find intersection line
+    vtkSmartPointer<vtkPolyData> intersection_line = vtkSmartPointer<vtkPolyData>::New();
+    vtkSmartPointer<vtkParametricSpline> spline = vtkSmartPointer<vtkParametricSpline>::New();
 
-    // use Intersection filter
-    vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionPolyDataFilter =
-      vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
-    intersectionPolyDataFilter->SetInputData( 0, _input_mesh);
-    intersectionPolyDataFilter->SetInputData( 1, polydata2 );
-    intersectionPolyDataFilter->Update();
+    findIntersectionLine(cutting_mesh, intersection_line, spline);
 
+    //use spline to create interpolated data with normals and derivatives
+    vtkSmartPointer<vtkPolyData> points = vtkSmartPointer<vtkPolyData>::New();
+    vtkSmartPointer<vtkPolyData> derivatives = vtkSmartPointer<vtkPolyData>::New();
+    smoothData(spline, points, derivatives);
+
+    //ProcessPath path;
+    path.line = points;
+    path.spline = spline;
+    path.derivatives = derivatives;
+    path.intersection_plane = cutting_mesh;
+
+    paths_.push_back(path);
     // return results
-    return intersectionPolyDataFilter->GetOutput();
+    //return path;
 
   }
 
-  vtkSmartPointer<vtkPolyData> PathPlanner::smoothData(vtkSmartPointer<vtkPoints> points, vtkSmartPointer<vtkPolyData>& derivatives)
-  {
-    // Sort points and create spline
-    vtkSmartPointer<vtkPoints> points2 = vtkSmartPointer<vtkPoints>::New();
-    points2 = sortPoints(points);
-    vtkSmartPointer<vtkParametricSpline> spline = vtkSmartPointer<vtkParametricSpline>::New();
-    spline->SetPoints(points2);
 
-    vtkSmartPointer<vtkPolyData> output = vtkSmartPointer<vtkPolyData>::New();
-    vtkSmartPointer<vtkPoints> points3 = vtkSmartPointer<vtkPoints>::New();
+
+  bool PathPlanner::getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist)
+  {
+
+    // create offset points
+    vtkSmartPointer<vtkPolyData> offset_line = vtkSmartPointer<vtkPolyData>::New();
+    offset_line = createOffsetLine(this_path.line, this_path.derivatives, dist);
+
+    // create cutting surface  TODO: offset may need to be based upon point bounds
+    next_path.intersection_plane = createSurfaceFromSpline(offset_line, tool_.intersecting_plane_height);
+
+    // use surface to find intersection line
+    vtkSmartPointer<vtkPolyData> intersection_line = vtkSmartPointer<vtkPolyData>::New();
+    vtkSmartPointer<vtkParametricSpline> spline = vtkSmartPointer<vtkParametricSpline>::New();
+
+    if(!findIntersectionLine(next_path.intersection_plane, intersection_line, spline))
+    {
+      return false;
+    }
+
+    //use spline to create interpolated data with normals and derivatives
+    vtkSmartPointer<vtkPolyData> points = vtkSmartPointer<vtkPolyData>::New();
+    vtkSmartPointer<vtkPolyData> derivatives = vtkSmartPointer<vtkPolyData>::New();
+    smoothData(spline, points, derivatives);
+
+    //ProcessPath path;
+    next_path.line = points;
+    next_path.spline = spline;
+    next_path.derivatives = derivatives;
+    //path.intersection_plane = cutting_mesh;
+
+    // compare start/end points of new line to old line, flip order if necessary
+    int length = next_path.line->GetPoints()->GetNumberOfPoints();
+    //double dist1 = ;
+    if(pt_dist(this_path.line->GetPoints()->GetPoint(0), next_path.line->GetPoints()->GetPoint(0))
+       > pt_dist(this_path.line->GetPoints()->GetPoint(0), next_path.line->GetPoints()->GetPoint(length-1)))
+    {
+      flipPointOrder(next_path);
+    }
+
+    return true;
+  }
+
+  bool PathPlanner::findIntersectionLine(vtkSmartPointer<vtkPolyData> cut_surface,
+                                         vtkSmartPointer<vtkPolyData>& points,
+                                         vtkSmartPointer<vtkParametricSpline>& spline)
+  {
+    // Get intersection line
+    vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionPolyDataFilter =
+      vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
+    intersectionPolyDataFilter->SetInputData( 0, input_mesh_);
+    intersectionPolyDataFilter->SetInputData( 1, cut_surface );
+    intersectionPolyDataFilter->Update();
+
+    // Sort points
+    //points = intersectionPolyDataFilter->GetOutput();
+    //vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
+    vtkSmartPointer<vtkPoints> pts = intersectionPolyDataFilter->GetOutput()->GetPoints();
+    if(!pts || pts->GetNumberOfPoints() == 0)
+    {
+      return false;
+    }
+    sortPoints(pts);
+    points->SetPoints(pts);
+
+    // Create spline
+    //vtkSmartPointer<vtkParametricSpline> spline = vtkSmartPointer<vtkParametricSpline>::New();
+    spline->SetPoints(pts);
+
+    return true;
+
+  }
+
+  void PathPlanner::smoothData(vtkSmartPointer<vtkParametricSpline> spline, vtkSmartPointer<vtkPolyData>& points, vtkSmartPointer<vtkPolyData>& derivatives)
+  {
+
+
+    vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
 
     vtkSmartPointer<vtkDoubleArray> derv = vtkSmartPointer<vtkDoubleArray>::New();
     derv->SetNumberOfComponents(3);
@@ -84,35 +198,56 @@ namespace path_planner
     double* new_ptr;
     new_ptr = &new_pt[0];
 
-    //int max = output->GetPoints()->GetNumberOfPoints();
     // get points which are evenly spaced along the spline
-    int max = 20;
+    // spline->Evaluate takes a number in the range [0,1]
+    int max = 10;
+    double m[3], n[3];
+
     double u[3], pt[3], d[9];
+    u[0] = 0;
+    u[0] = 0;
+    u[0] = 0;
+    spline->Evaluate(u, m, d);
+    u[0] = 1/double(max);
+    spline->Evaluate(u, n, d);
+
+    // calculate new point spacing
+    double s = sqrt(pt_dist(&m[0], &n[0]));
+    max = round(double(max) / (tool_.pt_spacing / s));
+
     for( int i = 0; i <= max; ++i)
     {
-
       u[0] = double(i)/double(max);
       u[1] = double(i)/double(max);
       u[2] = double(i)/double(max);
       spline->Evaluate(u, pt, d);
-      points3->InsertNextPoint(pt);
+      new_points->InsertNextPoint(pt);
 
       double pt1[3], pt2[3];
       // find nearby point in order to calculate the local deriviative
-      if(i < max)
+      if(i == 0)
       {
         pt1[0] = pt[0];
         pt1[1] = pt[1];
         pt1[2] = pt[2];
-        u[0] += 1/(2*double(max));
+        u[0] += 1/(1*double(max));
         spline->Evaluate(u, pt2, d);
       }
-      else
+      else if(i == max)
       {
         pt2[0] = pt[0];
         pt2[1] = pt[1];
         pt2[2] = pt[2];
-        u[0] -= 1/(2*double(max));
+        u[0] -= 1/(1*double(max));
+        spline->Evaluate(u, pt1, d);
+      }
+      else
+      {
+        double u2[3] = {u[0], u[1], u[2]};
+        u2[0] += 1/(1*double(max));
+        spline->Evaluate(u2, pt2, d);
+
+        u[0] -= 1/(1*double(max));
         spline->Evaluate(u, pt1, d);
       }
 
@@ -129,15 +264,17 @@ namespace path_planner
 
       derv->InsertNextTuple(new_ptr);
     }
-    output->SetPoints(points3);
-    derivatives->SetPoints(points3);
+    points->SetPoints(new_points);
+    estimateNewNormals(points);
+
+    derivatives->SetPoints(new_points);
     derivatives->GetPointData()->SetNormals(derv);
 
-    return output;
+
   }
 
   // Sort points in linear order
-  vtkSmartPointer<vtkPoints> PathPlanner::sortPoints(vtkSmartPointer<vtkPoints>& points)
+  void PathPlanner::sortPoints(vtkSmartPointer<vtkPoints>& points)
   {
     std::vector<std::vector<double> > new_points;
     double d[3];
@@ -186,7 +323,8 @@ namespace path_planner
       line_points->InsertNextPoint(sorted_points[i][0], sorted_points[i][1], sorted_points[i][2]);
     }
 
-    return line_points;
+    points = line_points;
+    //return line_points;
   }
 
   int PathPlanner::findClosestPoint(std::vector<double>& pt,  std::vector<std::vector<double> >& pts)
@@ -205,14 +343,18 @@ namespace path_planner
     return index;
   }
 
+  double PathPlanner::pt_dist(double* pt1, double* pt2)
+  {
+    return (pow(pt1[0] - pt2[0], 2) + pow(pt1[1] - pt2[1], 2 ) + pow((pt1[2] - pt2[2]), 2 ));
+  }
+
   double PathPlanner::dist(std::vector<double>& pt1, std::vector<double>& pt2)
   {
     return (pow(pt1[0] - pt2[0], 2) + pow(pt1[1] - pt2[1], 2 ) + pow((pt1[2] - pt2[2]), 2 ));
   }
 
-  vtkSmartPointer<vtkPolyData> PathPlanner::generateNormals(vtkSmartPointer<vtkPolyData> data)
+  void PathPlanner::generateNormals(vtkSmartPointer<vtkPolyData>& data)
   {
-    vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
     vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
     normalGenerator->SetInputData(data);
     normalGenerator->ComputePointNormalsOn();
@@ -230,34 +372,14 @@ namespace path_planner
 
     normalGenerator->Update();
 
-    polydata = normalGenerator->GetOutput();
-
-    vtkDataArray* normalsGeneric = polydata->GetPointData()->GetNormals();
-      if(normalsGeneric)
+    vtkDataArray* normals = normalGenerator->GetOutput()->GetPointData()->GetNormals();
+      if(normals)
       {
-        cout << "normals exist\n" ;
-        std::cout << "There are " << normalsGeneric->GetNumberOfTuples()
-                          << " point normals." << std::endl;
-//        for(int i = 0; i < normalsGeneric->GetNumberOfTuples(); ++i)
-//        {
-//          double* val = normalsGeneric->GetTuple(i);
-//          //double vals = *val;
-//          cout << val[0] << " " << val[1] << " " << val[2] << "\n";
-//        }
+        cout << "normals successfully created \n" ;
+        data->GetPointData()->SetNormals(normals);
       }
 
-      _input_mesh->GetPointData()->SetNormals(normalsGeneric);
 
-//    vtkSmartPointer<vtkDoubleArray> pointNormalsRetrieved =
-//        vtkDoubleArray::SafeDownCast(polydata->GetPolys()->GetData());
-//      if(pointNormalsRetrieved)
-//        {
-//        std::cout << "There are " << pointNormalsRetrieved->GetNumberOfTuples()
-//                  << " point normals." << std::endl;
-
-//      }
-
-    return polydata;
 
   }
 
@@ -266,12 +388,10 @@ namespace path_planner
     //Create the tree
     vtkSmartPointer<vtkKdTreePointLocator> pointTree =
         vtkSmartPointer<vtkKdTreePointLocator>::New();
-    pointTree->SetDataSet(_input_mesh);
+    pointTree->SetDataSet(input_mesh_);
     pointTree->BuildLocator();
 
     // Find k nearest neighbors and use their normals to estimate the normal of the desired point
-    unsigned int k = 5;
-
     vtkSmartPointer<vtkDoubleArray> new_norm = vtkSmartPointer<vtkDoubleArray>::New();
     new_norm->SetNumberOfComponents(3);
 
@@ -281,13 +401,13 @@ namespace path_planner
       double testPoint[3] = {pt[0], pt[1], pt[2]};
       vtkSmartPointer<vtkIdList> result = vtkSmartPointer<vtkIdList>::New();
 
-      pointTree->FindClosestNPoints(k, testPoint, result);
+      pointTree->FindClosestNPoints(tool_.nearest_neighbors, testPoint, result);
       double final[3] = {0, 0, 0};
       int count = 0;
       for(int j = 0; j < result->GetNumberOfIds(); ++j)
       {
         //cout << final[0] << " " << final[1] << " " << final[2] << "\n";
-        pt = _input_mesh->GetPointData()->GetNormals()->GetTuple(result->GetId(j));
+        pt = input_mesh_->GetPointData()->GetNormals()->GetTuple(result->GetId(j));
         if(isnan(pt[0]) || isnan(pt[1]) || isnan(pt[2]))
         {
           continue;
@@ -363,6 +483,8 @@ namespace path_planner
     }
     new_points->SetPoints(new_pts);
 
+    estimateNewNormals(new_points);
+
     return new_points;
   }
 
@@ -404,5 +526,36 @@ namespace path_planner
     new_surface = vtk_viewer::createMesh(points);
     new_surface->SetPoints(points);
 
+  }
+
+  void PathPlanner::flipPointOrder(ProcessPath& path)
+  {
+    vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+    vtkSmartPointer<vtkPoints> points2 = vtkSmartPointer<vtkPoints>::New();
+    points = path.line->GetPoints();
+
+    // flip point order
+    for(int i = points->GetNumberOfPoints() - 1; i >= 0; --i)
+    {
+      points2->InsertNextPoint(points->GetPoint(i));
+    }
+    path.line->SetPoints(points2);
+
+    estimateNewNormals(path.line);
+
+    // flip derivative directions
+    vtkDataArray* ders = path.derivatives->GetPointData()->GetNormals();
+    for(int i = 0; i < ders->GetNumberOfTuples(); ++i)
+    {
+      double* pt = ders->GetTuple(i);
+      pt[0] *= -1;
+      pt[1] *= -1;
+      pt[2] *= -1;
+      ders->SetTuple(i, pt);
+    }
+    path.derivatives->GetPointData()->SetNormals(ders);
+
+    // reset points in spline
+    path.spline->SetPoints(points);
   }
 }

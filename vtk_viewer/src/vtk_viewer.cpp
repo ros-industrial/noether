@@ -31,7 +31,7 @@ namespace vtk_viewer
 
 
     this->renderer->SetBackground(0.2,0.4,0.3);
-    this->renWin->SetSize(800,800);
+    this->renWin->SetSize(1200,1000);
     // Finally we start the interactor so that event will be handled
 
 

@@ -20,15 +20,22 @@ TEST(IntersectTest, TestCase1)
   vtkSmartPointer<vtkPoints> empty;
   vtkSmartPointer<vtkPolyData> data = vtk_viewer::createMesh(empty);
 
-  // Calculate intersection
+  // Set input mesh
   path_planner::PathPlanner planner;
   planner.setInputMesh(data);
 
-  vtkSmartPointer<vtkPolyData> intersect_data;
-  intersect_data = planner.getFirstPath();
+  // Set input tool data
+  path_planner::ProcessTool tool;
+  tool.pt_spacing = 0.5;
+  tool.line_spacing = 1.0;
+  tool.tool_offset = 0.0; // currently unused
+  tool.intersecting_plane_height = 0.5; // 0.5 works best, not sure if this should be included in the tool
+  tool.nearest_neighbors = 5; // not sure if this should be a part of the tool
+  planner.setTool(tool);
 
   vtk_viewer::VTKViewer viz;
   std::vector<float> color(3);
+
 
   // Display mesh results
   color[0] = 0.9;
@@ -42,76 +49,49 @@ TEST(IntersectTest, TestCase1)
   color[1] = 0.1;
   color[2] = 0.1;
   vtkSmartPointer<vtkPolyData> normals_data = vtkSmartPointer<vtkPolyData>::New();
-  normals_data = planner.generateNormals(data);
+  normals_data = planner.getInputMesh();
   cout << "normals data points: " << normals_data->GetPoints()->GetNumberOfPoints() << "\n";
   vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
   viz.addPolyNormalsDisplay(normals_data, color, glyph);
 
-  // Display line intersection
-  color[0] = 0.7;
-  color[1] = 0.2;
-  color[2] = 0.2;
-  viz.addPolyDataDisplay(intersect_data, color);
 
-  // Smooth the intersection points and display evenly spaced points
-  color[0] = 0.2;
-  color[1] = 0.2;
-  color[2] = 0.9;
-  vtkSmartPointer<vtkPolyData> smooth_data;
-  vtkSmartPointer<vtkPolyData> derivatives = vtkSmartPointer<vtkPolyData>::New();
-  vtkSmartPointer<vtkPoints> points;
-  points = intersect_data->GetPoints();
-  smooth_data = planner.smoothData(points, derivatives);
+  path_planner::ProcessPath path;
+  planner.getFirstPath(path);
+  planner.computePaths();
+  std::vector<path_planner::ProcessPath> paths = planner.getPaths();
 
-  // display smooth line
-  color[0] = 0.2;
-  color[1] = 0.9;
-  color[2] = 0.9;
-  viz.addPolyDataDisplay(smooth_data, color);
+  cout << "number of paths: "  << paths.size() << "\n";
 
-  // display evenly spaced points
-  vtkSmartPointer<vtkPoints> points2;
-  points2 = smooth_data->GetPoints();
-  viz.addPointDataDisplay(points2, color);
-
-  // Estimate normals for line segment and display
-  planner.estimateNewNormals(smooth_data);
-  color[0] = 0.1;
-  color[1] = 0.1;
-  color[2] = 0.9;
-
-  vtkSmartPointer<vtkGlyph3D> glyph2 = vtkSmartPointer<vtkGlyph3D>::New();
-  viz.addPolyNormalsDisplay(smooth_data, color, glyph2);
-
-  // display line derivatives
-  vtkSmartPointer<vtkGlyph3D> glyph3 = vtkSmartPointer<vtkGlyph3D>::New();
-  viz.addPolyNormalsDisplay(derivatives, color, glyph3);
-
-  // calculate line offset and display points
-  vtkSmartPointer<vtkPolyData> offset_data;
-  offset_data = planner.createOffsetLine(smooth_data, derivatives, 1.0);
-  if(offset_data)
+  for(int i = 0; i < paths.size(); ++i)
   {
-    color[0] = 0.1;
-    color[1] = 0.9;
-    color[2] = 0.1;
-    vtkSmartPointer<vtkPoints> new_points = offset_data->GetPoints();
-    viz.addPointDataDisplay(new_points, color);
-  }
+    if(1) // display line
+    {
+      color[0] = 0.2;
+      color[1] = 0.9;
+      color[2] = 0.2;
+      vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
+      viz.addPolyNormalsDisplay(paths[i].line, color, glyph);
+    }
 
-  planner.estimateNewNormals(offset_data);
-  // generate surface from new line and visualize
-  vtkSmartPointer<vtkPolyData> offset_surface = planner.createSurfaceFromSpline(offset_data, 1.0);
-  if(offset_surface)
-  {
+    if(1) // display derivatives
+    {
     color[0] = 0.9;
     color[1] = 0.9;
-    color[2] = 0.9;
-    viz.addPolyDataDisplay(offset_surface, color);
+    color[2] = 0.2;
+    vtkSmartPointer<vtkGlyph3D> glyph2 = vtkSmartPointer<vtkGlyph3D>::New();
+    viz.addPolyNormalsDisplay(paths[i].derivatives, color, glyph2);
+    }
+
+    if(0) // Display cutting mesh
+    {
+      color[0] = 0.9;
+      color[1] = 0.9;
+      color[2] = 0.9;
+      viz.addPolyDataDisplay(paths[i].intersection_plane, color);
+    }
   }
 
   viz.renderDisplay();
-  //vtk_viewer::visualizePlane(data);
 }
 
 // Run all the tests that were declared with TEST()

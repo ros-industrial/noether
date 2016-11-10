@@ -36,7 +36,7 @@ vtkSmartPointer<vtkPoints> createPlane()
     {
     for(unsigned int y = 0; y < gridSize; y++)
       {
-      points->InsertNextPoint(x, y, 2.0 * cos(double(x)/2.0) - 2.0 * sin(double(y)/2.0) + vtkMath::Random(0.0, 0.1));
+      points->InsertNextPoint(x, y, 1.0 * cos(double(x)/2.0) - 1.0 * sin(double(y)/2.0) + vtkMath::Random(0.0, 0.1));
       }
     }
 
