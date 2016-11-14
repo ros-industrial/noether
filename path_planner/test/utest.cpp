@@ -50,7 +50,6 @@ TEST(IntersectTest, TestCase1)
   color[2] = 0.1;
   vtkSmartPointer<vtkPolyData> normals_data = vtkSmartPointer<vtkPolyData>::New();
   normals_data = planner.getInputMesh();
-  cout << "normals data points: " << normals_data->GetPoints()->GetNumberOfPoints() << "\n";
   vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
   viz.addPolyNormalsDisplay(normals_data, color, glyph);
 
@@ -59,8 +58,6 @@ TEST(IntersectTest, TestCase1)
   planner.getFirstPath(path);
   planner.computePaths();
   std::vector<path_planner::ProcessPath> paths = planner.getPaths();
-
-  cout << "number of paths: "  << paths.size() << "\n";
 
   for(int i = 0; i < paths.size(); ++i)
   {

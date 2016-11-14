@@ -40,8 +40,10 @@ namespace path_planner
 
     // could potentially make these two loops run in parallel but then we would need to add locks on the data
     bool done = false;
-    int max = 100;
+    int max = 10;
     int count = 0;
+
+    // From existing cutting plane, create more offset planes in one direction
     while(!done && count < max)
     {
       ProcessPath path2;
@@ -55,6 +57,8 @@ namespace path_planner
       }
       ++count;
     }
+
+    // From existing cutting plane, create more offset planes in opposite direction
     count = 0;
     done = false;
     while(!done && count < max)
@@ -99,16 +103,12 @@ namespace path_planner
     vtkSmartPointer<vtkPolyData> derivatives = vtkSmartPointer<vtkPolyData>::New();
     smoothData(spline, points, derivatives);
 
-    //ProcessPath path;
     path.line = points;
     path.spline = spline;
     path.derivatives = derivatives;
     path.intersection_plane = cutting_mesh;
 
     paths_.push_back(path);
-    // return results
-    //return path;
-
   }
 
 
@@ -137,15 +137,12 @@ namespace path_planner
     vtkSmartPointer<vtkPolyData> derivatives = vtkSmartPointer<vtkPolyData>::New();
     smoothData(spline, points, derivatives);
 
-    //ProcessPath path;
     next_path.line = points;
     next_path.spline = spline;
     next_path.derivatives = derivatives;
-    //path.intersection_plane = cutting_mesh;
 
     // compare start/end points of new line to old line, flip order if necessary
     int length = next_path.line->GetPoints()->GetNumberOfPoints();
-    //double dist1 = ;
     if(pt_dist(this_path.line->GetPoints()->GetPoint(0), next_path.line->GetPoints()->GetPoint(0))
        > pt_dist(this_path.line->GetPoints()->GetPoint(0), next_path.line->GetPoints()->GetPoint(length-1)))
     {
@@ -167,8 +164,6 @@ namespace path_planner
     intersectionPolyDataFilter->Update();
 
     // Sort points
-    //points = intersectionPolyDataFilter->GetOutput();
-    //vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
     vtkSmartPointer<vtkPoints> pts = intersectionPolyDataFilter->GetOutput()->GetPoints();
     if(!pts || pts->GetNumberOfPoints() == 0)
     {
@@ -178,7 +173,6 @@ namespace path_planner
     points->SetPoints(pts);
 
     // Create spline
-    //vtkSmartPointer<vtkParametricSpline> spline = vtkSmartPointer<vtkParametricSpline>::New();
     spline->SetPoints(pts);
 
     return true;
@@ -324,7 +318,6 @@ namespace path_planner
     }
 
     points = line_points;
-    //return line_points;
   }
 
   int PathPlanner::findClosestPoint(std::vector<double>& pt,  std::vector<std::vector<double> >& pts)
@@ -373,14 +366,10 @@ namespace path_planner
     normalGenerator->Update();
 
     vtkDataArray* normals = normalGenerator->GetOutput()->GetPointData()->GetNormals();
-      if(normals)
-      {
-        cout << "normals successfully created \n" ;
-        data->GetPointData()->SetNormals(normals);
-      }
-
-
-
+    if(normals)
+    {
+      data->GetPointData()->SetNormals(normals);
+    }
   }
 
   void PathPlanner::estimateNewNormals(vtkSmartPointer<vtkPolyData>& data)
@@ -406,7 +395,6 @@ namespace path_planner
       int count = 0;
       for(int j = 0; j < result->GetNumberOfIds(); ++j)
       {
-        //cout << final[0] << " " << final[1] << " " << final[2] << "\n";
         pt = input_mesh_->GetPointData()->GetNormals()->GetTuple(result->GetId(j));
         if(isnan(pt[0]) || isnan(pt[1]) || isnan(pt[2]))
         {
@@ -481,6 +469,35 @@ namespace path_planner
 
       new_pts->InsertNextPoint(new_pt);
     }
+
+    // extrapolate end points to extend line beyond edges
+    double new_pt[3];
+    double* pt1;
+
+    pt1 = new_pts->GetPoint(new_pts->GetNumberOfPoints()- 1);
+    new_pt[0] = pt1[0];
+    new_pt[1] = pt1[1];
+    new_pt[2] = pt1[2];
+    pt1 = new_pts->GetPoint(new_pts->GetNumberOfPoints()- 2);
+    new_pt[0] +=  (new_pt[0] - pt1[0]);
+    new_pt[1] +=  (new_pt[1] - pt1[1]);
+    new_pt[2] +=  (new_pt[2] - pt1[2]);
+    new_pts->InsertNextPoint(new_pt);
+
+
+    pt1 = new_pts->GetPoint(0);
+    new_pt[0] = pt1[0];
+    new_pt[1] = pt1[1];
+    new_pt[2] = pt1[2];
+    pt1 = new_pts->GetPoint(1);
+    new_pt[0] +=  (new_pt[0] - pt1[0]);
+    new_pt[1] +=  (new_pt[1] - pt1[1]);
+    new_pt[2] +=  (new_pt[2] - pt1[2]);
+    new_pts->InsertNextPoint(new_pt);
+
+
+    sortPoints(new_pts);
+
     new_points->SetPoints(new_pts);
 
     estimateNewNormals(new_points);
@@ -499,6 +516,7 @@ namespace path_planner
     }
 
     new_surface = vtkSmartPointer<vtkPolyData>::New();
+    vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New();
     vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 
     // for each point, insert 2 points, one above and one below, to create a new surface
@@ -507,25 +525,39 @@ namespace path_planner
       double* norm = normals->GetTuple(i);
       double* pt = line->GetPoints()->GetPoint(i);
 
+      // insert the cell ids to create triangles
+      if(i < normals->GetNumberOfTuples()-1)
+      {
+        vtkIdType start = i*2;
+
+        cells->InsertNextCell(3);
+        cells->InsertCellPoint(start);
+        cells->InsertCellPoint(start+1);
+        cells->InsertCellPoint(start+3);
+
+        cells->InsertNextCell(3);
+        cells->InsertCellPoint(start);
+        cells->InsertCellPoint(start+3);
+        cells->InsertCellPoint(start+2);
+      }
+
       double new_pt[3];
       new_pt[0] = pt[0] + norm[0] * dist;
       new_pt[1] = pt[1] + norm[1] * dist;
       new_pt[2] = pt[2] + norm[2] * dist;
 
-      points->InsertNextPoint(new_pt);
+      points->InsertNextPoint( new_pt);
 
       new_pt[0] = pt[0] - norm[0] * dist;
       new_pt[1] = pt[1] - norm[1] * dist;
       new_pt[2] = pt[2] - norm[2] * dist;
 
-      points->InsertNextPoint(new_pt);
-
-      points->InsertNextPoint(pt);
+      points->InsertNextPoint( new_pt);
     }
 
-    new_surface = vtk_viewer::createMesh(points);
+    new_surface->SetPolys(cells);
     new_surface->SetPoints(points);
-
+    return new_surface;
   }
 
   void PathPlanner::flipPointOrder(ProcessPath& path)
