@@ -15,10 +15,23 @@
 namespace vtk_viewer
 {
 
-vtkSmartPointer<vtkPoints> createPlane();
+  /**
+   * @brief createPlane Creates a surface mesh that has a sinusoidal function
+   * @return The points associated with the mesh
+   */
+  vtkSmartPointer<vtkPoints> createPlane();
 
-void visualizePlane(vtkSmartPointer<vtkPolyData>& polydata);
+  /**
+   * @brief visualizePlane Creates a simple VTK viewer to visualize a mesh object
+   * @param polydata The input mesh object to visualize
+   */
+  void visualizePlane(vtkSmartPointer<vtkPolyData>& polydata);
 
-vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points);
+  /**
+   * @brief createMesh Creates a Delaunay2D triangulated mesh from a set of points
+   * @param points The set of input points
+   * @return The mesh object after triangulation
+   */
+  vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points);
 }
 #endif // VTK_UTILS_H

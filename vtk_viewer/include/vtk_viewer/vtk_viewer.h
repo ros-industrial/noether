@@ -25,19 +25,48 @@ namespace vtk_viewer
     VTKViewer();
     ~VTKViewer();
 
+    /**
+     * @brief addPolyDataDisplay Add a renderer and actor for a polydata object (for meshes)
+     * @param polydata The polydata to be displayed
+     * @param color The color to use for rendering the data
+     */
     void addPolyDataDisplay(vtkSmartPointer<vtkPolyData> &polydata, std::vector<float> color);
+
+    /**
+     * @brief addPolyNormalsDisplay Add a renderer and actor for a polydata object with normals (for lines with normals and derivatives)
+     * @param polydata The polydata to be displayed
+     * @param color The color to use for rendering the data
+     * @param glyph The object used for displaying (usually arrows)
+     */
     void addPolyNormalsDisplay(vtkSmartPointer<vtkPolyData> &polydata, std::vector<float> color, vtkSmartPointer<vtkGlyph3D> glyph);
+
+    /**
+     * @brief addPointDataDisplay Add a renderer and actor for a point data object
+     * @param points The point data to be displayed
+     * @param color The color to use for rendering the data
+     */
     void addPointDataDisplay(vtkSmartPointer<vtkPoints> &points, std::vector<float> color);
+
+    /**
+     * @brief renderDisplay Calls the VTK window Render() command to visualize all of the renderers added
+     */
     void renderDisplay();
 
   private:
-    vtkRenderWindow *renWin;
-    vtkRenderer *renderer;
-    vtkRenderWindowInteractor *iren;
 
-    std::vector<vtkSmartPointer<vtkActor> > _actors;
-    std::vector<vtkSmartPointer<vtkPolyDataMapper> >_poly_mappers;
+    vtkRenderWindow * renWin_; /**< The VTK window for displaying data */
+    vtkRenderer * renderer_;  /**< The renderer for drawing all of the data in the display */
+    vtkRenderWindowInteractor * iren_;  /**< The interactor for the display to capture mouse/keyboard input */
 
+    std::vector<vtkSmartPointer<vtkActor> > actors_;  /**< The list of actors to add to the renderer */
+    std::vector<vtkSmartPointer<vtkPolyDataMapper> > poly_mappers_;  /**< The list of mappers which loads polydata into the actors for displaying */
+
+    /**
+     * @brief MakeGlyphs  Creates a glyph object for displaying polydata (arrows)
+     * @param src The input data to display
+     * @param reverseNormals Flag to determine if the normals need to be flipped before displaying
+     * @param glyph The pointer to the vtkGlyph3D object which will be created and returned
+     */
     void MakeGlyphs(vtkSmartPointer<vtkPolyData>& src, bool const & reverseNormals, vtkSmartPointer<vtkGlyph3D> glyph);
   };
 

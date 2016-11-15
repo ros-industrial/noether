@@ -28,7 +28,7 @@ namespace vtk_viewer
 
 vtkSmartPointer<vtkPoints> createPlane()
 {
-  // Create points on an XY grid with random Z coordinate
+  // Create points on an XY grid with a sinusoidal Z component
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 
   unsigned int gridSize = 10;
@@ -60,52 +60,43 @@ vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points )
   vtkSmartPointer<vtkDelaunay2D> delaunay = vtkSmartPointer<vtkDelaunay2D>::New();
   delaunay->SetInputData(polydata);
 
-  // find the bounds of the data, use this to set the transform
-  points->ComputeBounds();
-  double* bounds = points->GetBounds();  // xmin,xmax,ymin,ymax,zmin,zmax
-  double x = fabs(bounds[0]- bounds[1]);
-  double y = fabs(bounds[2]- bounds[3]);
-  double z = fabs(bounds[4]- bounds[5]);
-
-  double m = sqrt(pow(x,2.0) + pow(y,2.0) + pow(z,2.0));
-
-  x = m/x;
-  y = m/y;
-  z = m/z;
-
-  m = sqrt(pow(x,2.0) + pow(y,2.0) + pow(z,2.0));
-  x = x/m;
-  y = y/m;
-  z = z/m;
-
-  //cout << "normal direction : " << x << " " << y << " " << z << "\n";
+  // In order to perform the Delaunay2D triangulation, all of the points must be roughly
+  // in the x/y plane (z component is ignored).  If they are otherwise, the triangulation results will
+  // not be ideal and result in spurious or ill formed triangles.  Need to find a rotation
+  // to place the points in the desired x/y plane
 
   vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
   transform->PostMultiply();
 
-  double theta = atan2(y,x);
-  //double s = y/x < 1.0 ? y/x : y/x - 1.0;
-  double s = y/x;
-  double phi = asin(s);
+  // find the bounds of the data, use this to set the transform
+  points->ComputeBounds();
+  double* bounds = points->GetBounds();  // xmin,xmax,ymin,ymax,zmin,zmax
+  double x = 1.0/fabs(bounds[0]- bounds[1]);
+  double y = 1.0/fabs(bounds[2]- bounds[3]);
+  double z = 1.0/fabs(bounds[4]- bounds[5]);
 
-  //cout << "theta/phi : " << theta << " " << phi  << "\n";
+  // normalize the x,y,z components using the sqrt of the sum of the squares
+  double m = sqrt(pow(x,2.0) + pow(y,2.0) + pow(z,2.0));
+  x = x/m;
+  y = y/m;
+  z = z/m;
+
+  // calculate the rotation to place the data in the x/y plane
+  double theta = atan2(y,x);
 
   // TODO: verify that the rotation for performing Delaunay triangulation is correct
+  // May need to perform one more rotation
   transform->RotateZ(theta );
-  transform->RotateX(phi );
-
   delaunay->SetTransform(transform);
 
   // Update and return the results
   delaunay->Update();
 
   return delaunay->GetOutput();
-
 }
 
 void visualizePlane(vtkSmartPointer<vtkPolyData> &polydata)
 {
-
   // Create a mapper and actor
   vtkSmartPointer<vtkPolyDataMapper> triangulatedMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   triangulatedMapper->SetInputData(polydata);
@@ -122,7 +113,6 @@ void visualizePlane(vtkSmartPointer<vtkPolyData> &polydata)
   renderWindowInteractor->SetRenderWindow(renderWindow);
 
   // Add the actor to the scene
-
   renderer->AddActor(triangulatedActor);
   renderer->SetBackground(.3, .6, .3); // Background color green
 

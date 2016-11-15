@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(path_planner)
+project(tool_path_planner)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -35,7 +35,7 @@ INCLUDE(${VTK_USE_FILE})
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES path_planner
+  LIBRARIES tool_path_planner
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )
@@ -49,8 +49,8 @@ catkin_package(
  include_directories(include ${catkin_INCLUDE_DIRS})
 
 ## Declare a C++ library
- add_library(path_planner
-   src/path_planner.cpp
+ add_library(tool_path_planner
+   src/tool_path_planner.cpp
  )
 
 ## Add cmake target dependencies of the library
@@ -66,7 +66,7 @@ catkin_package(
 # add_dependencies(path_planner_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
- target_link_libraries(path_planner
+ target_link_libraries(tool_path_planner
    ${catkin_LIBRARIES}
    ${VTK_LIBRARIES}
  )

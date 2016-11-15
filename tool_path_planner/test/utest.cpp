@@ -5,14 +5,17 @@
  *
  */
 
-#include <path_planner/path_planner.h>
+#include <tool_path_planner/tool_path_planner.h>
 #include <vtk_viewer/vtk_utils.h>
 #include <vtk_viewer/vtk_viewer.h>
 #include <gtest/gtest.h>
 #include <vtkIdTypeArray.h>
 
-using namespace vtk_viewer;
-using namespace path_planner;
+#define DISPLAY_LINES  1
+#define DISPLAY_NORMALS  1
+#define DISPLAY_DERIVATIVES  1
+#define DISPLAY_CUTTING_MESHES  1
+
 
 TEST(IntersectTest, TestCase1)
 {
@@ -21,11 +24,11 @@ TEST(IntersectTest, TestCase1)
   vtkSmartPointer<vtkPolyData> data = vtk_viewer::createMesh(empty);
 
   // Set input mesh
-  path_planner::PathPlanner planner;
+  tool_path_planner::ToolPathPlanner planner;
   planner.setInputMesh(data);
 
   // Set input tool data
-  path_planner::ProcessTool tool;
+  tool_path_planner::ProcessTool tool;
   tool.pt_spacing = 0.5;
   tool.line_spacing = 1.0;
   tool.tool_offset = 0.0; // currently unused
@@ -45,23 +48,26 @@ TEST(IntersectTest, TestCase1)
 
 
   // Display surface normals
-  color[0] = 0.9;
-  color[1] = 0.1;
-  color[2] = 0.1;
-  vtkSmartPointer<vtkPolyData> normals_data = vtkSmartPointer<vtkPolyData>::New();
-  normals_data = planner.getInputMesh();
-  vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
-  viz.addPolyNormalsDisplay(normals_data, color, glyph);
+  if(DISPLAY_NORMALS)
+  {
+    color[0] = 0.9;
+    color[1] = 0.1;
+    color[2] = 0.1;
+    vtkSmartPointer<vtkPolyData> normals_data = vtkSmartPointer<vtkPolyData>::New();
+    normals_data = planner.getInputMesh();
+    vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
+    viz.addPolyNormalsDisplay(normals_data, color, glyph);
+  }
 
 
-  path_planner::ProcessPath path;
+  tool_path_planner::ProcessPath path;
   planner.getFirstPath(path);
   planner.computePaths();
-  std::vector<path_planner::ProcessPath> paths = planner.getPaths();
+  std::vector<tool_path_planner::ProcessPath> paths = planner.getPaths();
 
   for(int i = 0; i < paths.size(); ++i)
   {
-    if(1) // display line
+    if(DISPLAY_LINES) // display line
     {
       color[0] = 0.2;
       color[1] = 0.9;
@@ -70,7 +76,7 @@ TEST(IntersectTest, TestCase1)
       viz.addPolyNormalsDisplay(paths[i].line, color, glyph);
     }
 
-    if(1) // display derivatives
+    if(DISPLAY_DERIVATIVES) // display derivatives
     {
     color[0] = 0.9;
     color[1] = 0.9;
@@ -79,7 +85,7 @@ TEST(IntersectTest, TestCase1)
     viz.addPolyNormalsDisplay(paths[i].derivatives, color, glyph2);
     }
 
-    if(0) // Display cutting mesh
+    if(DISPLAY_CUTTING_MESHES) // Display cutting mesh
     {
       color[0] = 0.9;
       color[1] = 0.9;

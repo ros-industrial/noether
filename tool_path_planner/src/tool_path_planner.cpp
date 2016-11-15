@@ -7,7 +7,7 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
-#include <path_planner/path_planner.h>
+#include <tool_path_planner/tool_path_planner.h>
 #include <limits>
 
 #include <vtkIntersectionPolyDataFilter.h>
@@ -20,23 +20,24 @@
 #include <vtkPointData.h>
 #include <vtk_viewer/vtk_utils.h>
 
-using namespace vtk_viewer;
 
-namespace path_planner
+
+namespace tool_path_planner
 {
-  void PathPlanner::setInputMesh(vtkSmartPointer<vtkPolyData> mesh)
+  void ToolPathPlanner::setInputMesh(vtkSmartPointer<vtkPolyData> mesh)
   {
     input_mesh_ = mesh;
     generateNormals(input_mesh_);
   }
 
-  void PathPlanner::computePaths()
+  bool ToolPathPlanner::computePaths()
   {
+    // Need to call getFirstPath or other method to generate the first path
+    // If no paths exist, there is nothing to create offset paths from
     if(paths_.size() != 1)
     {
-      return;
+      return false;
     }
-
 
     // could potentially make these two loops run in parallel but then we would need to add locks on the data
     bool done = false;
@@ -74,9 +75,10 @@ namespace path_planner
       }
       ++count;
     }
+    return true;
   }
 
-  void PathPlanner::getFirstPath(ProcessPath& path)
+  void ToolPathPlanner::getFirstPath(ProcessPath& path)
   {
     // create vertical plane
     vtkSmartPointer<vtkPoints> mesh_points = vtkSmartPointer<vtkPoints>::New();
@@ -113,7 +115,7 @@ namespace path_planner
 
 
 
-  bool PathPlanner::getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist)
+  bool ToolPathPlanner::getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist)
   {
 
     // create offset points
@@ -152,7 +154,7 @@ namespace path_planner
     return true;
   }
 
-  bool PathPlanner::findIntersectionLine(vtkSmartPointer<vtkPolyData> cut_surface,
+  bool ToolPathPlanner::findIntersectionLine(vtkSmartPointer<vtkPolyData> cut_surface,
                                          vtkSmartPointer<vtkPolyData>& points,
                                          vtkSmartPointer<vtkParametricSpline>& spline)
   {
@@ -179,7 +181,7 @@ namespace path_planner
 
   }
 
-  void PathPlanner::smoothData(vtkSmartPointer<vtkParametricSpline> spline, vtkSmartPointer<vtkPolyData>& points, vtkSmartPointer<vtkPolyData>& derivatives)
+  void ToolPathPlanner::smoothData(vtkSmartPointer<vtkParametricSpline> spline, vtkSmartPointer<vtkPolyData>& points, vtkSmartPointer<vtkPolyData>& derivatives)
   {
 
 
@@ -193,55 +195,58 @@ namespace path_planner
     new_ptr = &new_pt[0];
 
     // get points which are evenly spaced along the spline
-    // spline->Evaluate takes a number in the range [0,1]
-    int max = 10;
+    // initialize num_line_pts to some number, find the Euclidean distance between two points (m & n),
+    // then use this distance to determine how many points should be used in the given line
+    int num_line_pts = 10;
     double m[3], n[3];
 
-    double u[3], pt[3], d[9];
-    u[0] = 0;
-    u[0] = 0;
-    u[0] = 0;
+    double u[3], pt[3], d[9]; // u - search point, pt - resulting point, d - unused but still required
+    u[0] = u[1] = u[2] = 0;
+
+    // spline->Evaluate() takes a number in the range [0,1]
     spline->Evaluate(u, m, d);
-    u[0] = 1/double(max);
+    u[0] = 1/double(num_line_pts);
     spline->Evaluate(u, n, d);
 
     // calculate new point spacing
     double s = sqrt(pt_dist(&m[0], &n[0]));
-    max = round(double(max) / (tool_.pt_spacing / s));
+    num_line_pts = round( double(num_line_pts) / (tool_.pt_spacing / s));
 
-    for( int i = 0; i <= max; ++i)
+    // Get points evenly spaced along the spline
+    for( int i = 0; i <= num_line_pts; ++i)
     {
-      u[0] = double(i)/double(max);
-      u[1] = double(i)/double(max);
-      u[2] = double(i)/double(max);
+      // Get point and store
+      u[0] = double(i)/double(num_line_pts);
+      u[1] = double(i)/double(num_line_pts);
+      u[2] = double(i)/double(num_line_pts);
       spline->Evaluate(u, pt, d);
       new_points->InsertNextPoint(pt);
 
       double pt1[3], pt2[3];
-      // find nearby point in order to calculate the local deriviative
+      // find nearby points in order to calculate the local deriviative
       if(i == 0)
       {
         pt1[0] = pt[0];
         pt1[1] = pt[1];
         pt1[2] = pt[2];
-        u[0] += 1/(1*double(max));
+        u[0] += 1/(1*double(num_line_pts));
         spline->Evaluate(u, pt2, d);
       }
-      else if(i == max)
+      else if(i == num_line_pts)
       {
         pt2[0] = pt[0];
         pt2[1] = pt[1];
         pt2[2] = pt[2];
-        u[0] -= 1/(1*double(max));
+        u[0] -= 1/(1*double(num_line_pts));
         spline->Evaluate(u, pt1, d);
       }
       else
       {
         double u2[3] = {u[0], u[1], u[2]};
-        u2[0] += 1/(1*double(max));
+        u2[0] += 1/(1*double(num_line_pts));
         spline->Evaluate(u2, pt2, d);
 
-        u[0] -= 1/(1*double(max));
+        u[0] -= 1/(1*double(num_line_pts));
         spline->Evaluate(u, pt1, d);
       }
 
@@ -249,37 +254,37 @@ namespace path_planner
       new_ptr[0] = pt1[0] - pt2[0];
       new_ptr[1] = pt1[1] - pt2[1];
       new_ptr[2] = pt1[2] - pt2[2];
-      double der = sqrt(pow(new_ptr[0],2) + pow(new_ptr[1],2) + pow(new_ptr[2],2));
+      double denom = sqrt(pow(new_ptr[0],2) + pow(new_ptr[1],2) + pow(new_ptr[2],2));
 
       // normalize the derivative vector
-      new_ptr[0] /= der;
-      new_ptr[1] /= der;
-      new_ptr[2] /= der;
+      new_ptr[0] /= denom;
+      new_ptr[1] /= denom;
+      new_ptr[2] /= denom;
 
       derv->InsertNextTuple(new_ptr);
     }
+    // Set points and normals
     points->SetPoints(new_points);
     estimateNewNormals(points);
 
+    // Set points and derivatives
     derivatives->SetPoints(new_points);
     derivatives->GetPointData()->SetNormals(derv);
-
-
   }
 
   // Sort points in linear order
-  void PathPlanner::sortPoints(vtkSmartPointer<vtkPoints>& points)
+  void ToolPathPlanner::sortPoints(vtkSmartPointer<vtkPoints>& points)
   {
     std::vector<std::vector<double> > new_points;
-    double d[3];
     for(int i = 0; i < points->GetNumberOfPoints(); ++i)
     {
-        points->GetPoint(i, d);
-        std::vector<double> pt;
-        pt.push_back(d[0]);
-        pt.push_back(d[1]);
-        pt.push_back(d[2]);
-        new_points.push_back(pt);
+      double d[3];
+      points->GetPoint(i, d);
+      std::vector<double> pt;
+      pt.push_back(d[0]);
+      pt.push_back(d[1]);
+      pt.push_back(d[2]);
+      new_points.push_back(pt);
     }
 
     std::vector<std::vector<double> > sorted_points;
@@ -320,7 +325,7 @@ namespace path_planner
     points = line_points;
   }
 
-  int PathPlanner::findClosestPoint(std::vector<double>& pt,  std::vector<std::vector<double> >& pts)
+  int ToolPathPlanner::findClosestPoint(std::vector<double>& pt,  std::vector<std::vector<double> >& pts)
   {
     double min = std::numeric_limits<double>::max();
     int index = -1;
@@ -336,17 +341,17 @@ namespace path_planner
     return index;
   }
 
-  double PathPlanner::pt_dist(double* pt1, double* pt2)
+  double ToolPathPlanner::pt_dist(double* pt1, double* pt2)
   {
     return (pow(pt1[0] - pt2[0], 2) + pow(pt1[1] - pt2[1], 2 ) + pow((pt1[2] - pt2[2]), 2 ));
   }
 
-  double PathPlanner::dist(std::vector<double>& pt1, std::vector<double>& pt2)
+  double ToolPathPlanner::dist(std::vector<double>& pt1, std::vector<double>& pt2)
   {
     return (pow(pt1[0] - pt2[0], 2) + pow(pt1[1] - pt2[1], 2 ) + pow((pt1[2] - pt2[2]), 2 ));
   }
 
-  void PathPlanner::generateNormals(vtkSmartPointer<vtkPolyData>& data)
+  void ToolPathPlanner::generateNormals(vtkSmartPointer<vtkPolyData>& data)
   {
     vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
     normalGenerator->SetInputData(data);
@@ -372,7 +377,7 @@ namespace path_planner
     }
   }
 
-  void PathPlanner::estimateNewNormals(vtkSmartPointer<vtkPolyData>& data)
+  void ToolPathPlanner::estimateNewNormals(vtkSmartPointer<vtkPolyData>& data)
   {
     //Create the tree
     vtkSmartPointer<vtkKdTreePointLocator> pointTree =
@@ -386,13 +391,17 @@ namespace path_planner
 
     for(int i = 0; i < data->GetPoints()->GetNumberOfPoints(); ++i)
     {
+      // Get the next point to estimate the normal
       double* pt = data->GetPoints()->GetPoint(i);
       double testPoint[3] = {pt[0], pt[1], pt[2]};
       vtkSmartPointer<vtkIdList> result = vtkSmartPointer<vtkIdList>::New();
 
+      // Find N nearest neighbors to the point
       pointTree->FindClosestNPoints(tool_.nearest_neighbors, testPoint, result);
       double final[3] = {0, 0, 0};
       int count = 0;
+
+      // For N neighbors found, get their normals and add them together
       for(int j = 0; j < result->GetNumberOfIds(); ++j)
       {
         pt = input_mesh_->GetPointData()->GetNormals()->GetTuple(result->GetId(j));
@@ -406,8 +415,8 @@ namespace path_planner
         ++count;
       }
 
+      // If at least 1 neighbor is found, average the normals, else set to zero
       double* pt2 = pt;
-
       if(count == 0)
       {
         pt2[0] = 0;
@@ -423,25 +432,22 @@ namespace path_planner
         pt2[1] = final[1];
         pt2[2] = final[2];
       }
+      // Insert the averaged normal
       new_norm->InsertNextTuple(pt2);
     }
+    // Insert the normal data
     data->GetPointData()->SetNormals(new_norm);
-
   }
 
-  vtkSmartPointer<vtkPolyData> PathPlanner::createOffsetLine(vtkSmartPointer<vtkPolyData> line, vtkSmartPointer<vtkPolyData> derivatives, double dist)
+  vtkSmartPointer<vtkPolyData> ToolPathPlanner::createOffsetLine(vtkSmartPointer<vtkPolyData> line, vtkSmartPointer<vtkPolyData> derivatives, double dist)
   {
     vtkSmartPointer<vtkPolyData> new_points;
 
     vtkDataArray* normals = line->GetPointData()->GetNormals();
     vtkDataArray* ders = derivatives->GetPointData()->GetNormals();
-    if(!normals || !ders)
-    {
-      // return null pointer
-      return new_points;
-    }
 
-    if(normals->GetNumberOfTuples() != ders->GetNumberOfTuples())
+    // If normal or derivative data does not exist, or number of normals and derivatives do not match, return a null pointer
+    if(!normals || !ders || normals->GetNumberOfTuples() != ders->GetNumberOfTuples())
     {
       return new_points;
     }
@@ -474,6 +480,7 @@ namespace path_planner
     double new_pt[3];
     double* pt1;
 
+    // Extend end point
     pt1 = new_pts->GetPoint(new_pts->GetNumberOfPoints()- 1);
     new_pt[0] = pt1[0];
     new_pt[1] = pt1[1];
@@ -484,7 +491,7 @@ namespace path_planner
     new_pt[2] +=  (new_pt[2] - pt1[2]);
     new_pts->InsertNextPoint(new_pt);
 
-
+    // Extend front point
     pt1 = new_pts->GetPoint(0);
     new_pt[0] = pt1[0];
     new_pt[1] = pt1[1];
@@ -495,7 +502,7 @@ namespace path_planner
     new_pt[2] +=  (new_pt[2] - pt1[2]);
     new_pts->InsertNextPoint(new_pt);
 
-
+    // because extended points were added to the back, need to resort the list
     sortPoints(new_pts);
 
     new_points->SetPoints(new_pts);
@@ -505,7 +512,7 @@ namespace path_planner
     return new_points;
   }
 
-  vtkSmartPointer<vtkPolyData> PathPlanner::createSurfaceFromSpline(vtkSmartPointer<vtkPolyData> line, double dist)
+  vtkSmartPointer<vtkPolyData> ToolPathPlanner::createSurfaceFromSpline(vtkSmartPointer<vtkPolyData> line, double dist)
   {
     vtkSmartPointer<vtkPolyData> new_surface;
     vtkSmartPointer<vtkDataArray> normals = line->GetPointData()->GetNormals();
@@ -560,7 +567,7 @@ namespace path_planner
     return new_surface;
   }
 
-  void PathPlanner::flipPointOrder(ProcessPath& path)
+  void ToolPathPlanner::flipPointOrder(ProcessPath& path)
   {
     vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
     vtkSmartPointer<vtkPoints> points2 = vtkSmartPointer<vtkPoints>::New();
