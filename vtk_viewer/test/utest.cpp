@@ -7,11 +7,11 @@
 #include <vtk_viewer/vtk_utils.h>
 #include <gtest/gtest.h>
 
-using namespace vtk_viewer;
 
 TEST(ViewerTest, TestCase1)
 {
-  vtkSmartPointer<vtkPolyData> data = vtk_viewer::createMesh();
+  vtkSmartPointer<vtkPoints> points = vtk_viewer::createPlane();
+  vtkSmartPointer<vtkPolyData> data = vtk_viewer::createMesh(points);
   vtk_viewer::visualizePlane(data);
 }
 
