@@ -136,11 +136,6 @@ namespace tool_path_planner
      */
     void sortPoints(vtkSmartPointer<vtkPoints>& points);
 
-    /**
-     * @brief flipPointOrder Inverts a path, points, normals, and derivatives (not necessarily the spline)
-     * @param path The input path to invert
-     */
-    void flipPointOrder(ProcessPath& path);
 
     /**
      * @brief findIntersectionLine Given an cutting mesh, finds the intersection of the mesh and the input_mesh_
@@ -153,14 +148,22 @@ namespace tool_path_planner
                                                       vtkSmartPointer<vtkPolyData>& points,
                                                       vtkSmartPointer<vtkParametricSpline>& spline);
 
-    int findClosestPoint(std::vector<double>& pt,  std::vector<std::vector<double> >& pts);
 
-    double pt_dist(double* pt1, double* pt2);
-
-    double dist(std::vector<double>& pt1, std::vector<double>& pt2);
 
 
   };
+
+  /**
+   * @brief flipPointOrder Inverts a path, points, normals, and derivatives (not necessarily the spline)
+   * @param path The input path to invert
+   */
+  void flipPointOrder(ProcessPath& path);
+
+  int findClosestPoint(std::vector<double>& pt,  std::vector<std::vector<double> >& pts);
+
+  double pt_dist(double* pt1, double* pt2);
+
+  double dist(std::vector<double>& pt1, std::vector<double>& pt2);
 }
 
 #endif // PATH_PLANNER_H

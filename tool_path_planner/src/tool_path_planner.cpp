@@ -24,6 +24,33 @@
 
 namespace tool_path_planner
 {
+
+  double pt_dist(double* pt1, double* pt2)
+  {
+    return (pow(pt1[0] - pt2[0], 2) + pow(pt1[1] - pt2[1], 2 ) + pow((pt1[2] - pt2[2]), 2 ));
+  }
+
+  double calc_distance(std::vector<double>& pt1, std::vector<double>& pt2)
+  {
+    return (pow(pt1[0] - pt2[0], 2) + pow(pt1[1] - pt2[1], 2 ) + pow((pt1[2] - pt2[2]), 2 ));
+  }
+
+  int findClosestPoint(std::vector<double>& pt,  std::vector<std::vector<double> >& pts)
+  {
+    double min = std::numeric_limits<double>::max();
+    int index = -1;
+    for(int i = 0; i < pts.size(); ++i)
+    {
+      double d = calc_distance(pt, pts[i]);
+      if(d < min)
+      {
+        index = i;
+        min = d;
+      }
+    }
+    return index;
+  }
+
   void ToolPathPlanner::setInputMesh(vtkSmartPointer<vtkPolyData> mesh)
   {
     input_mesh_ = mesh;
@@ -301,7 +328,7 @@ namespace tool_path_planner
       else
       {
         int next = findClosestPoint(sorted_points.back(), new_points);
-        if (dist(sorted_points.back(), new_points[next]) < dist(sorted_points.front(), new_points[next]))
+        if (calc_distance(sorted_points.back(), new_points[next]) < calc_distance(sorted_points.front(), new_points[next]))
         {
           sorted_points.push_back(new_points[next]);
           new_points.erase(new_points.begin() + next);
@@ -323,32 +350,6 @@ namespace tool_path_planner
     }
 
     points = line_points;
-  }
-
-  int ToolPathPlanner::findClosestPoint(std::vector<double>& pt,  std::vector<std::vector<double> >& pts)
-  {
-    double min = std::numeric_limits<double>::max();
-    int index = -1;
-    for(int i = 0; i < pts.size(); ++i)
-    {
-      double d = dist(pt, pts[i]);
-      if(d < min)
-      {
-        index = i;
-        min = d;
-      }
-    }
-    return index;
-  }
-
-  double ToolPathPlanner::pt_dist(double* pt1, double* pt2)
-  {
-    return (pow(pt1[0] - pt2[0], 2) + pow(pt1[1] - pt2[1], 2 ) + pow((pt1[2] - pt2[2]), 2 ));
-  }
-
-  double ToolPathPlanner::dist(std::vector<double>& pt1, std::vector<double>& pt2)
-  {
-    return (pow(pt1[0] - pt2[0], 2) + pow(pt1[1] - pt2[1], 2 ) + pow((pt1[2] - pt2[2]), 2 ));
   }
 
   void ToolPathPlanner::generateNormals(vtkSmartPointer<vtkPolyData>& data)
@@ -567,7 +568,7 @@ namespace tool_path_planner
     return new_surface;
   }
 
-  void ToolPathPlanner::flipPointOrder(ProcessPath& path)
+  void flipPointOrder(ProcessPath& path)
   {
     vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
     vtkSmartPointer<vtkPoints> points2 = vtkSmartPointer<vtkPoints>::New();
@@ -580,7 +581,17 @@ namespace tool_path_planner
     }
     path.line->SetPoints(points2);
 
-    estimateNewNormals(path.line);
+    // flip normal order
+    vtkSmartPointer<vtkDataArray> norms = path.line->GetPointData()->GetNormals();
+    vtkSmartPointer<vtkDoubleArray> new_norms = vtkSmartPointer<vtkDoubleArray>::New();
+    new_norms->SetNumberOfComponents(3);
+
+    for(int i = norms->GetNumberOfTuples() - 1; i >= 0; --i)
+    {
+      double* ptr = norms->GetTuple(i);
+      new_norms->InsertNextTuple(ptr);
+    }
+    path.line->GetPointData()->SetNormals(new_norms);
 
     // flip derivative directions
     vtkDataArray* ders = path.derivatives->GetPointData()->GetNormals();
@@ -597,4 +608,7 @@ namespace tool_path_planner
     // reset points in spline
     path.spline->SetPoints(points);
   }
+
+
+
 }
