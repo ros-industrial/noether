@@ -63,8 +63,6 @@ TEST(IntersectTest, TestCase1)
     viz.addPolyNormalsDisplay(normals_data, color, glyph);
   }
 
-  cout << "create/get data\n";
-
   tool_path_planner::ProcessPath path;
   planner.getFirstPath(path);
   planner.computePaths();
