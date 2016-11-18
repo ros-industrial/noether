@@ -38,7 +38,7 @@ namespace vtk_viewer
      * @param color The color to use for rendering the data
      * @param glyph The object used for displaying (usually arrows)
      */
-    void addPolyNormalsDisplay(vtkSmartPointer<vtkPolyData> &polydata, std::vector<float> color, vtkSmartPointer<vtkGlyph3D> glyph);
+    void addPolyNormalsDisplay(vtkSmartPointer<vtkPolyData> polydata, std::vector<float> color, vtkSmartPointer<vtkGlyph3D> glyph);
 
     /**
      * @brief addPointDataDisplay Add a renderer and actor for a point data object
@@ -46,6 +46,8 @@ namespace vtk_viewer
      * @param color The color to use for rendering the data
      */
     void addPointDataDisplay(vtkSmartPointer<vtkPoints> &points, std::vector<float> color);
+
+    void addCellNormalDisplay(vtkSmartPointer<vtkPolyData> polydata, std::vector<float> color);
 
     /**
      * @brief renderDisplay Calls the VTK window Render() command to visualize all of the renderers added

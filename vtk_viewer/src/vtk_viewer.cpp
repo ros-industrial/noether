@@ -11,6 +11,15 @@
 #include <vtkMaskPoints.h>
 #include <vtkArrowSource.h>
 
+#include <vtkLookupTable.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkColorSeries.h>
+#include <vtkPointData.h>
+#include <vtkCellData.h>
+#include <vtkDataArray.h>
+#include <vtkDoubleArray.h>
+#include <vtkCell.h>
+#include <vtkTriangle.h>
 
 #define VTK_SP(type, name)\
   vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
@@ -73,6 +82,32 @@ namespace vtk_viewer
     triangulatedMapper->SetInputData(polydata);
     this->poly_mappers_.push_back(triangulatedMapper);
 
+    // add color scheme if scalars are present
+    vtkSmartPointer<vtkColorTransferFunction> lut =
+        vtkSmartPointer<vtkColorTransferFunction>::New();
+      lut->SetColorSpaceToRGB();
+      vtkDataArray *scalars = polydata->GetPointData()->GetScalars();
+    if(scalars)
+    {
+      double range[2];
+
+      polydata->GetScalarRange(range);
+      cout << "range: " << range[0] << " " << range[1] << " \n";
+      //range[0] = 10.0;
+      range[1] = 20.0;
+
+      for(int i = 0; i < 255; ++i)
+      {
+        double t = range[0] + (range[1] - range[0]) / (255 - 1) * i;
+        double scale = range[1] - range[0];
+        //cout << "t " << t << " " << t*color[1]/scale << "\n";
+        lut->AddRGBPoint(t, 1/t*color[1] /scale , 1/t*color[1] /scale , 1/t*color[2] /scale );
+      }
+
+      triangulatedMapper->SetLookupTable(lut);
+      triangulatedMapper->SetScalarRange(range);
+    }
+
     // create actor and add to list
     vtkSmartPointer<vtkActor> triangulatedActor = vtkSmartPointer<vtkActor>::New();
     triangulatedActor->SetMapper(poly_mappers_.back());
@@ -122,16 +157,16 @@ namespace vtk_viewer
     glyph->SetSourceConnection(arrow->GetOutputPort());
     glyph->SetInputConnection(maskPts->GetOutputPort());
     glyph->SetVectorModeToUseNormal();
-    glyph->SetScaleFactor(1);
+    glyph->SetScaleFactor(5);
     glyph->SetColorModeToColorByVector();
     glyph->SetScaleModeToScaleByVector();
     glyph->OrientOn();
     glyph->Update();
   }
 
-  void VTKViewer::addPolyNormalsDisplay(vtkSmartPointer<vtkPolyData> &polydata, std::vector<float> color, vtkSmartPointer<vtkGlyph3D> glyph)
+  void VTKViewer::addPolyNormalsDisplay(vtkSmartPointer<vtkPolyData> polydata, std::vector<float> color, vtkSmartPointer<vtkGlyph3D> glyph)
   {
-    MakeGlyphs(polydata, true, glyph);
+    MakeGlyphs(polydata, false, glyph);
 
     vtkSmartPointer<vtkPolyDataMapper> Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     Mapper->SetInputData(glyph->GetOutput());
@@ -150,5 +185,76 @@ namespace vtk_viewer
     this->renderer_->AddActor(actors_.back());
   }
 
+  void VTKViewer::addCellNormalDisplay(vtkSmartPointer<vtkPolyData> polydata, std::vector<float> color)
+  {
+    // get cell and point data
+
+    cout << polydata->GetVerts()->GetNumberOfCells() << "\n";
+    cout << polydata->GetLines()->GetNumberOfCells() << "\n";
+    cout << polydata->GetPolys()->GetNumberOfCells() << "\n";
+    cout << polydata->GetStrips()->GetNumberOfCells() << "\n";
+
+    vtkSmartPointer<vtkPoints> points = polydata->GetPoints();
+    vtkSmartPointer<vtkPoints> cell_centroids = vtkSmartPointer<vtkPoints>::New();
+
+    vtkSmartPointer<vtkDataArray> normalsArray = polydata->GetCellData()->GetNormals();
+
+    vtkSmartPointer<vtkCellArray> cellIds = polydata->GetPolys();
+    cout << cellIds->GetNumberOfCells() << "\n";
+    cellIds->InitTraversal();
+
+    //vtkIdTypeArray * array = cellIds->GetData();
+    //int size = array->GetNumberOfComponents();
+    //cout << size << "\n";
+
+    for(int i = 0; i < cellIds->GetNumberOfCells(); ++i)
+    {
+      //vtkIdList* pts;
+      //vtkIdType id = i;
+      vtkCell* cell = polydata->GetCell(i);
+      if(cell)
+      {
+        //cout << "found cell!\n";
+        vtkTriangle* triangle = dynamic_cast<vtkTriangle*>(cell);
+        double p0[3];
+        double p1[3];
+        double p2[3];
+        double center[3];
+        triangle->GetPoints()->GetPoint(0, p0);
+        //std::cout << "p0: " << p0[0] << " " << p0[1] << " " << p0[2] << std::endl;
+        triangle->GetPoints()->GetPoint(1, p1);
+        //std::cout << "p1: " << p1[0] << " " << p1[1] << " " << p1[2] << std::endl;
+        triangle->GetPoints()->GetPoint(2, p2);
+        //std::cout << "p2: " << p2[0] << " " << p2[1] << " " << p2[2] << std::endl;
+        triangle->TriangleCenter(p0, p1, p2, center);
+        cell_centroids->InsertNextPoint(center);
+      }
+
+
+
+
+    }
+    vtkSmartPointer<vtkPolyData> centroid_polydata = vtkSmartPointer<vtkPolyData>::New();
+    centroid_polydata->SetPoints(cell_centroids);
+    centroid_polydata->GetPointData()->SetNormals(normalsArray);
+
+
+    // create cell centroids from the points
+//    for(int i = 0; i < polydata->GetPolys()->GetNumberOfCells(); ++i)
+//    {
+//      cout << i << "\n";
+//      vtkIdList* pts;
+//      cellIds->GetNextCell(pts);
+//      cout << pts[0] << " " << pts[1] << " " << pts[2] << "\n";
+
+//    }
+
+    vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
+    MakeGlyphs(centroid_polydata, true, glyph);
+
+    addPolyNormalsDisplay(centroid_polydata, color, glyph);
+
+
+  }
 }
 

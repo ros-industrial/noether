@@ -9,6 +9,7 @@
 #include <sstream>
 
 #include <vtkPointData.h>
+#include <vtkCellData.h>
 #include <vtkMath.h>
 
 #include <vtkTransform.h>
@@ -21,6 +22,20 @@
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkVertexGlyphFilter.h>
+#include <vtkSTLReader.h>
+
+#include <vtkPolyDataNormals.h>
+#include <vtkDoubleArray.h>
+#include <vtkMarchingContourFilter.h>
+#include <vtkMarchingCubes.h>
+#include <vtkDiscreteMarchingCubes.h>
+#include <vtkVoxelModeller.h>
+#include <vtkCurvatures.h>
+
+#include <vtkSurfaceReconstructionFilter.h>
+#include <vtkReverseSense.h>
+#include <vtkContourFilter.h>
+#include <vtkPolyDataPointSampler.h>
 
 namespace vtk_viewer
 {
@@ -119,6 +134,161 @@ void visualizePlane(vtkSmartPointer<vtkPolyData> &polydata)
   // Render and interact
   renderWindow->Render();
   renderWindowInteractor->Start();
+}
+
+vtkSmartPointer<vtkPolyData> readSTLFile(std::string file)
+{
+  vtkSmartPointer<vtkSTLReader> reader = vtkSmartPointer<vtkSTLReader>::New();
+  reader->SetFileName(file.c_str());
+  reader->SetMerging(1);
+  reader->Update();
+
+  return reader->GetOutput();
+}
+
+vtkSmartPointer<vtkPolyData> segmentMesh(vtkSmartPointer<vtkPolyData> mesh)
+{
+//  vtkSmartPointer<vtkVoxelModeller> voxelModeller =
+//      vtkSmartPointer<vtkVoxelModeller>::New();
+    double bounds[6];
+    mesh->GetBounds(bounds);
+
+    cout << bounds[0] << " " << bounds[1] << " " << bounds[2] << " " << bounds[3] << " " <<bounds[4] << " " << bounds[5] << "\n";
+//    voxelModeller->SetSampleDimensions(50,50,50);
+//    voxelModeller->SetModelBounds(bounds);
+//    voxelModeller->SetScalarTypeToFloat();
+////     voxelModeller->SetMaximumDistance(.1);
+//    voxelModeller->SetInputData(mesh);
+//    voxelModeller->Update();
+
+    vtkSmartPointer<vtkDoubleArray> weights =
+        vtkSmartPointer<vtkDoubleArray>::New();
+      weights->SetNumberOfValues(mesh->GetNumberOfCells());
+
+    for(int i = 0; i < mesh->GetNumberOfCells(); ++i)
+    {
+      weights->SetValue(i, i );
+    }
+
+    mesh->GetPointData()->SetScalars(weights);
+
+  vtkSmartPointer<vtkMarchingContourFilter> marchingContourFilter =
+    vtkSmartPointer<vtkMarchingContourFilter>::New();
+  marchingContourFilter->SetInputData(mesh);
+  marchingContourFilter->GenerateValues(10, 0.0f, 12.0f);
+  marchingContourFilter->SetUseScalarTree(1);
+
+  cout << "scalars: " << marchingContourFilter->GetComputeScalars() << "\n";
+
+  //  marchingContourFilter->GenerateValues(1, 5.0f, 5.0f);
+  marchingContourFilter->Update();
+
+  return marchingContourFilter->GetOutput();
+}
+
+vtkSmartPointer<vtkPolyData> estimateCurvature(vtkSmartPointer<vtkPolyData> mesh, int method)
+{
+  vtkSmartPointer<vtkCurvatures> curvaturesFilter =
+      vtkSmartPointer<vtkCurvatures>::New();
+    curvaturesFilter->SetInputData(mesh);
+    curvaturesFilter->SetCurvatureTypeToMean();
+    switch(method)
+    {
+    case 0:
+      curvaturesFilter->SetCurvatureTypeToMinimum();
+      break;
+    case 1:
+      curvaturesFilter->SetCurvatureTypeToMaximum();
+      break;
+    case 2:
+      curvaturesFilter->SetCurvatureTypeToGaussian();
+      break;
+    case 3:
+      curvaturesFilter->SetCurvatureTypeToMean();
+      break;
+    }
+    curvaturesFilter->Update();
+
+    return curvaturesFilter->GetOutput();
+}
+
+void generateNormals(vtkSmartPointer<vtkPolyData>& data)
+{
+  vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
+  normalGenerator->SetInputData(data);
+  normalGenerator->ComputePointNormalsOn();
+  normalGenerator->ComputeCellNormalsOff();
+
+  // Optional settings
+  normalGenerator->SetFeatureAngle(0.1);
+  normalGenerator->SetSplitting(0);
+  normalGenerator->SetConsistency(1);
+  normalGenerator->SetAutoOrientNormals(1);
+  normalGenerator->SetComputePointNormals(0);
+  normalGenerator->SetComputeCellNormals(1);
+  normalGenerator->SetFlipNormals(0);
+  normalGenerator->SetNonManifoldTraversal(1);
+
+  normalGenerator->Update();
+
+  vtkDataArray* normals = normalGenerator->GetOutput()->GetPointData()->GetNormals();
+  if(normals)
+  {
+    data->GetPointData()->SetNormals(normals);
+  }
+
+  vtkDataArray* normals2 = normalGenerator->GetOutput()->GetCellData()->GetNormals();
+  if(normals2)
+  {
+    data->GetCellData()->SetNormals(normals2);
+  }
+}
+
+vtkSmartPointer<vtkPolyData> upsampleMesh(vtkSmartPointer<vtkPolyData> mesh, double distance)
+{
+  vtkSmartPointer<vtkPolyDataPointSampler> pointSampler =
+      vtkSmartPointer<vtkPolyDataPointSampler>::New();
+  pointSampler->SetDistance(distance);
+  pointSampler->SetInputData(mesh);
+  pointSampler->Update();
+
+  // Resize the mesh and insert the new points
+  int old_size = mesh->GetPoints()->GetNumberOfPoints();
+  int new_size = pointSampler->GetOutput()->GetPoints()->GetNumberOfPoints();
+
+  vtkSmartPointer<vtkPolyData> updated_mesh = vtkSmartPointer<vtkPolyData>::New();
+  updated_mesh->SetPoints(mesh->GetPoints());
+  int size = old_size + new_size;
+  updated_mesh->GetPoints()->Resize(size);
+
+  //updated_mesh->GetPoints()->InsertPoints(0, old_size, 0, mesh->GetPoints());
+  updated_mesh->GetPoints()->InsertPoints(old_size, new_size, 0, pointSampler->GetOutput()->GetPoints());
+
+  // create surface from new point set
+  vtkSmartPointer<vtkSurfaceReconstructionFilter> surf =
+      vtkSmartPointer<vtkSurfaceReconstructionFilter>::New();
+
+  surf->SetInputData(updated_mesh);
+  cout << pointSampler->GetOutput()->GetPoints()->GetNumberOfPoints() << "\n";
+
+  vtkSmartPointer<vtkMarchingCubes> cf = vtkSmartPointer<vtkMarchingCubes>::New();
+
+  cf->SetInputConnection(surf->GetOutputPort());
+  cf->SetValue(0, 0.0);
+  cf->ComputeNormalsOn();
+
+  cf->Update();
+
+  // Sometimes the contouring algorithm can create a volume whose gradient
+  // vector and ordering of polygon (using the right hand rule) are
+  // inconsistent. vtkReverseSense cures this problem.
+  vtkSmartPointer<vtkReverseSense> reverse = vtkSmartPointer<vtkReverseSense>::New();
+  reverse->SetInputConnection(cf->GetOutputPort());
+  reverse->ReverseCellsOff();
+  reverse->ReverseNormalsOff();
+  reverse->Update();
+
+  return reverse->GetOutput();
 }
 
 }

@@ -366,7 +366,7 @@ namespace tool_path_planner
     normalGenerator->SetAutoOrientNormals(0);
     normalGenerator->SetComputePointNormals(1);
     normalGenerator->SetComputeCellNormals(0);
-    normalGenerator->SetFlipNormals(1);
+    normalGenerator->SetFlipNormals(0);
     normalGenerator->SetNonManifoldTraversal(1);
 
     normalGenerator->Update();

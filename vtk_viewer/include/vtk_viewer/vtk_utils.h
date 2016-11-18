@@ -33,5 +33,15 @@ namespace vtk_viewer
    * @return The mesh object after triangulation
    */
   vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points);
+
+  vtkSmartPointer<vtkPolyData> readSTLFile(std::string file);
+
+  vtkSmartPointer<vtkPolyData> segmentMesh(vtkSmartPointer<vtkPolyData> mesh);
+
+  vtkSmartPointer<vtkPolyData> estimateCurvature(vtkSmartPointer<vtkPolyData> mesh, int method);
+
+  void generateNormals(vtkSmartPointer<vtkPolyData>& data);
+
+  vtkSmartPointer<vtkPolyData> upsampleMesh(vtkSmartPointer<vtkPolyData> mesh, double distance);
 }
 #endif // VTK_UTILS_H
