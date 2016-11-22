@@ -21,21 +21,20 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkVertexGlyphFilter.h>
 #include <vtkSTLReader.h>
 
 #include <vtkPolyDataNormals.h>
 #include <vtkDoubleArray.h>
 #include <vtkMarchingContourFilter.h>
 #include <vtkMarchingCubes.h>
-#include <vtkDiscreteMarchingCubes.h>
-#include <vtkVoxelModeller.h>
 #include <vtkCurvatures.h>
 
 #include <vtkSurfaceReconstructionFilter.h>
 #include <vtkReverseSense.h>
 #include <vtkContourFilter.h>
 #include <vtkPolyDataPointSampler.h>
+
+
 
 namespace vtk_viewer
 {
@@ -146,45 +145,7 @@ vtkSmartPointer<vtkPolyData> readSTLFile(std::string file)
   return reader->GetOutput();
 }
 
-vtkSmartPointer<vtkPolyData> segmentMesh(vtkSmartPointer<vtkPolyData> mesh)
-{
-//  vtkSmartPointer<vtkVoxelModeller> voxelModeller =
-//      vtkSmartPointer<vtkVoxelModeller>::New();
-    double bounds[6];
-    mesh->GetBounds(bounds);
 
-    cout << bounds[0] << " " << bounds[1] << " " << bounds[2] << " " << bounds[3] << " " <<bounds[4] << " " << bounds[5] << "\n";
-//    voxelModeller->SetSampleDimensions(50,50,50);
-//    voxelModeller->SetModelBounds(bounds);
-//    voxelModeller->SetScalarTypeToFloat();
-////     voxelModeller->SetMaximumDistance(.1);
-//    voxelModeller->SetInputData(mesh);
-//    voxelModeller->Update();
-
-    vtkSmartPointer<vtkDoubleArray> weights =
-        vtkSmartPointer<vtkDoubleArray>::New();
-      weights->SetNumberOfValues(mesh->GetNumberOfCells());
-
-    for(int i = 0; i < mesh->GetNumberOfCells(); ++i)
-    {
-      weights->SetValue(i, i );
-    }
-
-    mesh->GetPointData()->SetScalars(weights);
-
-  vtkSmartPointer<vtkMarchingContourFilter> marchingContourFilter =
-    vtkSmartPointer<vtkMarchingContourFilter>::New();
-  marchingContourFilter->SetInputData(mesh);
-  marchingContourFilter->GenerateValues(10, 0.0f, 12.0f);
-  marchingContourFilter->SetUseScalarTree(1);
-
-  cout << "scalars: " << marchingContourFilter->GetComputeScalars() << "\n";
-
-  //  marchingContourFilter->GenerateValues(1, 5.0f, 5.0f);
-  marchingContourFilter->Update();
-
-  return marchingContourFilter->GetOutput();
-}
 
 vtkSmartPointer<vtkPolyData> estimateCurvature(vtkSmartPointer<vtkPolyData> mesh, int method)
 {
@@ -224,7 +185,7 @@ void generateNormals(vtkSmartPointer<vtkPolyData>& data)
   normalGenerator->SetSplitting(0);
   normalGenerator->SetConsistency(1);
   normalGenerator->SetAutoOrientNormals(1);
-  normalGenerator->SetComputePointNormals(0);
+  normalGenerator->SetComputePointNormals(1);
   normalGenerator->SetComputeCellNormals(1);
   normalGenerator->SetFlipNormals(0);
   normalGenerator->SetNonManifoldTraversal(1);
@@ -271,6 +232,7 @@ vtkSmartPointer<vtkPolyData> upsampleMesh(vtkSmartPointer<vtkPolyData> mesh, dou
   surf->SetInputData(updated_mesh);
   cout << pointSampler->GetOutput()->GetPoints()->GetNumberOfPoints() << "\n";
 
+  //vtkSmartPointer<vtkMarchingContourFilter> cf = vtkSmartPointer<vtkMarchingContourFilter>::New();
   vtkSmartPointer<vtkMarchingCubes> cf = vtkSmartPointer<vtkMarchingCubes>::New();
 
   cf->SetInputConnection(surf->GetOutputPort());
@@ -290,5 +252,7 @@ vtkSmartPointer<vtkPolyData> upsampleMesh(vtkSmartPointer<vtkPolyData> mesh, dou
 
   return reverse->GetOutput();
 }
+
+
 
 }

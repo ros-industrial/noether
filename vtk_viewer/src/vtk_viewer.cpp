@@ -189,72 +189,39 @@ namespace vtk_viewer
   {
     // get cell and point data
 
-    cout << polydata->GetVerts()->GetNumberOfCells() << "\n";
-    cout << polydata->GetLines()->GetNumberOfCells() << "\n";
-    cout << polydata->GetPolys()->GetNumberOfCells() << "\n";
-    cout << polydata->GetStrips()->GetNumberOfCells() << "\n";
-
     vtkSmartPointer<vtkPoints> points = polydata->GetPoints();
     vtkSmartPointer<vtkPoints> cell_centroids = vtkSmartPointer<vtkPoints>::New();
 
     vtkSmartPointer<vtkDataArray> normalsArray = polydata->GetCellData()->GetNormals();
 
     vtkSmartPointer<vtkCellArray> cellIds = polydata->GetPolys();
-    cout << cellIds->GetNumberOfCells() << "\n";
     cellIds->InitTraversal();
-
-    //vtkIdTypeArray * array = cellIds->GetData();
-    //int size = array->GetNumberOfComponents();
-    //cout << size << "\n";
 
     for(int i = 0; i < cellIds->GetNumberOfCells(); ++i)
     {
-      //vtkIdList* pts;
-      //vtkIdType id = i;
       vtkCell* cell = polydata->GetCell(i);
       if(cell)
       {
-        //cout << "found cell!\n";
         vtkTriangle* triangle = dynamic_cast<vtkTriangle*>(cell);
         double p0[3];
         double p1[3];
         double p2[3];
         double center[3];
         triangle->GetPoints()->GetPoint(0, p0);
-        //std::cout << "p0: " << p0[0] << " " << p0[1] << " " << p0[2] << std::endl;
         triangle->GetPoints()->GetPoint(1, p1);
-        //std::cout << "p1: " << p1[0] << " " << p1[1] << " " << p1[2] << std::endl;
         triangle->GetPoints()->GetPoint(2, p2);
-        //std::cout << "p2: " << p2[0] << " " << p2[1] << " " << p2[2] << std::endl;
         triangle->TriangleCenter(p0, p1, p2, center);
         cell_centroids->InsertNextPoint(center);
       }
-
-
-
-
     }
     vtkSmartPointer<vtkPolyData> centroid_polydata = vtkSmartPointer<vtkPolyData>::New();
     centroid_polydata->SetPoints(cell_centroids);
     centroid_polydata->GetPointData()->SetNormals(normalsArray);
 
-
-    // create cell centroids from the points
-//    for(int i = 0; i < polydata->GetPolys()->GetNumberOfCells(); ++i)
-//    {
-//      cout << i << "\n";
-//      vtkIdList* pts;
-//      cellIds->GetNextCell(pts);
-//      cout << pts[0] << " " << pts[1] << " " << pts[2] << "\n";
-
-//    }
-
     vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
     MakeGlyphs(centroid_polydata, true, glyph);
 
     addPolyNormalsDisplay(centroid_polydata, color, glyph);
-
-
   }
 }
 
