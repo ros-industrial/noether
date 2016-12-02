@@ -157,7 +157,7 @@ namespace vtk_viewer
     glyph->SetSourceConnection(arrow->GetOutputPort());
     glyph->SetInputConnection(maskPts->GetOutputPort());
     glyph->SetVectorModeToUseNormal();
-    glyph->SetScaleFactor(5);
+    glyph->SetScaleFactor(1);
     glyph->SetColorModeToColorByVector();
     glyph->SetScaleModeToScaleByVector();
     glyph->OrientOn();

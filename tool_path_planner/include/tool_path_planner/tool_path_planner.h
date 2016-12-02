@@ -93,6 +93,10 @@ namespace tool_path_planner
     std::vector<ProcessPath> paths_; /**< series of intersecting lines on the given mesh */
     ProcessTool tool_; /**< The tool parameters which defines how to generate the tool paths (spacing, offset, etc.) */
 
+    bool getCellCentroidData(int id, double* center, double* norm, double& area);
+
+    vtkSmartPointer<vtkPolyData> createStartCurve();
+
     /**
      * @brief smoothData Takes in a spline and returns a series of evenly spaced points with normals and derivatives
      * @param spline The input spline to operate on

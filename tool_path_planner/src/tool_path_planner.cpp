@@ -18,6 +18,8 @@
 #include <vtkKdTreePointLocator.h>
 #include <vtkDoubleArray.h>
 #include <vtkPointData.h>
+#include <vtkCellData.h>
+#include <vtkTriangle.h>
 #include <vtk_viewer/vtk_utils.h>
 
 
@@ -32,7 +34,11 @@ namespace tool_path_planner
 
   double calc_distance(std::vector<double>& pt1, std::vector<double>& pt2)
   {
-    return (pow(pt1[0] - pt2[0], 2) + pow(pt1[1] - pt2[1], 2 ) + pow((pt1[2] - pt2[2]), 2 ));
+    if(pt1.size() != 3 || pt2.size() != 3)
+    {
+      return 0;
+    }
+    return (pow(pt1[0] - pt2[0], 2.0) + pow(pt1[1] - pt2[1], 2.0 ) + pow((pt1[2] - pt2[2]), 2.0 ));
   }
 
   int findClosestPoint(std::vector<double>& pt,  std::vector<std::vector<double> >& pts)
@@ -53,7 +59,10 @@ namespace tool_path_planner
 
   void ToolPathPlanner::setInputMesh(vtkSmartPointer<vtkPolyData> mesh)
   {
-    input_mesh_ = mesh;
+    input_mesh_ = vtkSmartPointer<vtkPolyData>::New();
+    input_mesh_->DeepCopy(mesh);
+
+    // TODO: this does not appear to work
     generateNormals(input_mesh_);
   }
 
@@ -108,18 +117,23 @@ namespace tool_path_planner
   void ToolPathPlanner::getFirstPath(ProcessPath& path)
   {
     // create vertical plane
-    vtkSmartPointer<vtkPoints> mesh_points = vtkSmartPointer<vtkPoints>::New();
-    unsigned int gridSize = 10;
-    for(unsigned int x = 0; x < gridSize; x++)
-      {
-      for( int z = -5; z < 5; z++)
-        {
-        mesh_points->InsertNextPoint( x , (5 - z + vtkMath::Random(0.0, 0.1)) , z);
-        }
-      }
+    // vtkSmartPointer<vtkPoints> mesh_points = vtkSmartPointer<vtkPoints>::New();
+//    unsigned int gridSize = 10;
+//    for(unsigned int x = 0; x < gridSize; x++)
+//      {
+//      for( int z = -5; z < 5; z++)
+//        {
+//        mesh_points->InsertNextPoint( x , (5 - z + vtkMath::Random(0.0, 0.1)) , z);
+//        }
+//      }
+
 
     // using points create cutting mesh
-    vtkSmartPointer<vtkPolyData> cutting_mesh = vtk_viewer::createMesh(mesh_points);
+    //vtkSmartPointer<vtkPolyData> cutting_mesh = vtk_viewer::createMesh(mesh_points);
+
+    vtkSmartPointer<vtkPolyData> start_curve = vtkSmartPointer<vtkPolyData>::New();
+    start_curve = createStartCurve();
+    vtkSmartPointer<vtkPolyData> cutting_mesh = createSurfaceFromSpline(start_curve, 5.0);
 
     // use cutting mesh to find intersection line
     vtkSmartPointer<vtkPolyData> intersection_line = vtkSmartPointer<vtkPolyData>::New();
@@ -161,11 +175,20 @@ namespace tool_path_planner
       return false;
     }
 
+    if(intersection_line->GetPoints()->GetNumberOfPoints() < 2)
+    {
+      return false;
+    }
+
     //use spline to create interpolated data with normals and derivatives
     vtkSmartPointer<vtkPolyData> points = vtkSmartPointer<vtkPolyData>::New();
     vtkSmartPointer<vtkPolyData> derivatives = vtkSmartPointer<vtkPolyData>::New();
     smoothData(spline, points, derivatives);
 
+    if(points->GetPoints()->GetNumberOfPoints() < 2)
+    {
+      return false;
+    }
     next_path.line = points;
     next_path.spline = spline;
     next_path.derivatives = derivatives;
@@ -181,6 +204,118 @@ namespace tool_path_planner
     return true;
   }
 
+  vtkSmartPointer<vtkPolyData> ToolPathPlanner::createStartCurve()
+  {
+    // Find weighted center point and normal average
+    vtkSmartPointer<vtkCellArray> cellIds = input_mesh_->GetPolys();
+    cellIds->InitTraversal();
+
+    double avg_center[3] = {0,0,0};
+    double avg_norm[3] = {0,0,0};
+    double avg_area = 0;
+    for(int i = 0; i < cellIds->GetNumberOfCells(); ++i)
+    {
+      double center[3] = {0,0,0};
+      double norm[3] = {0,0,0};
+      double area = 0;
+      if(getCellCentroidData(i, &center[0], &norm[0], area))
+      {
+        avg_center[0] += center[0]*area;
+        avg_center[1] += center[1]*area;
+        avg_center[2] += center[2]*area;
+        avg_norm[0] += norm[0]*area;
+        avg_norm[1] += norm[1]*area;
+        avg_norm[2] += norm[2]*area;
+        avg_area += area;
+      }
+    }
+
+    avg_center[0] /= avg_area;
+    avg_center[1] /= avg_area;
+    avg_center[2] /= avg_area;
+    avg_norm[0] /= avg_area;
+    avg_norm[1] /= avg_area;
+    avg_norm[2] /= avg_area;
+
+    //cout << "avg_center " << avg_center[0] << " " << avg_center[1] << " " << avg_center[2] << "\n";
+    //cout << "avg_norm " << avg_norm[0] << " " << avg_norm[1] << " " << avg_norm[2] << "\n";
+    // use avg_center, avg_norm, and bounds to create an intersection plane
+    double* bounds = input_mesh_->GetBounds();
+    double x = (bounds[1] - bounds[0])/2.0;
+    double y = (bounds[3] - bounds[2])/2.0;
+    double z = (bounds[5] - bounds[4])/2.0;
+
+    //double m = sqrt(pow(x,2.0) + pow(y,2.0) + pow(z,2.0));
+    //x = x/m;
+    //y = y/m;
+    //z = z/m;
+
+    vtkSmartPointer<vtkPolyData> line = vtkSmartPointer<vtkPolyData>::New();
+    vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
+    line->SetPoints(pts);
+
+    double pt[3];
+    pt[0] = avg_center[0] + x;
+    pt[1] = avg_center[1] + y;
+    pt[2] = avg_center[2] + z;
+    line->GetPoints()->InsertNextPoint(pt);
+    cout << pt[0] << " " << pt[1] << " " << pt[2] << "\n";
+
+    line->GetPoints()->InsertNextPoint(avg_center);
+
+    cout << avg_center[0] << " " << avg_center[1] << " " << avg_center[2] << "\n";
+    pt[0] = avg_center[0] - x;
+    pt[1] = avg_center[1] - y;
+    pt[2] = avg_center[2] - z;
+    line->GetPoints()->InsertNextPoint(pt);
+
+    //cout << pt[0] << " " << pt[1] << " " << pt[2] << "\n";
+    vtkSmartPointer<vtkDoubleArray> norms = vtkSmartPointer<vtkDoubleArray>::New();
+    norms->SetNumberOfComponents(3);
+    for(int i = 0; i < line->GetPoints()->GetNumberOfPoints(); ++i)
+    {
+      double n[3] ={avg_norm[0], avg_norm[1], avg_norm[2]};
+      norms->InsertNextTuple(n);
+    }
+    line->GetPointData()->SetNormals(norms);
+
+    return line;
+  }
+
+  bool ToolPathPlanner::getCellCentroidData(int id, double* center, double* norm, double& area)
+  {
+
+      vtkCell* cell = input_mesh_->GetCell(id);
+      if(cell)
+      {
+        vtkTriangle* triangle = dynamic_cast<vtkTriangle*>(cell);
+        double p0[3];
+        double p1[3];
+        double p2[3];
+        //double center[3];
+        triangle->GetPoints()->GetPoint(0, p0);
+        triangle->GetPoints()->GetPoint(1, p1);
+        triangle->GetPoints()->GetPoint(2, p2);
+        triangle->TriangleCenter(p0, p1, p2, center);
+        area = vtkTriangle::TriangleArea(p0, p1, p2);
+
+        double* n = input_mesh_->GetCellData()->GetNormals()->GetTuple(id);
+        if(n)
+        {
+          norm[0] = n[0];
+          norm[1] = n[1];
+          norm[2] = n[2];
+        }
+
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+
+  }
+
   bool ToolPathPlanner::findIntersectionLine(vtkSmartPointer<vtkPolyData> cut_surface,
                                          vtkSmartPointer<vtkPolyData>& points,
                                          vtkSmartPointer<vtkParametricSpline>& spline)
@@ -192,9 +327,18 @@ namespace tool_path_planner
     intersectionPolyDataFilter->SetInputData( 1, cut_surface );
     intersectionPolyDataFilter->Update();
 
+    if(intersectionPolyDataFilter->GetStatus() == 0)
+    {
+      return false;
+    }
     // Sort points
+    vtkSmartPointer<vtkPolyData> output = intersectionPolyDataFilter->GetOutput();
+    if(!output)
+    {
+      return false;
+    }
     vtkSmartPointer<vtkPoints> pts = intersectionPolyDataFilter->GetOutput()->GetPoints();
-    if(!pts || pts->GetNumberOfPoints() == 0)
+    if(!pts || pts->GetNumberOfPoints() <= 2)
     {
       return false;
     }
@@ -363,9 +507,9 @@ namespace tool_path_planner
     normalGenerator->SetFeatureAngle(0.1);
     normalGenerator->SetSplitting(0);
     normalGenerator->SetConsistency(1);
-    normalGenerator->SetAutoOrientNormals(0);
+    normalGenerator->SetAutoOrientNormals(1);
     normalGenerator->SetComputePointNormals(1);
-    normalGenerator->SetComputeCellNormals(0);
+    normalGenerator->SetComputeCellNormals(1);
     normalGenerator->SetFlipNormals(0);
     normalGenerator->SetNonManifoldTraversal(1);
 

@@ -20,8 +20,10 @@
 TEST(IntersectTest, TestCase1)
 {
   // Get mesh
-  vtkSmartPointer<vtkPoints> empty;
-  vtkSmartPointer<vtkPolyData> data = vtk_viewer::createMesh(empty);
+  //vtkSmartPointer<vtkPoints> empty;
+  vtkSmartPointer<vtkPoints> points = vtk_viewer::createPlane();
+  vtkSmartPointer<vtkPolyData> data = vtk_viewer::createMesh(points);
+  vtk_viewer::generateNormals(data);
 
   // Set input mesh
   tool_path_planner::ToolPathPlanner planner;
@@ -62,6 +64,7 @@ TEST(IntersectTest, TestCase1)
 
   tool_path_planner::ProcessPath path;
   planner.getFirstPath(path);
+  cout << "first pass done\n";
   planner.computePaths();
   std::vector<tool_path_planner::ProcessPath> paths = planner.getPaths();
 

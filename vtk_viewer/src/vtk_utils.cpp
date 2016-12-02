@@ -178,7 +178,7 @@ void generateNormals(vtkSmartPointer<vtkPolyData>& data)
   vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
   normalGenerator->SetInputData(data);
   normalGenerator->ComputePointNormalsOn();
-  normalGenerator->ComputeCellNormalsOff();
+  normalGenerator->ComputeCellNormalsOn();
 
   // Optional settings
   normalGenerator->SetFeatureAngle(0.1);
@@ -234,9 +234,10 @@ vtkSmartPointer<vtkPolyData> upsampleMesh(vtkSmartPointer<vtkPolyData> mesh, dou
 
   //vtkSmartPointer<vtkMarchingContourFilter> cf = vtkSmartPointer<vtkMarchingContourFilter>::New();
   vtkSmartPointer<vtkMarchingCubes> cf = vtkSmartPointer<vtkMarchingCubes>::New();
+  //cf->GenerateValues(1, -10.0, 10.0);
 
   cf->SetInputConnection(surf->GetOutputPort());
-  cf->SetValue(0, 0.0);
+  cf->SetValue(0, 0.1);
   cf->ComputeNormalsOn();
 
   cf->Update();
