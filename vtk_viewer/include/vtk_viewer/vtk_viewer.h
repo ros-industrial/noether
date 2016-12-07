@@ -25,6 +25,7 @@ namespace vtk_viewer
     VTKViewer();
     ~VTKViewer();
 
+
     /**
      * @brief addPolyDataDisplay Add a renderer and actor for a polydata object (for meshes)
      * @param polydata The polydata to be displayed
@@ -47,6 +48,11 @@ namespace vtk_viewer
      */
     void addPointDataDisplay(vtkSmartPointer<vtkPoints> &points, std::vector<float> color);
 
+    /**
+     * @brief addCellNormalDisplay Displays the normals for a mesh object
+     * @param polydata The mesh object to be displayed
+     * @param color The color to use for rendering the data
+     */
     void addCellNormalDisplay(vtkSmartPointer<vtkPolyData> polydata, std::vector<float> color);
 
     /**

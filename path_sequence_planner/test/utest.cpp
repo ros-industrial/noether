@@ -26,6 +26,7 @@ TEST(IntersectTest, TestCase1)
   // Get mesh
   vtkSmartPointer<vtkPoints> empty;
   vtkSmartPointer<vtkPolyData> data = vtk_viewer::createMesh(empty);
+  vtk_viewer::generateNormals(data);
 
   // Set input mesh
   tool_path_planner::ToolPathPlanner planner;
@@ -82,7 +83,7 @@ TEST(IntersectTest, TestCase1)
   vtkSmartPointer<vtkPoints> connecting_points = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkDoubleArray> normals = vtkSmartPointer<vtkDoubleArray>::New();
   normals->SetNumberOfComponents(3);
-  for(int i = 0; i < paths.size(); ++i)
+  for(int i = 0; i < paths2.size(); ++i)
   {
     if(DISPLAY_LINES) // display line
     {
@@ -114,7 +115,7 @@ TEST(IntersectTest, TestCase1)
     {
       double* pt1 = paths2[i-1].line->GetPoints()->GetPoint(paths2[i-1].line->GetPoints()->GetNumberOfPoints()-1);
       double* pt2 = paths2[i].line->GetPoints()->GetPoint(0);
-      connecting_points->InsertNextPoint(pt1);
+      connecting_points->InsertNextPoint(pt2);
       double norm[3];
       norm[0] = pt1[0] - pt2[0];
       norm[1] = pt1[1] - pt2[1];

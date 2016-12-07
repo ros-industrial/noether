@@ -8,6 +8,8 @@
 
 #include <sstream>
 
+#include <pcl/io/pcd_io.h>
+
 #include <vtkPointData.h>
 #include <vtkCellData.h>
 #include <vtkMath.h>
@@ -50,7 +52,7 @@ vtkSmartPointer<vtkPoints> createPlane()
     {
     for(unsigned int y = 0; y < gridSize; y++)
       {
-      points->InsertNextPoint(x, y, 1.0 * cos(double(x)/2.0) - 1.0 * sin(double(y)/2.0) + vtkMath::Random(0.0, 0.1));
+        points->InsertNextPoint(x  , y , 1.0 * cos(double(x)/2.0) - 1.0 * sin(double(y)/2.0) + vtkMath::Random(0.0, 0.001));
       }
     }
 
@@ -73,6 +75,33 @@ vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points )
 
   vtkSmartPointer<vtkDelaunay2D> delaunay = vtkSmartPointer<vtkDelaunay2D>::New();
   delaunay->SetInputData(polydata);
+
+  // Test of surface reconstruction
+
+  vtkSmartPointer<vtkSurfaceReconstructionFilter> surf =
+  vtkSmartPointer<vtkSurfaceReconstructionFilter>::New();
+
+  surf->SetInputData(polydata);
+  cout << "spacing: " << surf->GetSampleSpacing() << "\n";
+  cout << "neighborhood size: " << surf->GetNeighborhoodSize() << "\n";
+  surf->SetSampleSpacing(0.5);
+  surf->SetNeighborhoodSize(5);
+  surf->Update();
+
+  vtkSmartPointer<vtkContourFilter> cf = vtkSmartPointer<vtkContourFilter>::New();
+  cf->SetInputConnection(surf->GetOutputPort());
+  cf->SetValue(-1, 0.0);
+  cf->Update();
+
+  // Sometimes the contouring algorithm can create a volume whose gradient
+  // vector and ordering of polygon (using the right hand rule) are
+  // inconsistent. vtkReverseSense cures this problem.
+  vtkSmartPointer<vtkReverseSense> reverse =
+    vtkSmartPointer<vtkReverseSense>::New();
+  reverse->SetInputConnection(cf->GetOutputPort());
+  reverse->ReverseCellsOn();
+  reverse->ReverseNormalsOn();
+  reverse->Update();
 
   // In order to perform the Delaunay2D triangulation, all of the points must be roughly
   // in the x/y plane (z component is ignored).  If they are otherwise, the triangulation results will
@@ -106,7 +135,7 @@ vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points )
   // Update and return the results
   delaunay->Update();
 
-  return delaunay->GetOutput();
+  return reverse->GetOutput();
 }
 
 void visualizePlane(vtkSmartPointer<vtkPolyData> &polydata)
@@ -145,7 +174,52 @@ vtkSmartPointer<vtkPolyData> readSTLFile(std::string file)
   return reader->GetOutput();
 }
 
+bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata)
+{
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
 
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> (file.c_str(), *cloud) == -1) //* load the file
+    {
+      PCL_ERROR ("Couldn't read file \n");
+      return false;
+    }
+
+  polydata = vtkSmartPointer<vtkPolyData>::New();
+  PCLtoVTK(*cloud, polydata);
+
+  return true;
+}
+
+void PCLtoVTK(const pcl::PointCloud<pcl::PointXYZ> &cloud, vtkPolyData* const pdata)
+{
+  //typename CloudT::PointType testPoint = cloud.points[0];
+
+  //typedef typename pcl::traits::fieldList<typename CloudT::PointType>::type FieldList;
+
+  // Coordiantes (always must have coordinates)
+  vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+  points->SetDataTypeToDouble();
+  points->GetData()->SetNumberOfComponents(3);
+  for (int i = 0; i < cloud.points.size (); ++i)
+  {
+    if(isnan(cloud.points[i].x) || isnan(cloud.points[i].y) || isnan(cloud.points[i].z))
+    {
+      continue;
+    }
+    double p[3];
+    p[0] = double(cloud.points[i].x);
+    p[1] = double(cloud.points[i].y);
+    p[2] = double(cloud.points[i].z);
+    //cout << p[0] << " " << p[1] << " " << p[2] << "\n";
+    points->InsertNextPoint(double(cloud.points[i].x), double(cloud.points[i].y), double(cloud.points[i].z));
+  }
+
+  // Create a temporary PolyData and add the points to it
+  vtkSmartPointer<vtkPolyData> tempPolyData = vtkSmartPointer<vtkPolyData>::New();
+  tempPolyData->SetPoints(points);
+
+  pdata->DeepCopy(tempPolyData);
+}
 
 vtkSmartPointer<vtkPolyData> estimateCurvature(vtkSmartPointer<vtkPolyData> mesh, int method)
 {

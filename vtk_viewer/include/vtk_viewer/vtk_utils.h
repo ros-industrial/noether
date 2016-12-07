@@ -8,6 +8,10 @@
 #ifndef VTK_UTILS_H
 #define VTK_UTILS_H
 
+#include <pcl/common/common.h>
+#include <pcl/point_traits.h>
+#include <pcl/point_types.h>
+
 #include <vtkSmartPointer.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
@@ -41,6 +45,10 @@ namespace vtk_viewer
   void generateNormals(vtkSmartPointer<vtkPolyData>& data);
 
   vtkSmartPointer<vtkPolyData> upsampleMesh(vtkSmartPointer<vtkPolyData> mesh, double distance);
+
+  bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata);
+
+  void PCLtoVTK(const pcl::PointCloud<pcl::PointXYZ>& cloud, vtkPolyData* const pdata);
 
 }
 #endif // VTK_UTILS_H

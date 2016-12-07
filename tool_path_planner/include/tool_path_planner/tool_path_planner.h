@@ -11,6 +11,7 @@
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkParametricSpline.h>
+#include <vtkKdTreePointLocator.h>
 
 namespace tool_path_planner
 {
@@ -35,6 +36,13 @@ namespace tool_path_planner
   class ToolPathPlanner
   {
   public:
+
+    /**
+     * @brief planPaths plans a set of paths for all meshes in a given list
+     * @param meshes A vector of meshes to plan paths for
+     * @param paths The resulting path data generated
+     */
+    void planPaths(std::vector<vtkSmartPointer<vtkPolyData> > meshes, std::vector< std::vector<ProcessPath> >& paths);
 
     /**
      * @brief setInputMesh Sets the input mesh to generate paths
@@ -64,7 +72,7 @@ namespace tool_path_planner
      * @brief getFirstPath Uses the input mesh, generates the first path by intersecting the mesh with a plane
      * @param path The first path generated
      */
-    void getFirstPath(ProcessPath& path);
+    bool getFirstPath(ProcessPath& path);
 
     /**
      * @brief getNextPath Creates the next path offset from the current path
@@ -89,6 +97,7 @@ namespace tool_path_planner
 
   private:
 
+    vtkSmartPointer<vtkKdTreePointLocator> kd_tree_; /**< kd tree for finding nearest neighbor points */
     vtkSmartPointer<vtkPolyData> input_mesh_; /**< input mesh to operate on */
     std::vector<ProcessPath> paths_; /**< series of intersecting lines on the given mesh */
     ProcessTool tool_; /**< The tool parameters which defines how to generate the tool paths (spacing, offset, etc.) */

@@ -9,7 +9,7 @@ find_package(catkin REQUIRED cmake_modules
 )
 
 find_package(Eigen REQUIRED)
-FIND_PACKAGE(VTK 7.0 REQUIRED)
+FIND_PACKAGE(VTK 7.1 REQUIRED)
 
 INCLUDE(${VTK_USE_FILE})
 
