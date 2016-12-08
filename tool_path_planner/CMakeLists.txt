@@ -6,10 +6,11 @@ project(tool_path_planner)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED cmake_modules
     vtk_viewer
+    #VTK
 )
 
 find_package(Eigen REQUIRED)
-FIND_PACKAGE(VTK 7.1 REQUIRED)
+FIND_PACKAGE(VTK 7.1 REQUIRED PATHS /home/alex/path_planning_ws/src/VTK/ NO_CMAKE_PATH NO_CMAKE_ENVIRONMENT_PATH)
 
 INCLUDE(${VTK_USE_FILE})
 
@@ -35,7 +36,7 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES tool_path_planner
 #  CATKIN_DEPENDS other_catkin_pkg
-  DEPENDS Eigen
+  DEPENDS Eigen VTK
 )
 
 ###########

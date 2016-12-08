@@ -7,9 +7,10 @@ project(path_sequence_planner)
 find_package(catkin REQUIRED
     vtk_viewer
     tool_path_planner
+    #VTK
 )
 
-FIND_PACKAGE(VTK 7.1 REQUIRED)
+FIND_PACKAGE(VTK 7.1 REQUIRED PATHS /home/alex/path_planning_ws/src/VTK/ NO_CMAKE_PATH NO_CMAKE_ENVIRONMENT_PATH)
 
 INCLUDE(${VTK_USE_FILE})
 

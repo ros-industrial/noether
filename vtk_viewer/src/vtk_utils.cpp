@@ -77,7 +77,7 @@ vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points )
   delaunay->SetInputData(polydata);
 
   // Test of surface reconstruction
-
+  vtkSmartPointer<vtkContourFilter> cf, cf2;
   vtkSmartPointer<vtkSurfaceReconstructionFilter> surf =
   vtkSmartPointer<vtkSurfaceReconstructionFilter>::New();
 
@@ -88,7 +88,8 @@ vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points )
   surf->SetNeighborhoodSize(5);
   surf->Update();
 
-  vtkSmartPointer<vtkContourFilter> cf = vtkSmartPointer<vtkContourFilter>::New();
+
+  cf = vtkSmartPointer<vtkContourFilter>::New();
   cf->SetInputConnection(surf->GetOutputPort());
   cf->SetValue(-1, 0.0);
   cf->Update();
@@ -198,21 +199,31 @@ void PCLtoVTK(const pcl::PointCloud<pcl::PointXYZ> &cloud, vtkPolyData* const pd
 
   // Coordiantes (always must have coordinates)
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-  points->SetDataTypeToDouble();
-  points->GetData()->SetNumberOfComponents(3);
-  for (int i = 0; i < cloud.points.size (); ++i)
+  //vtkSmartPointer<vtkDoubleArray> array = vtkSmartPointer<vtkDoubleArray>::New();
+  //array->SetNumberOfComponents(3);
+  //points->SetDataTypeToDouble();
+  //points->GetData()->SetNumberOfComponents(3);
+  //points->SetNumberOfPoints(cloud.points.size());
+  //int count = 1;
+  for (int i = 0; i < cloud.points.size(); ++i)
   {
     if(isnan(cloud.points[i].x) || isnan(cloud.points[i].y) || isnan(cloud.points[i].z))
     {
       continue;
     }
-    double p[3];
-    p[0] = double(cloud.points[i].x);
-    p[1] = double(cloud.points[i].y);
-    p[2] = double(cloud.points[i].z);
+    const double pt[3] = {double(cloud.points[i].x), double(cloud.points[i].y), double(cloud.points[i].z)};
+    //p[0] = double(cloud.points[i].x);
+    //p[1] = double(cloud.points[i].y);
+    //p[2] = double(cloud.points[i].z);
     //cout << p[0] << " " << p[1] << " " << p[2] << "\n";
-    points->InsertNextPoint(double(cloud.points[i].x), double(cloud.points[i].y), double(cloud.points[i].z));
+    //array->InsertNextTuple(&pt[0]);
+    points->InsertNextPoint(pt);
+    //points->SetPoint(count, p[0], p[1], p[2]);
+    //++count;
   }
+  //points->SetNumberOfPoints(array->GetNumberOfTuples());
+  //points->SetData(array);
+  cout << "number of points: " << points->GetNumberOfPoints() << "\n";
 
   // Create a temporary PolyData and add the points to it
   vtkSmartPointer<vtkPolyData> tempPolyData = vtkSmartPointer<vtkPolyData>::New();

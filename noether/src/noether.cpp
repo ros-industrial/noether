@@ -135,7 +135,10 @@ int main(int argc, char **argv)
     std::string extension = std::string(pch);
     if(extension == "pcd")
     {
-      vtk_viewer::loadPCDFile(file, data);
+      vtkSmartPointer<vtkPolyData> temp_data = vtkSmartPointer<vtkPolyData>::New();
+      vtk_viewer::loadPCDFile(file, temp_data);
+      data = vtk_viewer::createMesh(temp_data->GetPoints());
+
     }
     else if(extension == "STL" || extension == "stl")
     {
@@ -146,7 +149,7 @@ int main(int argc, char **argv)
       return 1;
     }
 
-    data = vtk_viewer::readSTLFile(file);
+    //data = vtk_viewer::readSTLFile(file);
     cout << file;
     vtk_viewer::generateNormals(data);
 

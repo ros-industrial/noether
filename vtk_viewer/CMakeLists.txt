@@ -6,12 +6,13 @@ project(vtk_viewer)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED cmake_modules
     pcl_ros
+    #VTK
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
-FIND_PACKAGE(VTK 7.0 REQUIRED)
+FIND_PACKAGE(VTK 7.1 REQUIRED PATHS /home/alex/path_planning_ws/src/VTK/ NO_CMAKE_PATH NO_CMAKE_ENVIRONMENT_PATH)
 FIND_PACKAGE(Eigen REQUIRED)
 #FIND_PACKAGE(PCL REQUIRED)
 
@@ -34,6 +35,7 @@ catkin_package(
   DEPENDS
     Eigen
     pcl_ros
+    VTK
 )
 
 ###########

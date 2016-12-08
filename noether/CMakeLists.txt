@@ -10,6 +10,7 @@ find_package(catkin REQUIRED cmake_modules
     path_sequence_planner
     vtk_viewer
     roscpp
+    #VTK
 )
 
 ## System dependencies are found with CMake's conventions

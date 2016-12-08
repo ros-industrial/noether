@@ -4,13 +4,16 @@ project(mesh_segmenter)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+
 find_package(catkin REQUIRED
     vtk_viewer
+    #VTK
 )
 
-FIND_PACKAGE(VTK 7.1 REQUIRED)
+FIND_PACKAGE(VTK 7.1 REQUIRED PATHS /home/alex/path_planning_ws/src/VTK/ NO_CMAKE_PATH NO_CMAKE_ENVIRONMENT_PATH)
 
 MESSAGE( STATUS "VTK SRC DIR:         " ${VTK_BINARY_DIR} )
+MESSAGE( STATUS "VTK SRC DIR:         " ${VTK_SRC_DIR} )
 MESSAGE( STATUS "VTK VERSION:         " ${VTK_VERSION} )
 
 INCLUDE(${VTK_USE_FILE})
@@ -40,7 +43,7 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES mesh_segmenter
 #  CATKIN_DEPENDS other_catkin_pkg
-#  DEPENDS Eigen
+  DEPENDS VTK
 )
 
 ###########
