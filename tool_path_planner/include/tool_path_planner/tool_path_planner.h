@@ -174,7 +174,6 @@ namespace tool_path_planner
 
   int findClosestPoint(std::vector<double>& pt,  std::vector<std::vector<double> >& pts);
 
-  double pt_dist(double* pt1, double* pt2);
 
   double dist(std::vector<double>& pt1, std::vector<double>& pt2);
 }

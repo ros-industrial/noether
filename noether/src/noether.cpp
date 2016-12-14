@@ -138,7 +138,6 @@ int main(int argc, char **argv)
       vtkSmartPointer<vtkPolyData> temp_data = vtkSmartPointer<vtkPolyData>::New();
       vtk_viewer::loadPCDFile(file, temp_data);
       data = vtk_viewer::createMesh(temp_data->GetPoints());
-
     }
     else if(extension == "STL" || extension == "stl")
     {

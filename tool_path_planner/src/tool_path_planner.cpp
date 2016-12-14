@@ -28,11 +28,6 @@
 namespace tool_path_planner
 {
 
-  double pt_dist(double* pt1, double* pt2)
-  {
-    return (pow(pt1[0] - pt2[0], 2) + pow(pt1[1] - pt2[1], 2 ) + pow((pt1[2] - pt2[2]), 2 ));
-  }
-
   double calc_distance(std::vector<double>& pt1, std::vector<double>& pt2)
   {
     if(pt1.size() != 3 || pt2.size() != 3)
@@ -261,8 +256,8 @@ namespace tool_path_planner
 
     // compare start/end points of new line to old line, flip order if necessary
     int length = next_path.line->GetPoints()->GetNumberOfPoints();
-    if(pt_dist(this_path.line->GetPoints()->GetPoint(0), next_path.line->GetPoints()->GetPoint(0))
-       > pt_dist(this_path.line->GetPoints()->GetPoint(0), next_path.line->GetPoints()->GetPoint(length-1)))
+    if(vtk_viewer::pt_dist(this_path.line->GetPoints()->GetPoint(0), next_path.line->GetPoints()->GetPoint(0))
+       > vtk_viewer::pt_dist(this_path.line->GetPoints()->GetPoint(0), next_path.line->GetPoints()->GetPoint(length-1)))
     {
       flipPointOrder(next_path);
     }
@@ -502,7 +497,7 @@ namespace tool_path_planner
     spline->Evaluate(u, n, d);
 
     // calculate new point spacing
-    double s = sqrt(pt_dist(&m[0], &n[0]));
+    double s = sqrt(vtk_viewer::pt_dist(&m[0], &n[0]));
     num_line_pts = round( double(num_line_pts) / (tool_.pt_spacing / s));
 
     // Get points evenly spaced along the spline
@@ -699,6 +694,13 @@ namespace tool_path_planner
         final[0] /= double(count);
         final[1] /= double(count);
         final[2] /= double(count);
+        double denom = sqrt(pow(final[0],2) + pow(final[1],2) + pow(final[2],2));
+
+        // normalize the normal vector
+        final[0] /= denom;
+        final[1] /= denom;
+        final[2] /= denom;
+
         pt2[0] = final[0];
         pt2[1] = final[1];
         pt2[2] = final[2];

@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <path_sequence_planner/path_sequence_planner.h>
+#include <vtk_viewer/vtk_utils.h>
 
 namespace path_sequence_planner
 {
@@ -44,13 +45,13 @@ void PathSequencePlanner::linkPaths()
         double* end_pt = paths_[indices_.back()].line->GetPoints()->GetPoint(paths_[indices_.back()].line->GetPoints()->GetNumberOfPoints()-1);
         double* next_pt = paths_[next_index].line->GetPoints()->GetPoint(paths_[next_index].line->GetPoints()->GetNumberOfPoints()-1);
 
-        double front_dist1 = tool_path_planner::pt_dist(front_pt, next_pt);
-        double back_dist1 = tool_path_planner::pt_dist(end_pt, next_pt);
+        double front_dist1 = vtk_viewer::pt_dist(front_pt, next_pt);
+        double back_dist1 = vtk_viewer::pt_dist(end_pt, next_pt);
 
         next_pt = paths_[next_index].line->GetPoints()->GetPoint(0);
 
-        double front_dist2 = tool_path_planner::pt_dist(front_pt, next_pt);
-        double back_dist2 = tool_path_planner::pt_dist(end_pt, next_pt);
+        double front_dist2 = vtk_viewer::pt_dist(front_pt, next_pt);
+        double back_dist2 = vtk_viewer::pt_dist(end_pt, next_pt);
 
         // If the next path found is closer to the opposite side, flip which end we are adding paths to
         bool flip = (front_dist1 < front_dist2 ? front_dist1 : front_dist2) < (back_dist1 < back_dist2 ? back_dist1 : back_dist2) ? true : false;
@@ -87,12 +88,12 @@ void PathSequencePlanner::linkPaths()
 
         // get first last point of of the line and determine if it needs to be flipped
         double* pt1 = paths_[next_index].line->GetPoints()->GetPoint(0);
-        double dist1 = tool_path_planner::pt_dist(pt1, last_pt);
+        double dist1 = vtk_viewer::pt_dist(pt1, last_pt);
 
         // find distance between last point and the end points of the next line
         int indx = (paths_[next_index].line->GetPoints()->GetNumberOfPoints()) - 1;
         double* pt2 = paths_[next_index].line->GetPoints()->GetPoint( indx );
-        double dist2 = tool_path_planner::pt_dist(pt2, last_pt);
+        double dist2 = vtk_viewer::pt_dist(pt2, last_pt);
 
         // If the distance is shorter, flip the order of the next path
         if(dist2 < dist1 && !insert_front)
@@ -136,11 +137,11 @@ int PathSequencePlanner::findNextNearestPath(std::vector<tool_path_planner::Proc
 
     // get first and last point of line j
     double* pt1 = paths[j].line->GetPoints()->GetPoint(0);
-    double dist1 = tool_path_planner::pt_dist(pt1, last_pt);
+    double dist1 = vtk_viewer::pt_dist(pt1, last_pt);
 
     // find distance between last point and the end points of the next line
     double* pt2 = paths[j].line->GetPoints()->GetPoint( paths[j].line->GetPoints()->GetNumberOfPoints() - 1 );
-    double dist2 = tool_path_planner::pt_dist(pt2, last_pt);
+    double dist2 = vtk_viewer::pt_dist(pt2, last_pt);
 
     if(dist1 < min_dist || dist2 < min_dist)
     {

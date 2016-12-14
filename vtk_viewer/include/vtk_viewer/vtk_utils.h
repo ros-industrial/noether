@@ -11,6 +11,7 @@
 #include <pcl/common/common.h>
 #include <pcl/point_traits.h>
 #include <pcl/point_types.h>
+#include <pcl/PolygonMesh.h>
 
 #include <vtkSmartPointer.h>
 #include <vtkPoints.h>
@@ -38,6 +39,8 @@ namespace vtk_viewer
    */
   vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points);
 
+  void cleanMesh(const vtkSmartPointer<vtkPoints>& points, vtkSmartPointer<vtkPolyData>& mesh);
+
   vtkSmartPointer<vtkPolyData> readSTLFile(std::string file);
 
   vtkSmartPointer<vtkPolyData> estimateCurvature(vtkSmartPointer<vtkPolyData> mesh, int method);
@@ -46,9 +49,13 @@ namespace vtk_viewer
 
   vtkSmartPointer<vtkPolyData> upsampleMesh(vtkSmartPointer<vtkPolyData> mesh, double distance);
 
-  bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata);
+  bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata, std::string background = "", bool return_mesh = true);
 
   void PCLtoVTK(const pcl::PointCloud<pcl::PointXYZ>& cloud, vtkPolyData* const pdata);
+
+  void removeBackground(pcl::PointCloud<pcl::PointXYZ>& cloud, const pcl::PointCloud<pcl::PointXYZ>& background);
+
+  double pt_dist(double* pt1, double* pt2);
 
 }
 #endif // VTK_UTILS_H

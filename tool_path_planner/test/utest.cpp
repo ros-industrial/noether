@@ -12,17 +12,33 @@
 #include <vtkIdTypeArray.h>
 
 #define DISPLAY_LINES  1
-#define DISPLAY_NORMALS  1
+#define DISPLAY_NORMALS  0
 #define DISPLAY_DERIVATIVES  1
-#define DISPLAY_CUTTING_MESHES  1
+#define DISPLAY_CUTTING_MESHES  0
 
 
 TEST(IntersectTest, TestCase1)
 {
+
+  std::string file1 = "/home/alex/path_planning_ws/src/sample_point_clouds/pick0/cloud.pcd";
+  std::string file2 = "/home/alex/path_planning_ws/src/sample_point_clouds/config/background.pcd";
+
   // Get mesh
   //vtkSmartPointer<vtkPoints> empty;
   vtkSmartPointer<vtkPoints> points = vtk_viewer::createPlane();
-  vtkSmartPointer<vtkPolyData> data = vtk_viewer::createMesh(points);
+  //vtkSmartPointer<vtkPolyData> data = vtk_viewer::createMesh(points);
+  //vtk_viewer::generateNormals(data);
+
+  vtkSmartPointer<vtkPolyData> data = vtkSmartPointer<vtkPolyData>::New();
+  vtk_viewer::loadPCDFile(file1, data, file2);
+
+  vtkSmartPointer<vtkPolyData> copy_data = vtkSmartPointer<vtkPolyData>::New();
+  vtkSmartPointer<vtkPoints> points2 = vtkSmartPointer<vtkPoints>::New();
+  points2 = data->GetPoints();
+  //copy_data = vtk_viewer::createMesh(points2);
+
+  //vtk_viewer::cleanMesh(points2, copy_data);
+
   vtk_viewer::generateNormals(data);
 
   // Set input mesh
@@ -31,11 +47,11 @@ TEST(IntersectTest, TestCase1)
 
   // Set input tool data
   tool_path_planner::ProcessTool tool;
-  tool.pt_spacing = 0.5;
-  tool.line_spacing = 1.0;
+  tool.pt_spacing = 0.01;
+  tool.line_spacing = 0.04;
   tool.tool_offset = 0.0; // currently unused
-  tool.intersecting_plane_height = 0.5; // 0.5 works best, not sure if this should be included in the tool
-  tool.nearest_neighbors = 5; // not sure if this should be a part of the tool
+  tool.intersecting_plane_height = 0.01; // 0.5 works best, not sure if this should be included in the tool
+  tool.nearest_neighbors = 30; // not sure if this should be a part of the tool
   planner.setTool(tool);
 
   vtk_viewer::VTKViewer viz;
