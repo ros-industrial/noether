@@ -245,13 +245,13 @@ namespace tool_path_planner
   vtkSmartPointer<vtkPolyData> ToolPathPlanner::createStartCurve()
   {
     // Find weighted center point and normal average
-    vtkSmartPointer<vtkCellArray> cellIds = input_mesh_->GetPolys();
-    cellIds->InitTraversal();
+    vtkSmartPointer<vtkCellArray> cell_ids = input_mesh_->GetPolys();
+    cell_ids->InitTraversal();
 
     double avg_center[3] = {0,0,0};
     double avg_norm[3] = {0,0,0};
     double avg_area = 0;
-    for(int i = 0; i < cellIds->GetNumberOfCells(); ++i)
+    for(int i = 0; i < cell_ids->GetNumberOfCells(); ++i)
     {
       double center[3] = {0,0,0};
       double norm[3] = {0,0,0};
@@ -285,10 +285,10 @@ namespace tool_path_planner
     double min[3];
     double size[3];
 
-    vtkSmartPointer<vtkOBBTree> obbTree = vtkSmartPointer<vtkOBBTree>::New();
-    obbTree->SetTolerance(0.001);
-    obbTree->SetLazyEvaluation(0);
-    obbTree->ComputeOBB(input_mesh_->GetPoints(), corner, max, mid, min, size);
+    vtkSmartPointer<vtkOBBTree> obb_tree = vtkSmartPointer<vtkOBBTree>::New();
+    obb_tree->SetTolerance(0.001);
+    obb_tree->SetLazyEvaluation(0);
+    obb_tree->ComputeOBB(input_mesh_->GetPoints(), corner, max, mid, min, size);
 
     double m = sqrt(size[0] * size[0] + size[1] * size[1] + size[2] * size[2]);
     size[0] /= m;
@@ -378,10 +378,10 @@ namespace tool_path_planner
                                          vtkSmartPointer<vtkParametricSpline>& spline)
   {
     // Get intersection line
-    vtkSmartPointer<vtkIntersectionPolyDataFilter> intersectionPolyDataFilter =
+    vtkSmartPointer<vtkIntersectionPolyDataFilter> intersection_filter =
       vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
-    intersectionPolyDataFilter->SetInputData( 0, input_mesh_);
-    intersectionPolyDataFilter->SetInputData( 1, cut_surface );
+    intersection_filter->SetInputData( 0, input_mesh_);
+    intersection_filter->SetInputData( 1, cut_surface );
 
     if(cut_surface->GetNumberOfCells() < 1)
     {
@@ -390,7 +390,7 @@ namespace tool_path_planner
 
     try
     {
-      intersectionPolyDataFilter->Update();
+      intersection_filter->Update();
     }
     catch(...)
     {
@@ -399,17 +399,17 @@ namespace tool_path_planner
     }
 
 
-    if(intersectionPolyDataFilter->GetStatus() == 0)
+    if(intersection_filter->GetStatus() == 0)
     {
       return false;
     }
     // Sort points
-    vtkSmartPointer<vtkPolyData> output = intersectionPolyDataFilter->GetOutput();
+    vtkSmartPointer<vtkPolyData> output = intersection_filter->GetOutput();
     if(!output)
     {
       return false;
     }
-    vtkSmartPointer<vtkPoints> pts = intersectionPolyDataFilter->GetOutput()->GetPoints();
+    vtkSmartPointer<vtkPoints> pts = intersection_filter->GetOutput()->GetPoints();
     if(!pts || pts->GetNumberOfPoints() <= 2)
     {
       return false;
@@ -570,24 +570,24 @@ namespace tool_path_planner
 
   void ToolPathPlanner::generateNormals(vtkSmartPointer<vtkPolyData>& data)
   {
-    vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
-    normalGenerator->SetInputData(data);
-    normalGenerator->ComputePointNormalsOn();
-    normalGenerator->ComputeCellNormalsOn();
+    vtkSmartPointer<vtkPolyDataNormals> normal_generator = vtkSmartPointer<vtkPolyDataNormals>::New();
+    normal_generator->SetInputData(data);
+    normal_generator->ComputePointNormalsOn();
+    normal_generator->ComputeCellNormalsOn();
 
     // Optional settings
-    normalGenerator->SetFeatureAngle(0.1);
-    normalGenerator->SetSplitting(0);
-    normalGenerator->SetConsistency(1);
-    normalGenerator->SetAutoOrientNormals(1);
-    normalGenerator->SetComputePointNormals(1);
-    normalGenerator->SetComputeCellNormals(1);
-    normalGenerator->SetFlipNormals(0);
-    normalGenerator->SetNonManifoldTraversal(1);
+    normal_generator->SetFeatureAngle(0.1);
+    normal_generator->SetSplitting(0);
+    normal_generator->SetConsistency(1);
+    normal_generator->SetAutoOrientNormals(1);
+    normal_generator->SetComputePointNormals(1);
+    normal_generator->SetComputeCellNormals(1);
+    normal_generator->SetFlipNormals(0);
+    normal_generator->SetNonManifoldTraversal(1);
 
-    normalGenerator->Update();
+    normal_generator->Update();
 
-    vtkDataArray* normals = normalGenerator->GetOutput()->GetPointData()->GetNormals();
+    vtkDataArray* normals = normal_generator->GetOutput()->GetPointData()->GetNormals();
     if(normals)
     {
       data->GetPointData()->SetNormals(normals);

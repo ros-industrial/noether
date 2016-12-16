@@ -78,7 +78,7 @@ namespace vtk_viewer
      * @param glyph The pointer to the vtkGlyph3D object which will be created and returned
      * @param scale The size to scale and show the arrows at
      */
-    void MakeGlyphs(vtkSmartPointer<vtkPolyData>& src, bool const & reverseNormals, vtkSmartPointer<vtkGlyph3D> glyph, double scale);
+    void makeGlyphs(vtkSmartPointer<vtkPolyData>& src, bool const & reverseNormals, vtkSmartPointer<vtkGlyph3D> glyph, double scale);
   };
 
 }

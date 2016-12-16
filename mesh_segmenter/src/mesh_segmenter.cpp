@@ -129,32 +129,30 @@ vtkSmartPointer<vtkIdList> MeshSegmenter::segmentMesh(int start_cell)
   return used_cells;
 }
 
-vtkSmartPointer<vtkIdList> MeshSegmenter::getNeighborCells(vtkSmartPointer<vtkPolyData> mesh, int cellId)
+vtkSmartPointer<vtkIdList> MeshSegmenter::getNeighborCells(vtkSmartPointer<vtkPolyData> mesh, int cell_id)
 {
-  //vtkIdType cellId = 0;
-
-  vtkSmartPointer<vtkIdList> cellPointIds = vtkSmartPointer<vtkIdList>::New();
-  triangle_filter_->GetOutput()->GetCellPoints(cellId, cellPointIds);
+  vtkSmartPointer<vtkIdList> cell_point_ids = vtkSmartPointer<vtkIdList>::New();
+  triangle_filter_->GetOutput()->GetCellPoints(cell_id, cell_point_ids);
 
   vtkSmartPointer<vtkIdList> neighbors = vtkSmartPointer<vtkIdList>::New();
 
-  for(vtkIdType i = 0; i < cellPointIds->GetNumberOfIds(); i++)
+  for(vtkIdType i = 0; i < cell_point_ids->GetNumberOfIds(); i++)
   {
-    vtkSmartPointer<vtkIdList> idList = vtkSmartPointer<vtkIdList>::New();
+    vtkSmartPointer<vtkIdList> id_list = vtkSmartPointer<vtkIdList>::New();
 
     //add one of the edge points
-    idList->InsertNextId(cellPointIds->GetId(i));
+    id_list->InsertNextId(cell_point_ids->GetId(i));
 
     //add the other edge point
-    idList->InsertNextId(cellPointIds->GetId((i+1) % (cellPointIds->GetNumberOfIds() )  ));
+    id_list->InsertNextId(cell_point_ids->GetId((i+1) % (cell_point_ids->GetNumberOfIds() )  ));
 
     //get the neighbors of the cell
-    vtkSmartPointer<vtkIdList> neighborCellIds = vtkSmartPointer<vtkIdList>::New();
+    vtkSmartPointer<vtkIdList> neighbor_cell_ids = vtkSmartPointer<vtkIdList>::New();
 
-    triangle_filter_->GetOutput()->GetCellNeighbors(cellId, idList, neighborCellIds);
-    for(vtkIdType j = 0; j < neighborCellIds->GetNumberOfIds(); j++)
+    triangle_filter_->GetOutput()->GetCellNeighbors(cell_id, id_list, neighbor_cell_ids);
+    for(vtkIdType j = 0; j < neighbor_cell_ids->GetNumberOfIds(); j++)
     {
-      neighbors->InsertNextId(neighborCellIds->GetId(j));
+      neighbors->InsertNextId(neighbor_cell_ids->GetId(j));
     }
 
   }

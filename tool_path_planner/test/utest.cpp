@@ -30,8 +30,8 @@ TEST(IntersectTest, TestCase1)
 
   // Set input tool data
   tool_path_planner::ProcessTool tool;
-  tool.pt_spacing = 0.5;
-  tool.line_spacing = 1.0;
+  tool.pt_spacing = 0.2;
+  tool.line_spacing = 0.5;
   tool.tool_offset = 0.0; // currently unused
   tool.intersecting_plane_height = 0.1; // 0.5 works best, not sure if this should be included in the tool
   tool.nearest_neighbors = 30; // not sure if this should be a part of the tool

@@ -35,7 +35,7 @@ namespace mesh_segmenter
      * @param cellId The cell id to find adjacent cells
      * @return The list of cell ids which are adjacent to the target cell
      */
-    vtkSmartPointer<vtkIdList> getNeighborCells(vtkSmartPointer<vtkPolyData> mesh, int cellId);
+    vtkSmartPointer<vtkIdList> getNeighborCells(vtkSmartPointer<vtkPolyData> mesh, int cell_id);
 
     /**
      * @brief segmentMesh Segments the input mesh using the desired segmentation algorithm

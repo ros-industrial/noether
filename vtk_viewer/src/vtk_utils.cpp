@@ -97,8 +97,7 @@ vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points , doub
   // Sometimes the contouring algorithm can create a volume whose gradient
   // vector and ordering of polygon (using the right hand rule) are
   // inconsistent. vtkReverseSense cures this problem.
-  vtkSmartPointer<vtkReverseSense> reverse =
-    vtkSmartPointer<vtkReverseSense>::New();
+  vtkSmartPointer<vtkReverseSense> reverse = vtkSmartPointer<vtkReverseSense>::New();
   reverse->SetInputConnection(cf->GetOutputPort());
   reverse->ReverseCellsOn();
   reverse->ReverseNormalsOn();
@@ -160,40 +159,38 @@ void cleanMesh(const vtkSmartPointer<vtkPoints>& points, vtkSmartPointer<vtkPoly
 
   // clean mesh: merge points, remove unused points, and remove
   // degenerate cells (cells where two points are very close to one another)
-  vtkSmartPointer<vtkCleanPolyData> cleanPolyData =
-      vtkSmartPointer<vtkCleanPolyData>::New();
-  cleanPolyData->SetInputData(mesh);
-  //cleanPolyData->SetTolerance(0.1);
-  cleanPolyData->Update();
+  vtkSmartPointer<vtkCleanPolyData> clean_polydata = vtkSmartPointer<vtkCleanPolyData>::New();
+  clean_polydata->SetInputData(mesh);
+  clean_polydata->Update();
 
-  mesh = cleanPolyData->GetOutput();
+  mesh = clean_polydata->GetOutput();
 
 }
 
 void visualizePlane(vtkSmartPointer<vtkPolyData> &polydata)
 {
   // Create a mapper and actor
-  vtkSmartPointer<vtkPolyDataMapper> triangulatedMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  triangulatedMapper->SetInputData(polydata);
+  vtkSmartPointer<vtkPolyDataMapper> triangulated_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  triangulated_mapper->SetInputData(polydata);
 
-  vtkSmartPointer<vtkActor> triangulatedActor = vtkSmartPointer<vtkActor>::New();
-  triangulatedActor->SetMapper(triangulatedMapper);
+  vtkSmartPointer<vtkActor> triangulated_actor = vtkSmartPointer<vtkActor>::New();
+  triangulated_actor->SetMapper(triangulated_mapper);
 
   // Create a renderer, render window, and interactor
   vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
-  vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-  renderWindow->AddRenderer(renderer);
-  vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
-    vtkSmartPointer<vtkRenderWindowInteractor>::New();
-  renderWindowInteractor->SetRenderWindow(renderWindow);
+  vtkSmartPointer<vtkRenderWindow> render_window = vtkSmartPointer<vtkRenderWindow>::New();
+  vtkSmartPointer<vtkRenderWindowInteractor> render_interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+
+  render_window->AddRenderer(renderer);
+  render_interactor->SetRenderWindow(render_window);
 
   // Add the actor to the scene
-  renderer->AddActor(triangulatedActor);
+  renderer->AddActor(triangulated_actor);
   renderer->SetBackground(.3, .6, .3); // Background color green
 
   // Render and interact
-  renderWindow->Render();
-  renderWindowInteractor->Start();
+  render_window->Render();
+  render_interactor->Start();
 }
 
 vtkSmartPointer<vtkPolyData> readSTLFile(std::string file)
@@ -357,57 +354,54 @@ void PCLtoVTK(const pcl::PointCloud<pcl::PointXYZ> &cloud, vtkPolyData* const pd
 
 vtkSmartPointer<vtkPolyData> estimateCurvature(vtkSmartPointer<vtkPolyData> mesh, int method)
 {
-  vtkSmartPointer<vtkCurvatures> curvaturesFilter =
-      vtkSmartPointer<vtkCurvatures>::New();
-    curvaturesFilter->SetInputData(mesh);
-    curvaturesFilter->SetCurvatureTypeToMean();
+  vtkSmartPointer<vtkCurvatures> curvature_filter = vtkSmartPointer<vtkCurvatures>::New();
+    curvature_filter->SetInputData(mesh);
     switch(method)
     {
     case 0:
-      curvaturesFilter->SetCurvatureTypeToMinimum();
+      curvature_filter->SetCurvatureTypeToMinimum();
       break;
     case 1:
-      curvaturesFilter->SetCurvatureTypeToMaximum();
+      curvature_filter->SetCurvatureTypeToMaximum();
       break;
     case 2:
-      curvaturesFilter->SetCurvatureTypeToGaussian();
+      curvature_filter->SetCurvatureTypeToGaussian();
       break;
-    case 3:
     default:
-      curvaturesFilter->SetCurvatureTypeToMean();
+      curvature_filter->SetCurvatureTypeToMean();
       break;
     }
-    curvaturesFilter->Update();
+    curvature_filter->Update();
 
-    return curvaturesFilter->GetOutput();
+    return curvature_filter->GetOutput();
 }
 
 void generateNormals(vtkSmartPointer<vtkPolyData>& data)
 {
-  vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
-  normalGenerator->SetInputData(data);
-  normalGenerator->ComputePointNormalsOn();
-  normalGenerator->ComputeCellNormalsOn();
+  vtkSmartPointer<vtkPolyDataNormals> normal_generator = vtkSmartPointer<vtkPolyDataNormals>::New();
+  normal_generator->SetInputData(data);
+  normal_generator->ComputePointNormalsOn();
+  normal_generator->ComputeCellNormalsOn();
 
   // Optional settings
-  normalGenerator->SetFeatureAngle(0.1);
-  normalGenerator->SetSplitting(0);
-  normalGenerator->SetConsistency(1);
-  normalGenerator->SetAutoOrientNormals(1);
-  normalGenerator->SetComputePointNormals(1);
-  normalGenerator->SetComputeCellNormals(1);
-  normalGenerator->SetFlipNormals(0);
-  normalGenerator->SetNonManifoldTraversal(1);
+  normal_generator->SetFeatureAngle(0.1);
+  normal_generator->SetSplitting(0);
+  normal_generator->SetConsistency(1);
+  normal_generator->SetAutoOrientNormals(1);
+  normal_generator->SetComputePointNormals(1);
+  normal_generator->SetComputeCellNormals(1);
+  normal_generator->SetFlipNormals(0);
+  normal_generator->SetNonManifoldTraversal(1);
 
-  normalGenerator->Update();
+  normal_generator->Update();
 
-  vtkDataArray* normals = normalGenerator->GetOutput()->GetPointData()->GetNormals();
+  vtkDataArray* normals = normal_generator->GetOutput()->GetPointData()->GetNormals();
   if(normals)
   {
     data->GetPointData()->SetNormals(normals);
   }
 
-  vtkDataArray* normals2 = normalGenerator->GetOutput()->GetCellData()->GetNormals();
+  vtkDataArray* normals2 = normal_generator->GetOutput()->GetCellData()->GetNormals();
   if(normals2)
   {
     data->GetCellData()->SetNormals(normals2);
@@ -416,26 +410,24 @@ void generateNormals(vtkSmartPointer<vtkPolyData>& data)
 
 vtkSmartPointer<vtkPolyData> upsampleMesh(vtkSmartPointer<vtkPolyData> mesh, double distance)
 {
-  vtkSmartPointer<vtkPolyDataPointSampler> pointSampler =
-      vtkSmartPointer<vtkPolyDataPointSampler>::New();
-  pointSampler->SetDistance(distance);
-  pointSampler->SetInputData(mesh);
-  pointSampler->Update();
+  vtkSmartPointer<vtkPolyDataPointSampler> point_sampler = vtkSmartPointer<vtkPolyDataPointSampler>::New();
+  point_sampler->SetDistance(distance);
+  point_sampler->SetInputData(mesh);
+  point_sampler->Update();
 
   // Resize the mesh and insert the new points
   int old_size = mesh->GetPoints()->GetNumberOfPoints();
-  int new_size = pointSampler->GetOutput()->GetPoints()->GetNumberOfPoints();
+  int new_size = point_sampler->GetOutput()->GetPoints()->GetNumberOfPoints();
 
   vtkSmartPointer<vtkPolyData> updated_mesh = vtkSmartPointer<vtkPolyData>::New();
   updated_mesh->SetPoints(mesh->GetPoints());
   int size = old_size + new_size;
   updated_mesh->GetPoints()->Resize(size);
 
-  updated_mesh->GetPoints()->InsertPoints(old_size, new_size, 0, pointSampler->GetOutput()->GetPoints());
+  updated_mesh->GetPoints()->InsertPoints(old_size, new_size, 0, point_sampler->GetOutput()->GetPoints());
 
   // create surface from new point set
-  vtkSmartPointer<vtkSurfaceReconstructionFilter> surf =
-      vtkSmartPointer<vtkSurfaceReconstructionFilter>::New();
+  vtkSmartPointer<vtkSurfaceReconstructionFilter> surf = vtkSmartPointer<vtkSurfaceReconstructionFilter>::New();
 
   surf->SetInputData(updated_mesh);
 
