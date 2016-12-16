@@ -161,21 +161,6 @@ vtkSmartPointer<vtkIdList> MeshSegmenter::getNeighborCells(vtkSmartPointer<vtkPo
   return neighbors;
 }
 
-// The VTK Polydata::CopyData() function does not appear to copy the point and cell data (normals), this is the
-// function that will perform it as expected
-void MeshSegmenter::extractMeshData(vtkSmartPointer<vtkIdList> ids, vtkSmartPointer<vtkPolyData> output_mesh)
-{
-   vtkSmartPointer<vtkDoubleArray> pt_norms = vtkSmartPointer<vtkDoubleArray>::New();
-   pt_norms->SetNumberOfComponents(3);
-   vtkSmartPointer<vtkDoubleArray> cell_norms = vtkSmartPointer<vtkDoubleArray>::New();
-   cell_norms->SetNumberOfComponents(3);
-
-   for(int i = 0; i < ids->GetNumberOfIds(); ++i)
-   {
-      //pt_norms->InsertNextTuple(input_mesh_->)
-   }
-}
-
 bool MeshSegmenter::areNormalsNear(const double* norm1, const double* norm2, double threshold)
 {
   double val = (norm1[0]*norm2[0] + norm1[1]*norm2[1] + norm1[2]*norm2[2]);

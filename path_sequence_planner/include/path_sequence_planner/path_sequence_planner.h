@@ -16,18 +16,26 @@ namespace path_sequence_planner
   public:
 
     /**
-     * @brief linkPaths Connects all of the paths_ into a single path and stores the results
+     * @brief linkPaths Connects all of the paths_ into a single path and flips paths as necessary
      */
     void linkPaths();
 
     /**
-     * @brief setPaths
-     * @param paths
+     * @brief setPaths Sets the paths to be used for linking
+     * @param paths The input set of paths
      */
-    void setPaths(std::vector<tool_path_planner::ProcessPath> paths){paths_ = paths;}
+    void setPaths(std::vector<tool_path_planner::ProcessPath> paths){paths_ = paths; indices_.clear();}
 
+    /**
+     * @brief getPaths Get the list of paths currently stored (some paths may be flipped after linking)
+     * @return The set of paths currently stored
+     */
     std::vector<tool_path_planner::ProcessPath> getPaths(){return paths_;}
 
+    /**
+     * @brief getIndices Get the list of path indices denoting the order in which paths should be executed
+     * @return The list path indices
+     */
     std::vector<int> getIndices(){return indices_;}
 
   private:

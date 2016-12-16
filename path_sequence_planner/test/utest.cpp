@@ -123,7 +123,6 @@ TEST(IntersectTest, TestCase1)
       normals->InsertNextTuple(norm);
     }
   }
-  //connecting_points->SetNormals(normals);
   connecting_data->SetPoints(connecting_points);
   connecting_data->GetPointData()->SetNormals(normals);
 

@@ -6,15 +6,12 @@
 
 #include "vtk_viewer/vtk_utils.h"
 
-
 #include <pcl/io/pcd_io.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/surface/gp3.h>
 #include <pcl/surface/vtk_smoothing/vtk_utils.h>
 #include <pcl/surface/mls.h>
-
-
 
 #include <vtkPointData.h>
 #include <vtkCellData.h>
@@ -43,7 +40,7 @@
 #include <vtkPolyDataPointSampler.h>
 #include <vtkKdTreePointLocator.h>
 #include <vtkTriangle.h>
-
+#include <vtkCleanPolyData.h>
 
 
 namespace vtk_viewer
@@ -71,7 +68,7 @@ vtkSmartPointer<vtkPoints> createPlane()
   return points;
 }
 
-vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points )
+vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points , double sample_spacing, double neigborhood_size)
 {
   if(!points)
   {
@@ -81,19 +78,14 @@ vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points )
   vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
   polydata->SetPoints(points);
 
-  vtkSmartPointer<vtkDelaunay2D> delaunay = vtkSmartPointer<vtkDelaunay2D>::New();
-  delaunay->SetInputData(polydata);
-
-  // Test of surface reconstruction
+  // surface reconstruction
   vtkSmartPointer<vtkContourFilter> cf;
   vtkSmartPointer<vtkSurfaceReconstructionFilter> surf =
   vtkSmartPointer<vtkSurfaceReconstructionFilter>::New();
 
   surf->SetInputData(polydata);
-  cout << "spacing: " << surf->GetSampleSpacing() << "\n";
-  cout << "neighborhood size: " << surf->GetNeighborhoodSize() << "\n";
-  surf->SetSampleSpacing(0.02);
-  surf->SetNeighborhoodSize(30);
+  surf->SetSampleSpacing(sample_spacing);
+  surf->SetNeighborhoodSize(neigborhood_size);
   surf->Update();
 
 
@@ -108,48 +100,15 @@ vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points )
   vtkSmartPointer<vtkReverseSense> reverse =
     vtkSmartPointer<vtkReverseSense>::New();
   reverse->SetInputConnection(cf->GetOutputPort());
-  reverse->ReverseCellsOff();
+  reverse->ReverseCellsOn();
   reverse->ReverseNormalsOn();
   reverse->Update();
-
-  // In order to perform the Delaunay2D triangulation, all of the points must be roughly
-  // in the x/y plane (z component is ignored).  If they are otherwise, the triangulation results will
-  // not be ideal and result in spurious or ill formed triangles.  Need to find a rotation
-  // to place the points in the desired x/y plane
-
-  vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-  transform->PostMultiply();
-
-  // find the bounds of the data, use this to set the transform
-  points->ComputeBounds();
-  double* bounds = points->GetBounds();  // xmin,xmax,ymin,ymax,zmin,zmax
-  double x = 1.0/fabs(bounds[0]- bounds[1]);
-  double y = 1.0/fabs(bounds[2]- bounds[3]);
-  double z = 1.0/fabs(bounds[4]- bounds[5]);
-
-  // normalize the x,y,z components using the sqrt of the sum of the squares
-  double m = sqrt(pow(x,2.0) + pow(y,2.0) + pow(z,2.0));
-  x = x/m;
-  y = y/m;
-  z = z/m;
-
-  // calculate the rotation to place the data in the x/y plane
-  double theta = atan2(y,x);
-
-  // TODO: verify that the rotation for performing Delaunay triangulation is correct
-  // May need to perform one more rotation
-  transform->RotateZ(theta );
-  delaunay->SetTransform(transform);
-
-  // Update and return the results
-  //delaunay->Update();
 
   return reverse->GetOutput();
 }
 
 void cleanMesh(const vtkSmartPointer<vtkPoints>& points, vtkSmartPointer<vtkPolyData>& mesh)
 {
-  cout << "cleaning mesh\n";
   // create KD tree object for searching for points
   vtkSmartPointer<vtkPolyData> data = vtkSmartPointer<vtkPolyData>::New();
   data->SetPoints(points);
@@ -166,6 +125,7 @@ void cleanMesh(const vtkSmartPointer<vtkPoints>& points, vtkSmartPointer<vtkPoly
     vtkCell* cell = mesh->GetCell(i);
     if(cell)
     {
+      // get cell centroid and max leg length
       vtkTriangle* triangle = dynamic_cast<vtkTriangle*>(cell);
       double p0[3];
       double p1[3];
@@ -180,7 +140,7 @@ void cleanMesh(const vtkSmartPointer<vtkPoints>& points, vtkSmartPointer<vtkPoly
       double c = pt_dist(&p0[0], &p2[0]);
       triangle->TriangleCenter(p0, p1, p2, center);
 
-      // search for points in radius
+      // search for points in radius around the cell centroid
       double max = (a > b ? a : b);
       max = max > c ? max : c;
       double radius =  sqrt(max);
@@ -195,12 +155,19 @@ void cleanMesh(const vtkSmartPointer<vtkPoints>& points, vtkSmartPointer<vtkPoly
     }
   }
 
-  cout << "cells before deletion: " << mesh->GetPolys()->GetNumberOfCells() << "\n";
   // delete all marked cells
   mesh->RemoveDeletedCells();
 
-  cout << "cells after deletion: " << mesh->GetPolys()->GetNumberOfCells() << "\n";
-  cout << "done cleaning\n";
+  // clean mesh: merge points, remove unused points, and remove
+  // degenerate cells (cells where two points are very close to one another)
+  vtkSmartPointer<vtkCleanPolyData> cleanPolyData =
+      vtkSmartPointer<vtkCleanPolyData>::New();
+  cleanPolyData->SetInputData(mesh);
+  //cleanPolyData->SetTolerance(0.1);
+  cleanPolyData->Update();
+
+  mesh = cleanPolyData->GetOutput();
+
 }
 
 void visualizePlane(vtkSmartPointer<vtkPolyData> &polydata)
@@ -287,7 +254,6 @@ bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata, std::
 
   if(background != "")
   {
-    cout << "subtracting background pcd\n";
     pcl::PointCloud<pcl::PointXYZ>::Ptr bg_cloud (new pcl::PointCloud<pcl::PointXYZ>);
     if (pcl::io::loadPCDFile<pcl::PointXYZ> (background.c_str(), *bg_cloud) == -1) //* load the file
     {
@@ -325,8 +291,7 @@ bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata, std::
 
   if(return_mesh)
   {
-    cout << "creating mesh\n";
-    polydata = createMesh(point_data->GetPoints());
+    polydata = createMesh(point_data->GetPoints(), 0.02, 30);
     cleanMesh(point_data->GetPoints(), polydata);
   }
   else
@@ -382,7 +347,6 @@ void PCLtoVTK(const pcl::PointCloud<pcl::PointXYZ> &cloud, vtkPolyData* const pd
     const double pt[3] = {double(cloud.points[i].x), double(cloud.points[i].y), double(cloud.points[i].z)};
     points->InsertNextPoint(pt);
   }
-  cout << "number of points: " << points->GetNumberOfPoints() << "\n";
 
   // Create a temporary PolyData and add the points to it
   vtkSmartPointer<vtkPolyData> tempPolyData = vtkSmartPointer<vtkPolyData>::New();
@@ -409,6 +373,7 @@ vtkSmartPointer<vtkPolyData> estimateCurvature(vtkSmartPointer<vtkPolyData> mesh
       curvaturesFilter->SetCurvatureTypeToGaussian();
       break;
     case 3:
+    default:
       curvaturesFilter->SetCurvatureTypeToMean();
       break;
     }
@@ -431,7 +396,7 @@ void generateNormals(vtkSmartPointer<vtkPolyData>& data)
   normalGenerator->SetAutoOrientNormals(1);
   normalGenerator->SetComputePointNormals(1);
   normalGenerator->SetComputeCellNormals(1);
-  normalGenerator->SetFlipNormals(1);
+  normalGenerator->SetFlipNormals(0);
   normalGenerator->SetNonManifoldTraversal(1);
 
   normalGenerator->Update();
@@ -447,14 +412,6 @@ void generateNormals(vtkSmartPointer<vtkPolyData>& data)
   {
     data->GetCellData()->SetNormals(normals2);
   }
-
-//  vtkSmartPointer<vtkReverseSense> reverse =
-//    vtkSmartPointer<vtkReverseSense>::New();
-//  reverse->SetInputData(data);
-//  reverse->ReverseCellsOff();
-//  reverse->ReverseNormalsOn();
-//  reverse->Update();
-//  data = reverse->GetOutput();
 }
 
 vtkSmartPointer<vtkPolyData> upsampleMesh(vtkSmartPointer<vtkPolyData> mesh, double distance)
@@ -474,7 +431,6 @@ vtkSmartPointer<vtkPolyData> upsampleMesh(vtkSmartPointer<vtkPolyData> mesh, dou
   int size = old_size + new_size;
   updated_mesh->GetPoints()->Resize(size);
 
-  //updated_mesh->GetPoints()->InsertPoints(0, old_size, 0, mesh->GetPoints());
   updated_mesh->GetPoints()->InsertPoints(old_size, new_size, 0, pointSampler->GetOutput()->GetPoints());
 
   // create surface from new point set
@@ -482,15 +438,12 @@ vtkSmartPointer<vtkPolyData> upsampleMesh(vtkSmartPointer<vtkPolyData> mesh, dou
       vtkSmartPointer<vtkSurfaceReconstructionFilter>::New();
 
   surf->SetInputData(updated_mesh);
-  cout << pointSampler->GetOutput()->GetPoints()->GetNumberOfPoints() << "\n";
 
-  //vtkSmartPointer<vtkMarchingContourFilter> cf = vtkSmartPointer<vtkMarchingContourFilter>::New();
   vtkSmartPointer<vtkMarchingCubes> cf = vtkSmartPointer<vtkMarchingCubes>::New();
-  //cf->GenerateValues(1, -10.0, 10.0);
 
   cf->SetInputConnection(surf->GetOutputPort());
   cf->SetValue(0, 0.1);
-  cf->ComputeNormalsOn();
+  cf->ComputeNormalsOff();
 
   cf->Update();
 
@@ -499,8 +452,8 @@ vtkSmartPointer<vtkPolyData> upsampleMesh(vtkSmartPointer<vtkPolyData> mesh, dou
   // inconsistent. vtkReverseSense cures this problem.
   vtkSmartPointer<vtkReverseSense> reverse = vtkSmartPointer<vtkReverseSense>::New();
   reverse->SetInputConnection(cf->GetOutputPort());
-  reverse->ReverseCellsOff();
-  reverse->ReverseNormalsOff();
+  reverse->ReverseCellsOn();
+  reverse->ReverseNormalsOn();
   reverse->Update();
 
   return reverse->GetOutput();

@@ -82,32 +82,6 @@ namespace vtk_viewer
     triangulatedMapper->SetInputData(polydata);
     this->poly_mappers_.push_back(triangulatedMapper);
 
-    // add color scheme if scalars are present
-    vtkSmartPointer<vtkColorTransferFunction> lut =
-        vtkSmartPointer<vtkColorTransferFunction>::New();
-      lut->SetColorSpaceToRGB();
-      vtkDataArray *scalars = polydata->GetPointData()->GetScalars();
-    if(scalars)
-    {
-      double range[2];
-
-      polydata->GetScalarRange(range);
-      cout << "range: " << range[0] << " " << range[1] << " \n";
-      //range[0] = 10.0;
-      range[1] = 20.0;
-
-      for(int i = 0; i < 255; ++i)
-      {
-        double t = range[0] + (range[1] - range[0]) / (255 - 1) * i;
-        double scale = range[1] - range[0];
-        //cout << "t " << t << " " << t*color[1]/scale << "\n";
-        lut->AddRGBPoint(t, 1/t*color[1] /scale , 1/t*color[1] /scale , 1/t*color[2] /scale );
-      }
-
-      triangulatedMapper->SetLookupTable(lut);
-      triangulatedMapper->SetScalarRange(range);
-    }
-
     // create actor and add to list
     vtkSmartPointer<vtkActor> triangulatedActor = vtkSmartPointer<vtkActor>::New();
     triangulatedActor->SetMapper(poly_mappers_.back());
@@ -126,7 +100,7 @@ namespace vtk_viewer
     iren_->Delete();
   }
 
-  void VTKViewer::MakeGlyphs(vtkSmartPointer<vtkPolyData>& src, bool const & reverseNormals , vtkSmartPointer<vtkGlyph3D> glyph)
+  void VTKViewer::MakeGlyphs(vtkSmartPointer<vtkPolyData>& src, bool const & reverseNormals , vtkSmartPointer<vtkGlyph3D> glyph, double scale)
   {
 
     // Sometimes the contouring algorithm can create a volume whose gradient
@@ -157,16 +131,16 @@ namespace vtk_viewer
     glyph->SetSourceConnection(arrow->GetOutputPort());
     glyph->SetInputConnection(maskPts->GetOutputPort());
     glyph->SetVectorModeToUseNormal();
-    glyph->SetScaleFactor(0.05);
+    glyph->SetScaleFactor(scale);
     glyph->SetColorModeToColorByVector();
     glyph->SetScaleModeToScaleByVector();
     glyph->OrientOn();
     glyph->Update();
   }
 
-  void VTKViewer::addPolyNormalsDisplay(vtkSmartPointer<vtkPolyData> polydata, std::vector<float> color, vtkSmartPointer<vtkGlyph3D> glyph)
+  void VTKViewer::addPolyNormalsDisplay(vtkSmartPointer<vtkPolyData> polydata, std::vector<float> color, vtkSmartPointer<vtkGlyph3D> glyph, double scale)
   {
-    MakeGlyphs(polydata, false, glyph);
+    MakeGlyphs(polydata, false, glyph, scale);
 
     vtkSmartPointer<vtkPolyDataMapper> Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     Mapper->SetInputData(glyph->GetOutput());
@@ -185,7 +159,7 @@ namespace vtk_viewer
     this->renderer_->AddActor(actors_.back());
   }
 
-  void VTKViewer::addCellNormalDisplay(vtkSmartPointer<vtkPolyData> polydata, std::vector<float> color)
+  void VTKViewer::addCellNormalDisplay(vtkSmartPointer<vtkPolyData> polydata, std::vector<float> color, double scale)
   {
     // get cell and point data
 
@@ -219,9 +193,9 @@ namespace vtk_viewer
     centroid_polydata->GetPointData()->SetNormals(normalsArray);
 
     vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
-    MakeGlyphs(centroid_polydata, true, glyph);
+    MakeGlyphs(centroid_polydata, true, glyph, scale);
 
-    addPolyNormalsDisplay(centroid_polydata, color, glyph);
+    addPolyNormalsDisplay(centroid_polydata, color, glyph, scale);
   }
 }
 

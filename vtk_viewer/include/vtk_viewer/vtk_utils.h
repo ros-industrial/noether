@@ -33,28 +33,80 @@ namespace vtk_viewer
   void visualizePlane(vtkSmartPointer<vtkPolyData>& polydata);
 
   /**
-   * @brief createMesh Creates a Delaunay2D triangulated mesh from a set of points
+   * @brief createMesh Uses surface reconstruction to approximate a mesh to fit the data
    * @param points The set of input points
+   * @param sample_spacing The size of the triangles to form in the final mesh
+   * @param neighborhood_size The number of points to consider for determining cell size and orientation
    * @return The mesh object after triangulation
    */
-  vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points);
+  vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points, double sample_spacing, double neigborhood_size);
 
+  /**
+   * @brief cleanMesh Given a mesh, removes cells that do not have enough point data nearby (called after createMesh)
+   * @param points The set of input points used to eliminate empty/extraneous cells
+   * @param mesh The input mesh to filter and remove empty cells from
+   */
   void cleanMesh(const vtkSmartPointer<vtkPoints>& points, vtkSmartPointer<vtkPolyData>& mesh);
 
+  /**
+   * @brief readSTLFile Reads an STL file and returns a VTK data object
+   * @param file The input file to read
+   * @return A VTK polydata object representing the CAD file, returns a null pointer if the operation failed
+   */
   vtkSmartPointer<vtkPolyData> readSTLFile(std::string file);
 
+  /**
+   * @brief estimateCurvature Estimates the curvature of a given mesh (currently experimental)
+   * @param mesh The input mesh to operate on
+   * @param method The desired method for curvature estimation [0-3]
+   * @return
+   */
   vtkSmartPointer<vtkPolyData> estimateCurvature(vtkSmartPointer<vtkPolyData> mesh, int method);
 
+  /**
+   * @brief generateNormals Generate point and cell (surface) normals (in place)
+   * @param data The mesh to generate and add normals to
+   */
   void generateNormals(vtkSmartPointer<vtkPolyData>& data);
 
+  /**
+   * @brief upsampleMesh Uniformly samples a mesh to generate a denser mesh (currently experimental and not working)
+   * @param mesh The input mesh to sample
+   * @param distance The spacing between sample points on the surface
+   * @return A new upsampled mesh
+   */
   vtkSmartPointer<vtkPolyData> upsampleMesh(vtkSmartPointer<vtkPolyData> mesh, double distance);
 
+  /**
+   * @brief loadPCDFile Load a PCL PCD file and convert it to VTK
+   * @param file The input file to load
+   * @param polydata [output] The VTK object to return
+   * @param background Optional point cloud to be used to perform background subtraction
+   * @param return_mesh If true, computes and returns a mesh, if false, will only return the point data
+   * @return True if the file exists and was loaded, False if there was an error
+   */
   bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata, std::string background = "", bool return_mesh = true);
 
+  /**
+   * @brief PCLtoVTK Converts a PCL point cloud to VTK format
+   * @param cloud The input PCL point cloud
+   * @param pdata the output VTK data object
+   */
   void PCLtoVTK(const pcl::PointCloud<pcl::PointXYZ>& cloud, vtkPolyData* const pdata);
 
+  /**
+   * @brief removeBackground Removes points from an input cloud using a background cloud as a reference (also removes NaN's)
+   * @param cloud The input cloud to perform background subtraction on
+   * @param background The reference background cloud
+   */
   void removeBackground(pcl::PointCloud<pcl::PointXYZ>& cloud, const pcl::PointCloud<pcl::PointXYZ>& background);
 
+  /**
+   * @brief pt_dist Computes the sum of the square distance between two points (no sqrt() to save time)
+   * @param pt1 Pointer to a double array of size 3, first point for calculating distance
+   * @param pt2 Pointer to a double array of size 3, second point for calculating distance
+   * @return The calculated sum squared distance
+   */
   double pt_dist(double* pt1, double* pt2);
 
 }

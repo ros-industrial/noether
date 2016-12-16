@@ -5,6 +5,7 @@
  */
 
 #include "noether/noether.h"
+#include <vtkPointData.h>
 
 namespace noether {
 
@@ -37,24 +38,21 @@ void Noether::addMeshDisplay(std::vector<vtkSmartPointer<vtkPolyData> >& meshes)
     color[2] = float(colors[i % size] & 0xff)/255.0;
     color[1] = float((colors[i % size] & 0xff00) >> 8)/255.0;
     color[0] = float((colors[i % size] & 0xff0000) >> 16)/255.0;
-    //color.push_back(0.9);
-    //color.push_back(0.9);
-    //color.push_back(0.9);
 
     viewer_.addPolyDataDisplay(meshes[i], color);
   }
 }
 
 void Noether::addPathDisplay(std::vector<std::vector< tool_path_planner::ProcessPath > >& paths,
-                    bool show_path, bool show_cutting_meshes, bool show_derivatives)
+                    double scale, bool show_path, bool show_cutting_meshes, bool show_derivatives)
 {
   for(int i = 0; i < paths.size(); ++i)
   {
-    addPathDisplay(paths[i], show_path, show_cutting_meshes, show_derivatives);
+    addPathDisplay(paths[i], scale, show_path, show_cutting_meshes, show_derivatives);
   }
 }
 
-void Noether::addPathDisplay(std::vector< tool_path_planner::ProcessPath >& paths, bool show_path,
+void Noether::addPathDisplay(std::vector< tool_path_planner::ProcessPath >& paths, double scale, bool show_path,
                     bool show_cutting_meshes, bool show_derivatives)
 {
   int colors[] = {
@@ -84,7 +82,7 @@ void Noether::addPathDisplay(std::vector< tool_path_planner::ProcessPath >& path
       color[1] = float((colors[i % size] & 0xff00) >> 8)/255.0;
       color[0] = float((colors[i % size] & 0xff0000) >> 16)/255.0;
       vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
-      viewer_.addPolyNormalsDisplay(paths[i].line, color, glyph);
+      viewer_.addPolyNormalsDisplay(paths[i].line, color, glyph, scale);
     }
     if(show_cutting_meshes)
     {
@@ -99,7 +97,7 @@ void Noether::addPathDisplay(std::vector< tool_path_planner::ProcessPath >& path
       color[1] = 0.9;
       color[2] = 0.2;
       vtkSmartPointer<vtkGlyph3D> glyph2 = vtkSmartPointer<vtkGlyph3D>::New();
-      viewer_.addPolyNormalsDisplay(paths[i].derivatives, color, glyph2);
+      viewer_.addPolyNormalsDisplay(paths[i].derivatives, color, glyph2, scale);
     }
   }
 }
@@ -108,9 +106,8 @@ void Noether::addPathDisplay(std::vector< tool_path_planner::ProcessPath >& path
 
 int main(int argc, char **argv)
 {
-  if(argc == 2)
+  if(argc >= 2)
   {
-    cout << "reading data\n";
     // read data file
     vtkSmartPointer<vtkPolyData> data = vtkSmartPointer<vtkPolyData>::New();
     std::string file = argv[1];
@@ -131,13 +128,18 @@ int main(int argc, char **argv)
       pch = strtok (NULL, " ,.-");
     }
 
-    //const char * p = pch[1];
     std::string extension = std::string(pch);
     if(extension == "pcd")
     {
-      vtkSmartPointer<vtkPolyData> temp_data = vtkSmartPointer<vtkPolyData>::New();
-      vtk_viewer::loadPCDFile(file, temp_data);
-      data = vtk_viewer::createMesh(temp_data->GetPoints());
+      if(argc == 3)
+      {
+        std::string background = argv[2];
+        vtk_viewer::loadPCDFile(file, data, background, true);
+      }
+      else
+      {
+        vtk_viewer::loadPCDFile(file, data);
+      }
     }
     else if(extension == "STL" || extension == "stl")
     {
@@ -148,18 +150,14 @@ int main(int argc, char **argv)
       return 1;
     }
 
-    //data = vtk_viewer::readSTLFile(file);
-    cout << file;
     vtk_viewer::generateNormals(data);
 
-    cout << "segmenting\n";
     // segment mesh
     mesh_segmenter::MeshSegmenter seg;
     seg.setInputMesh(data);
     seg.segmentMesh();
     std::vector<vtkSmartPointer<vtkPolyData> > meshes = seg.getMeshSegments();
 
-    cout << "planning paths\n";
     // plan paths for segmented meshes
     tool_path_planner::ToolPathPlanner planner;
     tool_path_planner::ProcessTool tool;
@@ -173,11 +171,13 @@ int main(int argc, char **argv)
     planner.planPaths(meshes, paths);
 
     // visualize results
+    double scale = 0.3;
     noether::Noether viz;
     viz.addMeshDisplay(meshes);
-    viz.addPathDisplay(paths, true, false, false);
+    viz.addPathDisplay(paths, scale, true, false, false);
     viz.visualizeDisplay();
   }
+
 
   return 0;
 }

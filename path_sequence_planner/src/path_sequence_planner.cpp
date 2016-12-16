@@ -15,7 +15,7 @@ void PathSequencePlanner::linkPaths()
 {
   bool insert_front = false;
   int last_index = 0;
-  //for(int i = 0; i < paths_.size(); ++i)
+
   while(indices_.size() != paths_.size())
   {
     if(indices_.size() == 0)

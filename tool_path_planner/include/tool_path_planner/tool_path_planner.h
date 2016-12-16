@@ -102,8 +102,20 @@ namespace tool_path_planner
     std::vector<ProcessPath> paths_; /**< series of intersecting lines on the given mesh */
     ProcessTool tool_; /**< The tool parameters which defines how to generate the tool paths (spacing, offset, etc.) */
 
+    /**
+     * @brief getCellCentroidData Gets the data for a cell in the input_mesh_
+     * @param id The cell id to get data for
+     * @param center The center of the given cell
+     * @param norm The cell normal
+     * @param area The cell area
+     * @return True if the cell for the given id exists, False if it does not exist
+     */
     bool getCellCentroidData(int id, double* center, double* norm, double& area);
 
+    /**
+     * @brief createStartCurve Creates a initial "curve" to begin the path planning from
+     * @return A set of VTK points and normals which are then used to create a cutting surface
+     */
     vtkSmartPointer<vtkPolyData> createStartCurve();
 
     /**
@@ -172,10 +184,14 @@ namespace tool_path_planner
    */
   void flipPointOrder(ProcessPath& path);
 
+  /**
+   * @brief findClosestPoint Finds the closest point in a list to a target point
+   * @param pt The target point
+   * @param pts The list of points to search for the closest point
+   * @return The index of the closest point
+   */
   int findClosestPoint(std::vector<double>& pt,  std::vector<std::vector<double> >& pts);
 
-
-  double dist(std::vector<double>& pt1, std::vector<double>& pt2);
 }
 
 #endif // PATH_PLANNER_H
