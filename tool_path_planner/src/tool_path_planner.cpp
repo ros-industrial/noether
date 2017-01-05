@@ -313,7 +313,7 @@ namespace tool_path_planner
     size[2] /= m;
 
     // If object is square, then max and mid will be diagonals, average to get correct orientation
-    if(size[0] - size[1] < 0.00001)
+    if(size[0] - size[1] < 0.01)
     {
       m = sqrt(max[0] * max[0] + max[1] * max[1] + max[2] * max[2]);
       max[0] /= m;
@@ -620,11 +620,15 @@ namespace tool_path_planner
     // Find k nearest neighbors and use their normals to estimate the normal of the desired point
     vtkSmartPointer<vtkDoubleArray> new_norm = vtkSmartPointer<vtkDoubleArray>::New();
     new_norm->SetNumberOfComponents(3);
+    new_norm->SetNumberOfTuples(data->GetPoints()->GetNumberOfPoints());
 
     for(int i = 0; i < data->GetPoints()->GetNumberOfPoints(); ++i)
     {
       // Get the next point to estimate the normal
-      double* pt = data->GetPoints()->GetPoint(i);
+      double pt[3];
+      data->GetPoints()->GetPoint(i, &pt[0]);
+
+
       double testPoint[3] = {pt[0], pt[1], pt[2]};
       vtkSmartPointer<vtkIdList> result = vtkSmartPointer<vtkIdList>::New();
 
@@ -646,43 +650,35 @@ namespace tool_path_planner
       // For N neighbors found, get their normals and add them together
       for(int j = 0; j < result->GetNumberOfIds(); ++j)
       {
-        pt = input_mesh_->GetPointData()->GetNormals()->GetTuple(result->GetId(j));
-        if(isnan(pt[0]) || isnan(pt[1]) || isnan(pt[2]))
+        double pt2[3];
+        input_mesh_->GetPointData()->GetNormals()->GetTuple(result->GetId(j), &pt2[0]);
+        if(isnan(pt2[0]) || isnan(pt2[1]) || isnan(pt2[2]))
         {
           continue;
         }
-        final[0] += pt[0];
-        final[1] += pt[1];
-        final[2] += pt[2];
+        final[0] += pt2[0];
+        final[1] += pt2[1];
+        final[2] += pt2[2];
         ++count;
       }
 
       // If at least 1 neighbor is found, average the normals, else set to zero
-      double* pt2 = pt;
-      if(count == 0)
-      {
-        pt2[0] = 0;
-        pt2[1] = 0;
-        pt2[2] = 0;
-      }
-      else
+      if(count > 0)
       {
         final[0] /= double(count);
         final[1] /= double(count);
         final[2] /= double(count);
-        double denom = sqrt(pow(final[0],2) + pow(final[1],2) + pow(final[2],2));
+        double denom = sqrt(pow(final[0],2.0) + pow(final[1],2.0) + pow(final[2],2.0));
 
         // normalize the normal vector
         final[0] /= denom;
         final[1] /= denom;
         final[2] /= denom;
-
-        pt2[0] = final[0];
-        pt2[1] = final[1];
-        pt2[2] = final[2];
       }
+
+
       // Insert the averaged normal
-      new_norm->InsertNextTuple(pt2);
+      new_norm->SetTuple3(i, final[0], final[1], final[2]);
     }
     // Insert the normal data
     data->GetPointData()->SetNormals(new_norm);

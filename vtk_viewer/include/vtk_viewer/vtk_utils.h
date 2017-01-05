@@ -94,6 +94,8 @@ namespace vtk_viewer
    */
   void PCLtoVTK(const pcl::PointCloud<pcl::PointXYZ>& cloud, vtkPolyData* const pdata);
 
+  void VTKtoPCL(vtkPolyData* const pdata, pcl::PointCloud<pcl::PointNormal> &cloud);
+
   /**
    * @brief removeBackground Removes points from an input cloud using a background cloud as a reference (also removes NaN's)
    * @param cloud The input cloud to perform background subtraction on

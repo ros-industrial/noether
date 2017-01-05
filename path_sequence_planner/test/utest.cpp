@@ -16,7 +16,7 @@
 #include <vtkPointData.h>
 
 #define DISPLAY_LINES  1
-#define DISPLAY_NORMALS  1
+#define DISPLAY_NORMALS  0
 #define DISPLAY_DERIVATIVES  1
 #define DISPLAY_CUTTING_MESHES  0
 
@@ -49,7 +49,7 @@ TEST(IntersectTest, TestCase1)
   vtk_viewer::VTKViewer viz;
   std::vector<float> color(3);
 
-
+  double scale = 0.5;
   // Display mesh results
   color[0] = 0.9;
   color[1] = 0.9;
@@ -66,7 +66,7 @@ TEST(IntersectTest, TestCase1)
     vtkSmartPointer<vtkPolyData> normals_data = vtkSmartPointer<vtkPolyData>::New();
     normals_data = planner.getInputMesh();
     vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
-    viz.addPolyNormalsDisplay(normals_data, color, glyph, 1.0);
+    viz.addPolyNormalsDisplay(normals_data, color, glyph, scale);
   }
 
   tool_path_planner::ProcessPath path;
@@ -96,7 +96,7 @@ TEST(IntersectTest, TestCase1)
       color[1] = 0.9;
       color[2] = 0.2;
       vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
-      viz.addPolyNormalsDisplay(paths2[i].line, color, glyph, 1.0);
+      viz.addPolyNormalsDisplay(paths2[i].line, color, glyph, scale);
     }
 
     if(DISPLAY_DERIVATIVES) // display derivatives
@@ -105,7 +105,7 @@ TEST(IntersectTest, TestCase1)
     color[1] = 0.9;
     color[2] = 0.2;
     vtkSmartPointer<vtkGlyph3D> glyph2 = vtkSmartPointer<vtkGlyph3D>::New();
-    viz.addPolyNormalsDisplay(paths2[i].derivatives, color, glyph2, 1.0);
+    viz.addPolyNormalsDisplay(paths2[i].derivatives, color, glyph2, scale);
     }
 
     if(DISPLAY_CUTTING_MESHES) // Display cutting mesh

@@ -358,6 +358,26 @@ void PCLtoVTK(const pcl::PointCloud<pcl::PointXYZ> &cloud, vtkPolyData* const pd
   pdata->DeepCopy(tempPolyData);
 }
 
+void VTKtoPCL(vtkPolyData* const pdata, pcl::PointCloud<pcl::PointNormal> &cloud)
+{
+  for (int i = 0; i < pdata->GetPoints()->GetNumberOfPoints(); ++i)
+  {
+    pcl::PointNormal pt;
+    double* ptr = pdata->GetPoints()->GetPoint(i);
+    pt.x = ptr[0];
+    pt.y = ptr[1];
+    pt.z = ptr[2];
+
+    double* norm = pdata->GetPointData()->GetNormals()->GetTuple(i);
+    pt.normal_x = norm[0];
+    pt.normal_y = norm[1];
+    pt.normal_z = norm[2];
+
+    cloud.push_back(pt);
+  }
+
+}
+
 vtkSmartPointer<vtkPolyData> estimateCurvature(vtkSmartPointer<vtkPolyData> mesh, int method)
 {
   vtkSmartPointer<vtkCurvatures> curvature_filter = vtkSmartPointer<vtkCurvatures>::New();

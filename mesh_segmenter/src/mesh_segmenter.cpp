@@ -49,6 +49,11 @@ std::vector<vtkSmartPointer<vtkPolyData> > MeshSegmenter::getMeshSegments()
     // copy cell data and normals
     mesh->CopyCells(input_copy, included_indices_[i]);
 
+    if(mesh->GetNumberOfCells() <= 1)
+    {
+      cout << "NOT ENOUGH CELLS FOR SEGMENTATION\n";
+      continue;
+    }
     meshes.push_back(mesh);
   }
 

@@ -95,6 +95,12 @@ namespace tool_path_planner
      */
     std::vector<ProcessPath> getPaths(){return paths_;}
 
+    /**
+     * @brief generateNormals For a set of new points, estimates the normal from the input mesh normals by averaging N nearest neighbors' normals
+     * @param data The points to operate on, normal data inserted in place
+     */
+    void estimateNewNormals(vtkSmartPointer<vtkPolyData>& data);
+
   private:
 
     vtkSmartPointer<vtkKdTreePointLocator> kd_tree_; /**< kd tree for finding nearest neighbor points */
@@ -132,11 +138,7 @@ namespace tool_path_planner
      */
     void generateNormals(vtkSmartPointer<vtkPolyData>& data);
 
-    /**
-     * @brief generateNormals For a set of new points, estimates the normal from the input mesh normals by averaging N nearest neighbors' normals
-     * @param data The points to operate on, normal data inserted in place
-     */
-    void estimateNewNormals(vtkSmartPointer<vtkPolyData>& data);
+
 
     /**
      * @brief createOffsetLine Given a line with normals, generate a new line which is offset by a given distance
