@@ -20,7 +20,7 @@ void PathSequencePlanner::linkPaths()
   {
     if(indices_.size() == 0)
     {
-      indices_.push_back(6);
+      indices_.push_back(1);
     }
     else
     {

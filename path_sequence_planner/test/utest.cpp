@@ -20,12 +20,17 @@
 #define DISPLAY_DERIVATIVES  1
 #define DISPLAY_CUTTING_MESHES  0
 
+// This test displays the results of the path sequencer and should look very similar to the results
+// from the tool_path_planner unit test.  This test adds cyan arrows which link the paths together
+// into one continous path.  Yellow arrows are flipped as necessary to maintain the contious nature of
+// the path.  The output should look like a series of yellow paths, whose direction is alternating
+// direction from up->down to down->up, linked by cyan arrows.
 
 TEST(IntersectTest, TestCase1)
 {
   // Get mesh
   vtkSmartPointer<vtkPoints> empty;
-  vtkSmartPointer<vtkPolyData> data = vtk_viewer::createMesh(empty);
+  vtkSmartPointer<vtkPolyData> data = vtk_viewer::createMesh(empty, 0.5, 5);
   vtk_viewer::generateNormals(data);
 
   // Set input mesh
@@ -61,7 +66,7 @@ TEST(IntersectTest, TestCase1)
     vtkSmartPointer<vtkPolyData> normals_data = vtkSmartPointer<vtkPolyData>::New();
     normals_data = planner.getInputMesh();
     vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
-    viz.addPolyNormalsDisplay(normals_data, color, glyph);
+    viz.addPolyNormalsDisplay(normals_data, color, glyph, 1.0);
   }
 
   tool_path_planner::ProcessPath path;
@@ -91,7 +96,7 @@ TEST(IntersectTest, TestCase1)
       color[1] = 0.9;
       color[2] = 0.2;
       vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
-      viz.addPolyNormalsDisplay(paths2[i].line, color, glyph);
+      viz.addPolyNormalsDisplay(paths2[i].line, color, glyph, 1.0);
     }
 
     if(DISPLAY_DERIVATIVES) // display derivatives
@@ -100,7 +105,7 @@ TEST(IntersectTest, TestCase1)
     color[1] = 0.9;
     color[2] = 0.2;
     vtkSmartPointer<vtkGlyph3D> glyph2 = vtkSmartPointer<vtkGlyph3D>::New();
-    viz.addPolyNormalsDisplay(paths2[i].derivatives, color, glyph2);
+    viz.addPolyNormalsDisplay(paths2[i].derivatives, color, glyph2, 1.0);
     }
 
     if(DISPLAY_CUTTING_MESHES) // Display cutting mesh
@@ -130,7 +135,7 @@ TEST(IntersectTest, TestCase1)
   color[1] = 0.9;
   color[2] = 0.9;
   vtkSmartPointer<vtkGlyph3D> glyph3 = vtkSmartPointer<vtkGlyph3D>::New();
-  viz.addPolyNormalsDisplay(connecting_data, color, glyph3);
+  viz.addPolyNormalsDisplay(connecting_data, color, glyph3, 1.0);
 
   viz.renderDisplay();
 }

@@ -20,7 +20,10 @@ void MeshSegmenter::setInputMesh(vtkSmartPointer<vtkPolyData> mesh)
 {
   input_mesh_ = mesh;
 
-  triangle_filter_ = vtkSmartPointer<vtkTriangleFilter>::New();
+  if(!triangle_filter_)
+  {
+    triangle_filter_ = vtkSmartPointer<vtkTriangleFilter>::New();
+  }
   triangle_filter_->SetInputData(input_mesh_);
   triangle_filter_->Update();
 }

@@ -28,7 +28,7 @@
 namespace tool_path_planner
 {
 
-  double calc_distance(std::vector<double>& pt1, std::vector<double>& pt2)
+  double squared_distance(std::vector<double>& pt1, std::vector<double>& pt2)
   {
     if(pt1.size() != 3 || pt2.size() != 3)
     {
@@ -43,7 +43,7 @@ namespace tool_path_planner
     int index = -1;
     for(int i = 0; i < pts.size(); ++i)
     {
-      double d = calc_distance(pt, pts[i]);
+      double d = squared_distance(pt, pts[i]);
       if(d < min)
       {
         index = i;
@@ -68,10 +68,16 @@ namespace tool_path_planner
 
   void ToolPathPlanner::setInputMesh(vtkSmartPointer<vtkPolyData> mesh)
   {
-    input_mesh_ = vtkSmartPointer<vtkPolyData>::New();
+    if(!input_mesh_)
+    {
+      input_mesh_ = vtkSmartPointer<vtkPolyData>::New();
+    }
     input_mesh_->DeepCopy(mesh);
 
-    kd_tree_ = vtkSmartPointer<vtkKdTreePointLocator>::New();
+    if(!kd_tree_)
+    {
+      kd_tree_ = vtkSmartPointer<vtkKdTreePointLocator>::New();
+    }
     kd_tree_->SetDataSet(input_mesh_);
     kd_tree_->BuildLocator();
 
@@ -133,16 +139,21 @@ namespace tool_path_planner
 
   bool ToolPathPlanner::getFirstPath(ProcessPath& path)
   {
+    // clear old paths before creating new
     paths_.clear();
 
+    // generate first path according to algorithm in createStartCurve()
     vtkSmartPointer<vtkPolyData> start_curve = vtkSmartPointer<vtkPolyData>::New();
     start_curve = createStartCurve();
+
+    // get input mesh bounds
     double bounds[6];
     input_mesh_->GetBounds(bounds);
     double x = fabs(bounds[1] - bounds[0]);
     double y = fabs(bounds[3] - bounds[2]);
     double z = fabs(bounds[5] - bounds[4]);
 
+    // Use the bounds to determine how large to make the cutting mesh
     double max = x > y ? x : y;
     max = max > z ? max : z;
     vtkSmartPointer<vtkPolyData> cutting_mesh = createSurfaceFromSpline(start_curve, max / 2.0);
@@ -178,6 +189,7 @@ namespace tool_path_planner
       }
     }
 
+    // Check number of points after smoothing, if not enough, return false
     if(points->GetPoints()->GetNumberOfPoints() < 2)
     {
       return false;
@@ -244,14 +256,17 @@ namespace tool_path_planner
 
   vtkSmartPointer<vtkPolyData> ToolPathPlanner::createStartCurve()
   {
-    // Find weighted center point and normal average
+    // Find weighted center point and normal average of the input mesh
     vtkSmartPointer<vtkCellArray> cell_ids = input_mesh_->GetPolys();
     cell_ids->InitTraversal();
 
     double avg_center[3] = {0,0,0};
     double avg_norm[3] = {0,0,0};
     double avg_area = 0;
-    for(int i = 0; i < cell_ids->GetNumberOfCells(); ++i)
+    int num_cells = cell_ids->GetNumberOfCells();
+
+    // iterate through all cells to find averages
+    for(int i = 0; i < num_cells; ++i)
     {
       double center[3] = {0,0,0};
       double norm[3] = {0,0,0};
@@ -268,6 +283,8 @@ namespace tool_path_planner
       }
     }
 
+    // calculate the averages; since we are calculating a weighted sum (based on area),
+    // divide by the total area in order to get the weighted average
     avg_center[0] /= avg_area;
     avg_center[1] /= avg_area;
     avg_center[2] /= avg_area;
@@ -377,7 +394,7 @@ namespace tool_path_planner
                                          vtkSmartPointer<vtkPolyData>& points,
                                          vtkSmartPointer<vtkParametricSpline>& spline)
   {
-    // Get intersection line
+    // Find the intersection between the input mesh and given cutting surface
     vtkSmartPointer<vtkIntersectionPolyDataFilter> intersection_filter =
       vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
     intersection_filter->SetInputData( 0, input_mesh_);
@@ -398,26 +415,30 @@ namespace tool_path_planner
       return false;
     }
 
-
+    // if no intersection found, return false
     if(intersection_filter->GetStatus() == 0)
     {
       return false;
     }
-    // Sort points
+
     vtkSmartPointer<vtkPolyData> output = intersection_filter->GetOutput();
     if(!output)
     {
       return false;
     }
+
+    // Check the number of points in the intersection, if not enough to process, return false
     vtkSmartPointer<vtkPoints> pts = intersection_filter->GetOutput()->GetPoints();
     if(!pts || pts->GetNumberOfPoints() <= 2)
     {
       return false;
     }
+
+    // Intersection points are not ordered; order them so that they form a continous smooth line
     sortPoints(pts);
     points->SetPoints(pts);
 
-    // Create spline
+    // Create spline from ordered points
     spline->SetPoints(pts);
 
     return true;
@@ -544,7 +565,7 @@ namespace tool_path_planner
       else
       {
         int next = findClosestPoint(sorted_points.back(), new_points);
-        if (calc_distance(sorted_points.back(), new_points[next]) < calc_distance(sorted_points.front(), new_points[next]))
+        if (squared_distance(sorted_points.back(), new_points[next]) < squared_distance(sorted_points.front(), new_points[next]))
         {
           sorted_points.push_back(new_points[next]);
           new_points.erase(new_points.begin() + next);

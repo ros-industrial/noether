@@ -17,6 +17,8 @@
 #include <gtest/gtest.h>
 #include <mesh_segmenter/mesh_segmenter.h>
 
+// This test displays the output of the mesh segmenter as applied to a cube.  Result should be
+// a cube with each face colored a different color.
 
 TEST(ViewerTest, TestCase1)
 {

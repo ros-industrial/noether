@@ -233,7 +233,10 @@ bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata)
   // Reconstruct
   mls.process (mls_points);
 
-  polydata = vtkSmartPointer<vtkPolyData>::New();
+  if(!polydata)
+  {
+    polydata = vtkSmartPointer<vtkPolyData>::New();
+  }
   PCLtoVTK(mls_points, polydata);
 
   return true;
@@ -282,7 +285,10 @@ bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata, std::
   // Reconstruct
   mls.process (mls_points);
 
-  polydata = vtkSmartPointer<vtkPolyData>::New();
+  if(!polydata)
+  {
+    polydata = vtkSmartPointer<vtkPolyData>::New();
+  }
   vtkSmartPointer<vtkPolyData> point_data = vtkSmartPointer<vtkPolyData>::New();
   PCLtoVTK(mls_points, point_data);
 

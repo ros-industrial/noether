@@ -9,6 +9,9 @@
 #include <vtkPointData.h>
 #include <gtest/gtest.h>
 
+// This test shows the results of meshing on a square grid that has a sinusoidal
+// variability in the z axis.  Red arrows show the surface normal for each triangle
+// in the mesh, and cyan boxes show the points used to seed the mesh creation algorithm
 
 TEST(ViewerTest, TestCase1)
 {

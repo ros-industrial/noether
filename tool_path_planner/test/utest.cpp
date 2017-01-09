@@ -16,6 +16,11 @@
 #define DISPLAY_DERIVATIVES  1
 #define DISPLAY_CUTTING_MESHES  0
 
+// This test shows the results of the tool path planner on a square grid that has a sinusoidal
+// variation in the z axis.  It will generate a series of evenly spaced lines (aprox. equal to line_spacing)
+// with evenly spaced points on each line (aprox. equal to pt_spacing).  Yellow arrows show the direction of
+// travel in a give line (all lines should point in the same direction) and green arrows show the process normal
+// direction (should be aprox. normal to the surface in that region)
 
 TEST(IntersectTest, TestCase1)
 {
@@ -30,8 +35,8 @@ TEST(IntersectTest, TestCase1)
 
   // Set input tool data
   tool_path_planner::ProcessTool tool;
-  tool.pt_spacing = 0.2;
-  tool.line_spacing = 0.5;
+  tool.pt_spacing = 0.5;
+  tool.line_spacing = 0.75;
   tool.tool_offset = 0.0; // currently unused
   tool.intersecting_plane_height = 0.1; // 0.5 works best, not sure if this should be included in the tool
   tool.nearest_neighbors = 30; // not sure if this should be a part of the tool
