@@ -4,13 +4,35 @@ project(vtk_viewer)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED cmake_modules)
+find_package(catkin REQUIRED cmake_modules
+
+    #VTK
+)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
-FIND_PACKAGE(VTK 7.0 REQUIRED)
+SET(PCL_DIR /home/alex/path_planning_ws/src/pcl/cmake)
+
+FIND_PACKAGE(PCL 1.8 REQUIRED NO_CMAKE_PATH NO_CMAKE_ENVIRONMENT_PATH
+    PATHS
+    /home/alex/path_planning_ws/src/pcl
+    /home/alex/path_planning_ws/src/pcl/cmake
+ )
+
+MESSAGE( STATUS "VTK DIR:         " ${VTK_DIR} )
+MESSAGE( STATUS "VTK VERSION:         " ${VTK_VERSION} )
+
+
+FIND_PACKAGE(VTK 7.1 REQUIRED PATHS /home/alex/path_planning_ws/src/VTK/ NO_CMAKE_PATH NO_CMAKE_ENVIRONMENT_PATH)
 FIND_PACKAGE(Eigen REQUIRED)
+
+MESSAGE( STATUS "VTK DIR:         " ${VTK_DIR} )
+MESSAGE( STATUS "VTK VERSION:         " ${VTK_VERSION} )
+
+MESSAGE( STATUS "PCL DIR:         " ${PCL_DIR} )
+MESSAGE( STATUS "PCL VERSION:         " ${PCL_VERSION} )
+
 
 INCLUDE(${VTK_USE_FILE})
 
@@ -28,7 +50,11 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES vtk_viewer
 #  CATKIN_DEPENDS other_catkin_pkg
-  DEPENDS Eigen
+  DEPENDS
+    Eigen
+    PCL
+    VTK
+
 )
 
 ###########
@@ -43,6 +69,8 @@ include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${EIGEN_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
+  ${VTK_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -66,6 +94,7 @@ include_directories(
 ## Specify libraries to link a library or executable target against
  target_link_libraries(vtk_viewer
    ${catkin_LIBRARIES}
+   ${PCL_LIBRARIES}
    ${VTK_LIBRARIES}
  )
 

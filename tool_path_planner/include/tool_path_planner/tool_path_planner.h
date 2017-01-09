@@ -11,6 +11,7 @@
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkParametricSpline.h>
+#include <vtkKdTreePointLocator.h>
 
 namespace tool_path_planner
 {
@@ -35,6 +36,13 @@ namespace tool_path_planner
   class ToolPathPlanner
   {
   public:
+
+    /**
+     * @brief planPaths plans a set of paths for all meshes in a given list
+     * @param meshes A vector of meshes to plan paths for
+     * @param paths The resulting path data generated
+     */
+    void planPaths(std::vector<vtkSmartPointer<vtkPolyData> > meshes, std::vector< std::vector<ProcessPath> >& paths);
 
     /**
      * @brief setInputMesh Sets the input mesh to generate paths
@@ -64,7 +72,7 @@ namespace tool_path_planner
      * @brief getFirstPath Uses the input mesh, generates the first path by intersecting the mesh with a plane
      * @param path The first path generated
      */
-    void getFirstPath(ProcessPath& path);
+    bool getFirstPath(ProcessPath& path);
 
     /**
      * @brief getNextPath Creates the next path offset from the current path
@@ -89,9 +97,26 @@ namespace tool_path_planner
 
   private:
 
+    vtkSmartPointer<vtkKdTreePointLocator> kd_tree_; /**< kd tree for finding nearest neighbor points */
     vtkSmartPointer<vtkPolyData> input_mesh_; /**< input mesh to operate on */
     std::vector<ProcessPath> paths_; /**< series of intersecting lines on the given mesh */
     ProcessTool tool_; /**< The tool parameters which defines how to generate the tool paths (spacing, offset, etc.) */
+
+    /**
+     * @brief getCellCentroidData Gets the data for a cell in the input_mesh_
+     * @param id The cell id to get data for
+     * @param center The center of the given cell
+     * @param norm The cell normal
+     * @param area The cell area
+     * @return True if the cell for the given id exists, False if it does not exist
+     */
+    bool getCellCentroidData(int id, double* center, double* norm, double& area);
+
+    /**
+     * @brief createStartCurve Creates a initial "curve" to begin the path planning from
+     * @return A set of VTK points and normals which are then used to create a cutting surface
+     */
+    vtkSmartPointer<vtkPolyData> createStartCurve();
 
     /**
      * @brief smoothData Takes in a spline and returns a series of evenly spaced points with normals and derivatives
@@ -136,11 +161,6 @@ namespace tool_path_planner
      */
     void sortPoints(vtkSmartPointer<vtkPoints>& points);
 
-    /**
-     * @brief flipPointOrder Inverts a path, points, normals, and derivatives (not necessarily the spline)
-     * @param path The input path to invert
-     */
-    void flipPointOrder(ProcessPath& path);
 
     /**
      * @brief findIntersectionLine Given an cutting mesh, finds the intersection of the mesh and the input_mesh_
@@ -153,14 +173,25 @@ namespace tool_path_planner
                                                       vtkSmartPointer<vtkPolyData>& points,
                                                       vtkSmartPointer<vtkParametricSpline>& spline);
 
-    int findClosestPoint(std::vector<double>& pt,  std::vector<std::vector<double> >& pts);
 
-    double pt_dist(double* pt1, double* pt2);
-
-    double dist(std::vector<double>& pt1, std::vector<double>& pt2);
 
 
   };
+
+  /**
+   * @brief flipPointOrder Inverts a path, points, normals, and derivatives (not necessarily the spline)
+   * @param path The input path to invert
+   */
+  void flipPointOrder(ProcessPath& path);
+
+  /**
+   * @brief findClosestPoint Finds the closest point in a list to a target point
+   * @param pt The target point
+   * @param pts The list of points to search for the closest point
+   * @return The index of the closest point
+   */
+  int findClosestPoint(std::vector<double>& pt,  std::vector<std::vector<double> >& pts);
+
 }
 
 #endif // PATH_PLANNER_H

@@ -12,16 +12,22 @@
 #include <vtkIdTypeArray.h>
 
 #define DISPLAY_LINES  1
-#define DISPLAY_NORMALS  1
+#define DISPLAY_NORMALS  0
 #define DISPLAY_DERIVATIVES  1
-#define DISPLAY_CUTTING_MESHES  1
+#define DISPLAY_CUTTING_MESHES  0
 
+// This test shows the results of the tool path planner on a square grid that has a sinusoidal
+// variation in the z axis.  It will generate a series of evenly spaced lines (aprox. equal to line_spacing)
+// with evenly spaced points on each line (aprox. equal to pt_spacing).  Yellow arrows show the direction of
+// travel in a give line (all lines should point in the same direction) and green arrows show the process normal
+// direction (should be aprox. normal to the surface in that region)
 
 TEST(IntersectTest, TestCase1)
 {
   // Get mesh
-  vtkSmartPointer<vtkPoints> empty;
-  vtkSmartPointer<vtkPolyData> data = vtk_viewer::createMesh(empty);
+  vtkSmartPointer<vtkPoints> points = vtk_viewer::createPlane();
+  vtkSmartPointer<vtkPolyData> data = vtk_viewer::createMesh(points, 0.5, 5);
+  vtk_viewer::generateNormals(data);
 
   // Set input mesh
   tool_path_planner::ToolPathPlanner planner;
@@ -30,15 +36,16 @@ TEST(IntersectTest, TestCase1)
   // Set input tool data
   tool_path_planner::ProcessTool tool;
   tool.pt_spacing = 0.5;
-  tool.line_spacing = 1.0;
+  tool.line_spacing = 0.75;
   tool.tool_offset = 0.0; // currently unused
-  tool.intersecting_plane_height = 0.5; // 0.5 works best, not sure if this should be included in the tool
-  tool.nearest_neighbors = 5; // not sure if this should be a part of the tool
+  tool.intersecting_plane_height = 0.1; // 0.5 works best, not sure if this should be included in the tool
+  tool.nearest_neighbors = 30; // not sure if this should be a part of the tool
   planner.setTool(tool);
 
   vtk_viewer::VTKViewer viz;
   std::vector<float> color(3);
 
+  double scale = 1.0;
 
   // Display mesh results
   color[0] = 0.9;
@@ -56,10 +63,11 @@ TEST(IntersectTest, TestCase1)
     vtkSmartPointer<vtkPolyData> normals_data = vtkSmartPointer<vtkPolyData>::New();
     normals_data = planner.getInputMesh();
     vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
-    viz.addPolyNormalsDisplay(normals_data, color, glyph);
+    viz.addPolyNormalsDisplay(normals_data, color, glyph, scale);
   }
 
 
+  // Plan paths for given mesh
   tool_path_planner::ProcessPath path;
   planner.getFirstPath(path);
   planner.computePaths();
@@ -73,7 +81,7 @@ TEST(IntersectTest, TestCase1)
       color[1] = 0.9;
       color[2] = 0.2;
       vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
-      viz.addPolyNormalsDisplay(paths[i].line, color, glyph);
+      viz.addPolyNormalsDisplay(paths[i].line, color, glyph, scale);
     }
 
     if(DISPLAY_DERIVATIVES) // display derivatives
@@ -82,7 +90,7 @@ TEST(IntersectTest, TestCase1)
     color[1] = 0.9;
     color[2] = 0.2;
     vtkSmartPointer<vtkGlyph3D> glyph2 = vtkSmartPointer<vtkGlyph3D>::New();
-    viz.addPolyNormalsDisplay(paths[i].derivatives, color, glyph2);
+    viz.addPolyNormalsDisplay(paths[i].derivatives, color, glyph2, scale);
     }
 
     if(DISPLAY_CUTTING_MESHES) // Display cutting mesh

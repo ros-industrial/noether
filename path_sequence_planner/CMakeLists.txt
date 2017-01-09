@@ -1,18 +1,21 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(tool_path_planner)
+project(path_sequence_planner)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED cmake_modules
+find_package(catkin REQUIRED
     vtk_viewer
+    tool_path_planner
     #VTK
 )
 
-find_package(Eigen REQUIRED)
 FIND_PACKAGE(VTK 7.1 REQUIRED PATHS /home/alex/path_planning_ws/src/VTK/ NO_CMAKE_PATH NO_CMAKE_ENVIRONMENT_PATH)
 
 INCLUDE(${VTK_USE_FILE})
+
+## System dependencies are found with CMake's conventions
+# find_package(Boost REQUIRED COMPONENTS system)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -34,9 +37,10 @@ INCLUDE(${VTK_USE_FILE})
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES tool_path_planner
-#  CATKIN_DEPENDS other_catkin_pkg
-  DEPENDS Eigen VTK
+  LIBRARIES path_sequence_planner
+  CATKIN_DEPENDS
+    tool_path_planner
+#  DEPENDS system_lib
 )
 
 ###########
@@ -48,8 +52,8 @@ catkin_package(
  include_directories(include ${catkin_INCLUDE_DIRS})
 
 ## Declare a C++ library
- add_library(tool_path_planner
-   src/tool_path_planner.cpp
+ add_library(path_sequence_planner
+   src/path_sequence_planner.cpp
  )
 
 ## Add cmake target dependencies of the library
@@ -65,7 +69,7 @@ catkin_package(
 # add_dependencies(path_planner_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
- target_link_libraries(tool_path_planner
+ target_link_libraries(path_sequence_planner
    ${catkin_LIBRARIES}
    ${VTK_LIBRARIES}
  )

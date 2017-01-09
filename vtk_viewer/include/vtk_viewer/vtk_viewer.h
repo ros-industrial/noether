@@ -25,6 +25,7 @@ namespace vtk_viewer
     VTKViewer();
     ~VTKViewer();
 
+
     /**
      * @brief addPolyDataDisplay Add a renderer and actor for a polydata object (for meshes)
      * @param polydata The polydata to be displayed
@@ -37,8 +38,9 @@ namespace vtk_viewer
      * @param polydata The polydata to be displayed
      * @param color The color to use for rendering the data
      * @param glyph The object used for displaying (usually arrows)
+     * @param scale The size to scale and show the arrows at
      */
-    void addPolyNormalsDisplay(vtkSmartPointer<vtkPolyData> &polydata, std::vector<float> color, vtkSmartPointer<vtkGlyph3D> glyph);
+    void addPolyNormalsDisplay(vtkSmartPointer<vtkPolyData> polydata, std::vector<float> color, vtkSmartPointer<vtkGlyph3D> glyph, double scale);
 
     /**
      * @brief addPointDataDisplay Add a renderer and actor for a point data object
@@ -46,6 +48,14 @@ namespace vtk_viewer
      * @param color The color to use for rendering the data
      */
     void addPointDataDisplay(vtkSmartPointer<vtkPoints> &points, std::vector<float> color);
+
+    /**
+     * @brief addCellNormalDisplay Displays the normals for a mesh object
+     * @param polydata The mesh object to be displayed
+     * @param color The color to use for rendering the data
+     * @param scale The size to scale and show the arrows at
+     */
+    void addCellNormalDisplay(vtkSmartPointer<vtkPolyData> polydata, std::vector<float> color, double scale);
 
     /**
      * @brief renderDisplay Calls the VTK window Render() command to visualize all of the renderers added
@@ -66,8 +76,9 @@ namespace vtk_viewer
      * @param src The input data to display
      * @param reverseNormals Flag to determine if the normals need to be flipped before displaying
      * @param glyph The pointer to the vtkGlyph3D object which will be created and returned
+     * @param scale The size to scale and show the arrows at
      */
-    void MakeGlyphs(vtkSmartPointer<vtkPolyData>& src, bool const & reverseNormals, vtkSmartPointer<vtkGlyph3D> glyph);
+    void makeGlyphs(vtkSmartPointer<vtkPolyData>& src, bool const & reverseNormals, vtkSmartPointer<vtkGlyph3D> glyph, double scale);
   };
 
 }

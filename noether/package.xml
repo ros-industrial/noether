@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>tool_path_planner</name>
+  <name>noether</name>
   <version>0.0.0</version>
-  <description>The path_planner package</description>
+  <description>The noether package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but mutiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/path_planner</url> -->
+  <!-- <url type="website">http://wiki.ros.org/noether</url> -->
 
 
   <!-- Author tags are optional, mutiple are allowed, one per tag -->
@@ -41,11 +41,20 @@
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
 
+  <build_depend>roscpp</build_depend>
+  <build_depend>mesh_segmenter</build_depend>
+  <build_depend>tool_path_planner</build_depend>
+  <build_depend>path_sequence_planner</build_depend>
   <build_depend>vtk_viewer</build_depend>
+
+  <run_depend>roscpp</run_depend>
+  <run_depend>mesh_segmenter</run_depend>
+  <run_depend>tool_path_planner</run_depend>
+  <run_depend>path_sequence_planner</run_depend>
   <run_depend>vtk_viewer</run_depend>
+
   <!--build_depend>VTK</build_depend>
   <run_depend>VTK</run_depend-->
-
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->

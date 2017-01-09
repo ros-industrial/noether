@@ -6,9 +6,15 @@
 
 #include "vtk_viewer/vtk_utils.h"
 
-#include <sstream>
+#include <pcl/io/pcd_io.h>
+#include <pcl/kdtree/kdtree_flann.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/surface/gp3.h>
+#include <pcl/surface/vtk_smoothing/vtk_utils.h>
+#include <pcl/surface/mls.h>
 
 #include <vtkPointData.h>
+#include <vtkCellData.h>
 #include <vtkMath.h>
 
 #include <vtkTransform.h>
@@ -20,7 +26,22 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkVertexGlyphFilter.h>
+#include <vtkSTLReader.h>
+
+#include <vtkPolyDataNormals.h>
+#include <vtkDoubleArray.h>
+#include <vtkMarchingContourFilter.h>
+#include <vtkMarchingCubes.h>
+#include <vtkCurvatures.h>
+
+#include <vtkSurfaceReconstructionFilter.h>
+#include <vtkReverseSense.h>
+#include <vtkContourFilter.h>
+#include <vtkPolyDataPointSampler.h>
+#include <vtkKdTreePointLocator.h>
+#include <vtkTriangle.h>
+#include <vtkCleanPolyData.h>
+
 
 namespace vtk_viewer
 {
@@ -36,7 +57,7 @@ vtkSmartPointer<vtkPoints> createPlane()
     {
     for(unsigned int y = 0; y < gridSize; y++)
       {
-      points->InsertNextPoint(x, y, 1.0 * cos(double(x)/2.0) - 1.0 * sin(double(y)/2.0) + vtkMath::Random(0.0, 0.1));
+        points->InsertNextPoint(x  , y , 1.0 * cos(double(x)/2.0) - 1.0 * sin(double(y)/2.0) + vtkMath::Random(0.0, 0.001));
       }
     }
 
@@ -47,7 +68,7 @@ vtkSmartPointer<vtkPoints> createPlane()
   return points;
 }
 
-vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points )
+vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points , double sample_spacing, double neigborhood_size)
 {
   if(!points)
   {
@@ -57,68 +78,388 @@ vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points )
   vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
   polydata->SetPoints(points);
 
-  vtkSmartPointer<vtkDelaunay2D> delaunay = vtkSmartPointer<vtkDelaunay2D>::New();
-  delaunay->SetInputData(polydata);
+  // surface reconstruction
+  vtkSmartPointer<vtkContourFilter> cf;
+  vtkSmartPointer<vtkSurfaceReconstructionFilter> surf =
+  vtkSmartPointer<vtkSurfaceReconstructionFilter>::New();
 
-  // In order to perform the Delaunay2D triangulation, all of the points must be roughly
-  // in the x/y plane (z component is ignored).  If they are otherwise, the triangulation results will
-  // not be ideal and result in spurious or ill formed triangles.  Need to find a rotation
-  // to place the points in the desired x/y plane
+  surf->SetInputData(polydata);
+  surf->SetSampleSpacing(sample_spacing);
+  surf->SetNeighborhoodSize(neigborhood_size);
+  surf->Update();
 
-  vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-  transform->PostMultiply();
 
-  // find the bounds of the data, use this to set the transform
-  points->ComputeBounds();
-  double* bounds = points->GetBounds();  // xmin,xmax,ymin,ymax,zmin,zmax
-  double x = 1.0/fabs(bounds[0]- bounds[1]);
-  double y = 1.0/fabs(bounds[2]- bounds[3]);
-  double z = 1.0/fabs(bounds[4]- bounds[5]);
+  cf = vtkSmartPointer<vtkContourFilter>::New();
+  cf->SetInputConnection(surf->GetOutputPort());
+  cf->SetValue(0, 0.0);
+  cf->Update();
 
-  // normalize the x,y,z components using the sqrt of the sum of the squares
-  double m = sqrt(pow(x,2.0) + pow(y,2.0) + pow(z,2.0));
-  x = x/m;
-  y = y/m;
-  z = z/m;
+  // Sometimes the contouring algorithm can create a volume whose gradient
+  // vector and ordering of polygon (using the right hand rule) are
+  // inconsistent. vtkReverseSense cures this problem.
+  vtkSmartPointer<vtkReverseSense> reverse = vtkSmartPointer<vtkReverseSense>::New();
+  reverse->SetInputConnection(cf->GetOutputPort());
+  reverse->ReverseCellsOn();
+  reverse->ReverseNormalsOn();
+  reverse->Update();
 
-  // calculate the rotation to place the data in the x/y plane
-  double theta = atan2(y,x);
+  return reverse->GetOutput();
+}
 
-  // TODO: verify that the rotation for performing Delaunay triangulation is correct
-  // May need to perform one more rotation
-  transform->RotateZ(theta );
-  delaunay->SetTransform(transform);
+void cleanMesh(const vtkSmartPointer<vtkPoints>& points, vtkSmartPointer<vtkPolyData>& mesh)
+{
+  // create KD tree object for searching for points
+  vtkSmartPointer<vtkPolyData> data = vtkSmartPointer<vtkPolyData>::New();
+  data->SetPoints(points);
+  vtkSmartPointer<vtkKdTreePointLocator> kd_tree = vtkSmartPointer<vtkKdTreePointLocator>::New();
+  kd_tree->SetDataSet(data);
+  kd_tree->BuildLocator();
 
-  // Update and return the results
-  delaunay->Update();
+  vtkSmartPointer<vtkCellArray> cells = mesh->GetPolys();
+  int size = cells->GetNumberOfCells();
+  // loop through all cells, mark cells for deletion if they do not have enough points nearby
+  for(int i = 0; i < size; ++i)
+  {
+    // get cell centroid and size
+    vtkCell* cell = mesh->GetCell(i);
+    if(cell)
+    {
+      // get cell centroid and max leg length
+      vtkTriangle* triangle = dynamic_cast<vtkTriangle*>(cell);
+      double p0[3];
+      double p1[3];
+      double p2[3];
+      double center[3];
+      triangle->GetPoints()->GetPoint(0, p0);
+      triangle->GetPoints()->GetPoint(1, p1);
+      triangle->GetPoints()->GetPoint(2, p2);
 
-  return delaunay->GetOutput();
+      double a = pt_dist(&p0[0], &p1[0]);
+      double b = pt_dist(&p1[0], &p2[0]);
+      double c = pt_dist(&p0[0], &p2[0]);
+      triangle->TriangleCenter(p0, p1, p2, center);
+
+      // search for points in radius around the cell centroid
+      double max = (a > b ? a : b);
+      max = max > c ? max : c;
+      double radius =  sqrt(max);
+      vtkSmartPointer<vtkIdList> pts = vtkSmartPointer<vtkIdList>::New();
+      kd_tree->FindPointsWithinRadius(radius, center, pts);
+
+      // if number of desired points not found, mark cell for deletion
+      if(pts->GetNumberOfIds() < 6)
+      {
+        mesh->DeleteCell(i);
+      }
+    }
+  }
+
+  // delete all marked cells
+  mesh->RemoveDeletedCells();
+
+  // clean mesh: merge points, remove unused points, and remove
+  // degenerate cells (cells where two points are very close to one another)
+  vtkSmartPointer<vtkCleanPolyData> clean_polydata = vtkSmartPointer<vtkCleanPolyData>::New();
+  clean_polydata->SetInputData(mesh);
+  clean_polydata->Update();
+
+  mesh = clean_polydata->GetOutput();
+
 }
 
 void visualizePlane(vtkSmartPointer<vtkPolyData> &polydata)
 {
   // Create a mapper and actor
-  vtkSmartPointer<vtkPolyDataMapper> triangulatedMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  triangulatedMapper->SetInputData(polydata);
+  vtkSmartPointer<vtkPolyDataMapper> triangulated_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  triangulated_mapper->SetInputData(polydata);
 
-  vtkSmartPointer<vtkActor> triangulatedActor = vtkSmartPointer<vtkActor>::New();
-  triangulatedActor->SetMapper(triangulatedMapper);
+  vtkSmartPointer<vtkActor> triangulated_actor = vtkSmartPointer<vtkActor>::New();
+  triangulated_actor->SetMapper(triangulated_mapper);
 
   // Create a renderer, render window, and interactor
   vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
-  vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-  renderWindow->AddRenderer(renderer);
-  vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
-    vtkSmartPointer<vtkRenderWindowInteractor>::New();
-  renderWindowInteractor->SetRenderWindow(renderWindow);
+  vtkSmartPointer<vtkRenderWindow> render_window = vtkSmartPointer<vtkRenderWindow>::New();
+  vtkSmartPointer<vtkRenderWindowInteractor> render_interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+
+  render_window->AddRenderer(renderer);
+  render_interactor->SetRenderWindow(render_window);
 
   // Add the actor to the scene
-  renderer->AddActor(triangulatedActor);
+  renderer->AddActor(triangulated_actor);
   renderer->SetBackground(.3, .6, .3); // Background color green
 
   // Render and interact
-  renderWindow->Render();
-  renderWindowInteractor->Start();
+  render_window->Render();
+  render_interactor->Start();
+}
+
+vtkSmartPointer<vtkPolyData> readSTLFile(std::string file)
+{
+  vtkSmartPointer<vtkSTLReader> reader = vtkSmartPointer<vtkSTLReader>::New();
+  reader->SetFileName(file.c_str());
+  reader->SetMerging(1);
+  reader->Update();
+
+  return reader->GetOutput();
+}
+
+bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata)
+{
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> (file.c_str(), *cloud) == -1) //* load the file
+    {
+      PCL_ERROR ("Couldn't read file \n");
+      return false;
+    }
+
+  // smooth the data
+  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
+
+  // Output has the PointNormal type in order to store the normals calculated by MLS
+  pcl::PointCloud<pcl::PointXYZ> mls_points;
+
+  // Init object (second point type is for the normals, even if unused)
+  pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointXYZ> mls;
+
+  mls.setComputeNormals (false);
+
+  // Set parameters
+  mls.setInputCloud (cloud);
+  mls.setPolynomialFit (true);
+  mls.setSearchMethod (tree);
+  mls.setSearchRadius (0.03);
+
+  // Reconstruct
+  mls.process (mls_points);
+
+  if(!polydata)
+  {
+    polydata = vtkSmartPointer<vtkPolyData>::New();
+  }
+  PCLtoVTK(mls_points, polydata);
+
+  return true;
+}
+
+bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata, std::string background, bool return_mesh)
+{
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> (file.c_str(), *cloud) == -1) //* load the file
+    {
+      PCL_ERROR ("Couldn't read file \n");
+      return false;
+    }
+
+  if(background != "")
+  {
+    pcl::PointCloud<pcl::PointXYZ>::Ptr bg_cloud (new pcl::PointCloud<pcl::PointXYZ>);
+    if (pcl::io::loadPCDFile<pcl::PointXYZ> (background.c_str(), *bg_cloud) == -1) //* load the file
+    {
+      PCL_ERROR ("Couldn't read file \n");
+    }
+    else
+    {
+      removeBackground(*cloud, *bg_cloud);
+    }
+  }
+
+  // smooth the data
+  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
+
+  // Output has the PointNormal type in order to store the normals calculated by MLS
+  pcl::PointCloud<pcl::PointXYZ> mls_points;
+
+  // Init object (second point type is for the normals, even if unused)
+  pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointXYZ> mls;
+
+  mls.setComputeNormals (false);
+
+  // Set parameters
+  mls.setInputCloud (cloud);
+  mls.setPolynomialFit (true);
+  mls.setSearchMethod (tree);
+  mls.setSearchRadius (0.03);
+
+  // Reconstruct
+  mls.process (mls_points);
+
+  if(!polydata)
+  {
+    polydata = vtkSmartPointer<vtkPolyData>::New();
+  }
+  vtkSmartPointer<vtkPolyData> point_data = vtkSmartPointer<vtkPolyData>::New();
+  PCLtoVTK(mls_points, point_data);
+
+  if(return_mesh)
+  {
+    polydata = createMesh(point_data->GetPoints(), 0.02, 30);
+    cleanMesh(point_data->GetPoints(), polydata);
+  }
+  else
+  {
+    polydata = point_data;
+  }
+
+  return true;
+}
+
+void removeBackground(pcl::PointCloud<pcl::PointXYZ>& cloud, const pcl::PointCloud<pcl::PointXYZ>& background)
+{
+  if(cloud.points.size() != background.points.size())
+  {
+    return;
+  }
+
+  for (int i = 0; i < cloud.points.size(); ++i)
+  {
+    if(fabs(cloud.points[i].z - background.points[i].z) < 0.05 || isnan(background.points[i].z) || cloud.points[i].y > 0.75)
+    {
+      cloud.points[i].x = NAN;
+      cloud.points[i].y = NAN;
+      cloud.points[i].z = NAN;
+    }
+  }
+
+  // create new point cloud with NaN's removed
+  pcl::PointCloud<pcl::PointXYZ> cloud2;
+  for (int i = 0; i < cloud.points.size(); ++i)
+  {
+    if(!isnan(cloud.points[i].x))
+    {
+      pcl::PointXYZ pt;
+      pt.x = cloud.points[i].x;
+      pt.y = cloud.points[i].y;
+      pt.z = cloud.points[i].z;
+      cloud2.push_back(pt);
+    }
+  }
+  cloud = cloud2;
+}
+
+void PCLtoVTK(const pcl::PointCloud<pcl::PointXYZ> &cloud, vtkPolyData* const pdata)
+{
+  vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+  for (int i = 0; i < cloud.points.size(); ++i)
+  {
+    if(isnan(cloud.points[i].x) || isnan(cloud.points[i].y) || isnan(cloud.points[i].z))
+    {
+      continue;
+    }
+    const double pt[3] = {double(cloud.points[i].x), double(cloud.points[i].y), double(cloud.points[i].z)};
+    points->InsertNextPoint(pt);
+  }
+
+  // Create a temporary PolyData and add the points to it
+  vtkSmartPointer<vtkPolyData> tempPolyData = vtkSmartPointer<vtkPolyData>::New();
+  tempPolyData->SetPoints(points);
+
+  pdata->DeepCopy(tempPolyData);
+}
+
+vtkSmartPointer<vtkPolyData> estimateCurvature(vtkSmartPointer<vtkPolyData> mesh, int method)
+{
+  vtkSmartPointer<vtkCurvatures> curvature_filter = vtkSmartPointer<vtkCurvatures>::New();
+    curvature_filter->SetInputData(mesh);
+    switch(method)
+    {
+    case 0:
+      curvature_filter->SetCurvatureTypeToMinimum();
+      break;
+    case 1:
+      curvature_filter->SetCurvatureTypeToMaximum();
+      break;
+    case 2:
+      curvature_filter->SetCurvatureTypeToGaussian();
+      break;
+    default:
+      curvature_filter->SetCurvatureTypeToMean();
+      break;
+    }
+    curvature_filter->Update();
+
+    return curvature_filter->GetOutput();
+}
+
+void generateNormals(vtkSmartPointer<vtkPolyData>& data)
+{
+  vtkSmartPointer<vtkPolyDataNormals> normal_generator = vtkSmartPointer<vtkPolyDataNormals>::New();
+  normal_generator->SetInputData(data);
+  normal_generator->ComputePointNormalsOn();
+  normal_generator->ComputeCellNormalsOn();
+
+  // Optional settings
+  normal_generator->SetFeatureAngle(0.1);
+  normal_generator->SetSplitting(0);
+  normal_generator->SetConsistency(1);
+  normal_generator->SetAutoOrientNormals(1);
+  normal_generator->SetComputePointNormals(1);
+  normal_generator->SetComputeCellNormals(1);
+  normal_generator->SetFlipNormals(0);
+  normal_generator->SetNonManifoldTraversal(1);
+
+  normal_generator->Update();
+
+  vtkDataArray* normals = normal_generator->GetOutput()->GetPointData()->GetNormals();
+  if(normals)
+  {
+    data->GetPointData()->SetNormals(normals);
+  }
+
+  vtkDataArray* normals2 = normal_generator->GetOutput()->GetCellData()->GetNormals();
+  if(normals2)
+  {
+    data->GetCellData()->SetNormals(normals2);
+  }
+}
+
+vtkSmartPointer<vtkPolyData> upsampleMesh(vtkSmartPointer<vtkPolyData> mesh, double distance)
+{
+  vtkSmartPointer<vtkPolyDataPointSampler> point_sampler = vtkSmartPointer<vtkPolyDataPointSampler>::New();
+  point_sampler->SetDistance(distance);
+  point_sampler->SetInputData(mesh);
+  point_sampler->Update();
+
+  // Resize the mesh and insert the new points
+  int old_size = mesh->GetPoints()->GetNumberOfPoints();
+  int new_size = point_sampler->GetOutput()->GetPoints()->GetNumberOfPoints();
+
+  vtkSmartPointer<vtkPolyData> updated_mesh = vtkSmartPointer<vtkPolyData>::New();
+  updated_mesh->SetPoints(mesh->GetPoints());
+  int size = old_size + new_size;
+  updated_mesh->GetPoints()->Resize(size);
+
+  updated_mesh->GetPoints()->InsertPoints(old_size, new_size, 0, point_sampler->GetOutput()->GetPoints());
+
+  // create surface from new point set
+  vtkSmartPointer<vtkSurfaceReconstructionFilter> surf = vtkSmartPointer<vtkSurfaceReconstructionFilter>::New();
+
+  surf->SetInputData(updated_mesh);
+
+  vtkSmartPointer<vtkMarchingCubes> cf = vtkSmartPointer<vtkMarchingCubes>::New();
+
+  cf->SetInputConnection(surf->GetOutputPort());
+  cf->SetValue(0, 0.1);
+  cf->ComputeNormalsOff();
+
+  cf->Update();
+
+  // Sometimes the contouring algorithm can create a volume whose gradient
+  // vector and ordering of polygon (using the right hand rule) are
+  // inconsistent. vtkReverseSense cures this problem.
+  vtkSmartPointer<vtkReverseSense> reverse = vtkSmartPointer<vtkReverseSense>::New();
+  reverse->SetInputConnection(cf->GetOutputPort());
+  reverse->ReverseCellsOn();
+  reverse->ReverseNormalsOn();
+  reverse->Update();
+
+  return reverse->GetOutput();
+}
+
+double pt_dist(double* pt1, double* pt2)
+{
+  return (pow(pt1[0] - pt2[0], 2) + pow(pt1[1] - pt2[1], 2 ) + pow((pt1[2] - pt2[2]), 2 ));
 }
 
 }
