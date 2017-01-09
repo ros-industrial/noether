@@ -13,6 +13,8 @@
 #include <vtkParametricSpline.h>
 #include <vtkKdTreePointLocator.h>
 
+#include <vtk_viewer/vtk_viewer.h>
+
 namespace tool_path_planner
 {
   struct ProcessPath
@@ -101,7 +103,16 @@ namespace tool_path_planner
      */
     void estimateNewNormals(vtkSmartPointer<vtkPolyData>& data);
 
+    /**
+     * @brief setDebugModeOn Turn on debug mode to visualize every step of the path planning process
+     * @param debug Turns on debug if true, turns off debug if false
+     */
+    void setDebugModeOn(bool debug){debug_on_ = debug;}
+
   private:
+
+    bool debug_on_;
+    vtk_viewer::VTKViewer debug_viewer_;
 
     vtkSmartPointer<vtkKdTreePointLocator> kd_tree_; /**< kd tree for finding nearest neighbor points */
     vtkSmartPointer<vtkPolyData> input_mesh_; /**< input mesh to operate on */

@@ -5,11 +5,11 @@
  */
 
 #include <Eigen/Core>
-#include <Eigen/Dense>
 
 #include <tool_path_planner/tool_path_planner.h>
 #include <limits>
 
+#include <vtkParametricFunctionSource.h>
 #include <vtkOBBTree.h>
 #include <vtkIntersectionPolyDataFilter.h>
 #include <vtkDelaunay2D.h>
@@ -80,6 +80,12 @@ namespace tool_path_planner
     }
     kd_tree_->SetDataSet(input_mesh_);
     kd_tree_->BuildLocator();
+
+    // Add display for debugging
+    debug_viewer_.removeAllDisplays();
+    std::vector<float> color(3);
+    color[0] = 0.9; color[1] = 0.9; color[2] = 0.9;
+    debug_viewer_.addPolyDataDisplay(input_mesh_, color);
 
     // TODO: this does not appear to work
     generateNormals(input_mesh_);
@@ -158,6 +164,15 @@ namespace tool_path_planner
     max = max > z ? max : z;
     vtkSmartPointer<vtkPolyData> cutting_mesh = createSurfaceFromSpline(start_curve, max / 2.0);
 
+    if(debug_on_)  // cutting mesh display
+    {
+      std::vector<float> color(3);
+      color[0] = 0.8; color[1] = 0.8; color[2] = 0.8;
+
+      debug_viewer_.addPolyDataDisplay(cutting_mesh, color);
+      debug_viewer_.renderDisplay();
+    }
+
     // use cutting mesh to find intersection line
     vtkSmartPointer<vtkPolyData> intersection_line = vtkSmartPointer<vtkPolyData>::New();
     vtkSmartPointer<vtkParametricSpline> spline = vtkSmartPointer<vtkParametricSpline>::New();
@@ -166,10 +181,37 @@ namespace tool_path_planner
     {
       return false;
     }
+
+    if(debug_on_)  // spline display
+    {
+      std::vector<float> color(3);
+      color[0] = 0.2; color[1] = 0.9; color[2] = 0.9;
+      vtkSmartPointer<vtkParametricFunctionSource> source = vtkSmartPointer<vtkParametricFunctionSource>::New();
+      source->SetParametricFunction(spline);
+      source->Update();
+
+      debug_viewer_.addPolyDataDisplay(source->GetOutput(), color);
+      debug_viewer_.renderDisplay();
+
+    }
+
     //use spline to create interpolated data with normals and derivatives
     vtkSmartPointer<vtkPolyData> points = vtkSmartPointer<vtkPolyData>::New();
     vtkSmartPointer<vtkPolyData> derivatives = vtkSmartPointer<vtkPolyData>::New();
     smoothData(spline, points, derivatives);
+
+    if(debug_on_)  // points display
+    {
+      std::vector<float> color(3);
+      color[0] = 0.2; color[1] = 0.2; color[2] = 0.9;
+
+      debug_viewer_.addPolyNormalsDisplay(points, color, tool_.pt_spacing);
+      debug_viewer_.renderDisplay();
+
+      debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
+      debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
+      debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
+    }
 
     // TEST: smoothData does not seem to always yield evenly spaced lines,
     // performing the intersection/smoothing one more time seems to fix it
@@ -180,12 +222,29 @@ namespace tool_path_planner
       intersection_line = vtkSmartPointer<vtkPolyData>::New();
       vtkSmartPointer<vtkParametricSpline> spline2 = vtkSmartPointer<vtkParametricSpline>::New();
 
+      if(debug_on_)  // cutting mesh display
+      {
+        std::vector<float> color(3);
+        color[0] = 0.8; color[1] = 0.8; color[2] = 0.8;
+
+        debug_viewer_.addPolyDataDisplay(cutting_mesh, color);
+        debug_viewer_.renderDisplay();
+      }
+
       if(findIntersectionLine(cutting_mesh, intersection_line, spline2))
       {
         points = vtkSmartPointer<vtkPolyData>::New();
         derivatives = vtkSmartPointer<vtkPolyData>::New();
         smoothData(spline2, points, derivatives);
         spline = spline2;
+      }
+      if(debug_on_)  // points display
+      {
+        std::vector<float> color(3);
+        color[0] = 0.2; color[1] = 0.2; color[2] = 0.9;
+
+        debug_viewer_.addPolyNormalsDisplay(points, color, tool_.pt_spacing);
+        debug_viewer_.renderDisplay();
       }
     }
 
@@ -213,8 +272,27 @@ namespace tool_path_planner
     vtkSmartPointer<vtkPolyData> offset_line = vtkSmartPointer<vtkPolyData>::New();
     offset_line = createOffsetLine(this_path.line, this_path.derivatives, dist);
 
+    if(debug_on_)  // points display
+    {
+      std::vector<float> color(3);
+      color[0] = 0.9; color[1] = 0.2; color[2] = 0.2;
+
+      debug_viewer_.addPolyNormalsDisplay(offset_line, color, tool_.pt_spacing);
+      debug_viewer_.renderDisplay();
+    }
+
     // create cutting surface  TODO: offset may need to be based upon point bounds
     next_path.intersection_plane = createSurfaceFromSpline(offset_line, tool_.intersecting_plane_height);
+
+    if(debug_on_)  // cutting mesh display
+    {
+      std::vector<float> color(3);
+      color[0] = 0.8; color[1] = 0.8; color[2] = 0.8;
+
+      debug_viewer_.addPolyDataDisplay(next_path.intersection_plane, color);
+      debug_viewer_.renderDisplay();
+      debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 2);
+    }
 
     // use surface to find intersection line
     vtkSmartPointer<vtkPolyData> intersection_line = vtkSmartPointer<vtkPolyData>::New();
@@ -223,6 +301,19 @@ namespace tool_path_planner
     if(!findIntersectionLine(next_path.intersection_plane, intersection_line, spline))
     {
       return false;
+    }
+
+    if(debug_on_)  // spline display
+    {
+      std::vector<float> color(3);
+      color[0] = 0.2; color[1] = 0.9; color[2] = 0.9;
+      vtkSmartPointer<vtkParametricFunctionSource> source = vtkSmartPointer<vtkParametricFunctionSource>::New();
+      source->SetParametricFunction(spline);
+      source->Update();
+
+      debug_viewer_.addPolyDataDisplay(source->GetOutput(), color);
+      debug_viewer_.renderDisplay();
+      debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
     }
 
     if(intersection_line->GetPoints()->GetNumberOfPoints() < 2)
@@ -234,6 +325,17 @@ namespace tool_path_planner
     vtkSmartPointer<vtkPolyData> points = vtkSmartPointer<vtkPolyData>::New();
     vtkSmartPointer<vtkPolyData> derivatives = vtkSmartPointer<vtkPolyData>::New();
     smoothData(spline, points, derivatives);
+
+    if(debug_on_)  // points display
+    {
+      std::vector<float> color(3);
+      color[0] = 0.2; color[1] = 0.2; color[2] = 0.9;
+      debug_viewer_.addPolyNormalsDisplay(points, color, tool_.pt_spacing);
+      color[0] = 0.9; color[1] = 0.9; color[2] = 0.2;
+      debug_viewer_.addPolyNormalsDisplay(derivatives, color, tool_.pt_spacing);
+      debug_viewer_.renderDisplay();
+      debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
+    }
 
     if(points->GetPoints()->GetNumberOfPoints() < 2)
     {
@@ -249,6 +351,14 @@ namespace tool_path_planner
        > vtk_viewer::pt_dist(this_path.line->GetPoints()->GetPoint(0), next_path.line->GetPoints()->GetPoint(length-1)))
     {
       flipPointOrder(next_path);
+    }
+
+    if(debug_on_)  // points display
+    {
+      std::vector<float> color(3);
+      color[0] = 0.9; color[1] = 0.9; color[2] = 0.2;
+      debug_viewer_.addPolyNormalsDisplay(derivatives, color, tool_.pt_spacing);
+      debug_viewer_.renderDisplay();
     }
 
     return true;
@@ -454,9 +564,7 @@ namespace tool_path_planner
     vtkSmartPointer<vtkDoubleArray> derv = vtkSmartPointer<vtkDoubleArray>::New();
     derv->SetNumberOfComponents(3);
 
-    double new_pt[3] = {0, 0, 0};
-    double* new_ptr;
-    new_ptr = &new_pt[0];
+    Eigen::Vector3d new_pt(0, 0, 0);
 
     // get points which are evenly spaced along the spline
     // initialize num_line_pts to some number, find the Euclidean distance between two points (m & n),
@@ -514,18 +622,15 @@ namespace tool_path_planner
         spline->Evaluate(u, pt1, d);
       }
 
-      // calculate the derivative
-      new_ptr[0] = pt1[0] - pt2[0];
-      new_ptr[1] = pt1[1] - pt2[1];
-      new_ptr[2] = pt1[2] - pt2[2];
-      double denom = sqrt(pow(new_ptr[0],2) + pow(new_ptr[1],2) + pow(new_ptr[2],2));
+      // calculate the derivative and normalize
+      new_pt[0] = pt1[0] - pt2[0];
+      new_pt[1] = pt1[1] - pt2[1];
+      new_pt[2] = pt1[2] - pt2[2];
+      new_pt.normalize();
 
-      // normalize the derivative vector
-      new_ptr[0] /= denom;
-      new_ptr[1] /= denom;
-      new_ptr[2] /= denom;
-
-      derv->InsertNextTuple(new_ptr);
+      // insert the next derivative
+      double new_ptr[3] = {new_pt[0], new_pt[1], new_pt[2]};
+      derv->InsertNextTuple(&new_ptr[0]);
     }
     // Set points and normals
     points->SetPoints(new_points);
@@ -644,7 +749,7 @@ namespace tool_path_planner
       {
         kd_tree_->FindClosestNPoints(tool_.nearest_neighbors, testPoint, result);
       }
-      double final[3] = {0, 0, 0};
+      Eigen::Vector3d final(0, 0, 0);
       int count = 0;
 
       // For N neighbors found, get their normals and add them together
@@ -668,14 +773,8 @@ namespace tool_path_planner
         final[0] /= double(count);
         final[1] /= double(count);
         final[2] /= double(count);
-        double denom = sqrt(pow(final[0],2.0) + pow(final[1],2.0) + pow(final[2],2.0));
-
-        // normalize the normal vector
-        final[0] /= denom;
-        final[1] /= denom;
-        final[2] /= denom;
+        final.normalize();
       }
-
 
       // Insert the averaged normal
       new_norm->SetTuple3(i, final[0], final[1], final[2]);
@@ -695,6 +794,11 @@ namespace tool_path_planner
     if(!normals || !ders || normals->GetNumberOfTuples() != ders->GetNumberOfTuples())
     {
       return new_points;
+    }
+
+    if(normals->GetNumberOfTuples() != line->GetNumberOfPoints())
+    {
+      cout << "ERROR IN CALC OFFSET LINE\n";
     }
 
     new_points = vtkSmartPointer<vtkPolyData>::New();
@@ -840,16 +944,29 @@ namespace tool_path_planner
     path.line->GetPointData()->SetNormals(new_norms);
 
     // flip derivative directions
+    points = path.derivatives->GetPoints();
+    vtkSmartPointer<vtkPoints> dpoints2 = vtkSmartPointer<vtkPoints>::New();
+
+    // flip point order
+    for(int i = points->GetNumberOfPoints() - 1; i >= 0; --i)
+    {
+      dpoints2->InsertNextPoint(points->GetPoint(i));
+    }
+    path.derivatives->SetPoints(dpoints2);
+
+
     vtkDataArray* ders = path.derivatives->GetPointData()->GetNormals();
-    for(int i = 0; i < ders->GetNumberOfTuples(); ++i)
+    vtkSmartPointer<vtkDoubleArray> new_ders = vtkSmartPointer<vtkDoubleArray>::New();
+    new_ders->SetNumberOfComponents(3);
+    for(int i = ders->GetNumberOfTuples() -1; i >= 0; --i)
     {
       double* pt = ders->GetTuple(i);
       pt[0] *= -1;
       pt[1] *= -1;
       pt[2] *= -1;
-      ders->SetTuple(i, pt);
+      new_ders->InsertNextTuple(pt);
     }
-    path.derivatives->GetPointData()->SetNormals(ders);
+    path.derivatives->GetPointData()->SetNormals(new_ders);
 
     // reset points in spline
     path.spline->SetPoints(points);

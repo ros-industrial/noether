@@ -47,7 +47,7 @@ namespace vtk_viewer
     this->iren_->Start();
   }
 
-  void VTKViewer::addPointDataDisplay(vtkSmartPointer<vtkPoints> &points, std::vector<float> color)
+  void VTKViewer::addPointDataDisplay(vtkPoints* points, std::vector<float> color)
   {
     // Add the grid points to a polydata object
     vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
@@ -74,7 +74,7 @@ namespace vtk_viewer
 
   }
 
-  void VTKViewer::addPolyDataDisplay(vtkSmartPointer<vtkPolyData> &polydata , std::vector<float> color)
+  void VTKViewer::addPolyDataDisplay(vtkPolyData* polydata , std::vector<float> color)
   {
     // create mapper and add to list
     vtkSmartPointer<vtkPolyDataMapper> triangulated_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -99,7 +99,7 @@ namespace vtk_viewer
     iren_->Delete();
   }
 
-  void VTKViewer::makeGlyphs(vtkSmartPointer<vtkPolyData>& src, bool const & reverseNormals , vtkSmartPointer<vtkGlyph3D> glyph, double scale)
+  void VTKViewer::makeGlyphs(vtkPolyData* src, bool const & reverseNormals , vtkSmartPointer<vtkGlyph3D> glyph, double scale)
   {
 
     // Sometimes the contouring algorithm can create a volume whose gradient
@@ -137,8 +137,9 @@ namespace vtk_viewer
     glyph->Update();
   }
 
-  void VTKViewer::addPolyNormalsDisplay(vtkSmartPointer<vtkPolyData> polydata, std::vector<float> color, vtkSmartPointer<vtkGlyph3D> glyph, double scale)
+  void VTKViewer::addPolyNormalsDisplay(vtkPolyData* polydata, std::vector<float> color, double scale)
   {
+    VTK_SP(vtkGlyph3D, glyph);
     makeGlyphs(polydata, false, glyph, scale);
 
     vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -158,7 +159,7 @@ namespace vtk_viewer
     this->renderer_->AddActor(actors_.back());
   }
 
-  void VTKViewer::addCellNormalDisplay(vtkSmartPointer<vtkPolyData> polydata, std::vector<float> color, double scale)
+  void VTKViewer::addCellNormalDisplay(vtkPolyData *polydata, std::vector<float> color, double scale)
   {
     // get cell and point data
 
@@ -191,10 +192,32 @@ namespace vtk_viewer
     centroid_polydata->SetPoints(cell_centroids);
     centroid_polydata->GetPointData()->SetNormals(normals_array);
 
-    vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
-    makeGlyphs(centroid_polydata, true, glyph, scale);
+    addPolyNormalsDisplay(centroid_polydata, color, scale);
+  }
 
-    addPolyNormalsDisplay(centroid_polydata, color, glyph, scale);
+  bool VTKViewer::removeObjectDisplay(int index)
+  {
+    if(index >= actors_.size())
+    {
+      return false;
+    }
+
+    // First, remove the desired actor from the renderer
+    renderer_->RemoveActor(actors_[index]);
+
+    // Delete the actor then the mapper associated with the data
+    actors_.erase(actors_.begin() + index);
+    poly_mappers_.erase(poly_mappers_.begin() + index);
+  }
+
+  void VTKViewer::removeAllDisplays()
+  {
+    while(actors_.size() > 0)
+    {
+      renderer_->RemoveActor(actors_.back());
+      actors_.erase(actors_.end() - 1);
+      poly_mappers_.erase(poly_mappers_.end() - 1);
+    }
   }
 }
 
