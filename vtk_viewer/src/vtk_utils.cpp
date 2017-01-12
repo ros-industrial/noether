@@ -43,6 +43,12 @@
 #include <vtkCleanPolyData.h>
 
 
+#include <vtkImplicitSelectionLoop.h>
+#include <vtkClipPolyData.h>
+
+#include <vtkImplicitDataSet.h>
+#include <vtkCutter.h>
+
 namespace vtk_viewer
 {
 
@@ -142,7 +148,7 @@ void cleanMesh(const vtkSmartPointer<vtkPoints>& points, vtkSmartPointer<vtkPoly
       // search for points in radius around the cell centroid
       double max = (a > b ? a : b);
       max = max > c ? max : c;
-      double radius =  sqrt(max);
+      double radius =  2.0 * sqrt(max);
       vtkSmartPointer<vtkIdList> pts = vtkSmartPointer<vtkIdList>::New();
       kd_tree->FindPointsWithinRadius(radius, center, pts);
 
@@ -416,7 +422,7 @@ void generateNormals(vtkSmartPointer<vtkPolyData>& data)
   normal_generator->SetAutoOrientNormals(1);
   normal_generator->SetComputePointNormals(1);
   normal_generator->SetComputeCellNormals(1);
-  normal_generator->SetFlipNormals(0);
+  normal_generator->SetFlipNormals(1);
   normal_generator->SetNonManifoldTraversal(1);
 
   normal_generator->Update();
@@ -476,6 +482,28 @@ vtkSmartPointer<vtkPolyData> upsampleMesh(vtkSmartPointer<vtkPolyData> mesh, dou
 
   return reverse->GetOutput();
 }
+
+vtkSmartPointer<vtkPolyData> cutMesh(vtkSmartPointer<vtkPolyData>& mesh, vtkSmartPointer<vtkPoints>& points, bool get_inside)
+{
+  // create loop using the input points
+  vtkSmartPointer<vtkImplicitSelectionLoop> loop = vtkSmartPointer<vtkImplicitSelectionLoop>::New();
+  loop->AutomaticNormalGenerationOn();
+  loop->SetLoop(points);
+
+  // cut out a section of the mesh using the newly created loop
+  // Note: the loop extends infitely along its central axis so multiple regions could be cut out
+  vtkSmartPointer<vtkClipPolyData> clipper = vtkSmartPointer<vtkClipPolyData>::New();
+  clipper->SetClipFunction(loop);
+  clipper->SetInputData(mesh);
+  if(get_inside)  // true, return inside of cut; false, return outside of cut
+  {
+    clipper->InsideOutOn(); // Off by default
+  }
+  clipper->Update();
+
+  return clipper->GetOutput();
+}
+
 
 double pt_dist(double* pt1, double* pt2)
 {

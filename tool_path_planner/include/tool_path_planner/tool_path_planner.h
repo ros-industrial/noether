@@ -33,11 +33,15 @@ namespace tool_path_planner
     double intersecting_plane_height;
     int nearest_neighbors; // not sure if this should be a part of the tool or derived from
                            // the pt spacing, line spacing, and mesh density
+    double min_hole_size;
   };
 
   class ToolPathPlanner
   {
   public:
+
+    ToolPathPlanner();
+    ~ToolPathPlanner(){}
 
     /**
      * @brief planPaths plans a set of paths for all meshes in a given list
@@ -83,7 +87,7 @@ namespace tool_path_planner
      * @param dist The distance to offset the next path from the current
      * @return True if the next path is successfully created, False if no path can be generated
      */
-    bool getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist);
+    bool getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist = 0.0);
 
     /**
      * @brief computePaths Will create and store all paths possible from the given mesh and starting path
@@ -186,7 +190,7 @@ namespace tool_path_planner
                                                       vtkSmartPointer<vtkPolyData>& points,
                                                       vtkSmartPointer<vtkParametricSpline>& spline);
 
-
+    bool checkPathForHoles(const ProcessPath path, std::vector<ProcessPath>& out_paths);
 
 
   };

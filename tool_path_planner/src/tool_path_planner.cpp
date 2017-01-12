@@ -23,7 +23,13 @@
 #include <vtkTriangle.h>
 #include <vtk_viewer/vtk_utils.h>
 
+#include <vtkReverseSense.h>
 
+#include <vtkImplicitDataSet.h>
+#include <vtkCutter.h>
+#include <vtkCellLocator.h>
+#include <vtkGenericCell.h>
+#include <vtkTriangleFilter.h>
 
 namespace tool_path_planner
 {
@@ -53,13 +59,32 @@ namespace tool_path_planner
     return index;
   }
 
+  ToolPathPlanner::ToolPathPlanner()
+  {
+    debug_on_ = false;
+  }
+
   void ToolPathPlanner::planPaths(std::vector<vtkSmartPointer<vtkPolyData> > meshes, std::vector< std::vector<ProcessPath> >& paths)
   {
     paths.clear();
+    #define VTK_SP(type, name)\
+      vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
     for(int i = 0; i < meshes.size(); ++i)
     {
+
+
+//      VTK_SP(vtkReverseSense, reverse);
+//      reverse->SetInputData(meshes[i]);
+//      reverse->ReverseCellsOn();
+//      reverse->ReverseNormalsOff();
+//      reverse->Update();
+
+
       std::vector<ProcessPath> new_path;
       setInputMesh(meshes[i]);
+      input_mesh_->BuildLinks();
+      input_mesh_->BuildCells();
+      //setInputMesh(reverse->GetOutput());
       computePaths();
       new_path = getPaths();
       paths.push_back(new_path);
@@ -88,7 +113,7 @@ namespace tool_path_planner
     debug_viewer_.addPolyDataDisplay(input_mesh_, color);
 
     // TODO: this does not appear to work
-    generateNormals(input_mesh_);
+    vtk_viewer::generateNormals(input_mesh_);
   }
 
   bool ToolPathPlanner::computePaths()
@@ -140,6 +165,56 @@ namespace tool_path_planner
       }
       ++count;
     }
+
+    // clear all but the first (mesh) display
+    if(debug_on_)
+    {
+      int num_obj = debug_viewer_.getNumberOfDisplayObjects() - 1;
+      for(int i = 0; i < num_obj; ++i)
+      debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
+    }
+
+
+    std::vector<ProcessPath> new_paths;
+    std::vector<int> delete_paths;
+    for(int i = 0; i < paths_.size(); ++i)
+    {
+      std::vector<ProcessPath> out_paths;
+      if(checkPathForHoles(paths_[i], out_paths))
+      {
+        // mark a path to delete
+        delete_paths.push_back(i);
+        for(int j = 0; j < out_paths.size(); ++j)
+        {
+          new_paths.push_back(out_paths[j]); // save all new paths
+        }
+        cout <<  out_paths.size() << " number of new paths created\n";
+      }
+    }
+
+    // if paths need to be modified, delete all old paths (starting at the back) and insert new ones
+    cout <<  delete_paths.size() << " number of new paths deleted\n";
+    for(int i = delete_paths.size() - 1; i >=0 ; --i )
+    {
+      paths_.erase(paths_.begin() + delete_paths[i]);
+    }
+
+    cout <<  new_paths.size() << " number of TOTAL new paths added to existing paths\n";
+    for(int i = 0; i < new_paths.size(); ++i)
+    {
+      paths_.push_back(new_paths[i]);
+
+      if(debug_on_)  // cutting mesh display
+      {
+        std::vector<float> color(3);
+        color[0] = 0.8; color[1] = 0.8; color[2] = 0.8;
+
+        debug_viewer_.addPolyDataDisplay(new_paths[i].intersection_plane, color);
+        debug_viewer_.renderDisplay();
+        //debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
+      }
+    }
+
     return true;
   }
 
@@ -171,6 +246,7 @@ namespace tool_path_planner
 
       debug_viewer_.addPolyDataDisplay(cutting_mesh, color);
       debug_viewer_.renderDisplay();
+      debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
     }
 
     // use cutting mesh to find intersection line
@@ -182,113 +258,49 @@ namespace tool_path_planner
       return false;
     }
 
-    if(debug_on_)  // spline display
+    ProcessPath this_path;
+    estimateNewNormals(intersection_line);
+    this_path.intersection_plane = intersection_line;
+
+    if(getNextPath(this_path, path, 0.0))
     {
-      std::vector<float> color(3);
-      color[0] = 0.2; color[1] = 0.9; color[2] = 0.9;
-      vtkSmartPointer<vtkParametricFunctionSource> source = vtkSmartPointer<vtkParametricFunctionSource>::New();
-      source->SetParametricFunction(spline);
-      source->Update();
-
-      debug_viewer_.addPolyDataDisplay(source->GetOutput(), color);
-      debug_viewer_.renderDisplay();
-
+      paths_.push_back(path);
+      return true;
     }
-
-    //use spline to create interpolated data with normals and derivatives
-    vtkSmartPointer<vtkPolyData> points = vtkSmartPointer<vtkPolyData>::New();
-    vtkSmartPointer<vtkPolyData> derivatives = vtkSmartPointer<vtkPolyData>::New();
-    smoothData(spline, points, derivatives);
-
-    if(debug_on_)  // points display
-    {
-      std::vector<float> color(3);
-      color[0] = 0.2; color[1] = 0.2; color[2] = 0.9;
-
-      debug_viewer_.addPolyNormalsDisplay(points, color, tool_.pt_spacing);
-      debug_viewer_.renderDisplay();
-
-      debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
-      debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
-      debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
-    }
-
-    // TEST: smoothData does not seem to always yield evenly spaced lines,
-    // performing the intersection/smoothing one more time seems to fix it
-    // but it results in a bug/crash sometimes.  Need to test the failure cases and fix
-    {
-      cutting_mesh = vtkSmartPointer<vtkPolyData>::New();
-      cutting_mesh = createSurfaceFromSpline(points, tool_.intersecting_plane_height);
-      intersection_line = vtkSmartPointer<vtkPolyData>::New();
-      vtkSmartPointer<vtkParametricSpline> spline2 = vtkSmartPointer<vtkParametricSpline>::New();
-
-      if(debug_on_)  // cutting mesh display
-      {
-        std::vector<float> color(3);
-        color[0] = 0.8; color[1] = 0.8; color[2] = 0.8;
-
-        debug_viewer_.addPolyDataDisplay(cutting_mesh, color);
-        debug_viewer_.renderDisplay();
-      }
-
-      if(findIntersectionLine(cutting_mesh, intersection_line, spline2))
-      {
-        points = vtkSmartPointer<vtkPolyData>::New();
-        derivatives = vtkSmartPointer<vtkPolyData>::New();
-        smoothData(spline2, points, derivatives);
-        spline = spline2;
-      }
-      if(debug_on_)  // points display
-      {
-        std::vector<float> color(3);
-        color[0] = 0.2; color[1] = 0.2; color[2] = 0.9;
-
-        debug_viewer_.addPolyNormalsDisplay(points, color, tool_.pt_spacing);
-        debug_viewer_.renderDisplay();
-      }
-    }
-
-    // Check number of points after smoothing, if not enough, return false
-    if(points->GetPoints()->GetNumberOfPoints() < 2)
-    {
-      return false;
-    }
-
-    path.line = points;
-    path.spline = spline;
-    path.derivatives = derivatives;
-    path.intersection_plane = cutting_mesh;
-
-    paths_.push_back(path);
-    return true;
+    return false;
   }
-
-
 
   bool ToolPathPlanner::getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist)
   {
+    if(dist == 0.0 && this_path.intersection_plane->GetPoints()->GetNumberOfPoints() < 2)
+    {
+      cout << "No path offset and no intersection plane given. Cannot generate next path\n";
+      return false;
+    }
 
-    // create offset points
     vtkSmartPointer<vtkPolyData> offset_line = vtkSmartPointer<vtkPolyData>::New();
-    offset_line = createOffsetLine(this_path.line, this_path.derivatives, dist);
+    if(dist != 0.0)  // if offset distance given, create an offset surface
+    {
+      // create offset points
+      offset_line = createOffsetLine(this_path.line, this_path.derivatives, dist);
 
-    if(debug_on_)  // points display
+      // create cutting surface  TODO: offset may need to be based upon point bounds
+      next_path.intersection_plane = createSurfaceFromSpline(offset_line, tool_.intersecting_plane_height);
+    }
+    else  // if no offset distance given, use points in this_path.intersection_plane to create the surface
+    {
+      offset_line->SetPoints(this_path.intersection_plane->GetPoints());
+      offset_line->GetPointData()->SetNormals(this_path.intersection_plane->GetPointData()->GetNormals());
+      next_path.intersection_plane = createSurfaceFromSpline(offset_line, tool_.intersecting_plane_height);
+    }
+
+    if(debug_on_)  // offset points and cutting mesh display
     {
       std::vector<float> color(3);
       color[0] = 0.9; color[1] = 0.2; color[2] = 0.2;
-
       debug_viewer_.addPolyNormalsDisplay(offset_line, color, tool_.pt_spacing);
-      debug_viewer_.renderDisplay();
-    }
 
-    // create cutting surface  TODO: offset may need to be based upon point bounds
-    next_path.intersection_plane = createSurfaceFromSpline(offset_line, tool_.intersecting_plane_height);
-
-    if(debug_on_)  // cutting mesh display
-    {
-      std::vector<float> color(3);
       color[0] = 0.8; color[1] = 0.8; color[2] = 0.8;
-
       debug_viewer_.addPolyDataDisplay(next_path.intersection_plane, color);
       debug_viewer_.renderDisplay();
       debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 2);
@@ -346,11 +358,14 @@ namespace tool_path_planner
     next_path.derivatives = derivatives;
 
     // compare start/end points of new line to old line, flip order if necessary
-    int length = next_path.line->GetPoints()->GetNumberOfPoints();
-    if(vtk_viewer::pt_dist(this_path.line->GetPoints()->GetPoint(0), next_path.line->GetPoints()->GetPoint(0))
-       > vtk_viewer::pt_dist(this_path.line->GetPoints()->GetPoint(0), next_path.line->GetPoints()->GetPoint(length-1)))
+    if(dist != 0.0)  // only flip if offset is non-zero (new_path)
     {
-      flipPointOrder(next_path);
+      int length = next_path.line->GetPoints()->GetNumberOfPoints();
+      if(vtk_viewer::pt_dist(this_path.line->GetPoints()->GetPoint(0), next_path.line->GetPoints()->GetPoint(0))
+         > vtk_viewer::pt_dist(this_path.line->GetPoints()->GetPoint(0), next_path.line->GetPoints()->GetPoint(length-1)))
+      {
+        flipPointOrder(next_path);
+      }
     }
 
     if(debug_on_)  // points display
@@ -362,6 +377,131 @@ namespace tool_path_planner
     }
 
     return true;
+  }
+
+  bool ToolPathPlanner::checkPathForHoles(const ProcessPath path, std::vector<ProcessPath>& out_paths)
+  {
+    // use cutting mesh to find intersection line
+    vtkSmartPointer<vtkPolyData> intersection_line = vtkSmartPointer<vtkPolyData>::New();
+    vtkSmartPointer<vtkParametricSpline> spline = vtkSmartPointer<vtkParametricSpline>::New();
+
+    if(!findIntersectionLine(path.intersection_plane, intersection_line, spline))
+    {
+      return false;
+    }
+
+    // create cell and triangle filters
+    vtkSmartPointer<vtkCellLocator> locator = vtkSmartPointer<vtkCellLocator>::New();
+    locator->SetDataSet(input_mesh_);
+    locator->BuildLocator();
+
+    vtkSmartPointer<vtkTriangleFilter> tri_filter = vtkSmartPointer<vtkTriangleFilter>::New();
+    tri_filter->SetInputData(input_mesh_);
+    tri_filter->Update();
+
+    int prev_start_point = 0;
+
+    for(int i = 1; i < intersection_line->GetPoints()->GetNumberOfPoints() - 1; ++i)
+    {
+      // get two adjacent points
+      double pt1[3], pt2[3], pcoords[3];
+      double weights[3] = {0,0,0};
+      intersection_line->GetPoints()->GetPoint(i-1, pt1);
+      intersection_line->GetPoints()->GetPoint(i, pt2);
+
+      // calculate the diff
+      double diff[3] = {pt2[0] - pt1[0], pt2[1] - pt1[1], pt2[2] - pt1[2]};
+
+      // move each point by a small amount towards each other
+      diff[0] *= 0.1;
+      diff[1] *= 0.1;
+      diff[2] *= 0.1;
+
+      pt1[0] += diff[0];
+      pt1[1] += diff[1];
+      pt1[2] += diff[2];
+
+      pt2[0] -= diff[0];
+      pt2[1] -= diff[1];
+      pt2[2] -= diff[2];
+
+      vtkSmartPointer<vtkGenericCell> cell = vtkSmartPointer<vtkGenericCell>::New();
+      vtkIdType cell1, cell2;
+
+      bool continous = false;
+      double tol = sqrt(diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2]);
+      cell1 = locator->FindCell(pt1, tol, cell, pcoords, &weights[0]);
+      if(cell1 != -1)
+      {
+        cell2 = locator->FindCell(pt2, tol, cell, pcoords, &weights[0]);
+        if(cell2 != -1)
+        {
+          if(cell1 == cell2)
+          {
+            continous = true;
+          }
+
+        }
+        // Get adjacent cells
+      }
+
+      if(!continous)
+      {
+        // if no shared cell found, check distance and whether or not the path needs to be split
+        intersection_line->GetPoints()->GetPoint(i-1, pt1);
+        intersection_line->GetPoints()->GetPoint(i, pt2);
+        double dist = sqrt(vtk_viewer::pt_dist(&pt1[0], &pt2[0]));
+
+        // split paths if hole is too large
+        if(dist > tool_.min_hole_size)
+        {
+          vtkSmartPointer<vtkIdList> ids = vtkSmartPointer<vtkIdList>::New();
+          //ids->SetNumberOfIds(i-prev_start_point);
+          //int count = 0;
+          // create new path from prev_start_point to current i
+          for(int j = prev_start_point; j < i; ++j)
+          {
+            ids->InsertNextId(j);
+            //ids->SetId(count, j);
+          }
+          vtkSmartPointer<vtkPolyData> new_line = vtkSmartPointer<vtkPolyData>::New();
+          vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
+          intersection_line->GetPoints()->GetPoints(ids, new_points);
+          new_line->SetPoints(new_points);
+
+          ProcessPath this_path, new_path;
+          estimateNewNormals(new_line);
+          this_path.intersection_plane = new_line;
+
+          getNextPath(this_path, new_path, 0.0);
+          out_paths.push_back(new_path);
+          prev_start_point = i;
+        }
+      }
+    }
+
+    if(prev_start_point > 0)
+    {
+      vtkSmartPointer<vtkIdList> ids = vtkSmartPointer<vtkIdList>::New();
+      for(int j = prev_start_point; j < intersection_line->GetPoints()->GetNumberOfPoints(); ++j)
+      {
+        ids->InsertNextId(j);
+      }
+      vtkSmartPointer<vtkPolyData> new_line = vtkSmartPointer<vtkPolyData>::New();
+      vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
+      intersection_line->GetPoints()->GetPoints(ids, new_points);
+      new_line->SetPoints(new_points);
+
+      ProcessPath this_path, new_path;
+      estimateNewNormals(new_line);
+      this_path.intersection_plane = new_line;
+
+      getNextPath(this_path, new_path, 0.0);
+      out_paths.push_back(new_path);
+    }
+
+    return out_paths.size() > 1;
+
   }
 
   vtkSmartPointer<vtkPolyData> ToolPathPlanner::createStartCurve()
@@ -504,6 +644,14 @@ namespace tool_path_planner
                                          vtkSmartPointer<vtkPolyData>& points,
                                          vtkSmartPointer<vtkParametricSpline>& spline)
   {
+//    vtkSmartPointer<vtkImplicitDataSet> impl = vtkSmartPointer<vtkImplicitDataSet>::New();
+//    impl->SetDataSet(cut_surface);
+//    vtkSmartPointer<vtkCutter> cutter = vtkSmartPointer<vtkCutter>::New();
+//    cutter->SetInputData(input_mesh_);
+//    cutter->SetCutFunction(impl);
+//    cutter->Update();
+//    cout << "cutter results: " << cutter->GetOutput()->GetPoints()->GetNumberOfPoints() << "\n";
+
     // Find the intersection between the input mesh and given cutting surface
     vtkSmartPointer<vtkIntersectionPolyDataFilter> intersection_filter =
       vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
@@ -557,8 +705,6 @@ namespace tool_path_planner
 
   void ToolPathPlanner::smoothData(vtkSmartPointer<vtkParametricSpline> spline, vtkSmartPointer<vtkPolyData>& points, vtkSmartPointer<vtkPolyData>& derivatives)
   {
-
-
     vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
 
     vtkSmartPointer<vtkDoubleArray> derv = vtkSmartPointer<vtkDoubleArray>::New();

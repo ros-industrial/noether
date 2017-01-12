@@ -16,6 +16,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
+#include <vtkCutter.h>
 
 namespace vtk_viewer
 {
@@ -110,6 +111,8 @@ namespace vtk_viewer
    * @return The calculated sum squared distance
    */
   double pt_dist(double* pt1, double* pt2);
+
+  vtkSmartPointer<vtkPolyData> cutMesh(vtkSmartPointer<vtkPolyData>& mesh, vtkSmartPointer<vtkPoints>& points, bool get_inside);
 
 }
 #endif // VTK_UTILS_H
