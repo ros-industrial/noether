@@ -192,7 +192,7 @@ namespace tool_path_planner
 
     bool checkPathForHoles(const ProcessPath path, std::vector<ProcessPath>& out_paths);
 
-
+    void resamplePoints(vtkSmartPointer<vtkPoints>& points);
   };
 
   /**
@@ -208,6 +208,7 @@ namespace tool_path_planner
    * @return The index of the closest point
    */
   int findClosestPoint(std::vector<double>& pt,  std::vector<std::vector<double> >& pts);
+
 
 }
 

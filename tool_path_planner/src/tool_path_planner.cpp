@@ -188,18 +188,15 @@ namespace tool_path_planner
         {
           new_paths.push_back(out_paths[j]); // save all new paths
         }
-        cout <<  out_paths.size() << " number of new paths created\n";
       }
     }
 
     // if paths need to be modified, delete all old paths (starting at the back) and insert new ones
-    cout <<  delete_paths.size() << " number of new paths deleted\n";
     for(int i = delete_paths.size() - 1; i >=0 ; --i )
     {
       paths_.erase(paths_.begin() + delete_paths[i]);
     }
 
-    cout <<  new_paths.size() << " number of TOTAL new paths added to existing paths\n";
     for(int i = 0; i < new_paths.size(); ++i)
     {
       paths_.push_back(new_paths[i]);
@@ -467,14 +464,17 @@ namespace tool_path_planner
           vtkSmartPointer<vtkPolyData> new_line = vtkSmartPointer<vtkPolyData>::New();
           vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
           intersection_line->GetPoints()->GetPoints(ids, new_points);
+          resamplePoints(new_points);
           new_line->SetPoints(new_points);
 
           ProcessPath this_path, new_path;
           estimateNewNormals(new_line);
           this_path.intersection_plane = new_line;
 
-          getNextPath(this_path, new_path, 0.0);
-          out_paths.push_back(new_path);
+          if(getNextPath(this_path, new_path, 0.0))
+          {
+            out_paths.push_back(new_path);
+          }
           prev_start_point = i;
         }
       }
@@ -490,14 +490,17 @@ namespace tool_path_planner
       vtkSmartPointer<vtkPolyData> new_line = vtkSmartPointer<vtkPolyData>::New();
       vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
       intersection_line->GetPoints()->GetPoints(ids, new_points);
+      resamplePoints(new_points);
       new_line->SetPoints(new_points);
 
       ProcessPath this_path, new_path;
       estimateNewNormals(new_line);
       this_path.intersection_plane = new_line;
 
-      getNextPath(this_path, new_path, 0.0);
-      out_paths.push_back(new_path);
+      if(getNextPath(this_path, new_path, 0.0))
+      {
+        out_paths.push_back(new_path);
+      }
     }
 
     return out_paths.size() > 1;
@@ -644,14 +647,6 @@ namespace tool_path_planner
                                          vtkSmartPointer<vtkPolyData>& points,
                                          vtkSmartPointer<vtkParametricSpline>& spline)
   {
-//    vtkSmartPointer<vtkImplicitDataSet> impl = vtkSmartPointer<vtkImplicitDataSet>::New();
-//    impl->SetDataSet(cut_surface);
-//    vtkSmartPointer<vtkCutter> cutter = vtkSmartPointer<vtkCutter>::New();
-//    cutter->SetInputData(input_mesh_);
-//    cutter->SetCutFunction(impl);
-//    cutter->Update();
-//    cout << "cutter results: " << cutter->GetOutput()->GetPoints()->GetNumberOfPoints() << "\n";
-
     // Find the intersection between the input mesh and given cutting surface
     vtkSmartPointer<vtkIntersectionPolyDataFilter> intersection_filter =
       vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
@@ -701,6 +696,59 @@ namespace tool_path_planner
 
     return true;
 
+  }
+
+  void ToolPathPlanner::resamplePoints(vtkSmartPointer<vtkPoints>& points)
+  {
+    vtkSmartPointer<vtkParametricSpline> spline = vtkSmartPointer<vtkParametricSpline>::New();
+    spline->SetPoints(points);
+
+    int num_line_pts = points->GetNumberOfPoints()/2.0;
+
+    double u[3], pt[3], d[9]; // u - search point, pt - resulting point, d - unused but still required
+    u[0] = u[1] = u[2] = 0;
+
+    vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
+    new_points->SetNumberOfPoints(num_line_pts);
+
+    for(int i = 0; i < num_line_pts; ++i)
+    {
+      u[0] = double(i)/double(num_line_pts - 1);
+
+      // spline->Evaluate() takes a number in the range [0,1]
+      spline->Evaluate(u, pt, d);
+      new_points->SetPoint(i, pt);
+    }
+
+    // calculation of intersection sometimes fails if edges intersect.  Need to move edge points out some to fix.
+    double new_pt[3];
+    double* pt1;
+
+    // Extend end point
+    pt1 = new_points->GetPoint(new_points->GetNumberOfPoints()- 1);
+    new_pt[0] = pt1[0];
+    new_pt[1] = pt1[1];
+    new_pt[2] = pt1[2];
+    pt1 = new_points->GetPoint(new_points->GetNumberOfPoints()- 2);
+    new_pt[0] +=  (new_pt[0] - pt1[0]);
+    new_pt[1] +=  (new_pt[1] - pt1[1]);
+    new_pt[2] +=  (new_pt[2] - pt1[2]);
+    new_points->SetPoint(new_points->GetNumberOfPoints()-1, new_pt);
+
+    // Extend front point
+    pt1 = new_points->GetPoint(0);
+    new_pt[0] = pt1[0];
+    new_pt[1] = pt1[1];
+    new_pt[2] = pt1[2];
+    pt1 = new_points->GetPoint(1);
+    new_pt[0] +=  (new_pt[0] - pt1[0]);
+    new_pt[1] +=  (new_pt[1] - pt1[1]);
+    new_pt[2] +=  (new_pt[2] - pt1[2]);
+    new_points->SetPoint(0, new_pt);
+
+
+    points->SetNumberOfPoints(new_points->GetNumberOfPoints());
+    points->DeepCopy(new_points);
   }
 
   void ToolPathPlanner::smoothData(vtkSmartPointer<vtkParametricSpline> spline, vtkSmartPointer<vtkPolyData>& points, vtkSmartPointer<vtkPolyData>& derivatives)
