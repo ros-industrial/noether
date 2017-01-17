@@ -71,20 +71,11 @@ namespace tool_path_planner
       vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
     for(int i = 0; i < meshes.size(); ++i)
     {
-
-
-//      VTK_SP(vtkReverseSense, reverse);
-//      reverse->SetInputData(meshes[i]);
-//      reverse->ReverseCellsOn();
-//      reverse->ReverseNormalsOff();
-//      reverse->Update();
-
-
       std::vector<ProcessPath> new_path;
       setInputMesh(meshes[i]);
       input_mesh_->BuildLinks();
       input_mesh_->BuildCells();
-      //setInputMesh(reverse->GetOutput());
+
       computePaths();
       new_path = getPaths();
       paths.push_back(new_path);

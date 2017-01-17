@@ -81,8 +81,7 @@ void Noether::addPathDisplay(std::vector< tool_path_planner::ProcessPath >& path
       color[2] = float(colors[i % size] & 0xff)/255.0;
       color[1] = float((colors[i % size] & 0xff00) >> 8)/255.0;
       color[0] = float((colors[i % size] & 0xff0000) >> 16)/255.0;
-      vtkSmartPointer<vtkGlyph3D> glyph = vtkSmartPointer<vtkGlyph3D>::New();
-      viewer_.addPolyNormalsDisplay(paths[i].line, color, glyph, scale);
+      viewer_.addPolyNormalsDisplay(paths[i].line, color, scale);
     }
     if(show_cutting_meshes)
     {
@@ -96,8 +95,7 @@ void Noether::addPathDisplay(std::vector< tool_path_planner::ProcessPath >& path
       color[0] = 0.9;
       color[1] = 0.9;
       color[2] = 0.2;
-      vtkSmartPointer<vtkGlyph3D> glyph2 = vtkSmartPointer<vtkGlyph3D>::New();
-      viewer_.addPolyNormalsDisplay(paths[i].derivatives, color, glyph2, scale);
+      viewer_.addPolyNormalsDisplay(paths[i].derivatives, color, scale);
     }
   }
 }

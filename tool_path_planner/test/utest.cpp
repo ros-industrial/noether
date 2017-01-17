@@ -17,7 +17,7 @@
 #define DISPLAY_CUTTING_MESHES  0
 
 // This test shows the results of the tool path planner on a square grid that has a sinusoidal
-// variation in the z axis.  It will generate a series of evenly spaced lines (aprox. equal to line_spacing)
+// variation in the z axis and a cutout in the middle.  It will generate a series of evenly spaced lines (aprox. equal to line_spacing)
 // with evenly spaced points on each line (aprox. equal to pt_spacing).  Yellow arrows show the direction of
 // travel in a give line (all lines should point in the same direction) and green arrows show the process normal
 // direction (should be aprox. normal to the surface in that region)
@@ -29,14 +29,12 @@ TEST(IntersectTest, TestCase1)
   vtkSmartPointer<vtkPolyData> data = vtk_viewer::createMesh(points, 0.5, 5);
   vtk_viewer::generateNormals(data);
 
-
+  // create cutout in the middle of the mesh
   vtkSmartPointer<vtkPoints> points2 = vtkSmartPointer<vtkPoints>::New();
-  //double pt1[3] = {3.0, 3.0, 0.0};
   double pt1[3] = {2.0, 3.0, 0.0};
   double pt2[3] = {4.0, 2.0, 0.0};
   double pt3[3] = {5.0, 3.0, 0.0};
   double pt4[3] = {4.0, 5.0, 0.0};
-  //double pt4[3] = {4.0, 4.0, 0.0};
   points2->InsertNextPoint(pt1);
   points2->InsertNextPoint(pt2);
   points2->InsertNextPoint(pt3);

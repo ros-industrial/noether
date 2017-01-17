@@ -115,8 +115,8 @@ namespace tool_path_planner
 
   private:
 
-    bool debug_on_;
-    vtk_viewer::VTKViewer debug_viewer_;
+    bool debug_on_;  /**< Turns on/off the debug display which views the path planning output one step at a time */
+    vtk_viewer::VTKViewer debug_viewer_;  /**< The vtk viewer for displaying debug output */
 
     vtkSmartPointer<vtkKdTreePointLocator> kd_tree_; /**< kd tree for finding nearest neighbor points */
     vtkSmartPointer<vtkPolyData> input_mesh_; /**< input mesh to operate on */
@@ -190,8 +190,18 @@ namespace tool_path_planner
                                                       vtkSmartPointer<vtkPolyData>& points,
                                                       vtkSmartPointer<vtkParametricSpline>& spline);
 
+    /**
+     * @brief checkPathForHoles Checks a given path to determine if it needs to be broken up if there is a large hole in the middle
+     * @param path The input path to be checked for large holes/gaps
+     * @param out_paths The output paths, after any splitting is performed.  Is empty if no splitting is needed
+     * @return True if a large hole is detected and path was broken up, false if no splitting is needed
+     */
     bool checkPathForHoles(const ProcessPath path, std::vector<ProcessPath>& out_paths);
 
+    /**
+     * @brief resamplePoints Resamples a set of points to make them evenly spaced, creates and samples a spline through the original point set
+     * @param points The input points to modify
+     */
     void resamplePoints(vtkSmartPointer<vtkPoints>& points);
   };
 
