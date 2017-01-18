@@ -31,23 +31,22 @@ namespace vtk_viewer
      * @param polydata The polydata to be displayed
      * @param color The color to use for rendering the data
      */
-    void addPolyDataDisplay(vtkSmartPointer<vtkPolyData> &polydata, std::vector<float> color);
+    void addPolyDataDisplay(vtkPolyData* polydata, std::vector<float> color);
 
     /**
      * @brief addPolyNormalsDisplay Add a renderer and actor for a polydata object with normals (for lines with normals and derivatives)
      * @param polydata The polydata to be displayed
      * @param color The color to use for rendering the data
-     * @param glyph The object used for displaying (usually arrows)
      * @param scale The size to scale and show the arrows at
      */
-    void addPolyNormalsDisplay(vtkSmartPointer<vtkPolyData> polydata, std::vector<float> color, vtkSmartPointer<vtkGlyph3D> glyph, double scale);
+    void addPolyNormalsDisplay(vtkPolyData* polydata, std::vector<float> color, double scale);
 
     /**
      * @brief addPointDataDisplay Add a renderer and actor for a point data object
      * @param points The point data to be displayed
      * @param color The color to use for rendering the data
      */
-    void addPointDataDisplay(vtkSmartPointer<vtkPoints> &points, std::vector<float> color);
+    void addPointDataDisplay(vtkPoints* points, std::vector<float> color);
 
     /**
      * @brief addCellNormalDisplay Displays the normals for a mesh object
@@ -55,12 +54,18 @@ namespace vtk_viewer
      * @param color The color to use for rendering the data
      * @param scale The size to scale and show the arrows at
      */
-    void addCellNormalDisplay(vtkSmartPointer<vtkPolyData> polydata, std::vector<float> color, double scale);
+    void addCellNormalDisplay(vtkPolyData* polydata, std::vector<float> color, double scale);
 
     /**
      * @brief renderDisplay Calls the VTK window Render() command to visualize all of the renderers added
      */
     void renderDisplay();
+
+    int getNumberOfDisplayObjects(){return actors_.size();}
+
+    bool removeObjectDisplay(int index);
+
+    void removeAllDisplays();
 
   private:
 
@@ -78,7 +83,7 @@ namespace vtk_viewer
      * @param glyph The pointer to the vtkGlyph3D object which will be created and returned
      * @param scale The size to scale and show the arrows at
      */
-    void makeGlyphs(vtkSmartPointer<vtkPolyData>& src, bool const & reverseNormals, vtkSmartPointer<vtkGlyph3D> glyph, double scale);
+    void makeGlyphs(vtkPolyData* src, bool const & reverseNormals, vtkSmartPointer<vtkGlyph3D> glyph, double scale);
   };
 
 }

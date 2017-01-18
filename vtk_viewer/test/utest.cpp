@@ -22,6 +22,25 @@ TEST(ViewerTest, TestCase1)
 
   vtk_viewer::generateNormals(data);
 
+  vtkSmartPointer<vtkPoints> points2 = vtkSmartPointer<vtkPoints>::New();
+  double pt1[3] = {3.0, 3.0, 0.0};
+  double pt2[3] = {4.0, 2.0, 0.0};
+  double pt3[3] = {5.0, 3.0, 0.0};
+  double pt4[3] = {4.0, 4.0, 0.0};
+
+  points2->InsertNextPoint(pt1);
+  points2->InsertNextPoint(pt2);
+  points2->InsertNextPoint(pt3);
+  points2->InsertNextPoint(pt4);
+  
+  vtkSmartPointer<vtkPolyData> cut = vtkSmartPointer<vtkPolyData>::New();
+  cut = vtk_viewer::cutMesh(data, points2, false);
+
+  cout << "cutter points: " << cut->GetPoints()->GetNumberOfPoints() << "\n";
+  cout << "cutter lines: " << cut->GetNumberOfLines() << "\n";
+
+
+
   vtk_viewer::VTKViewer viz;
   std::vector<float> color(3);
 
@@ -36,12 +55,15 @@ TEST(ViewerTest, TestCase1)
   color[0] = 0.2;
   color[1] = 0.2;
   color[2] = 0.9;
-  viz.addPolyDataDisplay(data, color);
+  //viz.addPolyDataDisplay(data, color);
 
-  color[0] = 0.9;
-  color[1] = 0.2;
-  color[2] = 0.2;
-  viz.addCellNormalDisplay(data, color, 1.0);
+  color[0] = 0.1;
+  color[1] = 0.9;
+  color[2] = 0.1;
+  //viz.addCellNormalDisplay(data, color, 1.0);
+
+  viz.addPolyDataDisplay(cut,color);
+  viz.addPointDataDisplay(cut->GetPoints(), color);
 
   viz.renderDisplay();
 

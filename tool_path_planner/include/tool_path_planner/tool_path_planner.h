@@ -13,6 +13,8 @@
 #include <vtkParametricSpline.h>
 #include <vtkKdTreePointLocator.h>
 
+#include <vtk_viewer/vtk_viewer.h>
+
 namespace tool_path_planner
 {
   struct ProcessPath
@@ -31,11 +33,15 @@ namespace tool_path_planner
     double intersecting_plane_height;
     int nearest_neighbors; // not sure if this should be a part of the tool or derived from
                            // the pt spacing, line spacing, and mesh density
+    double min_hole_size;
   };
 
   class ToolPathPlanner
   {
   public:
+
+    ToolPathPlanner();
+    ~ToolPathPlanner(){}
 
     /**
      * @brief planPaths plans a set of paths for all meshes in a given list
@@ -81,7 +87,7 @@ namespace tool_path_planner
      * @param dist The distance to offset the next path from the current
      * @return True if the next path is successfully created, False if no path can be generated
      */
-    bool getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist);
+    bool getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist = 0.0);
 
     /**
      * @brief computePaths Will create and store all paths possible from the given mesh and starting path
@@ -95,7 +101,22 @@ namespace tool_path_planner
      */
     std::vector<ProcessPath> getPaths(){return paths_;}
 
+    /**
+     * @brief generateNormals For a set of new points, estimates the normal from the input mesh normals by averaging N nearest neighbors' normals
+     * @param data The points to operate on, normal data inserted in place
+     */
+    void estimateNewNormals(vtkSmartPointer<vtkPolyData>& data);
+
+    /**
+     * @brief setDebugModeOn Turn on debug mode to visualize every step of the path planning process
+     * @param debug Turns on debug if true, turns off debug if false
+     */
+    void setDebugModeOn(bool debug){debug_on_ = debug;}
+
   private:
+
+    bool debug_on_;  /**< Turns on/off the debug display which views the path planning output one step at a time */
+    vtk_viewer::VTKViewer debug_viewer_;  /**< The vtk viewer for displaying debug output */
 
     vtkSmartPointer<vtkKdTreePointLocator> kd_tree_; /**< kd tree for finding nearest neighbor points */
     vtkSmartPointer<vtkPolyData> input_mesh_; /**< input mesh to operate on */
@@ -132,11 +153,7 @@ namespace tool_path_planner
      */
     void generateNormals(vtkSmartPointer<vtkPolyData>& data);
 
-    /**
-     * @brief generateNormals For a set of new points, estimates the normal from the input mesh normals by averaging N nearest neighbors' normals
-     * @param data The points to operate on, normal data inserted in place
-     */
-    void estimateNewNormals(vtkSmartPointer<vtkPolyData>& data);
+
 
     /**
      * @brief createOffsetLine Given a line with normals, generate a new line which is offset by a given distance
@@ -173,9 +190,19 @@ namespace tool_path_planner
                                                       vtkSmartPointer<vtkPolyData>& points,
                                                       vtkSmartPointer<vtkParametricSpline>& spline);
 
+    /**
+     * @brief checkPathForHoles Checks a given path to determine if it needs to be broken up if there is a large hole in the middle
+     * @param path The input path to be checked for large holes/gaps
+     * @param out_paths The output paths, after any splitting is performed.  Is empty if no splitting is needed
+     * @return True if a large hole is detected and path was broken up, false if no splitting is needed
+     */
+    bool checkPathForHoles(const ProcessPath path, std::vector<ProcessPath>& out_paths);
 
-
-
+    /**
+     * @brief resamplePoints Resamples a set of points to make them evenly spaced, creates and samples a spline through the original point set
+     * @param points The input points to modify
+     */
+    void resamplePoints(vtkSmartPointer<vtkPoints>& points);
   };
 
   /**
@@ -191,6 +218,7 @@ namespace tool_path_planner
    * @return The index of the closest point
    */
   int findClosestPoint(std::vector<double>& pt,  std::vector<std::vector<double> >& pts);
+
 
 }
 

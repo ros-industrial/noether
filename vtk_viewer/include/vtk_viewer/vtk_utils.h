@@ -16,6 +16,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
+#include <vtkCutter.h>
 
 namespace vtk_viewer
 {
@@ -94,6 +95,8 @@ namespace vtk_viewer
    */
   void PCLtoVTK(const pcl::PointCloud<pcl::PointXYZ>& cloud, vtkPolyData* const pdata);
 
+  void VTKtoPCL(vtkPolyData* const pdata, pcl::PointCloud<pcl::PointNormal> &cloud);
+
   /**
    * @brief removeBackground Removes points from an input cloud using a background cloud as a reference (also removes NaN's)
    * @param cloud The input cloud to perform background subtraction on
@@ -108,6 +111,8 @@ namespace vtk_viewer
    * @return The calculated sum squared distance
    */
   double pt_dist(double* pt1, double* pt2);
+
+  vtkSmartPointer<vtkPolyData> cutMesh(vtkSmartPointer<vtkPolyData>& mesh, vtkSmartPointer<vtkPoints>& points, bool get_inside);
 
 }
 #endif // VTK_UTILS_H
