@@ -554,15 +554,17 @@ namespace tool_path_planner
     obb_tree->SetLazyEvaluation(0);
     obb_tree->ComputeOBB(input_mesh_->GetPoints(), corner, max, mid, min, size);
 
-    double m = sqrt(size[0] * size[0] + size[1] * size[1] + size[2] * size[2]);
+    // size gives the length of each vector (max, mid, min) in order, normalize the size vector by the max size for comparison
+    double m = size[0];
     size[0] /= m;
     size[1] /= m;
     size[2] /= m;
 
-    // If object is square, then max and mid will be diagonals (OBB does not return minimum volume bounding box)
-    // Average max and mid to get correct orientation (value of 0.01 was determined experimentally)
+    // ComputeOBB uses PCA to find the principle axes, thus for square objects it returns the diagonals instead
+    // of the minimum bounding box.  Compare the first and second axes to see if they are within 1% of each other
     if(size[0] - size[1] < 0.01)
     {
+      // if object is square, need to average max and mid in order to get the correct axes of the object
       m = sqrt(max[0] * max[0] + max[1] * max[1] + max[2] * max[2]);
       max[0] /= m;
       max[1] /= m;
