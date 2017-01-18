@@ -67,8 +67,7 @@ namespace tool_path_planner
   void ToolPathPlanner::planPaths(std::vector<vtkSmartPointer<vtkPolyData> > meshes, std::vector< std::vector<ProcessPath> >& paths)
   {
     paths.clear();
-    #define VTK_SP(type, name)\
-      vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
+
     for(int i = 0; i < meshes.size(); ++i)
     {
       std::vector<ProcessPath> new_path;
@@ -199,7 +198,6 @@ namespace tool_path_planner
 
         debug_viewer_.addPolyDataDisplay(new_paths[i].intersection_plane, color);
         debug_viewer_.renderDisplay();
-        //debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
       }
     }
 
@@ -389,6 +387,9 @@ namespace tool_path_planner
 
     int prev_start_point = 0;
 
+    // For each point on the intersection line, check to see if the points share a common triangle/cell.
+    // If they share a cell, there is no hole, if they don't share a cell, then there is a hole and the
+    // distance between the two points should be checked to see how large the hole is
     for(int i = 1; i < intersection_line->GetPoints()->GetNumberOfPoints() - 1; ++i)
     {
       // get two adjacent points
@@ -397,7 +398,7 @@ namespace tool_path_planner
       intersection_line->GetPoints()->GetPoint(i-1, pt1);
       intersection_line->GetPoints()->GetPoint(i, pt2);
 
-      // calculate the diff
+      // calculate the distance between each point
       double diff[3] = {pt2[0] - pt1[0], pt2[1] - pt1[1], pt2[2] - pt1[2]};
 
       // move each point by a small amount towards each other
@@ -418,21 +419,24 @@ namespace tool_path_planner
 
       bool continous = false;
       double tol = sqrt(diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2]);
+
+      // find the cell that each point lies on
       cell1 = locator->FindCell(pt1, tol, cell, pcoords, &weights[0]);
       if(cell1 != -1)
       {
         cell2 = locator->FindCell(pt2, tol, cell, pcoords, &weights[0]);
         if(cell2 != -1)
         {
+          // if the cell for point 1 == the cell for point 2, then there is no hole
           if(cell1 == cell2)
           {
             continous = true;
           }
-
         }
-        // Get adjacent cells
       }
 
+      // If a hole is found, the current path needs to be broken up, create new path from previous start point
+      // to current point (i) in the intersection path
       if(!continous)
       {
         // if no shared cell found, check distance and whether or not the path needs to be split
@@ -444,14 +448,12 @@ namespace tool_path_planner
         if(dist > tool_.min_hole_size)
         {
           vtkSmartPointer<vtkIdList> ids = vtkSmartPointer<vtkIdList>::New();
-          //ids->SetNumberOfIds(i-prev_start_point);
-          //int count = 0;
           // create new path from prev_start_point to current i
           for(int j = prev_start_point; j < i; ++j)
           {
             ids->InsertNextId(j);
-            //ids->SetId(count, j);
           }
+
           vtkSmartPointer<vtkPolyData> new_line = vtkSmartPointer<vtkPolyData>::New();
           vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
           intersection_line->GetPoints()->GetPoints(ids, new_points);
@@ -471,6 +473,7 @@ namespace tool_path_planner
       }
     }
 
+    // once done looping, make last path (if a break occured)
     if(prev_start_point > 0)
     {
       vtkSmartPointer<vtkIdList> ids = vtkSmartPointer<vtkIdList>::New();
@@ -556,7 +559,8 @@ namespace tool_path_planner
     size[1] /= m;
     size[2] /= m;
 
-    // If object is square, then max and mid will be diagonals, average to get correct orientation
+    // If object is square, then max and mid will be diagonals (OBB does not return minimum volume bounding box)
+    // Average max and mid to get correct orientation (value of 0.01 was determined experimentally)
     if(size[0] - size[1] < 0.01)
     {
       m = sqrt(max[0] * max[0] + max[1] * max[1] + max[2] * max[2]);

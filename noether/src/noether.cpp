@@ -118,7 +118,6 @@ int main(int argc, char **argv)
     while (pch != NULL)
     {
       std::string extension(pch);
-      cout << pch << "\n";
       if(extension == "pcd" || extension == "stl" || extension == "STL")
       {
         break;
