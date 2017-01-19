@@ -49,6 +49,8 @@
 #include <vtkImplicitDataSet.h>
 #include <vtkCutter.h>
 
+#include <cmath>
+
 namespace vtk_viewer
 {
 
@@ -320,7 +322,7 @@ void removeBackground(pcl::PointCloud<pcl::PointXYZ>& cloud, const pcl::PointClo
 
   for (int i = 0; i < cloud.points.size(); ++i)
   {
-    if(fabs(cloud.points[i].z - background.points[i].z) < 0.05 || isnan(background.points[i].z) || cloud.points[i].y > 0.75)
+    if(fabs(cloud.points[i].z - background.points[i].z) < 0.05 || std::isnan(background.points[i].z) || cloud.points[i].y > 0.75)
     {
       cloud.points[i].x = NAN;
       cloud.points[i].y = NAN;
@@ -332,7 +334,7 @@ void removeBackground(pcl::PointCloud<pcl::PointXYZ>& cloud, const pcl::PointClo
   pcl::PointCloud<pcl::PointXYZ> cloud2;
   for (int i = 0; i < cloud.points.size(); ++i)
   {
-    if(!isnan(cloud.points[i].x))
+    if(!std::isnan(cloud.points[i].x))
     {
       pcl::PointXYZ pt;
       pt.x = cloud.points[i].x;
@@ -349,7 +351,7 @@ void PCLtoVTK(const pcl::PointCloud<pcl::PointXYZ> &cloud, vtkPolyData* const pd
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
   for (int i = 0; i < cloud.points.size(); ++i)
   {
-    if(isnan(cloud.points[i].x) || isnan(cloud.points[i].y) || isnan(cloud.points[i].z))
+    if(std::isnan(cloud.points[i].x) || std::isnan(cloud.points[i].y) || std::isnan(cloud.points[i].z))
     {
       continue;
     }

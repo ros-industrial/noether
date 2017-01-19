@@ -17,6 +17,11 @@ catkin_package(
     tool_path_planner
 )
 
+include_directories(
+    include
+    ${catkin_INCLUDE_DIRS}
+)
+
 add_library(path_sequence_planner
     src/path_sequence_planner.cpp
 )
