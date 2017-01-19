@@ -3,14 +3,13 @@ project(vtk_viewer)
 
 find_package(catkin REQUIRED cmake_modules)
 
+find_package(VTK 7.1 CONFIG)
+find_package(VTK 7.1 REQUIRED)
+include(${VTK_USE_FILE})
+
 find_package(PCL 1.8 REQUIRED)
 
 find_package(Eigen3 REQUIRED)
-
-find_package(VTK 7.1 CONFIG)
-find_package(VTK 7.1 REQUIRED)
-
-include(${VTK_USE_FILE})
 
 catkin_package(
   INCLUDE_DIRS include
