@@ -13,17 +13,17 @@ find_package(Eigen3 REQUIRED)
 
 catkin_package(
     INCLUDE_DIRS include
-    LIBRARIES tool_path_planner
+    LIBRARIES raster_tool_path_planner
     DEPENDS Eigen VTK
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 
-add_library(tool_path_planner
-    src/tool_path_planner.cpp
+add_library(raster_tool_path_planner
+    src/raster_tool_path_planner.cpp
 )
 
-target_link_libraries(tool_path_planner
+target_link_libraries(raster_tool_path_planner
     ${catkin_LIBRARIES}
     ${VTK_LIBRARIES}
 )

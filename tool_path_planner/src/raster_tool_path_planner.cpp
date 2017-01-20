@@ -4,10 +4,10 @@
  *
  */
 
-#include <Eigen/Core>
-
-#include <tool_path_planner/tool_path_planner.h>
 #include <limits>
+#include <cmath>
+
+#include <Eigen/Core>
 
 #include <vtkParametricFunctionSource.h>
 #include <vtkOBBTree.h>
@@ -22,16 +22,14 @@
 #include <vtkCellData.h>
 #include <vtkTriangle.h>
 #include <vtk_viewer/vtk_utils.h>
-
 #include <vtkReverseSense.h>
-
 #include <vtkImplicitDataSet.h>
 #include <vtkCutter.h>
 #include <vtkCellLocator.h>
 #include <vtkGenericCell.h>
 #include <vtkTriangleFilter.h>
 
-#include <cmath>
+#include <tool_path_planner/raster_tool_path_planner.h>
 
 namespace tool_path_planner
 {
@@ -61,12 +59,12 @@ namespace tool_path_planner
     return index;
   }
 
-  ToolPathPlanner::ToolPathPlanner()
+  RasterToolPathPlanner::RasterToolPathPlanner()
   {
     debug_on_ = false;
   }
 
-  void ToolPathPlanner::planPaths(std::vector<vtkSmartPointer<vtkPolyData> > meshes, std::vector< std::vector<ProcessPath> >& paths)
+  void RasterToolPathPlanner::planPaths(std::vector<vtkSmartPointer<vtkPolyData> > meshes, std::vector< std::vector<ProcessPath> >& paths)
   {
     paths.clear();
 
@@ -83,7 +81,7 @@ namespace tool_path_planner
     }
   }
 
-  void ToolPathPlanner::setInputMesh(vtkSmartPointer<vtkPolyData> mesh)
+  void RasterToolPathPlanner::setInputMesh(vtkSmartPointer<vtkPolyData> mesh)
   {
     if(!input_mesh_)
     {
@@ -108,7 +106,7 @@ namespace tool_path_planner
     vtk_viewer::generateNormals(input_mesh_);
   }
 
-  bool ToolPathPlanner::computePaths()
+  bool RasterToolPathPlanner::computePaths()
   {
     // Need to call getFirstPath or other method to generate the first path
     // If no paths exist, there is nothing to create offset paths from
@@ -206,7 +204,7 @@ namespace tool_path_planner
     return true;
   }
 
-  bool ToolPathPlanner::getFirstPath(ProcessPath& path)
+  bool RasterToolPathPlanner::getFirstPath(ProcessPath& path)
   {
     // clear old paths before creating new
     paths_.clear();
@@ -258,7 +256,7 @@ namespace tool_path_planner
     return false;
   }
 
-  bool ToolPathPlanner::getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist)
+  bool RasterToolPathPlanner::getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist)
   {
     if(dist == 0.0 && this_path.intersection_plane->GetPoints()->GetNumberOfPoints() < 2)
     {
@@ -367,7 +365,7 @@ namespace tool_path_planner
     return true;
   }
 
-  bool ToolPathPlanner::checkPathForHoles(const ProcessPath path, std::vector<ProcessPath>& out_paths)
+  bool RasterToolPathPlanner::checkPathForHoles(const ProcessPath path, std::vector<ProcessPath>& out_paths)
   {
     // use cutting mesh to find intersection line
     vtkSmartPointer<vtkPolyData> intersection_line = vtkSmartPointer<vtkPolyData>::New();
@@ -503,7 +501,7 @@ namespace tool_path_planner
 
   }
 
-  vtkSmartPointer<vtkPolyData> ToolPathPlanner::createStartCurve()
+  vtkSmartPointer<vtkPolyData> RasterToolPathPlanner::createStartCurve()
   {
     // Find weighted center point and normal average of the input mesh
     vtkSmartPointer<vtkCellArray> cell_ids = input_mesh_->GetPolys();
@@ -608,7 +606,7 @@ namespace tool_path_planner
     return line;
   }
 
-  bool ToolPathPlanner::getCellCentroidData(int id, double* center, double* norm, double& area)
+  bool RasterToolPathPlanner::getCellCentroidData(int id, double* center, double* norm, double& area)
   {
 
       vtkCell* cell = input_mesh_->GetCell(id);
@@ -642,7 +640,7 @@ namespace tool_path_planner
 
   }
 
-  bool ToolPathPlanner::findIntersectionLine(vtkSmartPointer<vtkPolyData> cut_surface,
+  bool RasterToolPathPlanner::findIntersectionLine(vtkSmartPointer<vtkPolyData> cut_surface,
                                          vtkSmartPointer<vtkPolyData>& points,
                                          vtkSmartPointer<vtkParametricSpline>& spline)
   {
@@ -697,7 +695,7 @@ namespace tool_path_planner
 
   }
 
-  void ToolPathPlanner::resamplePoints(vtkSmartPointer<vtkPoints>& points)
+  void RasterToolPathPlanner::resamplePoints(vtkSmartPointer<vtkPoints>& points)
   {
     vtkSmartPointer<vtkParametricSpline> spline = vtkSmartPointer<vtkParametricSpline>::New();
     spline->SetPoints(points);
@@ -750,7 +748,7 @@ namespace tool_path_planner
     points->DeepCopy(new_points);
   }
 
-  void ToolPathPlanner::smoothData(vtkSmartPointer<vtkParametricSpline> spline, vtkSmartPointer<vtkPolyData>& points, vtkSmartPointer<vtkPolyData>& derivatives)
+  void RasterToolPathPlanner::smoothData(vtkSmartPointer<vtkParametricSpline> spline, vtkSmartPointer<vtkPolyData>& points, vtkSmartPointer<vtkPolyData>& derivatives)
   {
     vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
 
@@ -835,7 +833,7 @@ namespace tool_path_planner
   }
 
   // Sort points in linear order
-  void ToolPathPlanner::sortPoints(vtkSmartPointer<vtkPoints>& points)
+  void RasterToolPathPlanner::sortPoints(vtkSmartPointer<vtkPoints>& points)
   {
     std::vector<std::vector<double> > new_points;
     for(int i = 0; i < points->GetNumberOfPoints(); ++i)
@@ -887,7 +885,7 @@ namespace tool_path_planner
     points = line_points;
   }
 
-  void ToolPathPlanner::generateNormals(vtkSmartPointer<vtkPolyData>& data)
+  void RasterToolPathPlanner::generateNormals(vtkSmartPointer<vtkPolyData>& data)
   {
     vtkSmartPointer<vtkPolyDataNormals> normal_generator = vtkSmartPointer<vtkPolyDataNormals>::New();
     normal_generator->SetInputData(data);
@@ -913,7 +911,7 @@ namespace tool_path_planner
     }
   }
 
-  void ToolPathPlanner::estimateNewNormals(vtkSmartPointer<vtkPolyData>& data)
+  void RasterToolPathPlanner::estimateNewNormals(vtkSmartPointer<vtkPolyData>& data)
   {
     // Find k nearest neighbors and use their normals to estimate the normal of the desired point
     vtkSmartPointer<vtkDoubleArray> new_norm = vtkSmartPointer<vtkDoubleArray>::New();
@@ -976,7 +974,7 @@ namespace tool_path_planner
     data->GetPointData()->SetNormals(new_norm);
   }
 
-  vtkSmartPointer<vtkPolyData> ToolPathPlanner::createOffsetLine(vtkSmartPointer<vtkPolyData> line, vtkSmartPointer<vtkPolyData> derivatives, double dist)
+  vtkSmartPointer<vtkPolyData> RasterToolPathPlanner::createOffsetLine(vtkSmartPointer<vtkPolyData> line, vtkSmartPointer<vtkPolyData> derivatives, double dist)
   {
     vtkSmartPointer<vtkPolyData> new_points;
 
@@ -1055,7 +1053,7 @@ namespace tool_path_planner
     return new_points;
   }
 
-  vtkSmartPointer<vtkPolyData> ToolPathPlanner::createSurfaceFromSpline(vtkSmartPointer<vtkPolyData> line, double dist)
+  vtkSmartPointer<vtkPolyData> RasterToolPathPlanner::createSurfaceFromSpline(vtkSmartPointer<vtkPolyData> line, double dist)
   {
     vtkSmartPointer<vtkPolyData> new_surface;
     vtkSmartPointer<vtkDataArray> normals = line->GetPointData()->GetNormals();
