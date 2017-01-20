@@ -14,6 +14,7 @@
 #include "vtkRenderer.h"
 #include <vtkPolyData.h>
 #include <vtkGlyph3D.h>
+#include <vtkSmartPointer.h>
 
 namespace vtk_viewer
 {

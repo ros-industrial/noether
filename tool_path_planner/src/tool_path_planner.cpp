@@ -31,6 +31,8 @@
 #include <vtkGenericCell.h>
 #include <vtkTriangleFilter.h>
 
+#include <cmath>
+
 namespace tool_path_planner
 {
 
@@ -948,7 +950,7 @@ namespace tool_path_planner
       {
         double pt2[3];
         input_mesh_->GetPointData()->GetNormals()->GetTuple(result->GetId(j), &pt2[0]);
-        if(isnan(pt2[0]) || isnan(pt2[1]) || isnan(pt2[2]))
+        if(std::isnan(pt2[0]) || std::isnan(pt2[1]) || std::isnan(pt2[2]))
         {
           continue;
         }
