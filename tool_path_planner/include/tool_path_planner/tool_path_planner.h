@@ -99,6 +99,22 @@ namespace tool_path_planner
     virtual void setDebugMode(bool debug)=0;
   };
 
+  double squared_distance(std::vector<double>& pt1, std::vector<double>& pt2);
+
+  /**
+   * @brief flipPointOrder Inverts a path, points, normals, and derivatives (not necessarily the spline)
+   * @param path The input path to invert
+   */
+  void flipPointOrder(ProcessPath& path);
+
+  /**
+   * @brief findClosestPoint Finds the closest point in a list to a target point
+   * @param pt The target point
+   * @param pts The list of points to search for the closest point
+   * @return The index of the closest point
+   */
+  int findClosestPoint(std::vector<double>& pt,  std::vector<std::vector<double> >& pts);
+
 }
 
 #endif // PATH_PLANNER_H

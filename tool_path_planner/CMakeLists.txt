@@ -21,6 +21,7 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 
 add_library(raster_tool_path_planner
     src/raster_tool_path_planner.cpp
+    src/tool_path_planner.cpp
 )
 
 target_link_libraries(raster_tool_path_planner
