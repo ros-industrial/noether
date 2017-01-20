@@ -156,7 +156,7 @@ int main(int argc, char **argv)
     std::vector<vtkSmartPointer<vtkPolyData> > meshes = seg.getMeshSegments();
 
     // plan paths for segmented meshes
-    tool_path_planner::ToolPathPlanner planner;
+    tool_path_planner::RasterToolPathPlanner planner;
     tool_path_planner::ProcessTool tool;
     tool.pt_spacing = 0.1;
     tool.line_spacing = 0.5;

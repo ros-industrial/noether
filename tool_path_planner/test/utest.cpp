@@ -5,7 +5,7 @@
  *
  */
 
-#include <tool_path_planner/tool_path_planner.h>
+#include <tool_path_planner/raster_tool_path_planner.h>
 #include <vtk_viewer/vtk_utils.h>
 #include <vtk_viewer/vtk_viewer.h>
 #include <gtest/gtest.h>
@@ -44,7 +44,7 @@ TEST(IntersectTest, TestCase1)
   data2 = vtk_viewer::cutMesh(data, points2, false);
 
   // Set input mesh
-  tool_path_planner::ToolPathPlanner planner;
+  tool_path_planner::RasterToolPathPlanner planner;
   planner.setInputMesh(data2);
 
   // Set input tool data
@@ -56,7 +56,7 @@ TEST(IntersectTest, TestCase1)
   tool.nearest_neighbors = 30; // not sure if this should be a part of the tool
   tool.min_hole_size = 0.1;
   planner.setTool(tool);
-  planner.setDebugModeOn(false);
+  planner.setDebugMode(false);
 
   vtk_viewer::VTKViewer viz;
   std::vector<float> color(3);
@@ -118,10 +118,8 @@ TEST(IntersectTest, TestCase1)
   viz.renderDisplay();
 }
 
-// Run all the tests that were declared with TEST()
 int main(int argc, char **argv)
 {
-  //ros::init(argc, argv, "test");  // some tests need ROS framework
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
