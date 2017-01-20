@@ -29,7 +29,9 @@ target_link_libraries(raster_tool_path_planner
     ${VTK_LIBRARIES}
 )
 
-catkin_add_gtest(${PROJECT_NAME}-test test/utest.cpp)
-if(TARGET ${PROJECT_NAME}-test)
-    target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-endif()
+catkin_add_gtest(raster_tool_path_planner-test test/utest.cpp)
+target_link_libraries(raster_tool_path_planner-test
+    raster_tool_path_planner
+    ${catkin_LIBRARIES}
+    ${VTK_LIBRARIES}
+)
