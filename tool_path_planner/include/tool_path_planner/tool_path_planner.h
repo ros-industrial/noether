@@ -8,10 +8,8 @@
 #define TOOL_PATH_PLANNER_H
 
 #include <vtkSmartPointer.h>
-#include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkParametricSpline.h>
-#include <vtkKdTreePointLocator.h>
 
 #include <vtk_viewer/vtk_viewer.h>
 

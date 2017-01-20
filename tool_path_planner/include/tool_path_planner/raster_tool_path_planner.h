@@ -7,15 +7,10 @@
 #ifndef RASTER_TOOL_PATH_PLANNER_H
 #define RASTER_TOOL_PATH_PLANNER_H
 
-#include <vtkSmartPointer.h>
 #include <vtkPoints.h>
-#include <vtkPolyData.h>
-#include <vtkParametricSpline.h>
 #include <vtkKdTreePointLocator.h>
 
-#include <vtk_viewer/vtk_viewer.h>
 #include <tool_path_planner/tool_path_planner.h>
-
 
 namespace tool_path_planner
 {
