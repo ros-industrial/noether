@@ -130,8 +130,6 @@ namespace tool_path_planner
      */
     void generateNormals(vtkSmartPointer<vtkPolyData>& data);
 
-
-
     /**
      * @brief createOffsetLine Given a line with normals, generate a new line which is offset by a given distance
      * @param line Start line
@@ -154,7 +152,6 @@ namespace tool_path_planner
      * @param points The input points to reorder
      */
     void sortPoints(vtkSmartPointer<vtkPoints>& points);
-
 
     /**
      * @brief findIntersectionLine Given an cutting mesh, finds the intersection of the mesh and the input_mesh_

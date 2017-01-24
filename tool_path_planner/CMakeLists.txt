@@ -14,7 +14,7 @@ find_package(Eigen3 REQUIRED)
 catkin_package(
     INCLUDE_DIRS include
     LIBRARIES raster_tool_path_planner
-    DEPENDS Eigen VTK
+    DEPENDS Eigen VTK vtk_viewer
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS})
