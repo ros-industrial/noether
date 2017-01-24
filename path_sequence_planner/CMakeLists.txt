@@ -12,7 +12,7 @@ find_package(catkin REQUIRED
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES path_sequence_planner
+  LIBRARIES simple_path_sequence_planner
   CATKIN_DEPENDS
     tool_path_planner
 )
@@ -22,16 +22,19 @@ include_directories(
     ${catkin_INCLUDE_DIRS}
 )
 
-add_library(path_sequence_planner
-    src/path_sequence_planner.cpp
+add_library(simple_path_sequence_planner
+    src/simple_path_sequence_planner.cpp
 )
 
-target_link_libraries(path_sequence_planner
+target_link_libraries(simple_path_sequence_planner
     ${catkin_LIBRARIES}
     ${VTK_LIBRARIES}
 )
 
-catkin_add_gtest(${PROJECT_NAME}-test test/utest.cpp)
-if(TARGET ${PROJECT_NAME}-test)
-    target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-endif()
+catkin_add_gtest(simple_path_sequence_planner-test test/utest.cpp)
+target_link_libraries(simple_path_sequence_planner-test
+    simple_path_sequence_planner
+    ${catkin_LIBRARIES}
+    ${VTK_LIBRARIES}
+)
+

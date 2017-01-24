@@ -6,8 +6,8 @@
  *
  */
 
-#include <path_sequence_planner/path_sequence_planner.h>
-#include <tool_path_planner/tool_path_planner.h>
+#include <path_sequence_planner/simple_path_sequence_planner.h>
+#include <tool_path_planner/raster_tool_path_planner.h>
 #include <vtk_viewer/vtk_utils.h>
 #include <vtk_viewer/vtk_viewer.h>
 #include <gtest/gtest.h>
@@ -48,7 +48,7 @@ TEST(IntersectTest, TestCase1)
   data2 = vtk_viewer::cutMesh(data, points2, false);
 
   // Set input mesh
-  tool_path_planner::ToolPathPlanner planner;
+  tool_path_planner::RasterToolPathPlanner planner;
   planner.setInputMesh(data2);
 
   // Set input tool data
@@ -90,7 +90,7 @@ TEST(IntersectTest, TestCase1)
 
 
   // Create sequence planner and set the data
-  path_sequence_planner::PathSequencePlanner sequence_planner;
+  path_sequence_planner::SimplePathSequencePlanner sequence_planner;
   sequence_planner.setPaths(paths);
 
   sequence_planner.linkPaths();
