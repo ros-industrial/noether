@@ -198,7 +198,7 @@ namespace tool_path_planner
     // Use the bounds to determine how large to make the cutting mesh
     double max = x > y ? x : y;
     max = max > z ? max : z;
-    vtkSmartPointer<vtkPolyData> cutting_mesh = createSurfaceFromSpline(start_curve, max / 2.0);
+    vtkSmartPointer<vtkPolyData> cutting_mesh = createSurfaceFromSpline(start_curve, max);
 
     if(debug_on_)  // cutting mesh display
     {
@@ -250,8 +250,13 @@ namespace tool_path_planner
     }
     else  // if no offset distance given, use points in this_path.intersection_plane to create the surface
     {
-      offset_line->SetPoints(this_path.intersection_plane->GetPoints());
-      offset_line->GetPointData()->SetNormals(this_path.intersection_plane->GetPointData()->GetNormals());
+      // resample points to make sure there the intersection filter works properly
+      vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+      points = this_path.intersection_plane->GetPoints();
+      resamplePoints(points);
+      offset_line->SetPoints(points);
+      estimateNewNormals(offset_line);
+
       next_path.intersection_plane = createSurfaceFromSpline(offset_line, tool_.intersecting_plane_height);
     }
 

@@ -9,9 +9,12 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/features/normal_3d.h>
-#include <pcl/surface/gp3.h>
-#include <pcl/surface/vtk_smoothing/vtk_utils.h>
+#include <pcl/conversions.h>
+#include <pcl/surface/vtk_smoothing/vtk_utils.h>  // MESH conversion utils VTK<->PCL
 #include <pcl/surface/mls.h>
+
+#include <pcl/surface/grid_projection.h> // surface reconstruction by Rosie Li based on:
+// Polygonizing Extremal Surfaces with Manifold Guarantees, Ruosi Li, et. al.
 
 #include <vtkPointData.h>
 #include <vtkCellData.h>
@@ -30,7 +33,6 @@
 
 #include <vtkPolyDataNormals.h>
 #include <vtkDoubleArray.h>
-#include <vtkMarchingContourFilter.h>
 #include <vtkMarchingCubes.h>
 #include <vtkCurvatures.h>
 
@@ -42,14 +44,9 @@
 #include <vtkTriangle.h>
 #include <vtkCleanPolyData.h>
 
-
 #include <vtkImplicitSelectionLoop.h>
 #include <vtkClipPolyData.h>
 
-#include <vtkImplicitDataSet.h>
-#include <vtkCutter.h>
-
-#include <cmath>
 
 namespace vtk_viewer
 {
@@ -211,45 +208,6 @@ vtkSmartPointer<vtkPolyData> readSTLFile(std::string file)
   return reader->GetOutput();
 }
 
-bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata)
-{
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> (file.c_str(), *cloud) == -1) //* load the file
-    {
-      PCL_ERROR ("Couldn't read file \n");
-      return false;
-    }
-
-  // smooth the data
-  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
-
-  // Output has the PointNormal type in order to store the normals calculated by MLS
-  pcl::PointCloud<pcl::PointXYZ> mls_points;
-
-  // Init object (second point type is for the normals, even if unused)
-  pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointXYZ> mls;
-
-  mls.setComputeNormals (false);
-
-  // Set parameters
-  mls.setInputCloud (cloud);
-  mls.setPolynomialFit (true);
-  mls.setSearchMethod (tree);
-  mls.setSearchRadius (0.03);
-
-  // Reconstruct
-  mls.process (mls_points);
-
-  if(!polydata)
-  {
-    polydata = vtkSmartPointer<vtkPolyData>::New();
-  }
-  PCLtoVTK(mls_points, polydata);
-
-  return true;
-}
-
 bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata, std::string background, bool return_mesh)
 {
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
@@ -269,48 +227,117 @@ bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata, std::
     }
     else
     {
+      // perform background subtraction
       removeBackground(*cloud, *bg_cloud);
     }
   }
 
-  // smooth the data
+  // use PCL to mesh the point cloud
+  pclGridProjectionMesh(cloud, polydata);
+
+  //vtkSurfaceReconstructionMesh(cloud, polydata);
+
+  return true;
+}
+
+void vtkSurfaceReconstructionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, vtkSmartPointer<vtkPolyData> &mesh)
+{
+  // use MLS filter to smooth data and calculate normals (TODO: Normal data may not be oriented correctly)
+  pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointXYZ> mls;
+  pcl::PointCloud<pcl::PointXYZ> mls_points;
   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
 
-  // Output has the PointNormal type in order to store the normals calculated by MLS
-  pcl::PointCloud<pcl::PointXYZ> mls_points;
-
-  // Init object (second point type is for the normals, even if unused)
-  pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointXYZ> mls;
-
-  mls.setComputeNormals (false);
-
   // Set parameters
+  mls.setComputeNormals (false);
   mls.setInputCloud (cloud);
   mls.setPolynomialFit (true);
   mls.setSearchMethod (tree);
-  mls.setSearchRadius (0.03);
+  mls.setSearchRadius (0.01);
 
   // Reconstruct
-  mls.process (mls_points);
+  mls.process(mls_points);
 
-  if(!polydata)
+  if(!mesh)
   {
-    polydata = vtkSmartPointer<vtkPolyData>::New();
+    mesh = vtkSmartPointer<vtkPolyData>::New();
   }
+
+  //Convert pcl::PointCloud<T> -> vtkPolyData
   vtkSmartPointer<vtkPolyData> point_data = vtkSmartPointer<vtkPolyData>::New();
+  //const pcl::PointCloud<pcl::PointNormal>::ConstPtr cloud_with_normals(new pcl::PointCloud<pcl::PointNormal>(mls_points));
+
   PCLtoVTK(mls_points, point_data);
 
-  if(return_mesh)
+  // Mesh
+  mesh = createMesh(point_data->GetPoints(), 0.01, 20);
+  cleanMesh(point_data->GetPoints(), mesh);
+
+}
+
+void pclGridProjectionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, vtkSmartPointer<vtkPolyData>& mesh)
+{
+  // use MLS filter to smooth data and calculate normals (TODO: Normal data may not be oriented correctly)
+  pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal> mls;
+  pcl::PointCloud<pcl::PointNormal> mls_points;
+  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
+
+  // Set parameters
+  mls.setComputeNormals (true);
+  mls.setInputCloud (cloud);
+  mls.setPolynomialFit (true);
+  mls.setSearchMethod (tree);
+  mls.setSearchRadius (0.01);
+
+  // Reconstruct
+  mls.process(mls_points);
+
+  if(!mesh)
   {
-    polydata = createMesh(point_data->GetPoints(), 0.02, 30);
-    cleanMesh(point_data->GetPoints(), polydata);
-  }
-  else
-  {
-    polydata = point_data;
+    mesh = vtkSmartPointer<vtkPolyData>::New();
   }
 
-  return true;
+  // Perform Grid Projection point cloud meshing (Polygonizing Extremal Surfaces with Manifold Guarantees, Ruosi Li, et. al.)
+  pcl::GridProjection<pcl::PointNormal> grid_surf;
+  pcl::PolygonMesh output_mesh;
+  const pcl::PointCloud<pcl::PointNormal>::ConstPtr cloud_with_normals(new pcl::PointCloud<pcl::PointNormal>(mls_points));
+
+  pcl::search::KdTree<pcl::PointNormal>::Ptr tree2 (new pcl::search::KdTree<pcl::PointNormal>);
+  tree2->setInputCloud(cloud_with_normals);
+
+  // Set parameters
+  grid_surf.setResolution(0.003);  // this parameter is the main one which affects the smoothness of the mesh
+  grid_surf.setPaddingSize(1);
+  grid_surf.setMaxBinarySearchLevel(6); // default is 10
+  grid_surf.setNearestNeighborNum(20); // default is 50
+  grid_surf.setSearchMethod(tree2);
+
+  // Mesh
+  grid_surf.setInputCloud(cloud_with_normals);
+  grid_surf.reconstruct(output_mesh);
+
+  // Point cloud of output mesh does not have normals, compute normals first before returning
+  pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
+
+  // Convert pcl::PCLPointCloud2 -> pcl::PointCloud<T>
+  pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::fromPCLPointCloud2(output_mesh.cloud, *temp_cloud);
+  ne.setInputCloud (temp_cloud);
+
+  ne.setViewPoint(0,0,5.0);
+  ne.setRadiusSearch (0.01);
+  pcl::PointCloud<pcl::Normal>::Ptr cloud_normals2 (new pcl::PointCloud<pcl::Normal>);
+
+  // Compute normals and add to original points
+  ne.compute (*cloud_normals2);
+  pcl::PointCloud<pcl::PointNormal>::Ptr new_cloud(new pcl::PointCloud<pcl::PointNormal>);
+  pcl::concatenateFields (*temp_cloud, *cloud_normals2, *new_cloud);
+
+  // Convert pcl::PointCloud<PointNormal> -> pcl::PCLPointCloud2 and store in original mesh object
+  pcl::toPCLPointCloud2(*new_cloud, output_mesh.cloud);
+
+  // Convert mesh object to VTK
+  pcl::VTKUtils::convertToVTK(output_mesh, mesh);
+
 }
 
 void removeBackground(pcl::PointCloud<pcl::PointXYZ>& cloud, const pcl::PointCloud<pcl::PointXYZ>& background)
@@ -410,7 +437,7 @@ vtkSmartPointer<vtkPolyData> estimateCurvature(vtkSmartPointer<vtkPolyData> mesh
     return curvature_filter->GetOutput();
 }
 
-void generateNormals(vtkSmartPointer<vtkPolyData>& data)
+void generateNormals(vtkSmartPointer<vtkPolyData>& data, int flip_normals)
 {
   vtkSmartPointer<vtkPolyDataNormals> normal_generator = vtkSmartPointer<vtkPolyDataNormals>::New();
   normal_generator->SetInputData(data);
@@ -418,14 +445,32 @@ void generateNormals(vtkSmartPointer<vtkPolyData>& data)
   normal_generator->ComputeCellNormalsOn();
 
   // Optional settings
-  normal_generator->SetFeatureAngle(0.1);
+  normal_generator->SetFeatureAngle(0.5);
   normal_generator->SetSplitting(0);
   normal_generator->SetConsistency(1);
-  normal_generator->SetAutoOrientNormals(1);
-  normal_generator->SetComputePointNormals(1);
-  normal_generator->SetComputeCellNormals(1);
-  normal_generator->SetFlipNormals(1);
-  normal_generator->SetNonManifoldTraversal(1);
+  normal_generator->SetAutoOrientNormals(flip_normals);
+  if(!data->GetPointData()->GetNormals())
+  {
+    normal_generator->SetComputePointNormals(1);
+  }
+  else
+  {
+    normal_generator->SetComputePointNormals(0);
+  }
+  if(!data->GetCellData()->GetNormals())
+  {
+    normal_generator->SetComputeCellNormals(1);
+  }
+  else
+  {
+    normal_generator->SetComputeCellNormals(0);
+  }
+  normal_generator->SetFlipNormals(0);
+  normal_generator->SetNonManifoldTraversal(0);
+
+//  vtkSmartPointer<vtkCleanPolyData> clean_polydata = vtkSmartPointer<vtkCleanPolyData>::New();
+//  clean_polydata->SetInputData(mesh);
+//  clean_polydata->Update();
 
   normal_generator->Update();
 

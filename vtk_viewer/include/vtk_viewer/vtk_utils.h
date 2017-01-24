@@ -68,7 +68,7 @@ namespace vtk_viewer
    * @brief generateNormals Generate point and cell (surface) normals (in place)
    * @param data The mesh to generate and add normals to
    */
-  void generateNormals(vtkSmartPointer<vtkPolyData>& data);
+  void generateNormals(vtkSmartPointer<vtkPolyData>& data, int flip_normals = 1);
 
   /**
    * @brief upsampleMesh Uniformly samples a mesh to generate a denser mesh (currently experimental and not working)
@@ -87,6 +87,10 @@ namespace vtk_viewer
    * @return True if the file exists and was loaded, False if there was an error
    */
   bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata, std::string background = "", bool return_mesh = true);
+
+  void pclGridProjectionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, vtkSmartPointer<vtkPolyData>& mesh);
+
+  void vtkSurfaceReconstructionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, vtkSmartPointer<vtkPolyData>& mesh);
 
   /**
    * @brief PCLtoVTK Converts a PCL point cloud to VTK format
