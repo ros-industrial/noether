@@ -90,6 +90,8 @@ namespace vtk_viewer
 
   void pclGridProjectionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, vtkSmartPointer<vtkPolyData>& mesh);
 
+  pcl::PolygonMesh pclGridProjectionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+
   void vtkSurfaceReconstructionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, vtkSmartPointer<vtkPolyData>& mesh);
 
   /**
