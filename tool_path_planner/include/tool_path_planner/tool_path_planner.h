@@ -11,6 +11,8 @@
 #include <vtkPolyData.h>
 #include <vtkParametricSpline.h>
 
+#include <pcl/PolygonMesh.h>
+
 #include <vtk_viewer/vtk_viewer.h>
 
 namespace tool_path_planner
@@ -45,7 +47,10 @@ namespace tool_path_planner
      * @param meshes A vector of meshes to plan paths for
      * @param paths The resulting path data generated
      */
-    virtual void planPaths(std::vector<vtkSmartPointer<vtkPolyData> > meshes, std::vector< std::vector<ProcessPath> >& paths)=0;
+    virtual void planPaths(const vtkSmartPointer<vtkPolyData> mesh, std::vector<ProcessPath>& paths)=0;
+    virtual void planPaths(const std::vector<vtkSmartPointer<vtkPolyData> > meshes, std::vector< std::vector<ProcessPath> >& paths)=0;
+    virtual void planPaths(const std::vector<pcl::PolygonMesh>& meshes, std::vector< std::vector<ProcessPath> >& paths)=0;
+    virtual void planPaths(const pcl::PolygonMesh& mesh, std::vector<ProcessPath>& paths)=0;
 
     /**
      * @brief setInputMesh Sets the input mesh to generate paths

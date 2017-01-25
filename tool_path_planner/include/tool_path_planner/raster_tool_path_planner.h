@@ -26,7 +26,10 @@ namespace tool_path_planner
      * @param meshes A vector of meshes to plan paths for
      * @param paths The resulting path data generated
      */
-    void planPaths(std::vector<vtkSmartPointer<vtkPolyData> > meshes, std::vector< std::vector<ProcessPath> >& paths);
+    void planPaths(const vtkSmartPointer<vtkPolyData> mesh, std::vector<ProcessPath>& paths);
+    void planPaths(const std::vector<vtkSmartPointer<vtkPolyData> > meshes, std::vector< std::vector<ProcessPath> >& paths);
+    void planPaths(const std::vector<pcl::PolygonMesh>& meshes, std::vector< std::vector<ProcessPath> >& paths);
+    void planPaths(const pcl::PolygonMesh& mesh, std::vector<ProcessPath>& paths);
 
     /**
      * @brief setInputMesh Sets the input mesh to generate paths

@@ -5,6 +5,8 @@ find_package(VTK 7.1 CONFIG)
 find_package(VTK 7.1 REQUIRED)
 include(${VTK_USE_FILE})
 
+find_package(PCL 1.8 REQUIRED)
+
 find_package(catkin REQUIRED cmake_modules
     vtk_viewer
 )
@@ -14,10 +16,14 @@ find_package(Eigen3 REQUIRED)
 catkin_package(
     INCLUDE_DIRS include
     LIBRARIES raster_tool_path_planner
-    DEPENDS Eigen VTK vtk_viewer
+    DEPENDS Eigen VTK vtk_viewer PCL
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(
+    include
+    ${catkin_INCLUDE_DIRS}
+    ${PCL_INCLUDE_DIRS}
+)
 
 add_library(raster_tool_path_planner
     src/raster_tool_path_planner.cpp
@@ -27,6 +33,7 @@ add_library(raster_tool_path_planner
 target_link_libraries(raster_tool_path_planner
     ${catkin_LIBRARIES}
     ${VTK_LIBRARIES}
+    ${PCL_INCLUDE_DIRS}
 )
 
 catkin_add_gtest(raster_tool_path_planner-test test/utest.cpp)
