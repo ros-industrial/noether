@@ -9,6 +9,7 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/features/normal_3d.h>
+#include <pcl/point_types.h>
 #include <pcl/conversions.h>
 #include <pcl/surface/vtk_smoothing/vtk_utils.h>  // MESH conversion utils VTK<->PCL
 #include <pcl/surface/mls.h>
@@ -276,20 +277,20 @@ void vtkSurfaceReconstructionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr clou
 
 void pclGridProjectionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, vtkSmartPointer<vtkPolyData>& mesh)
 {
-  // use MLS filter to smooth data and calculate normals (TODO: Normal data may not be oriented correctly)
-  pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal> mls;
-  pcl::PointCloud<pcl::PointNormal> mls_points;
-  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
+  // Point cloud of output mesh does not have normals, compute normals first before returning
+  pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> netmp;
 
-  // Set parameters
-  mls.setComputeNormals (true);
-  mls.setInputCloud (cloud);
-  mls.setPolynomialFit (true);
-  mls.setSearchMethod (tree);
-  mls.setSearchRadius (0.01);
+  // Convert pcl::PCLPointCloud2 -> pcl::PointCloud<T>
+  netmp.setInputCloud (cloud);
 
-  // Reconstruct
-  mls.process(mls_points);
+  netmp.setViewPoint(0,0,5.0);
+  netmp.setRadiusSearch (0.01);
+  pcl::PointCloud<pcl::Normal>::Ptr cloud_normals2tmp (new pcl::PointCloud<pcl::Normal>);
+
+  // Compute normals and add to original points
+  netmp.compute (*cloud_normals2tmp);
+  pcl::PointCloud<pcl::PointNormal>::Ptr new_cloudtmp(new pcl::PointCloud<pcl::PointNormal>);
+  pcl::concatenateFields (*cloud, *cloud_normals2tmp, *new_cloudtmp);
 
   if(!mesh)
   {
@@ -299,13 +300,13 @@ void pclGridProjectionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, vtkS
   // Perform Grid Projection point cloud meshing (Polygonizing Extremal Surfaces with Manifold Guarantees, Ruosi Li, et. al.)
   pcl::GridProjection<pcl::PointNormal> grid_surf;
   pcl::PolygonMesh output_mesh;
-  const pcl::PointCloud<pcl::PointNormal>::ConstPtr cloud_with_normals(new pcl::PointCloud<pcl::PointNormal>(mls_points));
+  const pcl::PointCloud<pcl::PointNormal>::ConstPtr cloud_with_normals(new pcl::PointCloud<pcl::PointNormal>(*new_cloudtmp));
 
   pcl::search::KdTree<pcl::PointNormal>::Ptr tree2 (new pcl::search::KdTree<pcl::PointNormal>);
   tree2->setInputCloud(cloud_with_normals);
 
   // Set parameters
-  grid_surf.setResolution(0.003);  // this parameter is the main one which affects the smoothness of the mesh
+  grid_surf.setResolution(0.002);  // this parameter is the main one which affects the smoothness of the mesh
   grid_surf.setPaddingSize(1);
   grid_surf.setMaxBinarySearchLevel(6); // default is 10
   grid_surf.setNearestNeighborNum(20); // default is 50

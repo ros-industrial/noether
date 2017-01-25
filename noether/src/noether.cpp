@@ -150,25 +150,26 @@ int main(int argc, char **argv)
     vtk_viewer::generateNormals(data);
 
     // segment mesh
-    mesh_segmenter::MeshSegmenter seg;
-    seg.setInputMesh(data);
-    seg.segmentMesh();
-    std::vector<vtkSmartPointer<vtkPolyData> > meshes = seg.getMeshSegments();
+    //mesh_segmenter::MeshSegmenter seg;
+    //seg.setInputMesh(data);
+    //seg.segmentMesh();
+    std::vector<vtkSmartPointer<vtkPolyData> > meshes;
+    meshes.push_back(data);
 
     // plan paths for segmented meshes
     tool_path_planner::RasterToolPathPlanner planner;
     tool_path_planner::ProcessTool tool;
-    tool.pt_spacing = 0.1;
-    tool.line_spacing = 0.5;
+    tool.pt_spacing = 0.001;
+    tool.line_spacing = 0.03;
     tool.tool_offset = 0.0; // currently unused
-    tool.intersecting_plane_height = 0.75; // 0.5 works best, not sure if this should be included in the tool
+    tool.intersecting_plane_height = 0.01; // 0.5 works best, not sure if this should be included in the tool
     tool.nearest_neighbors = 5; // not sure if this should be a part of the tool
     planner.setTool(tool);
     std::vector< std::vector<tool_path_planner::ProcessPath> > paths;
     planner.planPaths(meshes, paths);
 
     // visualize results
-    double scale = 0.3;
+    double scale = 0.03;
     noether::Noether viz;
     viz.addMeshDisplay(meshes);
     viz.addPathDisplay(paths, scale, true, false, false);

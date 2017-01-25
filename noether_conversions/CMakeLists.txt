@@ -16,6 +16,7 @@ find_package(Eigen3 REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
+  LIBRARIES noether_conversions
   DEPENDS
     Eigen
     VTK
