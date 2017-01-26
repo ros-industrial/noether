@@ -344,19 +344,27 @@ void pclGridProjectionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, vtkS
 pcl::PolygonMesh pclGridProjectionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
 {
   // use MLS filter to smooth data and calculate normals (TODO: Normal data may not be oriented correctly)
-  pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal> mls;
   pcl::PointCloud<pcl::PointNormal> mls_points;
   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
 
+  pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne2;
+  pcl::PointCloud<pcl::Normal> normals;
+  ne2.setInputCloud (cloud);
+  ne2.setSearchMethod(tree);
+  ne2.setRadiusSearch (0.01);
+  ne2.compute (normals);
+  pcl::concatenateFields(*cloud, normals, mls_points);
+
   // Set parameters
-  mls.setComputeNormals (true);
-  mls.setInputCloud (cloud);
-  mls.setPolynomialFit (true);
-  mls.setSearchMethod (tree);
-  mls.setSearchRadius (0.01);
+  // pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal> mls;
+  // mls.setComputeNormals (true);
+  // mls.setInputCloud (cloud);
+  // mls.setPolynomialFit (true);
+  // mls.setSearchMethod (tree);
+  // mls.setSearchRadius (0.01);
 
   // Reconstruct
-  mls.process(mls_points);
+  // mls.process(mls_points);
 
   // Perform Grid Projection point cloud meshing (Polygonizing Extremal Surfaces with Manifold Guarantees, Ruosi Li, et. al.)
   pcl::GridProjection<pcl::PointNormal> grid_surf;
@@ -367,7 +375,7 @@ pcl::PolygonMesh pclGridProjectionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr
   tree2->setInputCloud(cloud_with_normals);
 
   // Set parameters
-  grid_surf.setResolution(0.003);  // this parameter is the main one which affects the smoothness of the mesh
+  grid_surf.setResolution(0.01);  // this parameter is the main one which affects the smoothness of the mesh
   grid_surf.setPaddingSize(1);
   grid_surf.setMaxBinarySearchLevel(6); // default is 10
   grid_surf.setNearestNeighborNum(20); // default is 50
