@@ -159,11 +159,12 @@ int main(int argc, char **argv)
     // plan paths for segmented meshes
     tool_path_planner::RasterToolPathPlanner planner;
     tool_path_planner::ProcessTool tool;
-    tool.pt_spacing = 0.001;
-    tool.line_spacing = 0.03;
+    tool.pt_spacing = 0.005;
+    tool.line_spacing = 0.02;
     tool.tool_offset = 0.0; // currently unused
     tool.intersecting_plane_height = 0.01; // 0.5 works best, not sure if this should be included in the tool
-    tool.nearest_neighbors = 5; // not sure if this should be a part of the tool
+    tool.nearest_neighbors = 15; // not sure if this should be a part of the tool
+    tool.min_hole_size = 0.01;
     planner.setTool(tool);
     std::vector< std::vector<tool_path_planner::ProcessPath> > paths;
     planner.planPaths(meshes, paths);

@@ -498,7 +498,7 @@ namespace tool_path_planner
       }
     }
 
-    return out_paths.size() > 1;
+    return out_paths.size() >= 1;
 
   }
 
@@ -648,6 +648,8 @@ namespace tool_path_planner
     // Find the intersection between the input mesh and given cutting surface
     vtkSmartPointer<vtkIntersectionPolyDataFilter> intersection_filter =
       vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
+    intersection_filter->SetSplitFirstOutput(0);
+    intersection_filter->SetSplitSecondOutput(0);
     intersection_filter->SetInputData( 0, input_mesh_);
     intersection_filter->SetInputData( 1, cut_surface );
 
