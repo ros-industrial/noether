@@ -7,7 +7,7 @@
 #include <vtkPointData.h>
 
 
-std::vector<geometry_msgs::PoseArray> posesconvertVTKtoGeometryMsgs(const std::vector<tool_path_planner::ProcessPath>& paths)
+std::vector<geometry_msgs::PoseArray> posesConvertVTKtoGeometryMsgs(const std::vector<tool_path_planner::ProcessPath>& paths)
 {
   std::vector<geometry_msgs::PoseArray> poseArrayVector;
   for(int j = 0; j < paths.size(); ++j)

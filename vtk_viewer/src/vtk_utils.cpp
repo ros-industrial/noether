@@ -355,17 +355,6 @@ pcl::PolygonMesh pclGridProjectionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr
   ne2.compute (normals);
   pcl::concatenateFields(*cloud, normals, mls_points);
 
-  // Set parameters
-  // pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal> mls;
-  // mls.setComputeNormals (true);
-  // mls.setInputCloud (cloud);
-  // mls.setPolynomialFit (true);
-  // mls.setSearchMethod (tree);
-  // mls.setSearchRadius (0.01);
-
-  // Reconstruct
-  // mls.process(mls_points);
-
   // Perform Grid Projection point cloud meshing (Polygonizing Extremal Surfaces with Manifold Guarantees, Ruosi Li, et. al.)
   pcl::GridProjection<pcl::PointNormal> grid_surf;
   pcl::PolygonMesh output_mesh;
