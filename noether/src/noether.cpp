@@ -150,11 +150,10 @@ int main(int argc, char **argv)
     vtk_viewer::generateNormals(data);
 
     // segment mesh
-    //mesh_segmenter::MeshSegmenter seg;
-    //seg.setInputMesh(data);
-    //seg.segmentMesh();
-    std::vector<vtkSmartPointer<vtkPolyData> > meshes;
-    meshes.push_back(data);
+    mesh_segmenter::MeshSegmenter seg;
+    seg.setInputMesh(data);
+    seg.segmentMesh();
+    std::vector<vtkSmartPointer<vtkPolyData> > meshes = seg.getMeshSegments();
 
     // plan paths for segmented meshes
     tool_path_planner::RasterToolPathPlanner planner;
