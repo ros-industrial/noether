@@ -302,6 +302,28 @@ namespace tool_path_planner
       return false;
     }
 
+    // Check for self intersection (intersection of next path with the last path computed
+    // If self-intersection occurs, return false (done planning paths)
+    vtkSmartPointer<vtkIntersectionPolyDataFilter> intersection_filter =
+      vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
+    intersection_filter->SetSplitFirstOutput(0);
+    intersection_filter->SetSplitSecondOutput(0);
+    intersection_filter->SetInputData( 0, next_path.intersection_plane);
+    intersection_filter->SetInputData( 1, paths_.back().intersection_plane);
+    intersection_filter->Update();
+    if(intersection_filter->GetStatus() == 0)
+    {
+      return false;
+    }
+
+    intersection_filter->SetInputData( 1, paths_.front().intersection_plane);
+    intersection_filter->Update();
+    if(intersection_filter->GetStatus() == 0)
+    {
+      return false;
+    }
+
+
     if(debug_on_)  // spline display
     {
       std::vector<float> color(3);
