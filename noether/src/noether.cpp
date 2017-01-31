@@ -9,8 +9,6 @@
 
 namespace noether {
 
-
-
 void Noether::addMeshDisplay(std::vector<vtkSmartPointer<vtkPolyData> >& meshes)
 {
   // mesh colors should be darker than path colors
@@ -149,20 +147,17 @@ int main(int argc, char **argv)
 
     vtk_viewer::generateNormals(data);
 
-    // segment mesh
-    mesh_segmenter::MeshSegmenter seg;
-    seg.setInputMesh(data);
-    seg.segmentMesh();
-    std::vector<vtkSmartPointer<vtkPolyData> > meshes = seg.getMeshSegments();
+    std::vector<vtkSmartPointer<vtkPolyData> >meshes;
+    meshes.push_back(data);
 
     // plan paths for segmented meshes
     tool_path_planner::RasterToolPathPlanner planner;
     tool_path_planner::ProcessTool tool;
     tool.pt_spacing = 0.005;
-    tool.line_spacing = 0.02;
+    tool.line_spacing = 0.05;
     tool.tool_offset = 0.0; // currently unused
-    tool.intersecting_plane_height = 0.01; // 0.5 works best, not sure if this should be included in the tool
-    tool.nearest_neighbors = 15; // not sure if this should be a part of the tool
+    tool.intersecting_plane_height = 0.05; // 0.5 works best, not sure if this should be included in the tool
+    tool.nearest_neighbors = 5; // not sure if this should be a part of the tool
     tool.min_hole_size = 0.01;
     planner.setTool(tool);
     std::vector< std::vector<tool_path_planner::ProcessPath> > paths;

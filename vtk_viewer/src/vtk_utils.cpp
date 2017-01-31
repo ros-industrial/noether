@@ -306,7 +306,7 @@ void pclGridProjectionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, vtkS
   tree2->setInputCloud(cloud_with_normals);
 
   // Set parameters
-  grid_surf.setResolution(0.002);  // this parameter is the main one which affects the smoothness of the mesh
+  grid_surf.setResolution(0.003);  // this parameter is the main one which affects the smoothness of the mesh
   grid_surf.setPaddingSize(1);
   grid_surf.setMaxBinarySearchLevel(6); // default is 10
   grid_surf.setNearestNeighborNum(20); // default is 50
