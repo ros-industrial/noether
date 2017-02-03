@@ -26,7 +26,10 @@ namespace tool_path_planner
      * @param meshes A vector of meshes to plan paths for
      * @param paths The resulting path data generated
      */
-    void planPaths(std::vector<vtkSmartPointer<vtkPolyData> > meshes, std::vector< std::vector<ProcessPath> >& paths);
+    void planPaths(const vtkSmartPointer<vtkPolyData> mesh, std::vector<ProcessPath>& paths);
+    void planPaths(const std::vector<vtkSmartPointer<vtkPolyData> > meshes, std::vector< std::vector<ProcessPath> >& paths);
+    void planPaths(const std::vector<pcl::PolygonMesh>& meshes, std::vector< std::vector<ProcessPath> >& paths);
+    void planPaths(const pcl::PolygonMesh& mesh, std::vector<ProcessPath>& paths);
 
     /**
      * @brief setInputMesh Sets the input mesh to generate paths
@@ -130,8 +133,6 @@ namespace tool_path_planner
      */
     void generateNormals(vtkSmartPointer<vtkPolyData>& data);
 
-
-
     /**
      * @brief createOffsetLine Given a line with normals, generate a new line which is offset by a given distance
      * @param line Start line
@@ -154,7 +155,6 @@ namespace tool_path_planner
      * @param points The input points to reorder
      */
     void sortPoints(vtkSmartPointer<vtkPoints>& points);
-
 
     /**
      * @brief findIntersectionLine Given an cutting mesh, finds the intersection of the mesh and the input_mesh_

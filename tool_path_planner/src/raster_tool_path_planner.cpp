@@ -29,6 +29,8 @@
 #include <vtkGenericCell.h>
 #include <vtkTriangleFilter.h>
 
+#include <pcl/surface/vtk_smoothing/vtk_utils.h>
+
 #include <tool_path_planner/raster_tool_path_planner.h>
 
 namespace tool_path_planner
@@ -39,21 +41,40 @@ namespace tool_path_planner
     debug_on_ = false;
   }
 
-  void RasterToolPathPlanner::planPaths(std::vector<vtkSmartPointer<vtkPolyData> > meshes, std::vector< std::vector<ProcessPath> >& paths)
+  void RasterToolPathPlanner::planPaths(const vtkSmartPointer<vtkPolyData> mesh, std::vector<ProcessPath>& paths)
   {
-    paths.clear();
+    setInputMesh(mesh);
+    input_mesh_->BuildLinks();
+    input_mesh_->BuildCells();
+    computePaths();
+    paths = getPaths();
+  }
 
+  void RasterToolPathPlanner::planPaths(const std::vector<vtkSmartPointer<vtkPolyData> > meshes, std::vector< std::vector<ProcessPath> >& paths)
+  {
     for(int i = 0; i < meshes.size(); ++i)
     {
       std::vector<ProcessPath> new_path;
-      setInputMesh(meshes[i]);
-      input_mesh_->BuildLinks();
-      input_mesh_->BuildCells();
-
-      computePaths();
-      new_path = getPaths();
+      planPaths(meshes[i], new_path);
       paths.push_back(new_path);
     }
+  }
+
+  void RasterToolPathPlanner::planPaths(const std::vector<pcl::PolygonMesh>& meshes, std::vector< std::vector<ProcessPath> >& paths)
+  {
+    for(int i = 0; i < meshes.size(); ++i)
+    {
+      std::vector<ProcessPath> new_path;
+      planPaths(meshes[i], new_path);
+      paths.push_back(new_path);
+    }
+  }
+
+  void RasterToolPathPlanner::planPaths(const pcl::PolygonMesh& mesh, std::vector<ProcessPath>& paths)
+  {
+    vtkSmartPointer<vtkPolyData> vtk_mesh;
+    pcl::VTKUtils::mesh2vtk(mesh, vtk_mesh);
+    planPaths(vtk_mesh, paths);
   }
 
   void RasterToolPathPlanner::setInputMesh(vtkSmartPointer<vtkPolyData> mesh)
@@ -477,7 +498,7 @@ namespace tool_path_planner
       }
     }
 
-    return out_paths.size() > 1;
+    return out_paths.size() >= 1;
 
   }
 
@@ -627,6 +648,8 @@ namespace tool_path_planner
     // Find the intersection between the input mesh and given cutting surface
     vtkSmartPointer<vtkIntersectionPolyDataFilter> intersection_filter =
       vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
+    intersection_filter->SetSplitFirstOutput(0);
+    intersection_filter->SetSplitSecondOutput(0);
     intersection_filter->SetInputData( 0, input_mesh_);
     intersection_filter->SetInputData( 1, cut_surface );
 
