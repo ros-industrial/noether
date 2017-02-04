@@ -234,7 +234,8 @@ bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata, std::
   }
 
   // use PCL to mesh the point cloud
-  pclGridProjectionMesh(cloud, polydata);
+  pcl::PolygonMesh dummy;
+  pclGridProjectionMesh(cloud, polydata, dummy);
 
   //vtkSurfaceReconstructionMesh(cloud, polydata);
 
@@ -275,7 +276,7 @@ void vtkSurfaceReconstructionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr clou
 
 }
 
-void pclGridProjectionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, vtkSmartPointer<vtkPolyData>& mesh)
+void pclGridProjectionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, vtkSmartPointer<vtkPolyData>& mesh, pcl::PolygonMesh& pcl_mesh)
 {
   // Point cloud of output mesh does not have normals, compute normals first before returning
   pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> netmp;
@@ -315,6 +316,8 @@ void pclGridProjectionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, vtkS
   // Mesh
   grid_surf.setInputCloud(cloud_with_normals);
   grid_surf.reconstruct(output_mesh);
+
+  pcl_mesh = output_mesh;
 
   // Point cloud of output mesh does not have normals, compute normals first before returning
   pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
