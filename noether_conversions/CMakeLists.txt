@@ -3,6 +3,7 @@ project(noether_conversions)
 
 find_package(catkin REQUIRED
     cmake_modules
+    eigen_conversions
     geometry_msgs
     tool_path_planner
     tf
@@ -18,6 +19,11 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES
     noether_conversions
+  CATKIN_DEPENDS
+    eigen_conversions
+    geometry_msgs
+    tool_path_planner
+    tf
   DEPENDS
     Eigen
     VTK

@@ -5,6 +5,7 @@
 #include <geometry_msgs/Transform.h>
 #include <ros/time.h>
 #include <vtkPointData.h>
+#include <eigen_conversions/eigen_msg.h>
 
 
 std::vector<geometry_msgs::PoseArray> posesConvertVTKtoGeometryMsgs(const std::vector<tool_path_planner::ProcessPath>& paths)
@@ -42,19 +43,20 @@ std::vector<geometry_msgs::PoseArray> posesConvertVTKtoGeometryMsgs(const std::v
         v = u.cross(w);
         v.normalize();
 
-        // set the matrix transform using u, v, and w
-        tf::Matrix3x3 matrix;
-        matrix.setValue(u[0], u[1], u[2], v[0], v[1], v[2], w[0], w[1], w[2]);
-        tf::Quaternion q;
-        matrix.getRotation(q);
-        tf::quaternionTFToMsg(q, pose.orientation);
+        auto epose = Eigen::Affine3d::Identity();
+        epose.matrix().col(0).head<3>() = v;
+        epose.matrix().col(1).head<3>() = w;
+        epose.matrix().col(2).head<3>() = u;
+        epose.matrix().col(3).head<3>() = Eigen::Vector3d(pt[0], pt[1], pt[2]);
+
+        tf::poseEigenToMsg(epose, pose);
 
         // push back new matrix (pose and orientation), this makes one long vector
         // may need to break this up more
         poses.poses.push_back(pose);
 
-        }
-     poseArrayVector.push_back(poses);
+      }
+      poseArrayVector.push_back(poses);
     }
 
   return poseArrayVector;

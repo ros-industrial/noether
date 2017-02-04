@@ -10,9 +10,11 @@
 
   <build_depend>geometry_msgs</build_depend>
   <build_depend>tool_path_planner</build_depend>
+  <build_depend>eigen_conversions</build_depend>
   <build_depend>tf</build_depend>
 
 
+  <run_depend>eigen_conversions</run_depend>
   <run_depend>geometry_msgs</run_depend>
   <run_depend>tool_path_planner</run_depend>
   <run_depend>tf</run_depend>
