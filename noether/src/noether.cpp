@@ -6,6 +6,7 @@
 
 #include "noether/noether.h"
 #include <vtkPointData.h>
+#include <ros/ros.h>
 
 namespace noether {
 
@@ -100,15 +101,36 @@ void Noether::addPathDisplay(std::vector< tool_path_planner::ProcessPath >& path
 
 }
 
+tool_path_planner::ProcessTool loadTool(ros::NodeHandle& nh)
+{
+  tool_path_planner::ProcessTool tool;
+
+  nh.param<double>("pt_spacing", tool.pt_spacing, 0.005);
+  nh.param<double>("line_spacing", tool.line_spacing, 0.05);
+  nh.param<double>("tool_offset", tool.tool_offset, 0);
+  nh.param<double>("intersecting_plane_height", tool.intersecting_plane_height, 0.05);
+  nh.param<int>("nearest_neighbors", tool.nearest_neighbors, 5);
+  nh.param<double>("min_hole_size", tool.min_hole_size, 0.01);
+
+  return tool;
+}
+
 int main(int argc, char **argv)
 {
-  if(argc >= 2)
+  ros::init(argc, argv, "noether_node");
+  ros::NodeHandle pnh ("~");
+
+  // Step 1: Load the 'filename' parameter
+  std::string file;
+  pnh.param<std::string>("filename", file, "");
+
+
+  if(!file.empty())
   {
     // read data file
     vtkSmartPointer<vtkPolyData> data = vtkSmartPointer<vtkPolyData>::New();
-    std::string file = argv[1];
-
-    char str[100];
+    std::vector<char> buffer (file.size() + 1, '\0');
+    char* str = buffer.data();
     strcpy(str, file.c_str());
 
     char * pch;
@@ -142,6 +164,7 @@ int main(int argc, char **argv)
     }
     else
     {
+      ROS_ERROR("Unrecognized extension: '%s'. Program supports 'pcd', 'stl', 'STL'", extension.c_str());
       return 1;
     }
 
@@ -152,13 +175,7 @@ int main(int argc, char **argv)
 
     // plan paths for segmented meshes
     tool_path_planner::RasterToolPathPlanner planner;
-    tool_path_planner::ProcessTool tool;
-    tool.pt_spacing = 0.005;
-    tool.line_spacing = 0.05;
-    tool.tool_offset = 0.0; // currently unused
-    tool.intersecting_plane_height = 0.05; // 0.5 works best, not sure if this should be included in the tool
-    tool.nearest_neighbors = 5; // not sure if this should be a part of the tool
-    tool.min_hole_size = 0.01;
+    tool_path_planner::ProcessTool tool = loadTool(pnh);
     planner.setTool(tool);
     std::vector< std::vector<tool_path_planner::ProcessPath> > paths;
     planner.planPaths(meshes, paths);
@@ -169,6 +186,10 @@ int main(int argc, char **argv)
     viz.addMeshDisplay(meshes);
     viz.addPathDisplay(paths, scale, true, false, false);
     viz.visualizeDisplay();
+  }
+  else
+  {
+    ROS_WARN_STREAM("'filename' parameter must be set to the path of a pcd or stl file");
   }
 
 
