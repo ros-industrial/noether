@@ -43,7 +43,7 @@ std::vector<geometry_msgs::PoseArray> posesConvertVTKtoGeometryMsgs(const std::v
         v = u.cross(w);
         v.normalize();
 
-        auto epose = Eigen::Affine3d::Identity();
+        Eigen::Affine3d epose = Eigen::Affine3d::Identity();
         epose.matrix().col(0).head<3>() = v;
         epose.matrix().col(1).head<3>() = w;
         epose.matrix().col(2).head<3>() = u;
