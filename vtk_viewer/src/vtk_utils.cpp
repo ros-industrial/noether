@@ -233,9 +233,10 @@ bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata, std::
     }
   }
 
-  // use PCL to mesh the point cloud
-  pcl::PolygonMesh dummy;
-  pclGridProjectionMesh(cloud, polydata, dummy);
+  pcl::PointCloud<pcl::PointNormal>::Ptr normals = vtk_viewer::pclEstimateNormals(cloud);
+  pcl::PolygonMesh mesh = vtk_viewer::pclGridProjectionMesh(normals);
+  vtk_viewer::pclEncodeMeshAndNormals(mesh, polydata);
+
 
   //vtkSurfaceReconstructionMesh(cloud, polydata);
 
