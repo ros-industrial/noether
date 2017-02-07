@@ -120,5 +120,15 @@ namespace vtk_viewer
 
   vtkSmartPointer<vtkPolyData> cutMesh(vtkSmartPointer<vtkPolyData>& mesh, vtkSmartPointer<vtkPoints>& points, bool get_inside);
 
+
+  pcl::PointCloud<pcl::PointNormal>::Ptr pclEstimateNormals(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, double radius = 0.01);
+
+  pcl::PolygonMesh pclGridProjectionMesh(pcl::PointCloud<pcl::PointNormal>::ConstPtr cloud, double resolution = 0.003,
+                                         int padding_size = 1, int max_binary_searc_level = 6,
+                                         int nearest_neighbors = 20);
+
+  void pclEncodeMeshAndNormals(const pcl::PolygonMesh& pcl_mesh, vtkSmartPointer<vtkPolyData>& vtk_mesh, double radius = 0.01);
+
+
 }
 #endif // VTK_UTILS_H
