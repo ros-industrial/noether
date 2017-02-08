@@ -446,10 +446,6 @@ void generateNormals(vtkSmartPointer<vtkPolyData>& data, int flip_normals)
     normal_generator->SetFlipNormals(0);
     normal_generator->SetNonManifoldTraversal(0);
 
-  //  vtkSmartPointer<vtkCleanPolyData> clean_polydata = vtkSmartPointer<vtkCleanPolyData>::New();
-  //  clean_polydata->SetInputData(mesh);
-  //  clean_polydata->Update();
-
     normal_generator->Update();
     vtkDataArray* normals = normal_generator->GetOutput()->GetPointData()->GetNormals();
     if(normals)
