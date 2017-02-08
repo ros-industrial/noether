@@ -44,6 +44,7 @@ namespace tool_path_planner
   void RasterToolPathPlanner::planPaths(const vtkSmartPointer<vtkPolyData> mesh, std::vector<ProcessPath>& paths)
   {
     setInputMesh(mesh);
+    paths_.clear();
     input_mesh_->BuildLinks();
     input_mesh_->BuildCells();
     computePaths();
@@ -219,6 +220,7 @@ namespace tool_path_planner
     // Use the bounds to determine how large to make the cutting mesh
     double max = x > y ? x : y;
     max = max > z ? max : z;
+
     vtkSmartPointer<vtkPolyData> cutting_mesh = createSurfaceFromSpline(start_curve, max);
 
     if(debug_on_)  // cutting mesh display
@@ -301,6 +303,31 @@ namespace tool_path_planner
     {
       return false;
     }
+
+    // Check for self intersection (intersection of next path with the last path computed
+    // If self-intersection occurs, return false (done planning paths)
+    if(paths_.size() >= 1)
+    {
+      vtkSmartPointer<vtkIntersectionPolyDataFilter> intersection_filter =
+        vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
+      intersection_filter->SetSplitFirstOutput(0);
+      intersection_filter->SetSplitSecondOutput(0);
+      intersection_filter->SetInputData( 0, next_path.intersection_plane);
+      intersection_filter->SetInputData( 1, paths_.back().intersection_plane);
+      intersection_filter->Update();
+      if(intersection_filter->GetOutput()->GetPoints()->GetNumberOfPoints() > 0)
+      {
+        return false;
+      }
+
+      intersection_filter->SetInputData( 1, paths_.front().intersection_plane);
+      intersection_filter->Update();
+      if(intersection_filter->GetOutput()->GetPoints()->GetNumberOfPoints() > 0)
+      {
+        return false;
+      }
+    }
+
 
     if(debug_on_)  // spline display
     {
@@ -567,6 +594,7 @@ namespace tool_path_planner
     {
       // if object is square, need to average max and mid in order to get the correct axes of the object
       m = sqrt(max[0] * max[0] + max[1] * max[1] + max[2] * max[2]);
+      double temp_max = m;
       max[0] /= m;
       max[1] /= m;
       max[2] /= m;
@@ -575,9 +603,9 @@ namespace tool_path_planner
       mid[1] /= m;
       mid[2] /= m;
 
-      max[0] = (max[0] + mid[0]) * 5.0;
-      max[1] = (max[1] + mid[1]) * 5.0;
-      max[2] = (max[2] + mid[2]) * 5.0;
+      max[0] = (max[0] + mid[0]) * temp_max;
+      max[1] = (max[1] + mid[1]) * temp_max;
+      max[2] = (max[2] + mid[2]) * temp_max;
     }
 
     // Use the max axis to create additional points for the starting curve
@@ -599,7 +627,11 @@ namespace tool_path_planner
     norms->SetNumberOfComponents(3);
     for(int i = 0; i < line->GetPoints()->GetNumberOfPoints(); ++i)
     {
-      double n[3] ={avg_norm[0], avg_norm[1], avg_norm[2]};
+      Eigen::Vector3d m(avg_norm[0], avg_norm[1], avg_norm[2]);
+      m.normalize();
+
+      double n[3] ={m[0], m[1], m[2]};
+
       norms->InsertNextTuple(n);
     }
     line->GetPointData()->SetNormals(norms);
@@ -669,7 +701,7 @@ namespace tool_path_planner
     }
 
     // if no intersection found, return false
-    if(intersection_filter->GetStatus() == 0)
+    if(intersection_filter->GetStatus() == 0 || intersection_filter->GetOutput()->GetPoints()->GetNumberOfPoints() <= 1)
     {
       return false;
     }
@@ -1100,11 +1132,12 @@ namespace tool_path_planner
 
       points->InsertNextPoint( new_pt);
 
-      new_pt[0] = pt[0] - norm[0] * dist;
-      new_pt[1] = pt[1] - norm[1] * dist;
-      new_pt[2] = pt[2] - norm[2] * dist;
+      double new_pt2[3];
+      new_pt2[0] = pt[0] - norm[0] * dist;
+      new_pt2[1] = pt[1] - norm[1] * dist;
+      new_pt2[2] = pt[2] - norm[2] * dist;
 
-      points->InsertNextPoint( new_pt);
+      points->InsertNextPoint( new_pt2);
     }
 
     new_surface->SetPolys(cells);

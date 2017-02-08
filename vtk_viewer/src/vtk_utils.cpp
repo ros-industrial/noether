@@ -376,52 +376,91 @@ vtkSmartPointer<vtkPolyData> estimateCurvature(vtkSmartPointer<vtkPolyData> mesh
 
 void generateNormals(vtkSmartPointer<vtkPolyData>& data, int flip_normals)
 {
-  vtkSmartPointer<vtkPolyDataNormals> normal_generator = vtkSmartPointer<vtkPolyDataNormals>::New();
-  normal_generator->SetInputData(data);
-  normal_generator->ComputePointNormalsOn();
-  normal_generator->ComputeCellNormalsOn();
-
-  // Optional settings
-  normal_generator->SetFeatureAngle(0.5);
-  normal_generator->SetSplitting(0);
-  normal_generator->SetConsistency(1);
-  normal_generator->SetAutoOrientNormals(flip_normals);
-  if(!data->GetPointData()->GetNormals())
+  // If point data exists but cell data does not, iterate through the cells and generate normals manually
+  if(data->GetPointData()->GetNormals() && !data->GetCellData()->GetNormals())
   {
-    normal_generator->SetComputePointNormals(1);
+    int size = data->GetNumberOfCells();
+    vtkDoubleArray* cell_normals = vtkDoubleArray::New();
+
+    cell_normals->SetNumberOfComponents(3);
+    cell_normals->SetNumberOfTuples(size);
+
+    // loop through all cells and add cell normals
+    for(int i = 0; i < size; ++i)
+    {
+
+      vtkCell* cell = data->GetCell(i);
+      if(cell)
+      {
+        // Get all point normals associated with the given cell
+        vtkIdList* pts = cell->GetPointIds();
+        double norm[3] = {0, 0, 0};
+        for(int j = 0; j < pts->GetNumberOfIds(); ++j)
+        {
+          double p0[3];
+          data->GetPointData()->GetNormals()->GetTuple(pts->GetId(j), p0);
+          norm[0] += p0[0];
+          norm[1] += p0[1];
+          norm[2] += p0[2];
+        }
+
+        // average the normals for the cell
+        norm[0] /= pts->GetNumberOfIds();
+        norm[1] /= pts->GetNumberOfIds();
+        norm[2] /= pts->GetNumberOfIds();
+
+        // set the normal for the given cell
+        cell_normals->SetTuple(i, norm);
+      }
+    }
+    data->GetCellData()->SetNormals(cell_normals);
   }
   else
   {
-    normal_generator->SetComputePointNormals(0);
-  }
-  if(!data->GetCellData()->GetNormals())
-  {
-    normal_generator->SetComputeCellNormals(1);
-  }
-  else
-  {
-    normal_generator->SetComputeCellNormals(0);
-  }
-  normal_generator->SetFlipNormals(0);
-  normal_generator->SetNonManifoldTraversal(0);
+    vtkSmartPointer<vtkPolyDataNormals> normal_generator = vtkSmartPointer<vtkPolyDataNormals>::New();
+    normal_generator->SetInputData(data);
+    normal_generator->ComputePointNormalsOn();
+    normal_generator->ComputeCellNormalsOn();
 
-//  vtkSmartPointer<vtkCleanPolyData> clean_polydata = vtkSmartPointer<vtkCleanPolyData>::New();
-//  clean_polydata->SetInputData(mesh);
-//  clean_polydata->Update();
+    // Optional settings
+    normal_generator->SetFeatureAngle(0.5);
+    normal_generator->SetSplitting(0);
+    normal_generator->SetConsistency(1);
+    normal_generator->SetAutoOrientNormals(flip_normals);
+    if(!data->GetPointData()->GetNormals())
+    {
+      normal_generator->SetComputePointNormals(1);
+    }
+    else
+    {
+      normal_generator->SetComputePointNormals(0);
+    }
+    if(!data->GetCellData()->GetNormals())
+    {
+      normal_generator->SetComputeCellNormals(1);
+    }
+    else
+    {
+      normal_generator->SetComputeCellNormals(0);
+    }
+    normal_generator->SetFlipNormals(0);
+    normal_generator->SetNonManifoldTraversal(0);
 
-  normal_generator->Update();
+    normal_generator->Update();
+    vtkDataArray* normals = normal_generator->GetOutput()->GetPointData()->GetNormals();
+    if(normals)
+    {
+      data->GetPointData()->SetNormals(normals);
+    }
 
-  vtkDataArray* normals = normal_generator->GetOutput()->GetPointData()->GetNormals();
-  if(normals)
-  {
-    data->GetPointData()->SetNormals(normals);
+    vtkDataArray* normals2 = normal_generator->GetOutput()->GetCellData()->GetNormals();
+    if(normals2)
+    {
+      data->GetCellData()->SetNormals(normals2);
+    }
   }
 
-  vtkDataArray* normals2 = normal_generator->GetOutput()->GetCellData()->GetNormals();
-  if(normals2)
-  {
-    data->GetCellData()->SetNormals(normals2);
-  }
+
 }
 
 vtkSmartPointer<vtkPolyData> upsampleMesh(vtkSmartPointer<vtkPolyData> mesh, double distance)
