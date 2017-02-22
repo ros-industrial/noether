@@ -7,6 +7,7 @@
 #include "vtk_viewer/vtk_utils.h"
 
 #include <pcl/io/pcd_io.h>
+#include <pcl/io/vtk_lib_io.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/point_types.h>
@@ -599,6 +600,16 @@ void pclEncodeMeshAndNormals(const pcl::PolygonMesh &pcl_mesh, vtkSmartPointer<v
 
   // Convert mesh object to VTK
   pcl::VTKUtils::convertToVTK(copy, vtk_mesh);
+}
+
+bool loadPolygonMeshFromPLY(const std::string &file, pcl::PolygonMesh &mesh)
+{
+  if (pcl::io::loadPolygonFilePLY(file, mesh) == -1)
+  {
+    PCL_ERROR("Couldn't read file %s\n", file.c_str());
+    return false;
+  }
+  return true;
 }
 
 }

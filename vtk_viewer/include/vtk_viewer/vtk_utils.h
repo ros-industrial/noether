@@ -125,6 +125,8 @@ namespace vtk_viewer
 
   void pclEncodeMeshAndNormals(const pcl::PolygonMesh& pcl_mesh, vtkSmartPointer<vtkPolyData>& vtk_mesh, double radius = 0.01);
 
+  bool loadPolygonMeshFromPLY(const std::string& file, pcl::PolygonMesh& mesh);
+
 
 }
 #endif // VTK_UTILS_H

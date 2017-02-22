@@ -115,6 +115,13 @@ tool_path_planner::ProcessTool loadTool(ros::NodeHandle& nh)
   return tool;
 }
 
+static std::string toLower(const std::string& in)
+{
+  std::string copy = in;
+  std::transform(copy.begin(), copy.end(), copy.begin(), ::tolower);
+  return copy;
+}
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "noether_node");
@@ -138,7 +145,7 @@ int main(int argc, char **argv)
     while (pch != NULL)
     {
       std::string extension(pch);
-      if(extension == "pcd" || extension == "stl" || extension == "STL")
+      if(extension == "pcd" || extension == "stl" || extension == "STL" || extension == "ply")
       {
         break;
       }
@@ -162,9 +169,15 @@ int main(int argc, char **argv)
     {
       data = vtk_viewer::readSTLFile(file);
     }
+    else if (toLower(extension) == "ply") // PCL polygon mesh
+    {
+      pcl::PolygonMesh pcl_mesh;
+      vtk_viewer::loadPolygonMeshFromPLY(file, pcl_mesh);
+      vtk_viewer::pclEncodeMeshAndNormals(pcl_mesh, data);
+    }
     else
     {
-      ROS_ERROR("Unrecognized extension: '%s'. Program supports 'pcd', 'stl', 'STL'", extension.c_str());
+      ROS_ERROR("Unrecognized extension: '%s'. Program supports 'pcd', 'stl', 'STL', 'ply'", extension.c_str());
       return 1;
     }
 
