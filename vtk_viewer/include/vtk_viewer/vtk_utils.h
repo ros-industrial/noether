@@ -71,12 +71,12 @@ namespace vtk_viewer
   void generateNormals(vtkSmartPointer<vtkPolyData>& data, int flip_normals = 1);
 
   /**
-   * @brief upsampleMesh Uniformly samples a mesh to generate a denser mesh (currently experimental and not working)
+   * @brief sampleMesh Uniformly samples point on a mesh
    * @param mesh The input mesh to sample
    * @param distance The spacing between sample points on the surface
-   * @return A new upsampled mesh
+   * @return The set of points located on the surface of the mesh
    */
-  vtkSmartPointer<vtkPolyData> upsampleMesh(vtkSmartPointer<vtkPolyData> mesh, double distance);
+  vtkSmartPointer<vtkPolyData> sampleMesh(vtkSmartPointer<vtkPolyData> mesh, double distance);
 
   /**
    * @brief loadPCDFile Load a PCL PCD file and convert it to VTK

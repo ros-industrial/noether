@@ -464,47 +464,32 @@ void generateNormals(vtkSmartPointer<vtkPolyData>& data, int flip_normals)
 
 }
 
-vtkSmartPointer<vtkPolyData> upsampleMesh(vtkSmartPointer<vtkPolyData> mesh, double distance)
+vtkSmartPointer<vtkPolyData> sampleMesh(vtkSmartPointer<vtkPolyData> mesh, double distance)
 {
+  // Sample the mesh.  Points can be closer than `distance` since it also includes vertices
   vtkSmartPointer<vtkPolyDataPointSampler> point_sampler = vtkSmartPointer<vtkPolyDataPointSampler>::New();
   point_sampler->SetDistance(distance);
   point_sampler->SetInputData(mesh);
   point_sampler->Update();
 
-  // Resize the mesh and insert the new points
-  int old_size = mesh->GetPoints()->GetNumberOfPoints();
-  int new_size = point_sampler->GetOutput()->GetPoints()->GetNumberOfPoints();
+  // Clean up polydata to remove points that are too close.  Since Tolerance is range [0, 1.0],
+  // we need to get the mesh extents to determine what the tolerance value is to get the right point spacing
+  double bounds[6];
+  mesh->GetBounds(bounds);
+  double x = bounds[1] - bounds[0];
+  double y = bounds[3] - bounds[2];
+  double z = bounds[5] - bounds[4];
+  double max = x > y ? x : y;
+  max = max > z ? max : z;
 
-  vtkSmartPointer<vtkPolyData> updated_mesh = vtkSmartPointer<vtkPolyData>::New();
-  updated_mesh->SetPoints(mesh->GetPoints());
-  int size = old_size + new_size;
-  updated_mesh->GetPoints()->Resize(size);
+  double tolerance = distance / max;
 
-  updated_mesh->GetPoints()->InsertPoints(old_size, new_size, 0, point_sampler->GetOutput()->GetPoints());
+  vtkSmartPointer<vtkCleanPolyData> clean_polydata = vtkSmartPointer<vtkCleanPolyData>::New();
+  clean_polydata->SetInputData(point_sampler->GetOutput());
+  clean_polydata->SetTolerance(tolerance);
+  clean_polydata->Update();
 
-  // create surface from new point set
-  vtkSmartPointer<vtkSurfaceReconstructionFilter> surf = vtkSmartPointer<vtkSurfaceReconstructionFilter>::New();
-
-  surf->SetInputData(updated_mesh);
-
-  vtkSmartPointer<vtkMarchingCubes> cf = vtkSmartPointer<vtkMarchingCubes>::New();
-
-  cf->SetInputConnection(surf->GetOutputPort());
-  cf->SetValue(0, 0.1);
-  cf->ComputeNormalsOff();
-
-  cf->Update();
-
-  // Sometimes the contouring algorithm can create a volume whose gradient
-  // vector and ordering of polygon (using the right hand rule) are
-  // inconsistent. vtkReverseSense cures this problem.
-  vtkSmartPointer<vtkReverseSense> reverse = vtkSmartPointer<vtkReverseSense>::New();
-  reverse->SetInputConnection(cf->GetOutputPort());
-  reverse->ReverseCellsOn();
-  reverse->ReverseNormalsOn();
-  reverse->Update();
-
-  return reverse->GetOutput();
+  return clean_polydata->GetOutput();
 }
 
 vtkSmartPointer<vtkPolyData> cutMesh(vtkSmartPointer<vtkPolyData>& mesh, vtkSmartPointer<vtkPoints>& points, bool get_inside)
