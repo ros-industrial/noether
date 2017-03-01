@@ -95,8 +95,16 @@ namespace tool_path_planner
      */
     void setDebugMode(bool debug){debug_on_ = debug;}
 
+    /**
+     * @brief setLogDir Set the directory for saving polydata files to
+     * @param dir The directory to save data to
+     */
     void setLogDir(std::string dir){debug_viewer_.setLogDir(dir);}
 
+    /**
+     * @brief getLogDir Get the directory used for saving polydata files to
+     * @return The directory currently used for saving data
+     */
     std::string getLogDir(){return debug_viewer_.getLogDir();}
 
   private:

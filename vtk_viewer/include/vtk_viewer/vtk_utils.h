@@ -114,17 +114,50 @@ namespace vtk_viewer
    */
   double pt_dist(double* pt1, double* pt2);
 
+  /**
+   * @brief cutMesh Given a list of points, will cut a section out of mesh
+   * @param mesh The mesh to cut from
+   * @param points The list of points defining a loop in 3D space
+   * @param get_inside What to return.  If true, will return the inside section, if false, will return the outside section
+   * @return The resulting mesh after cutting
+   */
   vtkSmartPointer<vtkPolyData> cutMesh(vtkSmartPointer<vtkPolyData>& mesh, vtkSmartPointer<vtkPoints>& points, bool get_inside);
 
-
+  /**
+   * @brief pclEstimateNormals Wrapper around PCL's normal estimation.  Estimates normals and appends them to the input cloud
+   * @param cloud The input cloud without normals
+   * @param radius The radius to use for the nearest neighbors search for estimating normals
+   * @return The output cloud with normals
+   */
   pcl::PointCloud<pcl::PointNormal>::Ptr pclEstimateNormals(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, double radius = 0.01);
 
+  /**
+   * @brief pclGridProjectionMesh Wrapper around PCL's grid projection meshing algorithm
+   * @param cloud
+   * @param resolution
+   * @param padding_size
+   * @param max_binary_searc_level
+   * @param nearest_neighbors
+   * @return
+   */
   pcl::PolygonMesh pclGridProjectionMesh(pcl::PointCloud<pcl::PointNormal>::ConstPtr cloud, double resolution = 0.003,
                                          int padding_size = 1, int max_binary_searc_level = 6,
                                          int nearest_neighbors = 20);
 
+  /**
+   * @brief pclEncodeMeshAndNormals Computes normals for a mesh and converts it to a VTK polydata type (useful for path planning)
+   * @param pcl_mesh The input PCL mesh object, without normals
+   * @param vtk_mesh The output VTK mesh object, with normals
+   * @param radius The radius to use for estimating normals
+   */
   void pclEncodeMeshAndNormals(const pcl::PolygonMesh& pcl_mesh, vtkSmartPointer<vtkPolyData>& vtk_mesh, double radius = 0.01);
 
+  /**
+   * @brief loadPolygonMeshFromPLY Load a pcl::PolygonMesh from a file
+   * @param file The file to read from
+   * @param mesh The mesh to return
+   * @return True if the file exists and was loaded correctly, false if there was a failure
+   */
   bool loadPolygonMeshFromPLY(const std::string& file, pcl::PolygonMesh& mesh);
 
 

@@ -63,13 +63,34 @@ namespace vtk_viewer
      */
     void renderDisplay();
 
+    /**
+     * @brief getNumberOfDisplayObjects Get the number of actors, and thus the number of objects currently being displayed
+     * @return The number of actor objects
+     */
     int getNumberOfDisplayObjects(){return actors_.size();}
 
+    /**
+     * @brief removeObjectDisplay Remove an object from the list of objects being displayed
+     * @param index The index of the item to be removed
+     * @return True if the index of the item to remove exists and was removed, false if the index exceeds the list of items available
+     */
     bool removeObjectDisplay(int index);
 
+    /**
+     * @brief removeAllDisplays Removes all displays from the renderer
+     */
     void removeAllDisplays();
 
+    /**
+     * @brief setLogDir Set the directory for saving polydata files to
+     * @param dir The directory to save data to
+     */
     void setLogDir(std::string dir){mouse_interactor_->setSaveLocation(dir);}
+
+    /**
+     * @brief getLogDir Get the directory used for saving polydata files to
+     * @return The directory currently used for saving data
+     */
     std::string getLogDir(){return mouse_interactor_->getSaveLocation();}
 
   private:
@@ -77,7 +98,7 @@ namespace vtk_viewer
     vtkRenderWindow * renWin_; /**< The VTK window for displaying data */
     vtkRenderer * renderer_;  /**< The renderer for drawing all of the data in the display */
     vtkRenderWindowInteractor * iren_;  /**< The interactor for the display to capture mouse/keyboard input */
-    MouseInteractorStyle* mouse_interactor_;
+    MouseInteractorStyle* mouse_interactor_; /** The custom interactor style which provides additional options to save polydata to a log directory */
 
     std::vector<vtkSmartPointer<vtkActor> > actors_;  /**< The list of actors to add to the renderer */
     std::vector<vtkSmartPointer<vtkPolyDataMapper> > poly_mappers_;  /**< The list of mappers which loads polydata into the actors for displaying */

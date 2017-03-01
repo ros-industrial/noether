@@ -108,7 +108,6 @@ namespace vtk_viewer
     picker->Pick(pos[0], pos[1], 0, this->GetDefaultRenderer());
 
     double* worldPosition = picker->GetPickPosition();
-    std::cout << "Cell id is: " << picker->GetCellId() << std::endl;
 
     if(picker->GetCellId() != -1)
     {
