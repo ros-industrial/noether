@@ -30,6 +30,7 @@ include_directories(
 add_library(vtk_viewer
     src/vtk_viewer.cpp
     src/vtk_utils.cpp
+    src/mouse_interactor.cpp
 )
 
 target_link_libraries(vtk_viewer

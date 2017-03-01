@@ -7,6 +7,7 @@
 #include "noether/noether.h"
 #include <vtkPointData.h>
 #include <ros/ros.h>
+#include <ros/file_log.h>
 
 namespace noether {
 
@@ -186,16 +187,25 @@ int main(int argc, char **argv)
     std::vector<vtkSmartPointer<vtkPolyData> >meshes;
     meshes.push_back(data);
 
+    std::string log_directory = ros::file_log::getLogDirectory();
+
     // plan paths for segmented meshes
     tool_path_planner::RasterToolPathPlanner planner;
     tool_path_planner::ProcessTool tool = loadTool(pnh);
+    bool debug_on;
+    pnh.param<bool>("debug_on", debug_on, false);
     planner.setTool(tool);
+    planner.setDebugMode(debug_on);
+    planner.setLogDir(log_directory);
     std::vector< std::vector<tool_path_planner::ProcessPath> > paths;
     planner.planPaths(meshes, paths);
 
     // visualize results
     double scale = 0.03;
     noether::Noether viz;
+    viz.setLogDir(log_directory);
+    ROS_INFO_STREAM("log directory " << viz.getLogDir());
+
     viz.addMeshDisplay(meshes);
     viz.addPathDisplay(paths, scale, true, false, false);
     viz.visualizeDisplay();

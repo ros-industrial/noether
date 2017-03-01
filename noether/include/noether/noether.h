@@ -55,6 +55,24 @@ namespace noether
      */
     void visualizeDisplay(){viewer_.renderDisplay();}
 
+    /**
+     * @brief setLogDir Set the directory for saving polydata files to
+     * @param dir The directory to save data to
+     */
+    void setLogDir(std::string dir)
+    {
+      viewer_.setLogDir(dir);
+    }
+
+    /**
+     * @brief getLogDir Get the directory used for saving polydata files to
+     * @return The directory currently used for saving data
+     */
+    std::string getLogDir()
+    {
+      return viewer_.getLogDir();
+    }
+
   private:
     vtk_viewer::VTKViewer viewer_; /**< The VTK viewer for displaying all objects */
   };
