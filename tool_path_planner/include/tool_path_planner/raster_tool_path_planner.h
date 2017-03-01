@@ -66,9 +66,10 @@ namespace tool_path_planner
      * @param this_path The current path, from which to create an offset path
      * @param next_path The next path returned after calling the function
      * @param dist The distance to offset the next path from the current
+     * @param test_self_intersection Disables check to see if new path intersects with any previously generated paths
      * @return True if the next path is successfully created, False if no path can be generated
      */
-    bool getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist = 0.0);
+    bool getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist = 0.0, bool test_self_intersection = true);
 
     /**
      * @brief computePaths Will create and store all paths possible from the given mesh and starting path
@@ -93,6 +94,10 @@ namespace tool_path_planner
      * @param debug Turns on debug if true, turns off debug if false
      */
     void setDebugMode(bool debug){debug_on_ = debug;}
+
+    void setLogDir(std::string dir){debug_viewer_.setLogDir(dir);}
+
+    std::string getLogDir(){return debug_viewer_.getLogDir();}
 
   private:
 

@@ -15,6 +15,7 @@
 #include <vtkPolyData.h>
 #include <vtkGlyph3D.h>
 #include <vtkSmartPointer.h>
+#include <vtk_viewer/mouse_interactor.h>
 
 namespace vtk_viewer
 {
@@ -68,11 +69,15 @@ namespace vtk_viewer
 
     void removeAllDisplays();
 
+    void setLogDir(std::string dir){mouse_interactor_->setSaveLocation(dir);}
+    std::string getLogDir(){return mouse_interactor_->getSaveLocation();}
+
   private:
 
     vtkRenderWindow * renWin_; /**< The VTK window for displaying data */
     vtkRenderer * renderer_;  /**< The renderer for drawing all of the data in the display */
     vtkRenderWindowInteractor * iren_;  /**< The interactor for the display to capture mouse/keyboard input */
+    MouseInteractorStyle* mouse_interactor_;
 
     std::vector<vtkSmartPointer<vtkActor> > actors_;  /**< The list of actors to add to the renderer */
     std::vector<vtkSmartPointer<vtkPolyDataMapper> > poly_mappers_;  /**< The list of mappers which loads polydata into the actors for displaying */

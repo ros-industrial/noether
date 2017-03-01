@@ -55,6 +55,16 @@ namespace noether
      */
     void visualizeDisplay(){viewer_.renderDisplay();}
 
+    void setLogDir(std::string dir)
+    {
+      viewer_.setLogDir(dir);
+    }
+
+    std::string getLogDir()
+    {
+      return viewer_.getLogDir();
+    }
+
   private:
     vtk_viewer::VTKViewer viewer_; /**< The VTK viewer for displaying all objects */
   };
