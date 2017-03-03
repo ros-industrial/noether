@@ -29,14 +29,16 @@ namespace vtk_viewer
 
 
     /**
-     * @brief addPolyDataDisplay Add a renderer and actor for a polydata object (for meshes)
+     * @brief addPolyDataDisplay Add a renderer and actor for a polydata object
+     * (for meshes)
      * @param polydata The polydata to be displayed
      * @param color The color to use for rendering the data
      */
     void addPolyDataDisplay(vtkPolyData* polydata, std::vector<float> color);
 
     /**
-     * @brief addPolyNormalsDisplay Add a renderer and actor for a polydata object with normals (for lines with normals and derivatives)
+     * @brief addPolyNormalsDisplay Add a renderer and actor for a polydata
+     * object with normals (for lines with normals and derivatives)
      * @param polydata The polydata to be displayed
      * @param color The color to use for rendering the data
      * @param scale The size to scale and show the arrows at
@@ -59,20 +61,24 @@ namespace vtk_viewer
     void addCellNormalDisplay(vtkPolyData* polydata, std::vector<float> color, double scale);
 
     /**
-     * @brief renderDisplay Calls the VTK window Render() command to visualize all of the renderers added
+     * @brief renderDisplay Calls the VTK window Render() command to visualize
+     * all of the renderers added
      */
     void renderDisplay();
 
     /**
-     * @brief getNumberOfDisplayObjects Get the number of actors, and thus the number of objects currently being displayed
+     * @brief getNumberOfDisplayObjects Get the number of actors, and thus the number of
+     * objects currently being displayed
      * @return The number of actor objects
      */
     int getNumberOfDisplayObjects(){return actors_.size();}
 
     /**
-     * @brief removeObjectDisplay Remove an object from the list of objects being displayed
+     * @brief removeObjectDisplay Remove an object from the list of objects
+     * being displayed
      * @param index The index of the item to be removed
-     * @return True if the index of the item to remove exists and was removed, false if the index exceeds the list of items available
+     * @return True if the index of the item to remove exists and was removed,
+     * false if the index exceeds the list of items available
      */
     bool removeObjectDisplay(int index);
 

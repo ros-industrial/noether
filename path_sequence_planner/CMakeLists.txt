@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(path_sequence_planner)
 
-find_package(VTK 7.1 CONFIG)
-find_package(VTK 7.1 REQUIRED)
+find_package(VTK 7.1 REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
 
 find_package(catkin REQUIRED
