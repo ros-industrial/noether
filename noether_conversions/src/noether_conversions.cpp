@@ -49,7 +49,7 @@ std::vector<geometry_msgs::PoseArray> noether::convertVTKtoGeometryMsgs(
 
         Eigen::Affine3d epose = Eigen::Affine3d::Identity();
         epose.matrix().col(0).head<3>() = v;
-        epose.matrix().col(1).head<3>() = w;
+        epose.matrix().col(1).head<3>() = -w;
         epose.matrix().col(2).head<3>() = u;
         epose.matrix().col(3).head<3>() = Eigen::Vector3d(pt[0], pt[1], pt[2]);
 
