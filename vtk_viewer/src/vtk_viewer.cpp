@@ -21,6 +21,8 @@
 #include <vtkCell.h>
 #include <vtkTriangle.h>
 
+#include <vtk_viewer/mouse_interactor.h>
+
 #define VTK_SP(type, name)\
   vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
 
@@ -36,6 +38,11 @@ namespace vtk_viewer
     // setup the parent window
     this->iren_ = vtkRenderWindowInteractor::New();
     this->iren_->SetRenderWindow(this->renWin_);
+
+    // Add custom interactor style
+    mouse_interactor_ = MouseInteractorStyle::New();
+    mouse_interactor_->SetDefaultRenderer(renderer_);
+    iren_->SetInteractorStyle(mouse_interactor_);
 
     this->renderer_->SetBackground(0.2,0.4,0.3);
     this->renWin_->SetSize(1200,1000);

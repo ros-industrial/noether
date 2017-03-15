@@ -114,10 +114,10 @@ TEST(IntersectTest, TestCase1)
 
     if(DISPLAY_DERIVATIVES) // display derivatives
     {
-    color[0] = 0.9;
-    color[1] = 0.9;
-    color[2] = 0.2;
-    viz.addPolyNormalsDisplay(paths2[i].derivatives, color, scale);
+      color[0] = 0.9;
+      color[1] = 0.9;
+      color[2] = 0.2;
+      viz.addPolyNormalsDisplay(paths2[i].derivatives, color, scale);
     }
 
     if(DISPLAY_CUTTING_MESHES) // Display cutting mesh

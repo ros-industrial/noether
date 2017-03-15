@@ -3,8 +3,7 @@ project(vtk_viewer)
 
 find_package(catkin REQUIRED cmake_modules)
 
-find_package(VTK 7.1 CONFIG)
-find_package(VTK 7.1 REQUIRED)
+find_package(VTK 7.1 REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
 
 find_package(PCL 1.8 REQUIRED)
@@ -30,6 +29,7 @@ include_directories(
 add_library(vtk_viewer
     src/vtk_viewer.cpp
     src/vtk_utils.cpp
+    src/mouse_interactor.cpp
 )
 
 target_link_libraries(vtk_viewer

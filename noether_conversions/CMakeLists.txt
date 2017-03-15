@@ -9,8 +9,7 @@ find_package(catkin REQUIRED
     tf
 )
 
-find_package(VTK 7.1 CONFIG)
-find_package(VTK 7.1 REQUIRED)
+find_package(VTK 7.1 REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
 
 find_package(Eigen3 REQUIRED)

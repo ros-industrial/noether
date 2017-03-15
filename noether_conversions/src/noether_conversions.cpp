@@ -8,7 +8,8 @@
 #include <eigen_conversions/eigen_msg.h>
 
 
-std::vector<geometry_msgs::PoseArray> posesConvertVTKtoGeometryMsgs(const std::vector<tool_path_planner::ProcessPath>& paths)
+std::vector<geometry_msgs::PoseArray> noether::convertVTKtoGeometryMsgs(
+    const std::vector<tool_path_planner::ProcessPath>& paths)
 {
   std::vector<geometry_msgs::PoseArray> poseArrayVector;
   for(int j = 0; j < paths.size(); ++j)
@@ -29,8 +30,10 @@ std::vector<geometry_msgs::PoseArray> posesConvertVTKtoGeometryMsgs(const std::v
         pose.position.z = pt[2];
 
         // Get the point normal and derivative for creating the 3x3 transform
-        double* norm = paths[j].line->GetPointData()->GetNormals()->GetTuple(k);
-        double* der = paths[j].derivatives->GetPointData()->GetNormals()->GetTuple(k);
+        double* norm =
+            paths[j].line->GetPointData()->GetNormals()->GetTuple(k);
+        double* der =
+            paths[j].derivatives->GetPointData()->GetNormals()->GetTuple(k);
 
         // perform cross product to get the third axis direction
         Eigen::Vector3d u(norm[0], norm[1], norm[2]);
@@ -38,21 +41,22 @@ std::vector<geometry_msgs::PoseArray> posesConvertVTKtoGeometryMsgs(const std::v
         Eigen::Vector3d w = u.cross(v);
         w.normalize();
 
-        // after first cross product, u and w will be orthogonal.  Perform cross
-        // product one more time to make sure that v is perfectly orthogonal to u and w
+        // after first cross product, u and w will be orthogonal.
+        // Perform cross product one more time to make sure that v is perfectly
+        // orthogonal to u and w
         v = u.cross(w);
         v.normalize();
 
         Eigen::Affine3d epose = Eigen::Affine3d::Identity();
         epose.matrix().col(0).head<3>() = v;
-        epose.matrix().col(1).head<3>() = w;
+        epose.matrix().col(1).head<3>() = -w;
         epose.matrix().col(2).head<3>() = u;
         epose.matrix().col(3).head<3>() = Eigen::Vector3d(pt[0], pt[1], pt[2]);
 
         tf::poseEigenToMsg(epose, pose);
 
-        // push back new matrix (pose and orientation), this makes one long vector
-        // may need to break this up more
+        // push back new matrix (pose and orientation), this makes one long
+        // vector may need to break this up more
         poses.poses.push_back(pose);
 
       }

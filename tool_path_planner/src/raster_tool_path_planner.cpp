@@ -254,7 +254,7 @@ namespace tool_path_planner
     return false;
   }
 
-  bool RasterToolPathPlanner::getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist)
+  bool RasterToolPathPlanner::getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist, bool test_self_intersection)
   {
     if(dist == 0.0 && this_path.intersection_plane->GetPoints()->GetNumberOfPoints() < 2)
     {
@@ -306,7 +306,7 @@ namespace tool_path_planner
 
     // Check for self intersection (intersection of next path with the last path computed
     // If self-intersection occurs, return false (done planning paths)
-    if(paths_.size() >= 1)
+    if(test_self_intersection && paths_.size() >= 1)
     {
       vtkSmartPointer<vtkIntersectionPolyDataFilter> intersection_filter =
         vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
@@ -409,10 +409,6 @@ namespace tool_path_planner
     locator->SetDataSet(input_mesh_);
     locator->BuildLocator();
 
-    vtkSmartPointer<vtkTriangleFilter> tri_filter = vtkSmartPointer<vtkTriangleFilter>::New();
-    tri_filter->SetInputData(input_mesh_);
-    tri_filter->Update();
-
     int prev_start_point = 0;
 
     // For each point on the intersection line, check to see if the points share a common triangle/cell.
@@ -492,7 +488,7 @@ namespace tool_path_planner
           estimateNewNormals(new_line);
           this_path.intersection_plane = new_line;
 
-          if(getNextPath(this_path, new_path, 0.0))
+          if(getNextPath(this_path, new_path, 0.0, false))
           {
             out_paths.push_back(new_path);
           }
@@ -519,7 +515,7 @@ namespace tool_path_planner
       estimateNewNormals(new_line);
       this_path.intersection_plane = new_line;
 
-      if(getNextPath(this_path, new_path, 0.0))
+      if(getNextPath(this_path, new_path, 0.0, false))
       {
         out_paths.push_back(new_path);
       }
@@ -684,21 +680,14 @@ namespace tool_path_planner
     intersection_filter->SetSplitSecondOutput(0);
     intersection_filter->SetInputData( 0, input_mesh_);
     intersection_filter->SetInputData( 1, cut_surface );
+    intersection_filter->GlobalWarningDisplayOff();
 
     if(cut_surface->GetNumberOfCells() < 1)
     {
       return false;
     }
 
-    try
-    {
-      intersection_filter->Update();
-    }
-    catch(...)
-    {
-      cout << "error in intersection filter\n";
-      return false;
-    }
+    intersection_filter->Update();
 
     // if no intersection found, return false
     if(intersection_filter->GetStatus() == 0 || intersection_filter->GetOutput()->GetPoints()->GetNumberOfPoints() <= 1)
