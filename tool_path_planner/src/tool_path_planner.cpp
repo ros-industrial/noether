@@ -4,14 +4,10 @@
  *
  */
 
-// C headers
-#include <Eigen/Core>
-#include <vtk_viewer/vtk_utils.h>
-#include <tool_path_planner/tool_path_planner.h>
-
-// system headers
 #include <limits>
 #include <cmath>
+
+#include <Eigen/Core>
 
 #include <vtkParametricFunctionSource.h>
 #include <vtkOBBTree.h>
@@ -25,6 +21,7 @@
 #include <vtkPointData.h>
 #include <vtkCellData.h>
 #include <vtkTriangle.h>
+#include <vtk_viewer/vtk_utils.h>
 #include <vtkReverseSense.h>
 #include <vtkImplicitDataSet.h>
 #include <vtkCutter.h>
@@ -32,28 +29,32 @@
 #include <vtkGenericCell.h>
 #include <vtkTriangleFilter.h>
 
+#include <tool_path_planner/tool_path_planner.h>
 
+namespace tool_path_planner
+{
 
-
-namespace tool_path_planner {
-
-double squared_distance( std::vector<double>& pt1, std::vector<double>& pt2) {
-  if (pt1.size() != 3 || pt2.size() != 3) {
-    return 0;
+  double squared_distance(std::vector<double>& pt1, std::vector<double>& pt2)
+  {
+    if(pt1.size() != 3 || pt2.size() != 3)
+    {
+      return 0;
+    }
+    return (pow(pt1[0] - pt2[0], 2.0) + pow(pt1[1] - pt2[1], 2.0 ) + pow((pt1[2] - pt2[2]), 2.0 ));
   }
-  return ( pow(pt1[0] - pt2[0], 2.0) + pow(pt1[1] - pt2[1], 2.0) + pow(pt1[2] - pt2[2], 2.0));
-}
 
-void flipPointOrder(ProcessPath& path) {
-  vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-  vtkSmartPointer<vtkPoints> points2 = vtkSmartPointer<vtkPoints>::New();
-  points = path.line->GetPoints();
+  void flipPointOrder(ProcessPath& path)
+  {
+    vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+    vtkSmartPointer<vtkPoints> points2 = vtkSmartPointer<vtkPoints>::New();
+    points = path.line->GetPoints();
 
-  // flip point order
-  for (int i = points->GetNumberOfPoints() - 1; i >= 0; --i) {
-    points2->InsertNextPoint(points->GetPoint(i));
-  }
-  path.line->SetPoints(points2);
+    // flip point order
+    for(int i = points->GetNumberOfPoints() - 1; i >= 0; --i)
+    {
+      points2->InsertNextPoint(points->GetPoint(i));
+    }
+    path.line->SetPoints(points2);
 
     // flip normal order
     vtkSmartPointer<vtkDataArray> norms = path.line->GetPointData()->GetNormals();
@@ -77,6 +78,7 @@ void flipPointOrder(ProcessPath& path) {
       dpoints2->InsertNextPoint(points->GetPoint(i));
     }
     path.derivatives->SetPoints(dpoints2);
+
 
     vtkDataArray* ders = path.derivatives->GetPointData()->GetNormals();
     vtkSmartPointer<vtkDoubleArray> new_ders = vtkSmartPointer<vtkDoubleArray>::New();
