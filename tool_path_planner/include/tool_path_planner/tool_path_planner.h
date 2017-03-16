@@ -33,6 +33,8 @@ namespace tool_path_planner
     double intersecting_plane_height; // Used by the raster_tool_path_planner when offsetting to an adjacent path, a new plane has to be formed, but not too big
     int nearest_neighbors; // how many neighbors are used to compute local normals
     double min_hole_size; // A path may pass over holes smaller than this, but must be broken when larger holes are encounterd. 
+    bool use_ransac_normal_estimation; // set to use ransac to determine normals, otherwise, average normals of nearby mesh vertices
+    double plane_fit_threhold; // how much deviation from the plane is acceptable for it to be an inlier (ransac normal estiamtion)
   };
 
   class ToolPathPlanner

@@ -37,16 +37,11 @@
 
 namespace tool_path_planner {
 
-double squared_distance(const std::vector<double>& pt1,
-                        const std::vector<double>& pt2) {
+double squared_distance( std::vector<double>& pt1, std::vector<double>& pt2) {
   if (pt1.size() != 3 || pt2.size() != 3) {
     return 0;
   }
-  double rtn;
-  rtn  = pow(pt1[0] - pt2[0], 2.0);
-  rtn += pow(pt1[1] - pt2[1], 2.0);
-  rt  += pow(pt1[2] - pt2[2], 2.0);
-  return ( rtn );
+  return ( pow(pt1[0] - pt2[0], 2.0) + pow(pt1[1] - pt2[1], 2.0) + pow(pt1[2] - pt2[2], 2.0));
 }
 
 void flipPointOrder(ProcessPath& path) {

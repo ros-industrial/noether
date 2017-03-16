@@ -90,6 +90,12 @@ namespace tool_path_planner
     void estimateNewNormals(vtkSmartPointer<vtkPolyData>& data);
 
     /**
+     * @brief generateNormals For a set of new points, estimates the normal from the input mesh normals by averaging N nearest neighbors' normals
+     * @param data The points to operate on, normal data inserted in place
+     */
+    void estimateNewNormalsRansac(vtkSmartPointer<vtkPolyData>& data);
+
+    /**
      * @brief setDebugModeOn Turn on debug mode to visualize every step of the path planning process
      * @param debug Turns on debug if true, turns off debug if false
      */
