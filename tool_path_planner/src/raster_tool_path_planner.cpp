@@ -36,12 +36,7 @@
 #include <pcl/point_types.h>
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_plane.h>
-
-
-
-
 #include <tool_path_planner/raster_tool_path_planner.h>
-
 
 namespace tool_path_planner
 {
