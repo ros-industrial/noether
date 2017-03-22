@@ -41,7 +41,8 @@
 namespace tool_path_planner
 {
 
-  RasterToolPathPlanner::RasterToolPathPlanner()
+  RasterToolPathPlanner::RasterToolPathPlanner(bool use_ransac):
+      use_ransac_normal_estimation_(use_ransac)
   {
     debug_on_ = false;
   }
@@ -248,8 +249,7 @@ namespace tool_path_planner
     }
 
     ProcessPath this_path;
-    if(tool_.use_ransac_normal_estimation) estimateNewNormalsRansac(intersection_line);
-    if(!tool_.use_ransac_normal_estimation) estimateNewNormals(intersection_line);
+    estimateNewNormals(intersection_line);
     this_path.intersection_plane = intersection_line;
 
     if(getNextPath(this_path, path, 0.0))
@@ -284,8 +284,7 @@ namespace tool_path_planner
       points = this_path.intersection_plane->GetPoints();
       resamplePoints(points);
       offset_line->SetPoints(points);
-      if(tool_.use_ransac_normal_estimation) estimateNewNormalsRansac(offset_line);
-      if(!tool_.use_ransac_normal_estimation) estimateNewNormals(offset_line);
+      estimateNewNormals(offset_line);
 
       next_path.intersection_plane = createSurfaceFromSpline(offset_line, tool_.intersecting_plane_height);
     }
@@ -492,8 +491,7 @@ namespace tool_path_planner
           new_line->SetPoints(new_points);
 
           ProcessPath this_path, new_path;
-          if(tool_.use_ransac_normal_estimation) estimateNewNormalsRansac(new_line);
-          if(!tool_.use_ransac_normal_estimation) estimateNewNormals(new_line);
+          estimateNewNormals(new_line);
           this_path.intersection_plane = new_line;
 
           if(getNextPath(this_path, new_path, 0.0, false))
@@ -520,8 +518,7 @@ namespace tool_path_planner
       new_line->SetPoints(new_points);
 
       ProcessPath this_path, new_path;
-      if(tool_.use_ransac_normal_estimation) estimateNewNormalsRansac(new_line);
-      if(!tool_.use_ransac_normal_estimation) estimateNewNormals(new_line);
+      estimateNewNormals(new_line);
       this_path.intersection_plane = new_line;
 
       if(getNextPath(this_path, new_path, 0.0, false))
@@ -858,8 +855,7 @@ namespace tool_path_planner
     }
     // Set points and normals
     points->SetPoints(new_points);
-    if(tool_.use_ransac_normal_estimation) estimateNewNormalsRansac(points);
-    if(!tool_.use_ransac_normal_estimation) estimateNewNormals(points);
+    estimateNewNormals(points);
 
     // Set points and derivatives
     derivatives->SetPoints(new_points);
@@ -947,6 +943,11 @@ namespace tool_path_planner
 
   void RasterToolPathPlanner::estimateNewNormals(vtkSmartPointer<vtkPolyData>& data)
   {
+    if(use_ransac_normal_estimation_){
+      estimateNewNormalsRansac(data);
+      return;
+    }
+
     // Find k nearest neighbors and use their normals to estimate the normal of the desired point
     vtkSmartPointer<vtkDoubleArray> new_norm = vtkSmartPointer<vtkDoubleArray>::New();
     new_norm->SetNumberOfComponents(3);
@@ -1166,9 +1167,8 @@ namespace tool_path_planner
     sortPoints(new_pts);
 
     new_points->SetPoints(new_pts);
-
-    if(tool_.use_ransac_normal_estimation) estimateNewNormalsRansac(new_points);
-    if(!tool_.use_ransac_normal_estimation) estimateNewNormals(new_points);
+    
+    estimateNewNormals(new_points);
 
     return new_points;
   }

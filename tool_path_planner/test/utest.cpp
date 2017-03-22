@@ -122,7 +122,7 @@ TEST(IntersectTest, TestCase1)
   viz.renderDisplay();
 }
 
-TEST(IntersectTest, TestCase2)
+TEST(IntersectTest, TestCaseRansac)
 {
   // Get mesh
   vtkSmartPointer<vtkPoints> points = vtk_viewer::createPlane();
@@ -146,7 +146,7 @@ TEST(IntersectTest, TestCase2)
 
 
   // Set input mesh
-  tool_path_planner::RasterToolPathPlanner planner;
+  tool_path_planner::RasterToolPathPlanner planner(true);
   planner.setInputMesh(data2);
 
   // Set input tool data

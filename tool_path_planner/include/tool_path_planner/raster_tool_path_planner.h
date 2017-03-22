@@ -18,7 +18,11 @@ namespace tool_path_planner
   {
   public:
 
-    RasterToolPathPlanner();
+    /**
+     * @brief constructor
+     * @param use_ransac set flag to use ransac plane estimation to determine path normals
+     */
+    RasterToolPathPlanner(bool use_ransac=false);
     ~RasterToolPathPlanner(){}
 
     /**
@@ -115,6 +119,9 @@ namespace tool_path_planner
 
   private:
 
+    bool use_ransac_normal_estimation_;
+
+
     bool debug_on_;  /**< Turns on/off the debug display which views the path planning output one step at a time */
     vtk_viewer::VTKViewer debug_viewer_;  /**< The vtk viewer for displaying debug output */
     vtkSmartPointer<vtkKdTreePointLocator> kd_tree_; /**< kd tree for finding nearest neighbor points */
@@ -200,6 +207,7 @@ namespace tool_path_planner
      */
     void resamplePoints(vtkSmartPointer<vtkPoints>& points);
   };
+
 }
 
 #endif // PATH_PLANNER_H

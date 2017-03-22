@@ -113,7 +113,7 @@ tool_path_planner::ProcessTool loadTool(ros::NodeHandle& nh)
   nh.param<int>("nearest_neighbors", tool.nearest_neighbors, 5);
   nh.param<double>("min_hole_size", tool.min_hole_size, 0.01);
   nh.param<bool>("use_ransac_normal_estimation", tool.use_ransac_normal_estimation, false);
-  nh.param<double>("use_ransac_normal_estimation", tool.plane_fit_threhold, .01);
+  nh.param<double>("use_plane_fit_threshold", tool.plane_fit_threhold, .01);
   
   return tool;
 }
@@ -192,8 +192,9 @@ int main(int argc, char **argv)
     std::string log_directory = ros::file_log::getLogDirectory();
 
     // plan paths for segmented meshes
-    tool_path_planner::RasterToolPathPlanner planner;
     tool_path_planner::ProcessTool tool = loadTool(pnh);
+    tool_path_planner::RasterToolPathPlanner planner(tool.use_ransac_normal_estimation);
+
     bool debug_on;
     pnh.param<bool>("debug_on", debug_on, false);
     planner.setTool(tool);
