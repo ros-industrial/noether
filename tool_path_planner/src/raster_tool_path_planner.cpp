@@ -31,12 +31,18 @@
 
 #include <pcl/surface/vtk_smoothing/vtk_utils.h>
 
+//#include <pcl/pcl_tests.h>
+
+#include <pcl/point_types.h>
+#include <pcl/sample_consensus/ransac.h>
+#include <pcl/sample_consensus/sac_model_plane.h>
 #include <tool_path_planner/raster_tool_path_planner.h>
 
 namespace tool_path_planner
 {
 
-  RasterToolPathPlanner::RasterToolPathPlanner()
+  RasterToolPathPlanner::RasterToolPathPlanner(bool use_ransac):
+      use_ransac_normal_estimation_(use_ransac)
   {
     debug_on_ = false;
   }
@@ -937,6 +943,11 @@ namespace tool_path_planner
 
   void RasterToolPathPlanner::estimateNewNormals(vtkSmartPointer<vtkPolyData>& data)
   {
+    if(use_ransac_normal_estimation_){
+      estimateNewNormalsRansac(data);
+      return;
+    }
+
     // Find k nearest neighbors and use their normals to estimate the normal of the desired point
     vtkSmartPointer<vtkDoubleArray> new_norm = vtkSmartPointer<vtkDoubleArray>::New();
     new_norm->SetNumberOfComponents(3);
@@ -992,6 +1003,91 @@ namespace tool_path_planner
       }
 
       // Insert the averaged normal
+      new_norm->SetTuple3(i, final[0], final[1], final[2]);
+    }
+    // Insert the normal data
+    data->GetPointData()->SetNormals(new_norm);
+  }
+  void RasterToolPathPlanner::estimateNewNormalsRansac(vtkSmartPointer<vtkPolyData>& data)
+  {
+    // Find k nearest neighbors and use their normals to estimate the normal of the desired point
+    vtkSmartPointer<vtkDoubleArray> new_norm = vtkSmartPointer<vtkDoubleArray>::New();
+    new_norm->SetNumberOfComponents(3);
+    new_norm->SetNumberOfTuples(data->GetPoints()->GetNumberOfPoints());
+
+    for(int i = 0; i < data->GetPoints()->GetNumberOfPoints(); ++i)
+    {
+      // Get the next point to estimate the normal
+      double pt[3],pn[3];
+      data->GetPoints()->GetPoint(i, &pt[0]);
+
+      double testPoint[3] = {pt[0], pt[1], pt[2]};
+      vtkSmartPointer<vtkIdList> result = vtkSmartPointer<vtkIdList>::New();
+
+      // Find N nearest neighbors to the point, if N is greater than # of points, return all points
+      if(tool_.nearest_neighbors > input_mesh_->GetPoints()->GetNumberOfPoints())
+      {
+        for(int j = 0; j < input_mesh_->GetPoints()->GetNumberOfPoints(); ++j)
+        {
+          result->InsertNextId(j);
+        }
+      }
+      else
+      {
+        kd_tree_->FindClosestNPoints(tool_.nearest_neighbors, testPoint, result);
+      }
+      input_mesh_->GetPointData()->GetNormals()->GetTuple(result->GetId(0), &pn[0]);
+
+      Eigen::Vector3d final(0, 0, 0);
+
+      pcl::PointCloud<pcl::PointXYZ>::Ptr local_cloud(new pcl::PointCloud<pcl::PointXYZ>());
+      int cloud_count = 0;
+      for(int j = 0; j < result->GetNumberOfIds(); ++j)
+      {
+        double pt2[3];
+        input_mesh_->GetPoints()->GetPoint(result->GetId(j),&pt2[0]);
+        if(std::isnan(pt2[0]) || std::isnan(pt2[1]) || std::isnan(pt2[2]))
+        {
+          continue;
+        }
+        local_cloud->push_back(pcl::PointXYZ(pt2[0],pt2[1],pt2[2]));
+        cloud_count++;
+      }
+      std::vector<int> inliers;
+      inliers.clear();
+      pcl::SampleConsensusModelPlane<pcl::PointXYZ>::Ptr
+          model_p(new pcl::SampleConsensusModelPlane<pcl::PointXYZ> (local_cloud));
+      pcl::RandomSampleConsensus<pcl::PointXYZ> ransac(model_p,tool_.plane_fit_threhold);
+
+      bool isgood = ransac.computeModel();
+      Eigen::VectorXf icoeff;
+      Eigen::VectorXf coeff;
+      if(isgood){
+        std::vector<int> inliers;
+        ransac.getInliers(inliers);
+        ransac.getModelCoefficients (icoeff);
+        if(inliers.size()>3){
+          model_p->optimizeModelCoefficients(inliers,icoeff,coeff);
+        }
+        else{
+          coeff[0] = icoeff[0];
+          coeff[1] = icoeff[1];
+          coeff[2] = icoeff[2];
+        }
+        // switch sign of normal if its not aligned with original point's normal
+        double dot = coeff[0]*pn[0] + coeff[1]*pn[1] + coeff[2]*pn[2];
+        int normal_sign = 1;
+        if(dot<0) normal_sign = -1;
+        final[0] = normal_sign*coeff[0];
+        final[1] = normal_sign*coeff[1];
+        final[2] = normal_sign*coeff[2];
+      }
+      else{
+        cout << "ransac failed to find a plane\n";
+      }
+      final.normalize(); // not sure we need this
+
+      // Insert the ransac normal
       new_norm->SetTuple3(i, final[0], final[1], final[2]);
     }
     // Insert the normal data
@@ -1071,7 +1167,7 @@ namespace tool_path_planner
     sortPoints(new_pts);
 
     new_points->SetPoints(new_pts);
-
+    
     estimateNewNormals(new_points);
 
     return new_points;

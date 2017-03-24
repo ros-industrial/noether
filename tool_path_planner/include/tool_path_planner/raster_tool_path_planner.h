@@ -18,7 +18,11 @@ namespace tool_path_planner
   {
   public:
 
-    RasterToolPathPlanner();
+    /**
+     * @brief constructor
+     * @param use_ransac set flag to use ransac plane estimation to determine path normals
+     */
+    RasterToolPathPlanner(bool use_ransac=false);
     ~RasterToolPathPlanner(){}
 
     /**
@@ -90,6 +94,12 @@ namespace tool_path_planner
     void estimateNewNormals(vtkSmartPointer<vtkPolyData>& data);
 
     /**
+     * @brief generateNormals For a set of new points, estimates the normal from the input mesh normals ransac plane fit
+     * @param data The points to operate on, normal data inserted in place
+     */
+    void estimateNewNormalsRansac(vtkSmartPointer<vtkPolyData>& data);
+
+    /**
      * @brief setDebugModeOn Turn on debug mode to visualize every step of the path planning process
      * @param debug Turns on debug if true, turns off debug if false
      */
@@ -108,6 +118,9 @@ namespace tool_path_planner
     std::string getLogDir(){return debug_viewer_.getLogDir();}
 
   private:
+
+    bool use_ransac_normal_estimation_;
+
 
     bool debug_on_;  /**< Turns on/off the debug display which views the path planning output one step at a time */
     vtk_viewer::VTKViewer debug_viewer_;  /**< The vtk viewer for displaying debug output */
@@ -194,6 +207,7 @@ namespace tool_path_planner
      */
     void resamplePoints(vtkSmartPointer<vtkPoints>& points);
   };
+
 }
 
 #endif // PATH_PLANNER_H

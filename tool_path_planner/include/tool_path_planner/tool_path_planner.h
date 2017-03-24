@@ -19,20 +19,22 @@ namespace tool_path_planner
 {
   struct ProcessPath
   {
-    vtkSmartPointer<vtkPolyData> line;
-    vtkSmartPointer<vtkParametricSpline> spline;
-    vtkSmartPointer<vtkPolyData> derivatives;
-    vtkSmartPointer<vtkPolyData> intersection_plane;
+    vtkSmartPointer<vtkPolyData> line; // sequence of points and a normal defining the locations and z-axis orientation of the tool along the path
+    vtkSmartPointer<vtkParametricSpline> spline; // spline used to generate the line lamda goes from 0 to 1 as the line goes from start to finish
+    vtkSmartPointer<vtkPolyData> derivatives; // derivatives are the direction of motion along the spline
+    vtkSmartPointer<vtkPolyData> intersection_plane; // May belong here, ok to return empty{}, used by the raster_tool_path_planner and returned for display
   };
 
   struct ProcessTool
   {
-    double pt_spacing;
-    double line_spacing;
-    double tool_offset;
-    double intersecting_plane_height;
-    int nearest_neighbors;
-    double min_hole_size;
+    double pt_spacing; // requried spacing between path points
+    double line_spacing; // offset between two rasters
+    double tool_offset; // how far off the surface the tool needs to be
+    double intersecting_plane_height; // Used by the raster_tool_path_planner when offsetting to an adjacent path, a new plane has to be formed, but not too big
+    int nearest_neighbors; // how many neighbors are used to compute local normals
+    double min_hole_size; // A path may pass over holes smaller than this, but must be broken when larger holes are encounterd. 
+    bool use_ransac_normal_estimation; // set to use ransac to determine normals, otherwise, average normals of nearby mesh vertices
+    double plane_fit_threhold; // how much deviation from the plane is acceptable for it to be an inlier (ransac normal estiamtion)
   };
 
   class ToolPathPlanner
