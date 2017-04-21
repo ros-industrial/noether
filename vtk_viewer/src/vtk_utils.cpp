@@ -519,21 +519,31 @@ double pt_dist(double* pt1, double* pt2)
   return (pow(pt1[0] - pt2[0], 2) + pow(pt1[1] - pt2[1], 2 ) + pow((pt1[2] - pt2[2]), 2 ));
 }
 
-
-pcl::PointCloud<pcl::PointNormal>::Ptr pclEstimateNormals(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, double radius)
+/**
+ * @brief Internal helper to produce normals
+ */
+static pcl::PointCloud<pcl::Normal>::Ptr estimateNormals(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, double radius,
+                                                         const pcl::PointXYZ& view_point)
 {
-  // Point cloud of output mesh does not have normals, compute normals first before returning
+  pcl::PointCloud<pcl::Normal>::Ptr normals ( new pcl::PointCloud<pcl::Normal>() );
 
   pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> netmp;
   netmp.setInputCloud (cloud);
-  netmp.setViewPoint(0,0,5.0);
+  netmp.setViewPoint(view_point.x, view_point.y , view_point.z);
   netmp.setRadiusSearch (radius);
+  netmp.compute(*normals);
 
+  return normals;
+}
+
+pcl::PointCloud<pcl::PointNormal>::Ptr pclEstimateNormals(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, double radius)
+{
   // Compute normals and add to original points
-  pcl::PointCloud<pcl::Normal>::Ptr cloud_normals2tmp (new pcl::PointCloud<pcl::Normal>);
-  netmp.compute (*cloud_normals2tmp);
+  pcl::PointCloud<pcl::Normal>::Ptr cloud_normals2tmp = estimateNormals(cloud, radius, pcl::PointXYZ(0, 0, 5.0));
+
   pcl::PointCloud<pcl::PointNormal>::Ptr new_cloudtmp(new pcl::PointCloud<pcl::PointNormal>);
   pcl::concatenateFields (*cloud, *cloud_normals2tmp, *new_cloudtmp);
+
   return new_cloudtmp;
 }
 
@@ -561,22 +571,16 @@ pcl::PolygonMesh pclGridProjectionMesh(pcl::PointCloud<pcl::PointNormal>::ConstP
 
 void pclEncodeMeshAndNormals(const pcl::PolygonMesh &pcl_mesh, vtkSmartPointer<vtkPolyData> &vtk_mesh, double radius)
 {
-  // Point cloud of output mesh does not have normals, compute normals first before returning
-  pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
 
   pcl::PolygonMesh copy = pcl_mesh;
 
   // Convert pcl::PCLPointCloud2 -> pcl::PointCloud<T>
   pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
   pcl::fromPCLPointCloud2(copy.cloud, *temp_cloud);
-  ne.setInputCloud (temp_cloud);
-
-  ne.setViewPoint(0,0,5.0);
-  ne.setRadiusSearch (radius);
-  pcl::PointCloud<pcl::Normal>::Ptr cloud_normals2 (new pcl::PointCloud<pcl::Normal>);
 
   // Compute normals and add to original points
-  ne.compute (*cloud_normals2);
+  pcl::PointCloud<pcl::Normal>::Ptr cloud_normals2 = estimateNormals(temp_cloud, radius, pcl::PointXYZ(0, 0, 5.0));
+
   pcl::PointCloud<pcl::PointNormal>::Ptr new_cloud(new pcl::PointCloud<pcl::PointNormal>);
   pcl::concatenateFields (*temp_cloud, *cloud_normals2, *new_cloud);
 
