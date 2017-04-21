@@ -127,9 +127,11 @@ namespace vtk_viewer
    * @brief pclEstimateNormals Wrapper around PCL's normal estimation.  Estimates normals and appends them to the input cloud
    * @param cloud The input cloud without normals
    * @param radius The radius to use for the nearest neighbors search for estimating normals
+   * @param view_point The point of view of the 'observer' for the purposes of determining the orientation of the normals
    * @return The output cloud with normals
    */
-  pcl::PointCloud<pcl::PointNormal>::Ptr pclEstimateNormals(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, double radius = 0.01);
+  pcl::PointCloud<pcl::PointNormal>::Ptr pclEstimateNormals(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, double radius = 0.01,
+                                                            const pcl::PointXYZ& view_point = pcl::PointXYZ(0, 0, 5.0));
 
   /**
    * @brief pclGridProjectionMesh Wrapper around PCL's grid projection meshing algorithm
@@ -149,8 +151,10 @@ namespace vtk_viewer
    * @param pcl_mesh The input PCL mesh object, without normals
    * @param vtk_mesh The output VTK mesh object, with normals
    * @param radius The radius to use for estimating normals
+   * @param view_point The point of view of the 'observer' for the purposes of determining the orientation of the normals
    */
-  void pclEncodeMeshAndNormals(const pcl::PolygonMesh& pcl_mesh, vtkSmartPointer<vtkPolyData>& vtk_mesh, double radius = 0.01);
+  void pclEncodeMeshAndNormals(const pcl::PolygonMesh& pcl_mesh, vtkSmartPointer<vtkPolyData>& vtk_mesh, double radius = 0.01,
+                               const pcl::PointXYZ& view_point = pcl::PointXYZ(0, 0, 5.0));
 
   /**
    * @brief loadPolygonMeshFromPLY Load a pcl::PolygonMesh from a file

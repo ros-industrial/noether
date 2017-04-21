@@ -536,10 +536,11 @@ static pcl::PointCloud<pcl::Normal>::Ptr estimateNormals(pcl::PointCloud<pcl::Po
   return normals;
 }
 
-pcl::PointCloud<pcl::PointNormal>::Ptr pclEstimateNormals(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, double radius)
+pcl::PointCloud<pcl::PointNormal>::Ptr pclEstimateNormals(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, double radius,
+                                                          const pcl::PointXYZ &view_point)
 {
   // Compute normals and add to original points
-  pcl::PointCloud<pcl::Normal>::Ptr cloud_normals2tmp = estimateNormals(cloud, radius, pcl::PointXYZ(0, 0, 5.0));
+  pcl::PointCloud<pcl::Normal>::Ptr cloud_normals2tmp = estimateNormals(cloud, radius, view_point);
 
   pcl::PointCloud<pcl::PointNormal>::Ptr new_cloudtmp(new pcl::PointCloud<pcl::PointNormal>);
   pcl::concatenateFields (*cloud, *cloud_normals2tmp, *new_cloudtmp);
@@ -569,7 +570,8 @@ pcl::PolygonMesh pclGridProjectionMesh(pcl::PointCloud<pcl::PointNormal>::ConstP
   return output_mesh;
 }
 
-void pclEncodeMeshAndNormals(const pcl::PolygonMesh &pcl_mesh, vtkSmartPointer<vtkPolyData> &vtk_mesh, double radius)
+void pclEncodeMeshAndNormals(const pcl::PolygonMesh &pcl_mesh, vtkSmartPointer<vtkPolyData> &vtk_mesh, double radius,
+                             const pcl::PointXYZ& view_point)
 {
 
   pcl::PolygonMesh copy = pcl_mesh;
@@ -579,7 +581,7 @@ void pclEncodeMeshAndNormals(const pcl::PolygonMesh &pcl_mesh, vtkSmartPointer<v
   pcl::fromPCLPointCloud2(copy.cloud, *temp_cloud);
 
   // Compute normals and add to original points
-  pcl::PointCloud<pcl::Normal>::Ptr cloud_normals2 = estimateNormals(temp_cloud, radius, pcl::PointXYZ(0, 0, 5.0));
+  pcl::PointCloud<pcl::Normal>::Ptr cloud_normals2 = estimateNormals(temp_cloud, radius, view_point);
 
   pcl::PointCloud<pcl::PointNormal>::Ptr new_cloud(new pcl::PointCloud<pcl::PointNormal>);
   pcl::concatenateFields (*temp_cloud, *cloud_normals2, *new_cloud);
