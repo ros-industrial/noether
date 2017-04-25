@@ -117,6 +117,9 @@ namespace tool_path_planner
      */
     std::string getLogDir(){return debug_viewer_.getLogDir();}
 
+    void setCutDirection(double direction [3]);
+    void setCutCentroid(double centroid [3]);
+
   private:
 
     bool use_ransac_normal_estimation_;
@@ -128,6 +131,9 @@ namespace tool_path_planner
     vtkSmartPointer<vtkPolyData> input_mesh_; /**< input mesh to operate on */
     std::vector<ProcessPath> paths_; /**< series of intersecting lines on the given mesh */
     ProcessTool tool_; /**< The tool parameters which defines how to generate the tool paths (spacing, offset, etc.) */
+
+    double cut_direction_ [3];
+    double cut_centroid_ [3];
 
     /**
      * @brief getCellCentroidData Gets the data for a cell in the input_mesh_
@@ -192,6 +198,20 @@ namespace tool_path_planner
     bool findIntersectionLine(vtkSmartPointer<vtkPolyData> cut_surface,
                                                       vtkSmartPointer<vtkPolyData>& points,
                                                       vtkSmartPointer<vtkParametricSpline>& spline);
+
+    /**
+     * @brief getConnectedIntersectionLine
+     * @param line
+     * @param points
+     */
+    void getConnectedIntersectionLine(vtkSmartPointer<vtkPolyData> line, vtkSmartPointer<vtkPoints>& points);
+
+    /**
+     * @brief getConnectedIntersectionLine
+     * @param line
+     * @param points
+     */
+    void getConnectedIntersectionLine(vtkSmartPointer<vtkPolyData> line, vtkSmartPointer<vtkPoints>& points, std::vector<int> &used_ids, int start_pt = 0);
 
     /**
      * @brief checkPathForHoles Checks a given path to determine if it needs to be broken up if there is a large hole in the middle

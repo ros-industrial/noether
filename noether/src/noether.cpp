@@ -197,14 +197,25 @@ int main(int argc, char **argv)
 
     bool debug_on;
     pnh.param<bool>("debug_on", debug_on, false);
+    double vect[3], center[3];
+    pnh.param<double>("cut_norm_x", vect[0], 0.0);
+    pnh.param<double>("cut_norm_y", vect[1], 0.0);
+    pnh.param<double>("cut_norm_z", vect[2], 0.0);
+    pnh.param<double>("centroid_x", center[0], 0.0);
+    pnh.param<double>("centroid_y", center[1], 0.0);
+    pnh.param<double>("centroid_z", center[2], 0.0);
+
+
     planner.setTool(tool);
+    planner.setCutDirection(vect);
+    planner.setCutCentroid(center);
     planner.setDebugMode(debug_on);
     planner.setLogDir(log_directory);
     std::vector< std::vector<tool_path_planner::ProcessPath> > paths;
     planner.planPaths(meshes, paths);
 
     // visualize results
-    double scale = 0.03;
+    double scale = tool.pt_spacing * 1.5;
     noether::Noether viz;
     viz.setLogDir(log_directory);
     ROS_INFO_STREAM("log directory " << viz.getLogDir());
