@@ -744,7 +744,7 @@ namespace tool_path_planner
     std::vector<vtkSmartPointer<vtkPoints> > lines;
     int num_points = line->GetNumberOfPoints();
 
-    while(num_points != used_ids.size())
+    while(used_ids.size() < num_points)
     {
       for(int i = 0; i < num_points; ++i)
       {
@@ -757,6 +757,7 @@ namespace tool_path_planner
       }
       vtkSmartPointer<vtkPoints> temp_points = vtkSmartPointer<vtkPoints>::New();
       getConnectedIntersectionLine(line, temp_points, used_ids, start);
+
       lines.push_back(temp_points);
     }
 
@@ -812,11 +813,6 @@ namespace tool_path_planner
             order = (dist2 == min_dist) ? 2 : order;
             order = (dist3 == min_dist) ? 3 : order;
             order = (dist4 == min_dist) ? 4 : order;
-
-            cout << "distances: " << dist1 << " " << dist2 << " " << dist3 << " " << dist4  << "\n";
-            cout << "min_dist " << min_dist << "\n";
-            cout << "order " << order << "\n";
-
           }
         }
 
@@ -828,76 +824,75 @@ namespace tool_path_planner
           switch (order)
           {
           case 1:
-            for(int i = 0; i < lines[next_index]->GetNumberOfPoints(); ++i)
+          {
+            vtkSmartPointer<vtkPoints> tmp = vtkSmartPointer<vtkPoints>::New();
+
+            //tmp->SetNumberOfPoints(temp_points->GetNumberOfPoints() + lines[next_index]->GetNumberOfPoints());
+            for(int i = lines[next_index]->GetNumberOfPoints() - 1 ; i >=0 ; --i)
             {
-              temp_points->InsertPoint(0, lines[next_index]->GetPoint(i));
+              double pt[3];
+              lines[next_index]->GetPoint(i, pt);
+              tmp->InsertNextPoint(pt);
+              //tmp->SetPoint(i - lines[next_index]->GetNumberOfPoints(), pt);
             }
+            for(int i = 0; i < temp_points->GetNumberOfPoints(); ++i)
+            {
+              double pt[3];
+              temp_points->GetPoint(i, pt);
+              tmp->InsertNextPoint(pt);
+            }
+            //tmp->InsertPoints(lines[next_index]->GetNumberOfPoints(), temp_points->GetNumberOfPoints(), 0, temp_points);
+            //temp_points->Resize(tmp->GetNumberOfPoints());
+            temp_points->SetNumberOfPoints(tmp->GetNumberOfPoints());
+            temp_points->DeepCopy(tmp);
+            //temp_points->InsertPoints(0, tmp->GetNumberOfPoints(), 0 , tmp);
             break;
+          }
           case 2:
+          {
             for(int i = 0; i < lines[next_index]->GetNumberOfPoints(); ++i)
             {
               temp_points->InsertNextPoint(lines[next_index]->GetPoint(i));
             }
             break;
+          }
           case 3:
           {
             vtkSmartPointer<vtkPoints> tmp = vtkSmartPointer<vtkPoints>::New();
-            vtkSmartPointer<vtkPoints> tmp2 = vtkSmartPointer<vtkPoints>::New();
-            tmp->SetNumberOfPoints(temp_points->GetNumberOfPoints() + lines[next_index]->GetNumberOfPoints());
-            cout << "number of starting points: " << temp_points->GetNumberOfPoints() << "\n";
-            for(int i = (lines[next_index]->GetNumberOfPoints() - 1) ; i >= 0; --i)
+
+            //tmp->SetNumberOfPoints(temp_points->GetNumberOfPoints() + lines[next_index]->GetNumberOfPoints());
+            for(int i = 0 ; i < lines[next_index]->GetNumberOfPoints(); ++i)
             {
               double pt[3];
               lines[next_index]->GetPoint(i, pt);
-              tmp->SetPoint(i - lines[next_index]->GetNumberOfPoints(), pt);
-              //cout << "number of points: " << temp_points->GetNumberOfPoints() << "\n";
+              tmp->InsertNextPoint(pt);
+              //tmp->SetPoint(i - lines[next_index]->GetNumberOfPoints(), pt);
             }
-            tmp->InsertPoints(lines[next_index]->GetNumberOfPoints(), temp_points->GetNumberOfPoints(), 0, temp_points);
-            temp_points->Resize(tmp->GetNumberOfPoints());
+            for(int i = 0; i < temp_points->GetNumberOfPoints(); ++i)
+            {
+              double pt[3];
+              temp_points->GetPoint(i, pt);
+              tmp->InsertNextPoint(pt);
+            }
+            //tmp->InsertPoints(lines[next_index]->GetNumberOfPoints(), temp_points->GetNumberOfPoints(), 0, temp_points);
+            //temp_points->Resize(tmp->GetNumberOfPoints());
             temp_points->SetNumberOfPoints(tmp->GetNumberOfPoints());
-            tmp2->DeepCopy(tmp);
-            temp_points->DeepCopy(tmp2);
+            temp_points->DeepCopy(tmp);
             //temp_points->InsertPoints(0, tmp->GetNumberOfPoints(), 0 , tmp);
             break;
           }
           case 4:
+          {
             for(int i = lines[next_index]->GetNumberOfPoints() - 1 ; i >= 0; --i)
             {
               temp_points->InsertNextPoint(lines[next_index]->GetPoint(i));
             }
             break;
+          }
           default:
             break;
           }
 
-//          if(min_dist == vtk_viewer::pt_dist(temp_points->GetPoint(0), lines[next_index]->GetPoint(0)))
-//          {
-//            cout << "case1\n";
-//          }
-//          else if(min_dist == vtk_viewer::pt_dist(temp_points->GetPoint(0), lines[next_index]->GetPoint(lines[next_index]->GetNumberOfPoints() - 1)))
-//          {
-//            cout << "case2\n";
-//            for(int i = lines[next_index]->GetNumberOfPoints() - 1 ; i >= 0; --i)
-//            {
-//              temp_points->InsertPoint(0, lines[next_index]->GetPoint(i));
-//            }
-//          }
-//          else if(min_dist == vtk_viewer::pt_dist(temp_points->GetPoint(temp_points->GetNumberOfPoints() - 1), lines[next_index]->GetPoint(0)) )
-//          {
-//            cout << "case3\n";
-//            for(int i = 0; i < lines[next_index]->GetNumberOfPoints(); ++i)
-//            {
-//              temp_points->InsertNextPoint(lines[next_index]->GetPoint(i));
-//            }
-//          }
-//          else if(min_dist == vtk_viewer::pt_dist(temp_points->GetPoint(temp_points->GetNumberOfPoints() - 1), lines[next_index]->GetPoint(lines[next_index]->GetNumberOfPoints() - 1)) )
-//          {
-//            cout << "case4\n";
-//            for(int i = lines[next_index]->GetNumberOfPoints() - 1 ; i >= 0; --i)
-//            {
-//              temp_points->InsertNextPoint(lines[next_index]->GetPoint(i));
-//            }
-//          }
 
           lines.erase(lines.begin() + next_index);
         } // end of 'if() check
@@ -938,6 +933,13 @@ namespace tool_path_planner
     {
       // get the next point id, loop through all line to find
       int j = 0;
+
+      // if next_id is already used, exit
+      if(std::find(used_ids.begin(), used_ids.end(), next_id) != used_ids.end())
+      {
+        break;
+      }
+
       //line_data->GetCell(next_id,cell);
 
       line_data->InitTraversal();
@@ -969,7 +971,16 @@ namespace tool_path_planner
             ids.push_back(next_id);
             break;
           }
+
+
+
         }
+      }
+
+      // If we have gone around a complete loop, next_id will equal first id, then break
+      if( (next_id == ids.front() && search_location == 0) || (next_id == ids.back() && search_location == 1))
+      {
+        break;
       }
 
       // completed loop without finding a match
