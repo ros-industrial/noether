@@ -25,14 +25,7 @@ sudo make install
 ```
 
 ## Build
-create a director structure
-```
-mkdir -p 10.R8707/src
-cd 10.R8707/src
-git clone git@raesgit.datasys.swri.edu:raes-client/10.R8706.git
-cd ..
-catkin_make (or catkin build)
-```
+TBD
 
 ## Test Noether
 Run the unit tests for each package:
