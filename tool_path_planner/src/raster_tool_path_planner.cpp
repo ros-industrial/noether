@@ -756,9 +756,13 @@ namespace tool_path_planner
         }
       }
       vtkSmartPointer<vtkPoints> temp_points = vtkSmartPointer<vtkPoints>::New();
-      getConnectedIntersectionLine(line, temp_points, used_ids, start);
 
-      lines.push_back(temp_points);
+      // only add the line segment if it is large enough
+      double dist = getConnectedIntersectionLine(line, temp_points, used_ids, start);
+      if( dist > tool_.min_segment_size)
+      {
+        lines.push_back(temp_points);
+      }
     }
 
     // Now that we have 1 or more lines, check to see if we need to merge/delete lines
@@ -766,7 +770,7 @@ namespace tool_path_planner
     {
       points = lines[0];  // if only one line, return it
     }
-    else
+    else if(lines.size() > 1)
     {
       // check ends of each line for merging/deleting
       vtkSmartPointer<vtkPoints> temp_points = vtkSmartPointer<vtkPoints>::New();
@@ -805,6 +809,7 @@ namespace tool_path_planner
           dist = std::min(dist, dist4);
 
           // store distance and index if it is the smallest
+          // also store the order, used for later concatenation (front->front, back->front, front->back, back->back)
           if(dist < min_dist)
           {
             next_index = i;
@@ -817,98 +822,77 @@ namespace tool_path_planner
         }
 
         // Use new index to append lines together or delete lines
-        if(min_dist < tool_.min_hole_size * 10)
+        // VTK does not support inserting new points at the front so sometimes we need to create a new object to insert points to
+        switch (order)
         {
-          // find min distance and append points
-
-          switch (order)
-          {
-          case 1:
-          {
-            vtkSmartPointer<vtkPoints> tmp = vtkSmartPointer<vtkPoints>::New();
-
-            //tmp->SetNumberOfPoints(temp_points->GetNumberOfPoints() + lines[next_index]->GetNumberOfPoints());
-            for(int i = lines[next_index]->GetNumberOfPoints() - 1 ; i >=0 ; --i)
-            {
-              double pt[3];
-              lines[next_index]->GetPoint(i, pt);
-              tmp->InsertNextPoint(pt);
-              //tmp->SetPoint(i - lines[next_index]->GetNumberOfPoints(), pt);
-            }
-            for(int i = 0; i < temp_points->GetNumberOfPoints(); ++i)
-            {
-              double pt[3];
-              temp_points->GetPoint(i, pt);
-              tmp->InsertNextPoint(pt);
-            }
-            //tmp->InsertPoints(lines[next_index]->GetNumberOfPoints(), temp_points->GetNumberOfPoints(), 0, temp_points);
-            //temp_points->Resize(tmp->GetNumberOfPoints());
-            temp_points->SetNumberOfPoints(tmp->GetNumberOfPoints());
-            temp_points->DeepCopy(tmp);
-            //temp_points->InsertPoints(0, tmp->GetNumberOfPoints(), 0 , tmp);
-            break;
-          }
-          case 2:
-          {
-            for(int i = 0; i < lines[next_index]->GetNumberOfPoints(); ++i)
-            {
-              temp_points->InsertNextPoint(lines[next_index]->GetPoint(i));
-            }
-            break;
-          }
-          case 3:
-          {
-            vtkSmartPointer<vtkPoints> tmp = vtkSmartPointer<vtkPoints>::New();
-
-            //tmp->SetNumberOfPoints(temp_points->GetNumberOfPoints() + lines[next_index]->GetNumberOfPoints());
-            for(int i = 0 ; i < lines[next_index]->GetNumberOfPoints(); ++i)
-            {
-              double pt[3];
-              lines[next_index]->GetPoint(i, pt);
-              tmp->InsertNextPoint(pt);
-              //tmp->SetPoint(i - lines[next_index]->GetNumberOfPoints(), pt);
-            }
-            for(int i = 0; i < temp_points->GetNumberOfPoints(); ++i)
-            {
-              double pt[3];
-              temp_points->GetPoint(i, pt);
-              tmp->InsertNextPoint(pt);
-            }
-            //tmp->InsertPoints(lines[next_index]->GetNumberOfPoints(), temp_points->GetNumberOfPoints(), 0, temp_points);
-            //temp_points->Resize(tmp->GetNumberOfPoints());
-            temp_points->SetNumberOfPoints(tmp->GetNumberOfPoints());
-            temp_points->DeepCopy(tmp);
-            //temp_points->InsertPoints(0, tmp->GetNumberOfPoints(), 0 , tmp);
-            break;
-          }
-          case 4:
-          {
-            for(int i = lines[next_index]->GetNumberOfPoints() - 1 ; i >= 0; --i)
-            {
-              temp_points->InsertNextPoint(lines[next_index]->GetPoint(i));
-            }
-            break;
-          }
-          default:
-            break;
-          }
-
-
-          lines.erase(lines.begin() + next_index);
-        } // end of 'if() check
-        else
+        case 1:
         {
-          // if the smallest gap is too large, then we are done searching and appending
+          vtkSmartPointer<vtkPoints> tmp = vtkSmartPointer<vtkPoints>::New();
 
+          for(int i = lines[next_index]->GetNumberOfPoints() - 1 ; i >=0 ; --i)
+          {
+            double pt[3];
+            lines[next_index]->GetPoint(i, pt);
+            tmp->InsertNextPoint(pt);
+          }
+          for(int i = 0; i < temp_points->GetNumberOfPoints(); ++i)
+          {
+            double pt[3];
+            temp_points->GetPoint(i, pt);
+            tmp->InsertNextPoint(pt);
+          }
+          temp_points->SetNumberOfPoints(tmp->GetNumberOfPoints());
+          temp_points->DeepCopy(tmp);
           break;
         }
-      }
+        case 2:
+        {
+          for(int i = 0; i < lines[next_index]->GetNumberOfPoints(); ++i)
+          {
+            temp_points->InsertNextPoint(lines[next_index]->GetPoint(i));
+          }
+          break;
+        }
+        case 3:
+        {
+          vtkSmartPointer<vtkPoints> tmp = vtkSmartPointer<vtkPoints>::New();
+
+          for(int i = 0 ; i < lines[next_index]->GetNumberOfPoints(); ++i)
+          {
+            double pt[3];
+            lines[next_index]->GetPoint(i, pt);
+            tmp->InsertNextPoint(pt);
+          }
+          for(int i = 0; i < temp_points->GetNumberOfPoints(); ++i)
+          {
+            double pt[3];
+            temp_points->GetPoint(i, pt);
+            tmp->InsertNextPoint(pt);
+          }
+          temp_points->SetNumberOfPoints(tmp->GetNumberOfPoints());
+          temp_points->DeepCopy(tmp);
+          break;
+        }
+        case 4:
+        {
+          for(int i = lines[next_index]->GetNumberOfPoints() - 1 ; i >= 0; --i)
+          {
+            temp_points->InsertNextPoint(lines[next_index]->GetPoint(i));
+          }
+          break;
+        }
+        default:
+          break;
+        }
+        lines.erase(lines.begin() + next_index);
+
+      }// end of while loop
       points = temp_points;
-    }
+    }// end concatenating lines together
 
   }
 
-  void RasterToolPathPlanner::getConnectedIntersectionLine(vtkSmartPointer<vtkPolyData> line, vtkSmartPointer<vtkPoints>& points, std::vector<int>& used_ids, int start_pt)
+  double RasterToolPathPlanner::getConnectedIntersectionLine(vtkSmartPointer<vtkPolyData> line, vtkSmartPointer<vtkPoints>& points, std::vector<int>& used_ids, int start_pt)
   {
     int search_location = 0;
     int num_points = line->GetNumberOfPoints();
@@ -924,10 +908,7 @@ namespace tool_path_planner
     // get line segment for given point
     ids.push_back(start_pt);
     int next_id = start_pt;
-//    line_data->GetCell(0,cell);
-//    ids.push_back(cell->GetId(0));
-//    ids.push_back(cell->GetId(1));
-//    int next_id = cell->GetId(1);
+    double line_length = 0.0;
 
     while(ids.size() < num_points)
     {
@@ -940,8 +921,6 @@ namespace tool_path_planner
         break;
       }
 
-      //line_data->GetCell(next_id,cell);
-
       line_data->InitTraversal();
       for(j = 0; j < num_lines; ++j)
       {
@@ -953,27 +932,27 @@ namespace tool_path_planner
         }
         if(next_id == temp_cell->GetId(search_location))
         {
+          // based on search direction, determine which value to insert in the id list (first or second)
           int location = (search_location + 1) % 2;
-          double pt_temp[3];
-          line->GetPoint(next_id, pt_temp);
+          double pt[3], pt_temp[3];
+          line->GetPoint(next_id, pt);
 
           next_id = temp_cell->GetId(location);
           line->GetPoint(next_id, pt_temp);
+
+          // get distance of current line segment and add to total distance
+          line_length += sqrt(vtk_viewer::pt_dist(&pt[0], &pt_temp[0]));
+
+          // insert next id
           if(search_location)
           {
-            //connected_pts->Resize(connected_pts->GetNumberOfIds() +1);
             ids.insert(ids.begin(), next_id);
-            break;
           }
           else
           {
-            //connected_pts->InsertNextId(next_id);
             ids.push_back(next_id);
-            break;
           }
-
-
-
+          break;
         }
       }
 
@@ -1012,6 +991,8 @@ namespace tool_path_planner
     points->Squeeze();
     points->SetNumberOfPoints(ids.size());
     line->GetPoints()->GetPoints(connected_pts, points);
+
+    return line_length;
   }
 
   void RasterToolPathPlanner::resamplePoints(vtkSmartPointer<vtkPoints>& points)

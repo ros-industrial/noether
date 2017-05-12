@@ -200,18 +200,21 @@ namespace tool_path_planner
                                                       vtkSmartPointer<vtkParametricSpline>& spline);
 
     /**
-     * @brief getConnectedIntersectionLine
-     * @param line
-     * @param points
+     * @brief getConnectedIntersectionLine Given a series of lines, returns a single continuous line while filtering out small segments
+     * @param line The input line data (usually obtained from the vtkIntersectionFilter)
+     * @param points The list of points in order creating a continuous line
      */
     void getConnectedIntersectionLine(vtkSmartPointer<vtkPolyData> line, vtkSmartPointer<vtkPoints>& points);
 
     /**
-     * @brief getConnectedIntersectionLine
-     * @param line
-     * @param points
+     * @brief getConnectedIntersectionLine Given an intersection line data and a start location, finds and returns a list of connected line segments
+     * @param line The line data from a vtkIntersectionFilter (or other line data object)
+     * @param points The output points which form the continuous line segment
+     * @param used_ids The list of ids used in this line segment
+     * @param start_pt Optional: the point id in the line to start from (useful when performing this operation multiple times)
+     * @return the length of the line segment returned
      */
-    void getConnectedIntersectionLine(vtkSmartPointer<vtkPolyData> line, vtkSmartPointer<vtkPoints>& points, std::vector<int> &used_ids, int start_pt = 0);
+    double getConnectedIntersectionLine(vtkSmartPointer<vtkPolyData> line, vtkSmartPointer<vtkPoints>& points, std::vector<int> &used_ids, int start_pt = 0);
 
     /**
      * @brief checkPathForHoles Checks a given path to determine if it needs to be broken up if there is a large hole in the middle

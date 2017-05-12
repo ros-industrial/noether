@@ -114,7 +114,8 @@ tool_path_planner::ProcessTool loadTool(ros::NodeHandle& nh)
   nh.param<double>("min_hole_size", tool.min_hole_size, 0.01);
   nh.param<bool>("use_ransac_normal_estimation", tool.use_ransac_normal_estimation, false);
   nh.param<double>("use_plane_fit_threshold", tool.plane_fit_threhold, .01);
-  
+  nh.param<double>("min_segment_size", tool.min_segment_size, 0.01);
+
   return tool;
 }
 
