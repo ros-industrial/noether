@@ -349,9 +349,9 @@ namespace tool_path_planner
       source->SetParametricFunction(spline);
       source->Update();
 
-      //debug_viewer_.addPolyDataDisplay(source->GetOutput(), color);
-      //debug_viewer_.renderDisplay();
-      //debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
+      debug_viewer_.addPolyDataDisplay(source->GetOutput(), color);
+      debug_viewer_.renderDisplay();
+      debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
     }
 
     //use spline to create interpolated data with normals and derivatives
@@ -902,7 +902,6 @@ namespace tool_path_planner
     line_data = line->GetLines();
     line_data->InitTraversal();
 
-    //vtkSmartPointer<vtkIdList> cell = vtkSmartPointer<vtkIdList>::New();
     std::vector<int> ids;
 
     // get line segment for given point
