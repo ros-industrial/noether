@@ -400,15 +400,20 @@ void generateNormals(vtkSmartPointer<vtkPolyData>& data, int flip_normals)
         {
           double p0[3];
           data->GetPointData()->GetNormals()->GetTuple(pts->GetId(j), p0);
-          norm[0] += p0[0];
-          norm[1] += p0[1];
-          norm[2] += p0[2];
+
+          // Based on vtk's api it should return 0 if there is an error
+          if (vtkMath::Normalize(p0) > 0.0)
+          {
+            norm[0] += p0[0];
+            norm[1] += p0[1];
+            norm[2] += p0[2];
+          }
         }
 
-        // average the normals for the cell
-        norm[0] /= pts->GetNumberOfIds();
-        norm[1] /= pts->GetNumberOfIds();
-        norm[2] /= pts->GetNumberOfIds();
+        if (vtkMath::Normalize(norm) <= 0.0)
+        {
+          PCL_ERROR("Could not calculate cell normal from point normals!\n");
+        }
 
         // set the normal for the given cell
         cell_normals->SetTuple(i, norm);
