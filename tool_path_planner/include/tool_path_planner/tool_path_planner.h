@@ -35,6 +35,7 @@ namespace tool_path_planner
     double min_hole_size; // A path may pass over holes smaller than this, but must be broken when larger holes are encounterd. 
     bool use_ransac_normal_estimation; // set to use ransac to determine normals, otherwise, average normals of nearby mesh vertices
     double plane_fit_threhold; // how much deviation from the plane is acceptable for it to be an inlier (ransac normal estiamtion)
+    double min_segment_size; // the minimum segment size to allow when finding intersections; small segments will be discarded
   };
 
   class ToolPathPlanner

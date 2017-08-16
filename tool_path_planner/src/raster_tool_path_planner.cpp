@@ -45,6 +45,8 @@ namespace tool_path_planner
       use_ransac_normal_estimation_(use_ransac)
   {
     debug_on_ = false;
+    cut_direction_[0] = cut_direction_[1] = cut_direction_[2] = 0;
+    cut_centroid_[0] = cut_centroid_[1] = cut_centroid_[2] = 0;
   }
 
   void RasterToolPathPlanner::planPaths(const vtkSmartPointer<vtkPolyData> mesh, std::vector<ProcessPath>& paths)
@@ -245,6 +247,7 @@ namespace tool_path_planner
 
     if(!findIntersectionLine(cutting_mesh, intersection_line, spline))
     {
+      cout << "No intersection found\n";
       return false;
     }
 
@@ -307,6 +310,7 @@ namespace tool_path_planner
 
     if(!findIntersectionLine(next_path.intersection_plane, intersection_line, spline))
     {
+      cout << "No intersection found for creating spline\n";
       return false;
     }
 
@@ -323,6 +327,7 @@ namespace tool_path_planner
       intersection_filter->Update();
       if(intersection_filter->GetOutput()->GetPoints()->GetNumberOfPoints() > 0)
       {
+        cout << "Self intersection found\n";
         return false;
       }
 
@@ -330,6 +335,7 @@ namespace tool_path_planner
       intersection_filter->Update();
       if(intersection_filter->GetOutput()->GetPoints()->GetNumberOfPoints() > 0)
       {
+        cout << "Self intersection found\n";
         return false;
       }
     }
@@ -346,11 +352,6 @@ namespace tool_path_planner
       debug_viewer_.addPolyDataDisplay(source->GetOutput(), color);
       debug_viewer_.renderDisplay();
       debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
-    }
-
-    if(intersection_line->GetPoints()->GetNumberOfPoints() < 2)
-    {
-      return false;
     }
 
     //use spline to create interpolated data with normals and derivatives
@@ -371,6 +372,7 @@ namespace tool_path_planner
 
     if(points->GetPoints()->GetNumberOfPoints() < 2)
     {
+      cout << "Number of points after smoothing is less than 2\n";
       return false;
     }
     next_path.line = points;
@@ -579,35 +581,43 @@ namespace tool_path_planner
     double min[3];
     double size[3];
 
-    vtkSmartPointer<vtkOBBTree> obb_tree = vtkSmartPointer<vtkOBBTree>::New();
-    obb_tree->SetTolerance(0.001);
-    obb_tree->SetLazyEvaluation(0);
-    obb_tree->ComputeOBB(input_mesh_->GetPoints(), corner, max, mid, min, size);
-
-    // size gives the length of each vector (max, mid, min) in order, normalize the size vector by the max size for comparison
-    double m = size[0];
-    size[0] /= m;
-    size[1] /= m;
-    size[2] /= m;
-
-    // ComputeOBB uses PCA to find the principle axes, thus for square objects it returns the diagonals instead
-    // of the minimum bounding box.  Compare the first and second axes to see if they are within 1% of each other
-    if(size[0] - size[1] < 0.01)
+    if(cut_direction_[0] || cut_direction_[1] || cut_direction_[2])
     {
-      // if object is square, need to average max and mid in order to get the correct axes of the object
-      m = sqrt(max[0] * max[0] + max[1] * max[1] + max[2] * max[2]);
-      double temp_max = m;
-      max[0] /= m;
-      max[1] /= m;
-      max[2] /= m;
-      m = sqrt(mid[0] * mid[0] + mid[1] * mid[1] + mid[2] * mid[2]);
-      mid[0] /= m;
-      mid[1] /= m;
-      mid[2] /= m;
+      max[0] = cut_direction_[0]; max[1] = cut_direction_[1]; max[2] = cut_direction_[2];
+      avg_center[0] = cut_centroid_[0]; avg_center[1] = cut_centroid_[1]; avg_center[2] = cut_centroid_[2];
+    }
+    else
+    {
+      vtkSmartPointer<vtkOBBTree> obb_tree = vtkSmartPointer<vtkOBBTree>::New();
+      obb_tree->SetTolerance(0.001);
+      obb_tree->SetLazyEvaluation(0);
+      obb_tree->ComputeOBB(input_mesh_->GetPoints(), corner, max, mid, min, size);
 
-      max[0] = (max[0] + mid[0]) * temp_max;
-      max[1] = (max[1] + mid[1]) * temp_max;
-      max[2] = (max[2] + mid[2]) * temp_max;
+      // size gives the length of each vector (max, mid, min) in order, normalize the size vector by the max size for comparison
+      double m = size[0];
+      size[0] /= m;
+      size[1] /= m;
+      size[2] /= m;
+
+      // ComputeOBB uses PCA to find the principle axes, thus for square objects it returns the diagonals instead
+      // of the minimum bounding box.  Compare the first and second axes to see if they are within 1% of each other
+      if(size[0] - size[1] < 0.01)
+      {
+        // if object is square, need to average max and mid in order to get the correct axes of the object
+        m = sqrt(max[0] * max[0] + max[1] * max[1] + max[2] * max[2]);
+        double temp_max = m;
+        max[0] /= m;
+        max[1] /= m;
+        max[2] /= m;
+        m = sqrt(mid[0] * mid[0] + mid[1] * mid[1] + mid[2] * mid[2]);
+        mid[0] /= m;
+        mid[1] /= m;
+        mid[2] /= m;
+
+        max[0] = (max[0] + mid[0]) * temp_max;
+        max[1] = (max[1] + mid[1]) * temp_max;
+        max[2] = (max[2] + mid[2]) * temp_max;
+      }
     }
 
     // Use the max axis to create additional points for the starting curve
@@ -679,6 +689,14 @@ namespace tool_path_planner
                                          vtkSmartPointer<vtkPolyData>& points,
                                          vtkSmartPointer<vtkParametricSpline>& spline)
   {
+    // Check to make sure that the input cut surface contains a valid mesh
+    if(cut_surface->GetNumberOfCells() < 1)
+    {
+      cout << "Number of input cells for calculating intersection is less than 1.\n";
+      cout << "Cannot compute intersection.\n";
+      return false;
+    }
+
     // Find the intersection between the input mesh and given cutting surface
     vtkSmartPointer<vtkIntersectionPolyDataFilter> intersection_filter =
       vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
@@ -688,41 +706,292 @@ namespace tool_path_planner
     intersection_filter->SetInputData( 1, cut_surface );
     intersection_filter->GlobalWarningDisplayOff();
 
-    if(cut_surface->GetNumberOfCells() < 1)
-    {
-      return false;
-    }
-
     intersection_filter->Update();
 
-    // if no intersection found, return false
-    if(intersection_filter->GetStatus() == 0 || intersection_filter->GetOutput()->GetPoints()->GetNumberOfPoints() <= 1)
-    {
-      return false;
-    }
-
+    // Check output of intersection to see if it is valid
     vtkSmartPointer<vtkPolyData> output = intersection_filter->GetOutput();
     if(!output)
     {
       return false;
     }
 
-    // Check the number of points in the intersection, if not enough to process, return false
+    // if no intersection found, return false
     vtkSmartPointer<vtkPoints> pts = intersection_filter->GetOutput()->GetPoints();
-    if(!pts || pts->GetNumberOfPoints() <= 2)
+    if(intersection_filter->GetStatus() == 0 || !pts || pts->GetNumberOfPoints() <= 1)
     {
       return false;
     }
 
-    // Intersection points are not ordered; order them so that they form a continous smooth line
-    sortPoints(pts);
-    points->SetPoints(pts);
+    vtkSmartPointer<vtkPoints> temp_pts = vtkSmartPointer<vtkPoints>::New();
+    vtkSmartPointer<vtkPolyData> poly_data = vtkSmartPointer<vtkPolyData>::New();
 
-    // Create spline from ordered points
-    spline->SetPoints(pts);
+    // get the intersection filter output and find a continous line segment
+    poly_data = intersection_filter->GetOutput();
+    getConnectedIntersectionLine(poly_data, temp_pts);
+
+    // return points and spline
+    points->SetPoints(temp_pts);
+    spline->SetPoints(temp_pts);
 
     return true;
 
+  }
+
+  void RasterToolPathPlanner::getConnectedIntersectionLine(vtkSmartPointer<vtkPolyData> line, vtkSmartPointer<vtkPoints>& points)
+  {
+    int start = 0;
+    std::vector<int> used_ids;
+    std::vector<vtkSmartPointer<vtkPoints> > lines;
+    int num_points = line->GetNumberOfPoints();
+
+    while(used_ids.size() < num_points)
+    {
+      for(int i = 0; i < num_points; ++i)
+      {
+        // if id 'i' is not found, use it as the next index to start with for finding connected lines
+        if(std::find(used_ids.begin(), used_ids.end(), i) == used_ids.end())
+        {
+          start = i;
+          break;
+        }
+      }
+      vtkSmartPointer<vtkPoints> temp_points = vtkSmartPointer<vtkPoints>::New();
+
+      // only add the line segment if it is large enough
+      double dist = getConnectedIntersectionLine(line, temp_points, used_ids, start);
+      if( dist > tool_.min_segment_size)
+      {
+        lines.push_back(temp_points);
+      }
+    }
+
+    // Now that we have 1 or more lines, check to see if we need to merge/delete lines
+    if(lines.size() == 1)
+    {
+      points = lines[0];  // if only one line, return it
+    }
+    else if(lines.size() > 1)
+    {
+      // check ends of each line for merging/deleting
+      vtkSmartPointer<vtkPoints> temp_points = vtkSmartPointer<vtkPoints>::New();
+      // find largest line to start with
+      int size = 0;
+      int index = 0;
+      for(int i = 0; i < lines.size(); ++i)
+      {
+        if(lines[i]->GetNumberOfPoints() > size)
+        {
+          index = i;
+          size = lines[i]->GetNumberOfPoints();
+        }
+      }
+      temp_points = lines[index];
+      lines.erase(lines.begin() + index);
+
+      while(lines.size() > 0)
+      {
+        int next_index = 0;
+        int order = 0;
+        double min_dist = std::numeric_limits<float>::max();
+
+        // find the next closest line
+        for(int i = 0; i < lines.size(); ++i)
+        {
+          // get distance
+          double dist1 = vtk_viewer::pt_dist(temp_points->GetPoint(0), lines[i]->GetPoint(0));
+          double dist2 = vtk_viewer::pt_dist(temp_points->GetPoint( temp_points->GetNumberOfPoints() - 1 ), lines[i]->GetPoint(0) );
+          double dist3 = vtk_viewer::pt_dist(temp_points->GetPoint(0), lines[i]->GetPoint(lines[i]->GetNumberOfPoints() - 1) );
+          double dist4 = vtk_viewer::pt_dist(temp_points->GetPoint( temp_points->GetNumberOfPoints() - 1 ), lines[i]->GetPoint(lines[i]->GetNumberOfPoints() - 1) );
+
+
+          double dist = std::min(dist1, dist2);
+          dist = std::min(dist, dist3);
+          dist = std::min(dist, dist4);
+
+          // store distance and index if it is the smallest
+          // also store the order, used for later concatenation (front->front, back->front, front->back, back->back)
+          if(dist < min_dist)
+          {
+            next_index = i;
+            min_dist = dist;
+            order = (dist1 == min_dist) ? 1 : order;
+            order = (dist2 == min_dist) ? 2 : order;
+            order = (dist3 == min_dist) ? 3 : order;
+            order = (dist4 == min_dist) ? 4 : order;
+          }
+        }
+
+        // Use new index to append lines together or delete lines
+        // VTK does not support inserting new points at the front so sometimes we need to create a new object to insert points to
+        switch (order)
+        {
+        case 1:
+        {
+          vtkSmartPointer<vtkPoints> tmp = vtkSmartPointer<vtkPoints>::New();
+
+          for(int i = lines[next_index]->GetNumberOfPoints() - 1 ; i >=0 ; --i)
+          {
+            double pt[3];
+            lines[next_index]->GetPoint(i, pt);
+            tmp->InsertNextPoint(pt);
+          }
+          for(int i = 0; i < temp_points->GetNumberOfPoints(); ++i)
+          {
+            double pt[3];
+            temp_points->GetPoint(i, pt);
+            tmp->InsertNextPoint(pt);
+          }
+          temp_points->SetNumberOfPoints(tmp->GetNumberOfPoints());
+          temp_points->DeepCopy(tmp);
+          break;
+        }
+        case 2:
+        {
+          for(int i = 0; i < lines[next_index]->GetNumberOfPoints(); ++i)
+          {
+            temp_points->InsertNextPoint(lines[next_index]->GetPoint(i));
+          }
+          break;
+        }
+        case 3:
+        {
+          vtkSmartPointer<vtkPoints> tmp = vtkSmartPointer<vtkPoints>::New();
+
+          for(int i = 0 ; i < lines[next_index]->GetNumberOfPoints(); ++i)
+          {
+            double pt[3];
+            lines[next_index]->GetPoint(i, pt);
+            tmp->InsertNextPoint(pt);
+          }
+          for(int i = 0; i < temp_points->GetNumberOfPoints(); ++i)
+          {
+            double pt[3];
+            temp_points->GetPoint(i, pt);
+            tmp->InsertNextPoint(pt);
+          }
+          temp_points->SetNumberOfPoints(tmp->GetNumberOfPoints());
+          temp_points->DeepCopy(tmp);
+          break;
+        }
+        case 4:
+        {
+          for(int i = lines[next_index]->GetNumberOfPoints() - 1 ; i >= 0; --i)
+          {
+            temp_points->InsertNextPoint(lines[next_index]->GetPoint(i));
+          }
+          break;
+        }
+        default:
+          break;
+        }
+        lines.erase(lines.begin() + next_index);
+
+      }// end of while loop
+      points = temp_points;
+    }// end concatenating lines together
+
+  }
+
+  double RasterToolPathPlanner::getConnectedIntersectionLine(vtkSmartPointer<vtkPolyData> line, vtkSmartPointer<vtkPoints>& points, std::vector<int>& used_ids, int start_pt)
+  {
+    int search_location = 0;
+    int num_points = line->GetNumberOfPoints();
+    int num_lines = line->GetNumberOfLines();
+
+    vtkSmartPointer<vtkCellArray> line_data = vtkSmartPointer<vtkCellArray>::New();
+    line_data = line->GetLines();
+    line_data->InitTraversal();
+
+    std::vector<int> ids;
+
+    // get line segment for given point
+    ids.push_back(start_pt);
+    int next_id = start_pt;
+    double line_length = 0.0;
+
+    while(ids.size() < num_points)
+    {
+      // get the next point id, loop through all line to find
+      int j = 0;
+
+      // if next_id is already used, exit
+      if(std::find(used_ids.begin(), used_ids.end(), next_id) != used_ids.end())
+      {
+        break;
+      }
+
+      line_data->InitTraversal();
+      for(j = 0; j < num_lines; ++j)
+      {
+        vtkSmartPointer<vtkIdList> temp_cell = vtkSmartPointer<vtkIdList>::New();
+        line_data->GetNextCell(temp_cell);
+        if(temp_cell->GetNumberOfIds() == 0)
+        {
+          continue;
+        }
+        if(next_id == temp_cell->GetId(search_location))
+        {
+          // based on search direction, determine which value to insert in the id list (first or second)
+          int location = (search_location + 1) % 2;
+          double pt[3], pt_temp[3];
+          line->GetPoint(next_id, pt);
+
+          next_id = temp_cell->GetId(location);
+          line->GetPoint(next_id, pt_temp);
+
+          // get distance of current line segment and add to total distance
+          line_length += sqrt(vtk_viewer::pt_dist(&pt[0], &pt_temp[0]));
+
+          // insert next id
+          if(search_location)
+          {
+            ids.insert(ids.begin(), next_id);
+          }
+          else
+          {
+            ids.push_back(next_id);
+          }
+          break;
+        }
+      }
+
+      // If we have gone around a complete loop, next_id will equal first id, then break
+      if( (next_id == ids.front() && search_location == 0) || (next_id == ids.back() && search_location == 1))
+      {
+        break;
+      }
+
+      // completed loop without finding a match
+      if(j == num_lines && ids.size() < num_points && search_location == 0)
+      {
+          search_location = 1;
+          next_id = ids[0];
+        // search from the front to connect points
+      }
+      else if(j == num_lines && search_location == 1)
+      {
+        break;
+      }
+    } // end loop getting connected lines
+
+    // copy the ids used into the in_id list
+    used_ids.insert(used_ids.end(), ids.begin(), ids.end());
+
+    // Copy the line ids into a VTK list
+    vtkSmartPointer<vtkIdList> connected_pts = vtkSmartPointer<vtkIdList>::New();
+    connected_pts->SetNumberOfIds(ids.size());
+    for(int i = 0; i < ids.size(); ++i)
+    {
+      connected_pts->SetId(i, ids[i]);
+    }
+
+    // set point size and copy points to return
+    points->Reset();
+    points->Squeeze();
+    points->SetNumberOfPoints(ids.size());
+    line->GetPoints()->GetPoints(connected_pts, points);
+
+    return line_length;
   }
 
   void RasterToolPathPlanner::resamplePoints(vtkSmartPointer<vtkPoints>& points)
@@ -815,6 +1084,7 @@ namespace tool_path_planner
       spline->Evaluate(u, pt, d);
       new_points->InsertNextPoint(pt);
 
+
       double pt1[3], pt2[3];
       // find nearby points in order to calculate the local deriviative
       if(i == 0)
@@ -822,7 +1092,7 @@ namespace tool_path_planner
         pt1[0] = pt[0];
         pt1[1] = pt[1];
         pt1[2] = pt[2];
-        u[0] += 1/(1*double(num_line_pts));
+        u[0] += 1.0/(1.0*double(num_line_pts));
         spline->Evaluate(u, pt2, d);
       }
       else if(i == num_line_pts)
@@ -830,7 +1100,7 @@ namespace tool_path_planner
         pt2[0] = pt[0];
         pt2[1] = pt[1];
         pt2[2] = pt[2];
-        u[0] -= 1/(1*double(num_line_pts));
+        u[0] -= 1.0/(1.0*double(num_line_pts));
         spline->Evaluate(u, pt1, d);
       }
       else
@@ -1150,7 +1420,7 @@ namespace tool_path_planner
     new_pt[0] +=  (new_pt[0] - pt1[0]);
     new_pt[1] +=  (new_pt[1] - pt1[1]);
     new_pt[2] +=  (new_pt[2] - pt1[2]);
-    new_pts->InsertNextPoint(new_pt);
+    new_pts->SetPoint(new_pts->GetNumberOfPoints()-1, new_pt);
 
     // Extend front point
     pt1 = new_pts->GetPoint(0);
@@ -1161,10 +1431,7 @@ namespace tool_path_planner
     new_pt[0] +=  (new_pt[0] - pt1[0]);
     new_pt[1] +=  (new_pt[1] - pt1[1]);
     new_pt[2] +=  (new_pt[2] - pt1[2]);
-    new_pts->InsertNextPoint(new_pt);
-
-    // because extended points were added to the back, need to resort the list
-    sortPoints(new_pts);
+    new_pts->SetPoint(0, new_pt);
 
     new_points->SetPoints(new_pts);
     
@@ -1228,6 +1495,19 @@ namespace tool_path_planner
     new_surface->SetPolys(cells);
     new_surface->SetPoints(points);
     return new_surface;
+  }
+
+  void RasterToolPathPlanner::setCutDirection(double direction [3])
+  {
+    cut_direction_[0] = direction[0];
+    cut_direction_[1] = direction[1];
+    cut_direction_[2] = direction[2];
+  }
+  void RasterToolPathPlanner::setCutCentroid(double centroid [3])
+  {
+    cut_centroid_[0] = centroid[0];
+    cut_centroid_[1] = centroid[1];
+    cut_centroid_[2] = centroid[2];
   }
 
 }
