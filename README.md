@@ -1,37 +1,50 @@
 ﻿# Noether
 
-This package depends on PCL 1.8 and VTK 7.1.  Install VTK first and make sure that PCL is compiled against 7.1 or there will be run time errors.
+This package depends on PCL 1.8.1 and VTK 7.1.1.  Install VTK first and make sure that PCL is compiled against 7.1 or there will be run time errors.
+
+[![Build Status](https://travis-ci.org/ros-industrial/noether.svg?branch=master)](https://travis-ci.org/ros-industrial/noether)
 ## Prerequisites
 These packages run on Ubuntu 16.04
 
-### Installing VTK 7.1:
+### Installing VTK version v7.1.1:
 ```
 git clone https://github.com/Kitware/VTK.git
-cmake .
+cd VTK
+git checkout tags/v7.1.1
+mkdir build
+cd build
+cmake ..
 make
 sudo make install
 ```
 
-### Installing PCL (compiled with VTK 7.1)
+### Installing PCL version pcl-1.8.1:
 ```
 git clone https://github.com/PointCloudLibrary/pcl.git
 ```
-open CMakeLists.txt
-change line 364 from "find_package(VTK)" to  "find_package(VTK 7.1 REQUIRED)"
+PCL is compiled against VTK 7.1.1 so we need to make that explicit with the following two steps:
+1. open CMakeLists.txt
+2. change line 364 from "find_package(VTK)" to  "find_package(VTK 7.1.1 REQUIRED)"
+Now, we can continue the build process:
 ```
-cmake .
+cd pcl
+mkdir build
+cd build
+cmake ..
 make
 sudo make install
 ```
 
-## Build
-TBD
-
 ## Test Noether
+### catkin_make
 Run the unit tests for each package:
 catkin_make run_tests_<package-name>
 ```
 catkin_make run_tests_tool_path_planner
+```
+### catkin tools
+```
+catkin run_tests noether
 ```
 
 The noether package has an executable which is able to take in a mesh file (.stl format), read it, segment the file into adjacent surfaces,
