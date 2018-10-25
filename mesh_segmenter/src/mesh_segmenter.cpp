@@ -15,12 +15,11 @@
 
 namespace mesh_segmenter
 {
-
 void MeshSegmenter::setInputMesh(vtkSmartPointer<vtkPolyData> mesh)
 {
   input_mesh_ = mesh;
 
-  if(!triangle_filter_)
+  if (!triangle_filter_)
   {
     triangle_filter_ = vtkSmartPointer<vtkTriangleFilter>::New();
   }
@@ -33,9 +32,8 @@ std::vector<vtkSmartPointer<vtkPolyData> > MeshSegmenter::getMeshSegments()
   vtkSmartPointer<vtkPolyData> input_copy = vtkSmartPointer<vtkPolyData>::New();
   input_copy->DeepCopy(input_mesh_);
   std::vector<vtkSmartPointer<vtkPolyData> > meshes;
-  for(int i = 0; i < included_indices_.size(); ++i)
+  for (int i = 0; i < included_indices_.size(); ++i)
   {
-
     vtkSmartPointer<vtkPolyData> mesh = vtkSmartPointer<vtkPolyData>::New();
     mesh->DeepCopy(input_mesh_);
     mesh->GetPoints()->Initialize();
@@ -43,13 +41,16 @@ std::vector<vtkSmartPointer<vtkPolyData> > MeshSegmenter::getMeshSegments()
     input_copy->GetCellData()->CopyNormalsOn();
 
     // Preallocate memory, this is NECESSARY or normal data is NOT copied
-    mesh->GetCellData()->CopyAllocate(input_copy->GetCellData(), included_indices_[i]->GetNumberOfIds(), included_indices_[i]->GetNumberOfIds());
-    mesh->GetPointData()->CopyAllocate(input_copy->GetPointData(), included_indices_[i]->GetNumberOfIds()*2, included_indices_[i]->GetNumberOfIds()*2);
+    mesh->GetCellData()->CopyAllocate(
+        input_copy->GetCellData(), included_indices_[i]->GetNumberOfIds(), included_indices_[i]->GetNumberOfIds());
+    mesh->GetPointData()->CopyAllocate(input_copy->GetPointData(),
+                                       included_indices_[i]->GetNumberOfIds() * 2,
+                                       included_indices_[i]->GetNumberOfIds() * 2);
 
     // copy cell data and normals
     mesh->CopyCells(input_copy, included_indices_[i]);
 
-    if(mesh->GetNumberOfCells() <= 1)
+    if (mesh->GetNumberOfCells() <= 1)
     {
       cout << "NOT ENOUGH CELLS FOR SEGMENTATION\n";
       continue;
@@ -69,24 +70,48 @@ void MeshSegmenter::segmentMesh()
 
   included_indices_.clear();
 
-  for(int i = 0; i < size; ++i)
+  // Loop over all of the cells
+  for (int i = 0; i < size; ++i)
   {
     // if current index is not used, perform segmentation with it and insert the results into the list
-    if(used_cells->IsId(i) == -1)
+    if (used_cells->IsId(i) == -1)
     {
       vtkSmartPointer<vtkIdList> linked_cells = vtkSmartPointer<vtkIdList>::New();
       linked_cells = segmentMesh(i);
 
       // save indices found
-      included_indices_.push_back(linked_cells);
-      for(int j = 0; j < linked_cells->GetNumberOfIds(); ++j)
+      if (linked_cells->GetNumberOfIds() > min_cluster_size_)
       {
-        used_cells->InsertNextId(linked_cells->GetId(j));
+        included_indices_.push_back(linked_cells);
+
+        for (int j = 0; j < linked_cells->GetNumberOfIds(); ++j)
+        {
+          used_cells->InsertNextId(linked_cells->GetId(j));
+        }
       }
     }
   }
+
+  // Anything still not used in a segment is an "edge" - There has to be an easier way...
+  vtkSmartPointer<vtkIdList> edge_cells = vtkSmartPointer<vtkIdList>::New();
+  for (int i = 0; i < size; i++)
+  {
+    if (used_cells->IsId(i) == -1)
+    {
+      edge_cells->InsertNextId(used_cells->GetId(i));
+    }
+  }
+  included_indices_.push_back(edge_cells);
+
+  std::cout << "Total mesh size: " << size << '\n';
+  std::cout << "Used cells size: " << used_cells->GetNumberOfIds() << "\n";
+  std::cout << "Edge cells size: " << edge_cells->GetNumberOfIds() << "\n\n";
+  //  input_mesh_->GetPointData()->
+
+  // Assign the unused cells to edges
 }
 
+// I don't understand this code. But it seems to work.
 vtkSmartPointer<vtkIdList> MeshSegmenter::segmentMesh(int start_cell)
 {
   // Create the links object
@@ -95,7 +120,7 @@ vtkSmartPointer<vtkIdList> MeshSegmenter::segmentMesh(int start_cell)
 
   vtkDataArray* normals = input_mesh_->GetCellData()->GetNormals();
 
-  if(!normals)
+  if (!normals)
   {
     return used_cells;
   }
@@ -104,24 +129,24 @@ vtkSmartPointer<vtkIdList> MeshSegmenter::segmentMesh(int start_cell)
   unused_cells->InsertNextId(start_cell);
 
   // Loop and find all connected cells
-  while(unused_cells->GetNumberOfIds())
+  while (unused_cells->GetNumberOfIds())
   {
+    // Returns neighboring cells to the seed cell
     vtkSmartPointer<vtkIdList> neighbors = vtkSmartPointer<vtkIdList>::New();
-    neighbors = getNeighborCells(input_mesh_, unused_cells->GetId(0));
+    neighbors = getNeighborCells(unused_cells->GetId(0));
 
     // check to see if neighbors are in the used/unused list
-    for(int i = 0; i < neighbors->GetNumberOfIds(); ++i)
+    for (int i = 0; i < neighbors->GetNumberOfIds(); ++i)
     {
-
       // if a cell has not been seen, check the angle to determine if it should be added to the unused list
-      if(unused_cells->IsId(neighbors->GetId(i)) == -1 && used_cells->IsId(neighbors->GetId(i)) == -1)
+      if (unused_cells->IsId(neighbors->GetId(i)) == -1 && used_cells->IsId(neighbors->GetId(i)) == -1)
       {
-        //check angle, insert if it is valid
+        // check angle, insert if it is valid
         const double* const n1 = normals->GetTuple(unused_cells->GetId(0));
         // vtk does not return a const ptr, need to make a copy before getting next pointer
-        double val[3] = {n1[0], n1[1], n1[2]};
+        double val[3] = { n1[0], n1[1], n1[2] };
         const double* const n2 = normals->GetTuple(neighbors->GetId(i));
-        if( areNormalsNear(&val[0], n2, 0.3) )
+        if (areNormalsNear(&val[0], n2, curvature_threshold_))
         {
           unused_cells->InsertNextId(neighbors->GetId(i));
         }
@@ -137,44 +162,47 @@ vtkSmartPointer<vtkIdList> MeshSegmenter::segmentMesh(int start_cell)
   return used_cells;
 }
 
-vtkSmartPointer<vtkIdList> MeshSegmenter::getNeighborCells(vtkSmartPointer<vtkPolyData> mesh, int cell_id)
+// This returns the cell id's of the neighbors to the input cell that share 2 vertices
+vtkSmartPointer<vtkIdList> MeshSegmenter::getNeighborCells(int cell_id)
 {
+  // Get vertices associated with seed cell (triangle_filter_ "knows" the mesh)
   vtkSmartPointer<vtkIdList> cell_point_ids = vtkSmartPointer<vtkIdList>::New();
   triangle_filter_->GetOutput()->GetCellPoints(cell_id, cell_point_ids);
 
   vtkSmartPointer<vtkIdList> neighbors = vtkSmartPointer<vtkIdList>::New();
 
-  for(vtkIdType i = 0; i < cell_point_ids->GetNumberOfIds(); i++)
+  // For vertex of the cell
+  for (vtkIdType i = 0; i < cell_point_ids->GetNumberOfIds(); i++)
   {
     vtkSmartPointer<vtkIdList> id_list = vtkSmartPointer<vtkIdList>::New();
 
-    //add one of the edge points
+    // Add the current edge point to list to find neighbor to
     id_list->InsertNextId(cell_point_ids->GetId(i));
 
-    //add the other edge point
-    id_list->InsertNextId(cell_point_ids->GetId((i+1) % (cell_point_ids->GetNumberOfIds() )  ));
+    // Add the next edge point => Only find neighbors that share 2 vertices (% so it will wrap to 0 on the last pt)
+    id_list->InsertNextId(cell_point_ids->GetId((i + 1) % (cell_point_ids->GetNumberOfIds())));
 
-    //get the neighbors of the cell
+    // Get the neighbors of the cell with these edge points
     vtkSmartPointer<vtkIdList> neighbor_cell_ids = vtkSmartPointer<vtkIdList>::New();
-
     triangle_filter_->GetOutput()->GetCellNeighbors(cell_id, id_list, neighbor_cell_ids);
-    for(vtkIdType j = 0; j < neighbor_cell_ids->GetNumberOfIds(); j++)
+
+    // Add neighbors to the list
+    for (vtkIdType j = 0; j < neighbor_cell_ids->GetNumberOfIds(); j++)
     {
       neighbors->InsertNextId(neighbor_cell_ids->GetId(j));
     }
-
   }
   return neighbors;
 }
 
 bool MeshSegmenter::areNormalsNear(const double* norm1, const double* norm2, double threshold)
 {
-  double val = (norm1[0]*norm2[0] + norm1[1]*norm2[1] + norm1[2]*norm2[2]);
-  if( (val) >= 1.0) // acos(1.0) can sometimes result in NaN, check and return true
+  double val = (norm1[0] * norm2[0] + norm1[1] * norm2[1] + norm1[2] * norm2[2]);
+  if ((val) >= 1.0)  // acos(1.0) can sometimes result in NaN, check and return true
   {
     return true;
   }
-  return ( acos(val) <= threshold );
+  return (acos(val) <= threshold);
 }
 
-}
+}  // namespace mesh_segmenter
