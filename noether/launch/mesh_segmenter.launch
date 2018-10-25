@@ -1,0 +1,12 @@
+<launch>
+  <arg name="filename"/>
+  <arg name="tool" default="$(find noether)/config/tool.yaml"/>
+
+  <node name="mesh_segmenter_node" type="mesh_segmenter_node" pkg="noether" output="screen" required="true">
+    <!--Loads a particular test file: pcd or stl -->
+    <param name="filename" value="$(arg filename)" type="string"/>
+    <rosparam command="load" file="$(arg tool)"/>
+  </node>
+
+</launch>
+

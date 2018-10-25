@@ -42,3 +42,11 @@ target_link_libraries(surface_raster_planner_application
     ${catkin_LIBRARIES}
     ${VTK_LIBRARIES}
 )
+
+
+add_executable(mesh_segmenter_node src/mesh_segmenter_node.cpp)
+target_link_libraries(mesh_segmenter_node
+    noether
+    ${catkin_LIBRARIES}
+    ${VTK_LIBRARIES}
+)
