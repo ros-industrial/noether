@@ -10,6 +10,11 @@
 #include <ros/ros.h>
 #include <ros/file_log.h>
 
+#include <vtkPolyDataNormals.h>
+#include <vtkCleanPolyData.h>
+#include <vtkWindowedSincPolyDataFilter.h>
+#include <vtkSmoothPolyDataFilter.h>
+
 static std::string toLower(const std::string& in)
 {
   std::string copy = in;
@@ -17,7 +22,7 @@ static std::string toLower(const std::string& in)
   return copy;
 }
 
-static bool readFile(std::string file, std::vector<vtkSmartPointer<vtkPolyData> > mesh)
+static bool readFile(std::string& file, std::vector<vtkSmartPointer<vtkPolyData> >& mesh)
 {
   if (!file.empty())
   {
@@ -42,15 +47,7 @@ static bool readFile(std::string file, std::vector<vtkSmartPointer<vtkPolyData> 
     std::string extension = std::string(pch);
     if (extension == "pcd")
     {
-//      if (argc == 3)
-//      {
-//        std::string background = argv[2];
-//        vtk_viewer::loadPCDFile(file, data, background, true);
-//      }
-//      else
-//      {
-        vtk_viewer::loadPCDFile(file, data);
-//      }
+      vtk_viewer::loadPCDFile(file, data);
     }
     else if (extension == "STL" || extension == "stl")
     {
@@ -89,69 +86,84 @@ int main(int argc, char** argv)
   double curvature_threshold;
   int min_cluster_size, max_cluster_size;
   pnh.param<std::string>("filename", file, "");
-  pnh.param<int>("min_cluster_size",min_cluster_size, 500);
-  pnh.param<int>("max_cluster_size",max_cluster_size, 1000000);
-  pnh.param<double>("curvature_threshold",curvature_threshold, 0.8);
+  pnh.param<int>("min_cluster_size", min_cluster_size, 500);
+  pnh.param<int>("max_cluster_size", max_cluster_size, 1000000);
+  pnh.param<double>("curvature_threshold", curvature_threshold, 0.3);
 
-  std::vector<vtkSmartPointer<vtkPolyData> > mesh;
-  readFile(file, mesh);
+  std::vector<vtkSmartPointer<vtkPolyData> > meshes;
+  readFile(file, meshes);
 
-  // ------- Segment mesh ---------
-  // Instantiate a segmenter
+  // Step 2: Filter the mesh
+  // Create some pointers - not used since passing with "ports" but useful for debugging
+  ROS_INFO("Beginning Filtering.");
+  vtkSmartPointer<vtkPolyData> mesh_in = meshes[0];
+  vtkSmartPointer<vtkPolyData> mesh_cleaned;
+  vtkSmartPointer<vtkPolyData> mesh_filtered1;
+  vtkSmartPointer<vtkPolyData> mesh_filtered2;
+
+  // Remove duplicate points
+  vtkSmartPointer<vtkCleanPolyData> cleanPolyData = vtkSmartPointer<vtkCleanPolyData>::New();
+  cleanPolyData->SetInputData(mesh_in);
+  cleanPolyData->Update();
+  mesh_cleaned = cleanPolyData->GetOutput();
+
+  // Apply Windowed Sinc function interpolation Smoothing
+  vtkSmartPointer<vtkWindowedSincPolyDataFilter> smooth_filter1 = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
+  smooth_filter1->SetInputConnection(cleanPolyData->GetOutputPort());
+  smooth_filter1->SetInputData(mesh_cleaned);
+  smooth_filter1->SetNumberOfIterations(20);
+  smooth_filter1->SetPassBand(0.1);
+  smooth_filter1->FeatureEdgeSmoothingOff();  // Smooth along sharp interior edges
+  smooth_filter1->SetFeatureAngle(45);        // Angle to identify sharp edges (degrees)
+  smooth_filter1->SetEdgeAngle(15);           // Not sure what this controls (degrees)
+  smooth_filter1->BoundarySmoothingOff();
+  smooth_filter1->NonManifoldSmoothingOff();
+  smooth_filter1->NormalizeCoordinatesOn();  // "Improves numerical stability"
+  smooth_filter1->Update();
+  mesh_filtered1 = smooth_filter1->GetOutput();
+
+  // Apply Laplacian Smoothing
+  // This moves the coordinates of each point toward the average of its adjoining points
+  vtkSmartPointer<vtkSmoothPolyDataFilter> smooth_filter2 = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
+  smooth_filter2->SetInputConnection(smooth_filter1->GetOutputPort());
+  //  smooth_filter2->SetInputData(mesh_cleaned);
+  smooth_filter2->SetNumberOfIterations(10);
+  smooth_filter2->SetRelaxationFactor(0.1);
+  //  smooth_filter2->SetEdgeAngle(somenumber);
+  smooth_filter2->FeatureEdgeSmoothingOff();
+  smooth_filter2->BoundarySmoothingOff();
+  smooth_filter2->Update();
+  mesh_filtered2 = smooth_filter2->GetOutput();
+
+  // Step 3: Segment the mesh
   mesh_segmenter::MeshSegmenter segmenter;
-
-  // Loop over all of the meshes in the vector (should only be one if fully connected)
-
-  // Set up the segmenter
-  segmenter.setInputMesh(mesh[0]);
+//  segmenter.setInputMesh(mesh_in);                           // Use to ignore filters
+  segmenter.setInputMesh(mesh_filtered2);
   segmenter.setMinClusterSize(min_cluster_size);
   segmenter.setMaxClusterSize(max_cluster_size);
   segmenter.setCurvatureThreshold(curvature_threshold);
 
+  ROS_INFO("Beginning Segmentation.");
+  ros::Time tStart = ros::Time::now();
   segmenter.segmentMesh();
+  ROS_INFO("Segmentation time: %.3f", (ros::Time::now() - tStart).toSec());
 
   // Get Mesh segment
   std::vector<vtkSmartPointer<vtkPolyData> > segmented_meshes = segmenter.getMeshSegments();
+  std::vector<vtkSmartPointer<vtkPolyData> > panels(segmented_meshes.begin(), segmented_meshes.end() - 1);
+  std::vector<vtkSmartPointer<vtkPolyData> > edges(1);
+  edges.push_back(segmented_meshes.back());
 
-  std::cout << segmented_meshes.size() << '\n';
-
+  ROS_INFO("Displaying Edges");
   noether::Noether viz;
+  viz.addMeshDisplay(edges);
+  viz.visualizeDisplay();
+  ROS_INFO("Displaying Segments");
+  viz.addMeshDisplay(panels);
+  viz.visualizeDisplay();
+  ROS_INFO("Displaying Both");
   viz.addMeshDisplay(segmented_meshes);
   viz.visualizeDisplay();
-
-  //    std::string log_directory = ros::file_log::getLogDirectory();
-
-  //    // plan paths for segmented meshes
-  //    tool_path_planner::ProcessTool tool = loadTool(pnh);
-  //    tool_path_planner::RasterToolPathPlanner planner(tool.use_ransac_normal_estimation);
-
-  //    bool debug_on;
-  //    pnh.param<bool>("debug_on", debug_on, false);
-  //    double vect[3], center[3];
-  //    pnh.param<double>("cut_norm_x", vect[0], 0.0);
-  //    pnh.param<double>("cut_norm_y", vect[1], 0.0);
-  //    pnh.param<double>("cut_norm_z", vect[2], 0.0);
-  //    pnh.param<double>("centroid_x", center[0], 0.0);
-  //    pnh.param<double>("centroid_y", center[1], 0.0);
-  //    pnh.param<double>("centroid_z", center[2], 0.0);
-
-  //    planner.setTool(tool);
-  //    planner.setCutDirection(vect);
-  //    planner.setCutCentroid(center);
-  //    planner.setDebugMode(debug_on);
-  //    planner.setLogDir(log_directory);
-  //    std::vector<std::vector<tool_path_planner::ProcessPath> > paths;
-  //    planner.planPaths(meshes, paths);
-
-  //    // visualize results
-  //    double scale = tool.pt_spacing * 1.5;
-  //    noether::Noether viz;
-  //    viz.setLogDir(log_directory);
-  //    ROS_INFO_STREAM("log directory " << viz.getLogDir());
-
-  //    viz.addMeshDisplay(meshes);
-  //    viz.addPathDisplay(paths, scale, true, false, false);
-  //    viz.visualizeDisplay();
 
   return 0;
 }

@@ -68,7 +68,7 @@ public:
    * @brief areNormalsNear Checks to see if two normal vectors are near each other (within a given threshold)
    * @param norm1 The first normal to check
    * @param norm2 The second normal to check
-   * @param threshold The desired threshold for "nearness", 1 - must be perfectly aligned, 0 - any angle is accepted
+   * @param threshold The desired threshold for "nearness" in radians, 1 - must be perfectly aligned, 0 - any angle is accepted
    * @return True if the normals are near, False if they are not
    */
   bool areNormalsNear(const double* norm1, const double* norm2, const double threshold);

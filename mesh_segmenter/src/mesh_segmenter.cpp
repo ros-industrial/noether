@@ -8,7 +8,6 @@
 #include <vtkDataArray.h>
 #include <vtkCellData.h>
 #include <vtkPointData.h>
-#include <vtkDoubleArray.h>
 #include <vtkFloatArray.h>
 
 #include <mesh_segmenter/mesh_segmenter.h>
@@ -103,21 +102,20 @@ void MeshSegmenter::segmentMesh()
   }
   included_indices_.push_back(edge_cells);
 
+  std::cout << "Found " << included_indices_.size() << " segments" << '\n';
   std::cout << "Total mesh size: " << size << '\n';
   std::cout << "Used cells size: " << used_cells->GetNumberOfIds() << "\n";
-  std::cout << "Edge cells size: " << edge_cells->GetNumberOfIds() << "\n\n";
-  //  input_mesh_->GetPointData()->
+  std::cout << "Edge cells size: " << edge_cells->GetNumberOfIds() << "\n";
 
-  // Assign the unused cells to edges
 }
 
-// I don't understand this code. But it seems to work.
 vtkSmartPointer<vtkIdList> MeshSegmenter::segmentMesh(int start_cell)
 {
   // Create the links object
   vtkSmartPointer<vtkIdList> unused_cells = vtkSmartPointer<vtkIdList>::New();
   vtkSmartPointer<vtkIdList> used_cells = vtkSmartPointer<vtkIdList>::New();
 
+  // Normals are associated with cells not vertices
   vtkDataArray* normals = input_mesh_->GetCellData()->GetNormals();
 
   if (!normals)
@@ -162,7 +160,7 @@ vtkSmartPointer<vtkIdList> MeshSegmenter::segmentMesh(int start_cell)
   return used_cells;
 }
 
-// This returns the cell id's of the neighbors to the input cell that share 2 vertices
+// This returns the cell IDs of the neighbors to the input cell that share 2 vertices
 vtkSmartPointer<vtkIdList> MeshSegmenter::getNeighborCells(int cell_id)
 {
   // Get vertices associated with seed cell (triangle_filter_ "knows" the mesh)
