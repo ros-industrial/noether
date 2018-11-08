@@ -5,6 +5,7 @@ add_compile_options(-std=c++14)
 
 project(noether)
 
+
 find_package(VTK 7.1 REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
 
@@ -13,7 +14,9 @@ find_package(catkin REQUIRED cmake_modules
     tool_path_planner
     path_sequence_planner
     vtk_viewer
+    noether_msgs
     roscpp
+    actionlib
     noether_msgs
     noether_conversions
 )
@@ -26,6 +29,8 @@ catkin_package(
     tool_path_planner
     path_sequence_planner
     vtk_viewer
+    noether_msgs
+    actionlib
   DEPENDS VTK
 )
 
@@ -46,6 +51,13 @@ target_link_libraries(surface_raster_planner_application
 
 add_executable(mesh_segmenter_node src/mesh_segmenter_node.cpp)
 target_link_libraries(mesh_segmenter_node
+    noether
+    ${catkin_LIBRARIES}
+    ${VTK_LIBRARIES}
+)
+
+add_executable(segmentation_server src/segmentation_server.cpp)
+target_link_libraries(segmentation_server
     noether
     ${catkin_LIBRARIES}
     ${VTK_LIBRARIES}

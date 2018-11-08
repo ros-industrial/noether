@@ -7,7 +7,7 @@
   <maintainer email="jorge.nicho@swri.org">Jorge Nicho</maintainer>
   <license>Proprietary</license>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <depend>catkin</depend>
 
   <depend>roscpp</depend>
   <depend>mesh_segmenter</depend>
@@ -15,7 +15,7 @@
   <depend>path_sequence_planner</depend>
   <depend>vtk_viewer</depend>
   <depend>noether_msgs</depend>
+  <depend>actionlib</depend>
   <depend>noether_conversions</depend>
-
 
 </package>
