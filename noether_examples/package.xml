@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>noether_examples</name>
+  <version>0.0.0</version>
+  <description>The noether package</description>
+  <maintainer email="alex.goins@swri.org">alex</maintainer>
+  <license>Proprietary</license>
+
+  <depend>catkin</depend>
+
+  <depend>roscpp</depend>
+  <depend>mesh_segmenter</depend>
+  <depend>tool_path_planner</depend>
+  <depend>path_sequence_planner</depend>
+  <depend>vtk_viewer</depend>
+  <depend>noether_msgs</depend>
+  <depend>actionlib</depend>
+  <depend>pcl_conversions</depend>
+  <depend>pcl_ros</depend>
+  <depend>noether</depend>
+
+</package>

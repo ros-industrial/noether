@@ -11,6 +11,9 @@
 #include <vtkWindowedSincPolyDataFilter.h>
 #include <vtkSmoothPolyDataFilter.h>
 
+#include <noether/noether.h>
+#include <vtk_viewer/vtk_utils.h>
+
 class SegmentationAction
 {
 protected:
@@ -43,7 +46,9 @@ public:
     pcl::PolygonMesh input_pcl_mesh;
     pcl_conversions::toPCL(goal->input_mesh, input_pcl_mesh);
     vtk_viewer::pclEncodeMeshAndNormals(input_pcl_mesh, mesh);
-//    pcl::VTKUtils::convertToVTK(input_pcl_mesh, mesh);              // Not sure the difference here
+//    pcl::VTKUtils::convertToVTK(input_pcl_mesh, mesh);            // Converts w
+
+
 
     // Step 2: Filter the mesh
     // Create some pointers - not used since passing with "ports" but useful for debugging
@@ -65,7 +70,7 @@ public:
       vtkSmartPointer<vtkWindowedSincPolyDataFilter> smooth_filter1 =
           vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
       smooth_filter1->SetInputConnection(cleanPolyData->GetOutputPort());
-      smooth_filter1->SetInputData(mesh_cleaned);
+//      smooth_filter1->SetInputData(mesh_cleaned);
       smooth_filter1->SetNumberOfIterations(20);
       smooth_filter1->SetPassBand(0.1);
       smooth_filter1->FeatureEdgeSmoothingOff();  // Smooth along sharp interior edges
@@ -93,6 +98,13 @@ public:
 
     // Step 3: Segment the mesh
     mesh_segmenter::MeshSegmenter segmenter;
+    ROS_INFO("Displaying mesh");
+    noether::Noether viz;
+    std::vector <vtkSmartPointer<vtkPolyData> > tmp;
+    tmp.push_back((mesh_filtered2));
+    viz.addMeshDisplay(tmp);
+    viz.visualizeDisplay();
+
     if (goal->filter)
       segmenter.setInputMesh(mesh_filtered2);
     else

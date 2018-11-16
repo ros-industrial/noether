@@ -1,10 +1,8 @@
 /*
- * Copyright (c) 2016, Southwest Research Institute
- * All rights reserved.
+ * Apache 2.0
  *
  */
 
-#include "noether/noether.h"
 #include <mesh_segmenter/mesh_segmenter.h>
 #include <vtkPointData.h>
 #include <ros/ros.h>
@@ -14,6 +12,9 @@
 #include <vtkCleanPolyData.h>
 #include <vtkWindowedSincPolyDataFilter.h>
 #include <vtkSmoothPolyDataFilter.h>
+
+#include <vtk_viewer/vtk_utils.h>
+#include <noether/noether.h>
 
 static std::string toLower(const std::string& in)
 {
@@ -78,7 +79,7 @@ static bool readFile(std::string& file, std::vector<vtkSmartPointer<vtkPolyData>
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "noether_node");
+  ros::init(argc, argv, "mesh_segmenter_node");
   ros::NodeHandle pnh("~");
 
   // Step 1: Load the 'filename' parameter

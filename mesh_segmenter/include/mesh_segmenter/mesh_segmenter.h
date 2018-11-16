@@ -7,7 +7,6 @@
 #ifndef MESH_SEGMENTER_H
 #define MESH_SEGMENTER_H
 
-#include <vtk_viewer/vtk_utils.h>
 #include <vtkPolyData.h>
 #include <vtkTriangleFilter.h>
 
