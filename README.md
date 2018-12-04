@@ -35,7 +35,8 @@ This package depends on PCL 1.8 and VTK 7.1.
     ```
     sudo checkinstall --pkgname=vtk-7.1
     ```
-    The installation process will prompt you to accept/reject some options prior to building the debian.
+    The installation process will prompt you to accept/reject some options prior to building the debian, **just follow the recommended prompts**.
+    
     NOTE: Using `checkinstall` instead of `make install` has the advantage that it builds a debian package which can be easily uninstalled with `sudo dpkg -r [packagename]`.
     
 ##### 2. PCL 
@@ -53,7 +54,8 @@ This package depends on PCL 1.8 and VTK 7.1.
     ```
     sudo checkinstall --pkgname=pcl-1.8
     ```
-    The installation process will prompt you to accept/reject some options prior to building the debian.
+    The installation process will prompt you to accept/reject some options prior to building the debian, **just follow the recommended prompts**
+    
     NOTE: Using `checkinstall` instead of `make install` has the advantage that it builds a debian package which can be easily uninstalled with `sudo dpkg -r [packagename]`.
 
 ---
