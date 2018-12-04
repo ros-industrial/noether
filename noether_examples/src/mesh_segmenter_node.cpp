@@ -15,6 +15,8 @@
 
 #include <vtk_viewer/vtk_utils.h>
 #include <noether/noether.h>
+#include <vtkSTLWriter.h>
+#include <ros/package.h>
 
 static std::string toLower(const std::string& in)
 {
@@ -82,36 +84,39 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "mesh_segmenter_node");
   ros::NodeHandle pnh("~");
 
-  // Step 1: Load the 'filename' parameter
+  // Step 1: Load parameters
   std::string file;
   double curvature_threshold;
   int min_cluster_size, max_cluster_size;
+  bool show_individually, save_outputs;
   pnh.param<std::string>("filename", file, "");
   pnh.param<int>("min_cluster_size", min_cluster_size, 500);
   pnh.param<int>("max_cluster_size", max_cluster_size, 1000000);
   pnh.param<double>("curvature_threshold", curvature_threshold, 0.3);
+  pnh.param<bool>("show_individually", show_individually, false);
+  pnh.param<bool>("save_outputs", save_outputs, false);
 
   std::vector<vtkSmartPointer<vtkPolyData> > meshes;
   readFile(file, meshes);
 
   // Step 2: Filter the mesh
-  // Create some pointers - not used since passing with "ports" but useful for debugging
+  // Create some pointers - not used since passing with VTK pipeline but useful for debugging
   ROS_INFO("Beginning Filtering.");
   vtkSmartPointer<vtkPolyData> mesh_in = meshes[0];
   vtkSmartPointer<vtkPolyData> mesh_cleaned;
   vtkSmartPointer<vtkPolyData> mesh_filtered1;
   vtkSmartPointer<vtkPolyData> mesh_filtered2;
 
-  // Remove duplicate points
-  vtkSmartPointer<vtkCleanPolyData> cleanPolyData = vtkSmartPointer<vtkCleanPolyData>::New();
-  cleanPolyData->SetInputData(mesh_in);
-  cleanPolyData->Update();
-  mesh_cleaned = cleanPolyData->GetOutput();
+//  // Remove duplicate points (Note: this seems to cause problems sometimes)
+//    vtkSmartPointer<vtkCleanPolyData> cleanPolyData = vtkSmartPointer<vtkCleanPolyData>::New();
+//    cleanPolyData->SetInputData(mesh_in);
+//    cleanPolyData->Update();
+//    mesh_cleaned = cleanPolyData->GetOutput();
 
   // Apply Windowed Sinc function interpolation Smoothing
   vtkSmartPointer<vtkWindowedSincPolyDataFilter> smooth_filter1 = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
-  smooth_filter1->SetInputConnection(cleanPolyData->GetOutputPort());
-  smooth_filter1->SetInputData(mesh_cleaned);
+//    smooth_filter1->SetInputConnection(cleanPolyData->GetOutputPort());
+  smooth_filter1->SetInputData(mesh_in);
   smooth_filter1->SetNumberOfIterations(20);
   smooth_filter1->SetPassBand(0.1);
   smooth_filter1->FeatureEdgeSmoothingOff();  // Smooth along sharp interior edges
@@ -138,7 +143,7 @@ int main(int argc, char** argv)
 
   // Step 3: Segment the mesh
   mesh_segmenter::MeshSegmenter segmenter;
-//  segmenter.setInputMesh(mesh_in);                           // Use to ignore filters
+  //  segmenter.setInputMesh(mesh_in);                           // Use to ignore filters
   segmenter.setInputMesh(mesh_filtered2);
   segmenter.setMinClusterSize(min_cluster_size);
   segmenter.setMaxClusterSize(max_cluster_size);
@@ -155,16 +160,53 @@ int main(int argc, char** argv)
   std::vector<vtkSmartPointer<vtkPolyData> > edges(1);
   edges.push_back(segmented_meshes.back());
 
-  ROS_INFO("Displaying Edges");
-  noether::Noether viz;
-  viz.addMeshDisplay(edges);
-  viz.visualizeDisplay();
-  ROS_INFO("Displaying Segments");
-  viz.addMeshDisplay(panels);
-  viz.visualizeDisplay();
-  ROS_INFO("Displaying Both");
-  viz.addMeshDisplay(segmented_meshes);
-  viz.visualizeDisplay();
+  std::cout << "Displaying " << segmented_meshes.size() << " meshes \n";
+  ROS_INFO("Close VTK window to continue");
+  if (show_individually)
+  {
+    for (int ind = 0; ind < segmented_meshes.size(); ind++)
+    {
+      if (true)
+      {
+        std::cout << "Mesh: " << ind << "\n";
+        std::vector<vtkSmartPointer<vtkPolyData> > tmp(1);
+        tmp.push_back(segmented_meshes[ind]);
+        noether::Noether viz;
+        viz.addMeshDisplay(tmp);
+        viz.visualizeDisplay();
+      }
+    }
+  }
+  else
+  {
+    noether::Noether viz;
+    ROS_INFO("Displaying Edges");
+    viz.addMeshDisplay(edges);
+    viz.visualizeDisplay();
+    ROS_INFO("Displaying Segments");
+    viz.addMeshDisplay(panels);
+    viz.visualizeDisplay();
+    ROS_INFO("Displaying Both");
+    viz.addMeshDisplay(segmented_meshes);
+    viz.visualizeDisplay();
+  }
+
+  if (save_outputs)
+  {
+    for (int ind = 0; ind < segmented_meshes.size(); ind++)
+    {
+      std::cout << "Saving: " << ind << "\n";
+
+      std::ostringstream ss;
+      ss << ind;
+      std::string filename = ros::package::getPath("noether_examples") + "/meshes/outputs/output_" + ss.str() + ".stl";
+
+      vtkSmartPointer<vtkSTLWriter> stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
+      stlWriter->SetFileName(filename.c_str());
+      stlWriter->SetInputData(segmented_meshes[ind]);
+      stlWriter->Write();
+    }
+  }
 
   return 0;
 }

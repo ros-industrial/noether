@@ -19,6 +19,7 @@ find_package(catkin REQUIRED cmake_modules
     noether_msgs
     pcl_conversions
     roscpp
+    roslib
     actionlib
 )
 
@@ -33,6 +34,7 @@ catkin_package(
     noether
     pcl_conversions
     noether_msgs
+    roslib
     actionlib
   DEPENDS VTK
 )
