@@ -5,7 +5,8 @@
  */
 
 #include "vtk_viewer/vtk_utils.h"
-
+#include <console_bridge/console.h>
+#include <cmath>
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/vtk_lib_io.h>
 #include <pcl/kdtree/kdtree_flann.h>
@@ -380,6 +381,7 @@ void generateNormals(vtkSmartPointer<vtkPolyData>& data, int flip_normals)
   // If point data exists but cell data does not, iterate through the cells and generate normals manually
   if(data->GetPointData()->GetNormals() && !data->GetCellData()->GetNormals())
   {
+    logDebug("Generating Mesh Normals manually");
     int size = data->GetNumberOfCells();
     vtkDoubleArray* cell_normals = vtkDoubleArray::New();
 
@@ -423,32 +425,40 @@ void generateNormals(vtkSmartPointer<vtkPolyData>& data, int flip_normals)
   }
   else
   {
+    logDebug("Recomputing Mesh normals");
     vtkSmartPointer<vtkPolyDataNormals> normal_generator = vtkSmartPointer<vtkPolyDataNormals>::New();
     normal_generator->SetInputData(data);
     normal_generator->ComputePointNormalsOn();
     normal_generator->ComputeCellNormalsOn();
 
     // Optional settings
-    normal_generator->SetFeatureAngle(0.5);
+    normal_generator->SetFeatureAngle(M_PI_2);
     normal_generator->SetSplitting(0);
     normal_generator->SetConsistency(1);
     normal_generator->SetAutoOrientNormals(flip_normals);
+
     if(!data->GetPointData()->GetNormals())
     {
       normal_generator->SetComputePointNormals(1);
+      logDebug("Point Normals Computation ON");
     }
     else
     {
       normal_generator->SetComputePointNormals(0);
+      logDebug("Point Normals Computation OFF");
     }
+
     if(!data->GetCellData()->GetNormals())
     {
       normal_generator->SetComputeCellNormals(1);
+      logDebug("Cell Normals Computation ON");
     }
     else
     {
       normal_generator->SetComputeCellNormals(0);
+      logDebug("Cell Normals Computation OFF");
     }
+
     normal_generator->SetFlipNormals(0);
     normal_generator->SetNonManifoldTraversal(0);
 
@@ -465,8 +475,6 @@ void generateNormals(vtkSmartPointer<vtkPolyData>& data, int flip_normals)
       data->GetCellData()->SetNormals(normals2);
     }
   }
-
-
 }
 
 vtkSmartPointer<vtkPolyData> sampleMesh(vtkSmartPointer<vtkPolyData> mesh, double distance)

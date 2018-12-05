@@ -6,6 +6,7 @@
 
 #include <limits>
 #include <cmath>
+#include <console_bridge/console.h>
 
 #include <Eigen/Core>
 
@@ -30,13 +31,14 @@
 #include <vtkTriangleFilter.h>
 
 #include <pcl/surface/vtk_smoothing/vtk_utils.h>
-
-//#include <pcl/pcl_tests.h>
-
 #include <pcl/point_types.h>
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_plane.h>
+
 #include <tool_path_planner/raster_tool_path_planner.h>
+
+
+static const std::size_t MAX_ATTEMPTS = 1000;
 
 namespace tool_path_planner
 {
@@ -47,6 +49,7 @@ namespace tool_path_planner
     debug_on_ = false;
     cut_direction_[0] = cut_direction_[1] = cut_direction_[2] = 0;
     cut_centroid_[0] = cut_centroid_[1] = cut_centroid_[2] = 0;
+    console_bridge::setLogLevel(console_bridge::CONSOLE_BRIDGE_LOG_DEBUG);
   }
 
   void RasterToolPathPlanner::planPaths(const vtkSmartPointer<vtkPolyData> mesh, std::vector<ProcessPath>& paths)
@@ -102,13 +105,16 @@ namespace tool_path_planner
     kd_tree_->BuildLocator();
 
     // Add display for debugging
-    debug_viewer_.removeAllDisplays();
-    std::vector<float> color(3);
-    color[0] = 0.9; color[1] = 0.9; color[2] = 0.9;
-    debug_viewer_.addPolyDataDisplay(input_mesh_, color);
+    if(debug_on_)
+    {
+      debug_viewer_.removeAllDisplays();
+      std::vector<float> color(3);
+      color[0] = 0.9; color[1] = 0.9; color[2] = 0.9;
+      debug_viewer_.addPolyDataDisplay(input_mesh_, color);
+    }
 
     // TODO: this does not appear to work
-    vtk_viewer::generateNormals(input_mesh_);
+    vtk_viewer::generateNormals(input_mesh_,0);
   }
 
   bool RasterToolPathPlanner::computePaths()
@@ -126,7 +132,7 @@ namespace tool_path_planner
 
     // could potentially make these two loops run in parallel but then we would need to add locks on the data
     bool done = false;
-    int max = 10;
+    int max = MAX_ATTEMPTS;
     int count = 0;
 
     // From existing cutting plane, create more offset planes in one direction
@@ -158,6 +164,7 @@ namespace tool_path_planner
       {
         done = true;
       }
+
       ++count;
     }
 
@@ -187,6 +194,10 @@ namespace tool_path_planner
     }
 
     // if paths need to be modified, delete all old paths (starting at the back) and insert new ones
+    if(!delete_paths.empty())
+    {
+     std::cout<<"Deleting "<<delete_paths.size()<<" paths"<<std::endl;
+    }
     for(int i = delete_paths.size() - 1; i >=0 ; --i )
     {
       paths_.erase(paths_.begin() + delete_paths[i]);
@@ -274,8 +285,12 @@ namespace tool_path_planner
     vtkSmartPointer<vtkPolyData> offset_line = vtkSmartPointer<vtkPolyData>::New();
     if(dist != 0.0)  // if offset distance given, create an offset surface
     {
-      // create offset points
+      // create offset points in the adjacent line at a distance "dist"
       offset_line = createOffsetLine(this_path.line, this_path.derivatives, dist);
+      if(!offset_line)
+      {
+        return false;
+      }
 
       // create cutting surface  TODO: offset may need to be based upon point bounds
       next_path.intersection_plane = createSurfaceFromSpline(offset_line, tool_.intersecting_plane_height);
@@ -310,7 +325,7 @@ namespace tool_path_planner
 
     if(!findIntersectionLine(next_path.intersection_plane, intersection_line, spline))
     {
-      cout << "No intersection found for creating spline\n";
+      logDebug("No intersection found for creating spline");
       return false;
     }
 
@@ -327,7 +342,7 @@ namespace tool_path_planner
       intersection_filter->Update();
       if(intersection_filter->GetOutput()->GetPoints()->GetNumberOfPoints() > 0)
       {
-        cout << "Self intersection found\n";
+        logDebug("Self intersection found with back path");
         return false;
       }
 
@@ -335,7 +350,7 @@ namespace tool_path_planner
       intersection_filter->Update();
       if(intersection_filter->GetOutput()->GetPoints()->GetNumberOfPoints() > 0)
       {
-        cout << "Self intersection found\n";
+        logDebug("Self intersection found with front path");
         return false;
       }
     }
@@ -1374,28 +1389,52 @@ namespace tool_path_planner
     // If normal or derivative data does not exist, or number of normals and derivatives do not match, return a null pointer
     if(!normals || !ders || normals->GetNumberOfTuples() != ders->GetNumberOfTuples())
     {
+      logError("Could not create offset line");
       return new_points;
     }
 
     if(normals->GetNumberOfTuples() != line->GetNumberOfPoints())
     {
-      cout << "ERROR IN CALC OFFSET LINE\n";
+      logError("ERROR IN CALC OFFSET LINE");
+      return new_points;
     }
 
     new_points = vtkSmartPointer<vtkPolyData>::New();
     vtkSmartPointer<vtkPoints> new_pts = vtkSmartPointer<vtkPoints>::New();
 
+    auto computeAngle = [](const Eigen::Vector3d& v1, const Eigen::Vector3d& v2) -> double {
+       return std::acos(v1.dot(v2)/(v1.norm() * v2.norm()));
+    };
+
     // calculate offset for each point
+    Eigen::Vector3d offset_dir;
     for(int i = 0; i < normals->GetNumberOfTuples(); ++i)
     {
       //calculate cross to get offset direction
-      double* pt1 = normals->GetTuple(i);
-      double* pt2 = ders->GetTuple(i);
+      double* nrml = normals->GetTuple(i);
+      double* line_dir = ders->GetTuple(i);
 
-      Eigen::Vector3d u(pt1[0], pt1[1], pt1[2]);
-      Eigen::Vector3d v(pt2[0], pt2[1], pt2[2]);
+      Eigen::Vector3d u(nrml[0], nrml[1], nrml[2]);
+      Eigen::Vector3d v(line_dir[0], line_dir[1], line_dir[2]);
       Eigen::Vector3d w = u.cross(v);
       w.normalize();
+
+      if(i == 0)
+      {
+        offset_dir = w;
+      }
+      else
+      {
+        // check offset direction consistency to correct due to flipped normal
+        double angle = computeAngle(offset_dir,w);
+        if(angle > M_PI_2)
+        {
+          // flip direction of w
+          w *= -1;
+        }
+
+        offset_dir = w;
+      }
 
       // use point, direction w, and dist, to create new point
       double new_pt[3];
@@ -1447,7 +1486,7 @@ namespace tool_path_planner
 
     if(!normals)
     {
-      cout << "no normals, cannot create surface\n";
+      logError("no normals, cannot create surface from spline");
       return new_surface;
     }
 

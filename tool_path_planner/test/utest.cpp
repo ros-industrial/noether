@@ -15,6 +15,7 @@
 #define DISPLAY_NORMALS  0
 #define DISPLAY_DERIVATIVES  1
 #define DISPLAY_CUTTING_MESHES  0
+#define POINT_SPACING 0.5
 
 // This test shows the results of the tool path planner on a square grid that has a sinusoidal
 // variation in the z axis and a cutout in the middle.  It will generate a series of evenly spaced lines (aprox. equal to line_spacing)
@@ -51,7 +52,7 @@ TEST(IntersectTest, TestCase1)
 
   // Set input tool data
   tool_path_planner::ProcessTool tool;
-  tool.pt_spacing = 0.5;
+  tool.pt_spacing = POINT_SPACING;
   tool.line_spacing = 0.75;
   tool.tool_offset = 0.0; // currently unused
   tool.intersecting_plane_height = 0.2; // 0.5 works best, not sure if this should be included in the tool
@@ -151,7 +152,7 @@ TEST(IntersectTest, TestCaseRansac)
 
   // Set input tool data
   tool_path_planner::ProcessTool tool;
-  tool.pt_spacing = 0.5;
+  tool.pt_spacing = POINT_SPACING;
   tool.line_spacing = 0.75;
   tool.tool_offset = 0.0; // currently unused
   tool.intersecting_plane_height = 0.2; // 0.5 works best, not sure if this should be included in the tool
