@@ -14,5 +14,6 @@
   <depend>std_msgs</depend>
   <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend>
+  <depend>pcl_msgs</depend>
 
 </package>

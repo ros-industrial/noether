@@ -17,7 +17,6 @@ find_package(catkin REQUIRED cmake_modules
     vtk_viewer
     noether
     noether_msgs
-    pcl_conversions
     roscpp
     roslib
     actionlib
@@ -32,7 +31,6 @@ catkin_package(
 #    path_sequence_planner
     vtk_viewer
     noether
-    pcl_conversions
     noether_msgs
     roslib
     actionlib

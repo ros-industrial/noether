@@ -157,8 +157,8 @@ int main(int argc, char** argv)
   // Get Mesh segment
   std::vector<vtkSmartPointer<vtkPolyData> > segmented_meshes = segmenter.getMeshSegments();
   std::vector<vtkSmartPointer<vtkPolyData> > panels(segmented_meshes.begin(), segmented_meshes.end() - 1);
-  std::vector<vtkSmartPointer<vtkPolyData> > edges(1);
-  edges.push_back(segmented_meshes.back());
+//  std::vector<vtkSmartPointer<vtkPolyData> > edges(1);
+//  edges.push_back(segmented_meshes.back());
 
   std::cout << "Displaying " << segmented_meshes.size() << " meshes \n";
   ROS_INFO("Close VTK window to continue");
@@ -180,13 +180,13 @@ int main(int argc, char** argv)
   else
   {
     noether::Noether viz;
-    ROS_INFO("Displaying Edges");
-    viz.addMeshDisplay(edges);
-    viz.visualizeDisplay();
+//    ROS_INFO("Displaying Edges");
+//    viz.addMeshDisplay(edges);
+//    viz.visualizeDisplay();
     ROS_INFO("Displaying Segments");
-    viz.addMeshDisplay(panels);
-    viz.visualizeDisplay();
-    ROS_INFO("Displaying Both");
+//    viz.addMeshDisplay(panels);
+//    viz.visualizeDisplay();
+//    ROS_INFO("Displaying Both");
     viz.addMeshDisplay(segmented_meshes);
     viz.visualizeDisplay();
   }

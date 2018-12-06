@@ -31,10 +31,13 @@ std::vector<vtkSmartPointer<vtkPolyData> > MeshSegmenter::getMeshSegments()
   vtkSmartPointer<vtkPolyData> input_copy = vtkSmartPointer<vtkPolyData>::New();
   input_copy->DeepCopy(input_mesh_);
   std::vector<vtkSmartPointer<vtkPolyData> > meshes;
-  for (int i = 0; i < included_indices_.size(); ++i)
+  //TODO: Figure out why the last one fails for some meshes (and then remove the -1)
+  for (int i = 0; i < included_indices_.size() - 1; ++i)
   {
     vtkSmartPointer<vtkPolyData> mesh = vtkSmartPointer<vtkPolyData>::New();
+    // Create new pointer to a new copy of input_mesh_
     mesh->DeepCopy(input_mesh_);
+    // Initilize pointers to points/polys - Also resets them
     mesh->GetPoints()->Initialize();
     mesh->GetPolys()->Initialize();
     input_copy->GetCellData()->CopyNormalsOn();
@@ -47,14 +50,15 @@ std::vector<vtkSmartPointer<vtkPolyData> > MeshSegmenter::getMeshSegments()
                                        included_indices_[i]->GetNumberOfIds() * 2);
 
     // copy cell data and normals
-    mesh->CopyCells(input_copy, included_indices_[i]);
+      mesh->CopyCells(input_copy, included_indices_[i]);
 
-    if (mesh->GetNumberOfCells() <= 1)
-    {
-      cout << "NOT ENOUGH CELLS FOR SEGMENTATION\n";
-      continue;
-    }
-    meshes.push_back(mesh);
+
+      if (mesh->GetNumberOfCells() <= 1)
+      {
+        cout << "NOT ENOUGH CELLS FOR SEGMENTATION\n";
+        continue;
+      }
+      meshes.push_back(mesh);
   }
 
   return meshes;

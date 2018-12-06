@@ -2,8 +2,9 @@
 #include <actionlib/server/simple_action_server.h>
 #include <noether_msgs/SegmentAction.h>
 #include <mesh_segmenter/mesh_segmenter.h>
+
 #include <pcl_conversions/pcl_conversions.h>
-#include <pcl/surface/vtk_smoothing/vtk_utils.h>
+#include <pcl/io/vtk_lib_io.h>
 
 
 #include <vtkPolyDataNormals.h>
@@ -28,6 +29,7 @@ public:
     : server_(nh_, name, boost::bind(&SegmentationAction::executeCB, this, _1), false), action_name_(name), nh_(nh)
   {
     server_.start();
+    ROS_INFO("Segmentation action server online");
   }
 
   ~SegmentationAction(void) {}
@@ -35,42 +37,52 @@ public:
   void executeCB(const noether_msgs::SegmentGoalConstPtr& goal)
   {
     // Step 1: Load parameters
+    // TODO: Pass these in along with action
+    std::string file;
     double curvature_threshold;
     int min_cluster_size, max_cluster_size;
-    nh_.param<int>("min_cluster_size", min_cluster_size, 500);
-    nh_.param<int>("max_cluster_size", max_cluster_size, 1000000);
-    nh_.param<double>("curvature_threshold", curvature_threshold, 0.3);
+    bool show_individually, save_outputs;
+    nh_.param<std::string>("/mesh_segmenter_client_node/filename", file, "");
+    nh_.param<int>("/mesh_segmenter_client_node/min_cluster_size", min_cluster_size, 500);
+    nh_.param<int>("/mesh_segmenter_client_node/max_cluster_size", max_cluster_size, 1000000);
+    nh_.param<double>("/mesh_segmenter_client_node/curvature_threshold", curvature_threshold, 0.3);
+    nh_.param<bool>("/mesh_segmenter_client_node/show_individually", show_individually, false);
+    nh_.param<bool>("/mesh_segmenter_client_node/save_outputs", save_outputs, false);
 
     // Convert ROS msg -> PCL Mesh -> VTK Mesh
     vtkSmartPointer<vtkPolyData> mesh;
     pcl::PolygonMesh input_pcl_mesh;
     pcl_conversions::toPCL(goal->input_mesh, input_pcl_mesh);
-    vtk_viewer::pclEncodeMeshAndNormals(input_pcl_mesh, mesh);
+    vtk_viewer::pclEncodeMeshAndNormals(input_pcl_mesh, mesh);//, 100, pcl::PointXYZ(0, 50.0, 50.0));
+    vtk_viewer::generateNormals(mesh);
 //    pcl::VTKUtils::convertToVTK(input_pcl_mesh, mesh);            // Converts w
 
 
 
     // Step 2: Filter the mesh
-    // Create some pointers - not used since passing with "ports" but useful for debugging
+    // Create some pointers - not used since passing with VTK pipeline but useful for debugging
     ROS_INFO("Beginning Filtering.");
     vtkSmartPointer<vtkPolyData> mesh_in = mesh;
     vtkSmartPointer<vtkPolyData> mesh_cleaned;
     vtkSmartPointer<vtkPolyData> mesh_filtered1;
     vtkSmartPointer<vtkPolyData> mesh_filtered2;
 
-    // Remove duplicate points
-    vtkSmartPointer<vtkCleanPolyData> cleanPolyData = vtkSmartPointer<vtkCleanPolyData>::New();
-    cleanPolyData->SetInputData(mesh_in);
-    cleanPolyData->Update();
-    mesh_cleaned = cleanPolyData->GetOutput();
+    // Remove duplicate points (Note: this seems to cause problems sometimes)
+//    vtkSmartPointer<vtkCleanPolyData> cleanPolyData = vtkSmartPointer<vtkCleanPolyData>::New();
+//    cleanPolyData->SetInputData(mesh_in);
+//    cleanPolyData->Update();
+//    mesh_cleaned = cleanPolyData->GetOutput();
+
+    vtk_viewer::generateNormals(mesh_in);
+
 
     if (goal->filter)
     {
       // Apply Windowed Sinc function interpolation Smoothing
       vtkSmartPointer<vtkWindowedSincPolyDataFilter> smooth_filter1 =
           vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
-      smooth_filter1->SetInputConnection(cleanPolyData->GetOutputPort());
-//      smooth_filter1->SetInputData(mesh_cleaned);
+//      smooth_filter1->SetInputConnection(cleanPolyData->GetOutputPort());
+      smooth_filter1->SetInputData(mesh_in);
       smooth_filter1->SetNumberOfIterations(20);
       smooth_filter1->SetPassBand(0.1);
       smooth_filter1->FeatureEdgeSmoothingOff();  // Smooth along sharp interior edges
@@ -98,17 +110,10 @@ public:
 
     // Step 3: Segment the mesh
     mesh_segmenter::MeshSegmenter segmenter;
-    ROS_INFO("Displaying mesh");
-    noether::Noether viz;
-    std::vector <vtkSmartPointer<vtkPolyData> > tmp;
-    tmp.push_back((mesh_filtered2));
-    viz.addMeshDisplay(tmp);
-    viz.visualizeDisplay();
-
     if (goal->filter)
       segmenter.setInputMesh(mesh_filtered2);
     else
-      segmenter.setInputMesh(mesh_cleaned);
+      segmenter.setInputMesh(mesh_in);
     segmenter.setMinClusterSize(min_cluster_size);
     segmenter.setMaxClusterSize(max_cluster_size);
     segmenter.setCurvatureThreshold(curvature_threshold);
@@ -120,18 +125,16 @@ public:
 
     // Get Mesh segment
     std::vector<vtkSmartPointer<vtkPolyData> > segmented_meshes = segmenter.getMeshSegments();
-    //    std::vector<vtkSmartPointer<vtkPolyData> > panels(segmented_meshes.begin(), segmented_meshes.end() - 1);
-    //    std::vector<vtkSmartPointer<vtkPolyData> > edges(1);
-    //    edges.push_back(segmented_meshes.back());
 
     // Step 4: Convert to PolygonMesh
     std::vector<pcl_msgs::PolygonMesh> pcl_mesh_msgs;
-    pcl_mesh_msgs.reserve(segmented_meshes.size());
     for (int ind = 0; ind < segmented_meshes.size(); ind++)
     {
       pcl::PolygonMesh pcl_mesh;
-      pcl::VTKUtils::convertToPCL(segmented_meshes[ind], pcl_mesh);
-      pcl_conversions::fromPCL(pcl_mesh, pcl_mesh_msgs[ind]);
+      pcl::io::vtk2mesh(segmented_meshes[ind],pcl_mesh);
+      pcl_msgs::PolygonMesh pcl_mesh_msg;
+      pcl_conversions::fromPCL(pcl_mesh, pcl_mesh_msg);
+      pcl_mesh_msgs.push_back(pcl_mesh_msg);
     }
 
     // Step 5: Return result

@@ -15,8 +15,6 @@
   <depend>vtk_viewer</depend>
   <depend>noether_msgs</depend>
   <depend>actionlib</depend>
-  <depend>pcl_conversions</depend>
-  <depend>pcl_ros</depend>
   <depend>noether</depend>
   <depend>roslib</depend>
 

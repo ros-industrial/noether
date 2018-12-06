@@ -23,40 +23,35 @@
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 
-//#include "noether/noether.h"
-//#include <mesh_segmenter/mesh_segmenter.h>
-//#include <vtkPointData.h>
-//#include <ros/ros.h>
-//#include <ros/file_log.h>
-
-////#include <vtkPolyDataNormals.h>
-////#include <vtkCleanPolyData.h>
-////#include <vtkWindowedSincPolyDataFilter.h>
-////#include <vtkSmoothPolyDataFilter.h>
-
 #include <noether_msgs/SegmentAction.h>
 #include <actionlib/client/service_client.h>
 #include <pcl_conversions/pcl_conversions.h>
-//#include <pcl/surface/vtk_smoothing/vtk_utils.h>
-//#include <pcl/io/ply_io.h>
+
+#include <noether/noether.h>
+#include <vtkSTLWriter.h>
+#include <ros/package.h>
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "noether_node");
   ros::NodeHandle pnh("~");
 
-  ROS_ERROR("Press enter to continue");
-  std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-
-  // Step 1: Load the 'filename' parameter
-  std::string filename;
-  pnh.param<std::string>("filename", filename, "");
-  std::cout << filename << '\n';
+  // Step 1: Load parameters
+  std::string file;
+  double curvature_threshold;
+  int min_cluster_size, max_cluster_size;
+  bool show_individually, save_outputs;
+  pnh.param<std::string>("filename", file, "");
+  pnh.param<int>("min_cluster_size", min_cluster_size, 500);
+  pnh.param<int>("max_cluster_size", max_cluster_size, 1000000);
+  pnh.param<double>("curvature_threshold", curvature_threshold, 0.3);
+  pnh.param<bool>("show_individually", show_individually, false);
+  pnh.param<bool>("save_outputs", save_outputs, false);
 
   // Step 2: Import the mesh
   pcl::PolygonMesh pcl_mesh;
-  pcl::io::loadPLYFile(filename, pcl_mesh);
-  std::cout << "Imported as PCL mesh of size " << pcl_mesh.cloud.data.size() << '\n' ;
+  pcl::io::loadPLYFile(file, pcl_mesh);
+  std::cout << "Imported as PCL mesh of size " << pcl_mesh.cloud.data.size() << '\n';
 
   // Step 3: Use action interface
   actionlib::SimpleActionClient<noether_msgs::SegmentAction> action("segmenter", true);
@@ -75,7 +70,7 @@ int main(int argc, char** argv)
   action.sendGoal(msg);
 
   // wait for the action to return
-  bool finished_before_timeout = action.waitForResult(ros::Duration(300.0));
+  bool finished_before_timeout = action.waitForResult(ros::Duration(600.0));
 
   std::vector<pcl_msgs::PolygonMesh> result_msgs;
   std::vector<vtkSmartPointer<vtkPolyData> > segmented_meshes;
@@ -89,33 +84,72 @@ int main(int argc, char** argv)
   }
   else
     ROS_INFO("Action did not finish before the time out.");
+
+  // Step 4: Convert ROS msg -> PCL -> VTK
+  ROS_INFO("Converting ROS msg to VTK");
   for (int ind = 0; ind < result_msgs.size(); ind++)
   {
     pcl::PolygonMesh tmp;
     pcl_conversions::toPCL(result_msgs[ind], tmp);
-    pcl::VTKUtils::convertToVTK(tmp, segmented_meshes[ind]);
+
+    vtkSmartPointer<vtkPolyData> segmented_mesh;
+    pcl::VTKUtils::convertToVTK(tmp, segmented_mesh);
+    segmented_meshes.push_back(segmented_mesh);
   }
 
-  // Step 4: Convert ROS msg -> PCL -> VTK
-
-
-
-//  // Get Mesh segment
-//  //  std::vector<vtkSmartPointer<vtkPolyData> > segmented_meshes = segmenter.getMeshSegments();
-//    std::vector<vtkSmartPointer<vtkPolyData> > panels(segmented_meshes.begin(), segmented_meshes.end() - 1);
+  // Step 5: Display mesh
+  std::cout << "Displaying " << segmented_meshes.size() << " meshes \n";
+  ROS_INFO("Close VTK window to continue");
+  if (show_individually)
+  {
+    for (int ind = 0; ind < segmented_meshes.size(); ind++)
+    {
+      if (true)
+      {
+        std::cout << "Mesh: " << ind << "\n";
+        std::vector<vtkSmartPointer<vtkPolyData> > tmp(1);
+        tmp.push_back(segmented_meshes[ind]);
+        noether::Noether viz;
+        viz.addMeshDisplay(tmp);
+        viz.visualizeDisplay();
+      }
+    }
+  }
+  else
+  {
+    std::vector<vtkSmartPointer<vtkPolyData> > panels(segmented_meshes.begin(), segmented_meshes.end() - 1);
 //    std::vector<vtkSmartPointer<vtkPolyData> > edges(1);
 //    edges.push_back(segmented_meshes.back());
 
+    noether::Noether viz;
 //    ROS_INFO("Displaying Edges");
-//    noether::Noether viz;
 //    viz.addMeshDisplay(edges);
 //    viz.visualizeDisplay();
-//    ROS_INFO("Displaying Segments");
+    ROS_INFO("Displaying Segments");
 //    viz.addMeshDisplay(panels);
 //    viz.visualizeDisplay();
 //    ROS_INFO("Displaying Both");
-//    viz.addMeshDisplay(segmented_meshes);
-//    viz.visualizeDisplay();
+    viz.addMeshDisplay(segmented_meshes);
+    viz.visualizeDisplay();
+  }
+
+  // Step 6: Save output meshes
+  if (save_outputs)
+  {
+    for (int ind = 0; ind < segmented_meshes.size(); ind++)
+    {
+      std::cout << "Saving: " << ind << "\n";
+
+      std::ostringstream ss;
+      ss << ind;
+      std::string filename = ros::package::getPath("noether_examples") + "/meshes/outputs/output_" + ss.str() + ".stl";
+
+      vtkSmartPointer<vtkSTLWriter> stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
+      stlWriter->SetFileName(filename.c_str());
+      stlWriter->SetInputData(segmented_meshes[ind]);
+      stlWriter->Write();
+    }
+  }
 
   return 0;
 }
