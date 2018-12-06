@@ -9,6 +9,7 @@
 
 #include <vtkPoints.h>
 #include <vtkKdTreePointLocator.h>
+#include <vtkCellLocator.h>
 
 #include <tool_path_planner/tool_path_planner.h>
 
@@ -128,12 +129,21 @@ namespace tool_path_planner
     bool debug_on_;  /**< Turns on/off the debug display which views the path planning output one step at a time */
     vtk_viewer::VTKViewer debug_viewer_;  /**< The vtk viewer for displaying debug output */
     vtkSmartPointer<vtkKdTreePointLocator> kd_tree_; /**< kd tree for finding nearest neighbor points */
+    vtkSmartPointer<vtkCellLocator> cell_locator_;  /** @brief allows locating closest cell */
     vtkSmartPointer<vtkPolyData> input_mesh_; /**< input mesh to operate on */
     std::vector<ProcessPath> paths_; /**< series of intersecting lines on the given mesh */
     ProcessTool tool_; /**< The tool parameters which defines how to generate the tool paths (spacing, offset, etc.) */
 
     double cut_direction_ [3];
     double cut_centroid_ [3];
+
+    /**
+     * @brief Estimates the normal of a line that lies on the surface of the current mesh.  For each point, it uses the normal of
+     * the closes cell in the mesh
+     * @param data  The points to operate on, normal data inserted in place
+     * @return
+     */
+    bool computeSurfaceLineNormals(vtkSmartPointer<vtkPolyData>& data);
 
     /**
      * @brief getCellCentroidData Gets the data for a cell in the input_mesh_
