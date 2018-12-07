@@ -10,6 +10,7 @@
 #include <vtkPoints.h>
 #include <vtkKdTreePointLocator.h>
 #include <vtkCellLocator.h>
+#include <vtkModifiedBSPTree.h>
 
 #include <tool_path_planner/tool_path_planner.h>
 
@@ -130,6 +131,7 @@ namespace tool_path_planner
     vtk_viewer::VTKViewer debug_viewer_;  /**< The vtk viewer for displaying debug output */
     vtkSmartPointer<vtkKdTreePointLocator> kd_tree_; /**< kd tree for finding nearest neighbor points */
     vtkSmartPointer<vtkCellLocator> cell_locator_;  /** @brief allows locating closest cell */
+    vtkSmartPointer<vtkModifiedBSPTree> bsp_tree_;          /** @brief use to perform ray casting on the mesh */
     vtkSmartPointer<vtkPolyData> input_mesh_; /**< input mesh to operate on */
     std::vector<ProcessPath> paths_; /**< series of intersecting lines on the given mesh */
     ProcessTool tool_; /**< The tool parameters which defines how to generate the tool paths (spacing, offset, etc.) */
@@ -191,6 +193,14 @@ namespace tool_path_planner
      * @return The new surface, in the form of a mesh
      */
     vtkSmartPointer<vtkPolyData> createSurfaceFromSpline(vtkSmartPointer<vtkPolyData> line, double dist);
+
+    /**
+     * @brief Creates planes that connect the line to its projection on the surface mesh.
+     * @param line  The  line
+     * @param dist  Rays queries are created from points in the line along the local normal vector by this distance.
+     * @return  The surface planes in the form of a mesh.
+     */
+    vtkSmartPointer<vtkPolyData> extrudeSplineToSurface(vtkSmartPointer<vtkPolyData> line, double dist);
 
     /**
      * @brief sortPoints Sorts points in order to form a contiguous line with the shortest length possible
