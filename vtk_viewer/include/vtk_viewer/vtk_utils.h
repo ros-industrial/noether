@@ -18,8 +18,14 @@
 #include <vtkPolyData.h>
 #include <vtkCutter.h>
 
+#include <log4cxx/logger.h>
+
 namespace vtk_viewer
 {
+
+
+  extern log4cxx::LoggerPtr VTK_LOGGER;
+
 
   /**
    * @brief createPlane Creates a surface mesh that has a sinusoidal function

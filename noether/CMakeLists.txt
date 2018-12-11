@@ -1,4 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
+
+## Compile as C++14, 
+add_compile_options(-std=c++14)
+
 project(noether)
 
 find_package(VTK 7.1 REQUIRED NO_MODULE)

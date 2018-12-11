@@ -6,10 +6,8 @@
 
 #include <limits>
 #include <cmath>
-#include <console_bridge/console.h>
 
 #include <Eigen/Core>
-
 #include <vtkParametricFunctionSource.h>
 #include <vtkOBBTree.h>
 #include <vtkIntersectionPolyDataFilter.h>
@@ -35,10 +33,29 @@
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_plane.h>
 
+#include <log4cxx/basicconfigurator.h>
+#include <log4cxx/patternlayout.h>
+#include <log4cxx/consoleappender.h>
+
 #include <tool_path_planner/raster_tool_path_planner.h>
 
 
 static const std::size_t MAX_ATTEMPTS = 1000;
+static const double ANGLE_CORRECTION_THRESHOLD = (150.0/180.0)*M_PI;
+static const double EXTRUDE_EXTEND_PERCENTAGE = 1.5;
+static const double RAY_INTERSECTION_TOLERANCE = 0.001;
+
+
+log4cxx::LoggerPtr createConsoleLogger(const std::string& logger_name)
+{
+  using namespace log4cxx;
+  PatternLayoutPtr pattern_layout(new PatternLayout( "[\%-5p] [\%c](L:\%L): \%m\%n"));
+  ConsoleAppenderPtr console_appender(new ConsoleAppender(pattern_layout));
+  log4cxx::LoggerPtr logger(Logger::getLogger(logger_name));
+  logger->addAppender(console_appender);
+  logger->setLevel(Level::getInfo());
+  return logger;
+}
 
 /**
  * @brief computes the angle between two vectors
@@ -51,16 +68,55 @@ double computeAngle(const Eigen::Vector3d& v1, const Eigen::Vector3d& v2)
   return std::acos(v1.dot(v2)/(v1.norm() * v2.norm()));
 }
 
+/**
+ * @brief computes the squared distance between two 3d vectors
+ * @param pt1
+ * @param pt2
+ * @return
+ */
+double computeSquaredDistance(const std::vector<double>& pt1, const std::vector<double>& pt2)
+{
+  if(pt1.size() != 3 || pt2.size() != 3)
+  {
+    return 0;
+  }
+  return (pow(pt1[0] - pt2[0], 2.0) + pow(pt1[1] - pt2[1], 2.0 ) + pow((pt1[2] - pt2[2]), 2.0 ));
+}
+
+/**
+ * @brief findClosestPoint Finds the closest point in a list to a target point
+ * @param pt The target point
+ * @param pts The list of points to search for the closest point
+ * @return The index of the closest point
+ */
+int findClosestPoint(const std::vector<double>& pt,  const std::vector<std::vector<double> >& pts)
+{
+  double min = std::numeric_limits<double>::max();
+  int index = -1;
+  for(int i = 0; i < pts.size(); ++i)
+  {
+    double d = computeSquaredDistance(pt, pts[i]);
+    if(d < min)
+    {
+      index = i;
+      min = d;
+    }
+  }
+  return index;
+}
+
+
+log4cxx::LoggerPtr tool_path_planner::RasterToolPathPlanner::RASTER_PATH_PLANNER_LOGGER = createConsoleLogger("RasterPathPlanner");
+
+
 namespace tool_path_planner
 {
 
-  RasterToolPathPlanner::RasterToolPathPlanner(bool use_ransac):
-      use_ransac_normal_estimation_(use_ransac)
+  RasterToolPathPlanner::RasterToolPathPlanner()
   {
     debug_on_ = false;
     cut_direction_[0] = cut_direction_[1] = cut_direction_[2] = 0;
     cut_centroid_[0] = cut_centroid_[1] = cut_centroid_[2] = 0;
-    console_bridge::setLogLevel(console_bridge::CONSOLE_BRIDGE_LOG_DEBUG);
   }
 
   void RasterToolPathPlanner::planPaths(const vtkSmartPointer<vtkPolyData> mesh, std::vector<ProcessPath>& paths)
@@ -211,7 +267,7 @@ namespace tool_path_planner
     // if paths need to be modified, delete all old paths (starting at the back) and insert new ones
     if(!delete_paths.empty())
     {
-     std::cout<<"Deleting "<<delete_paths.size()<<" paths"<<std::endl;
+      LOG4CXX_INFO(RASTER_PATH_PLANNER_LOGGER, "Deleting path " << delete_paths.size());
     }
     for(int i = delete_paths.size() - 1; i >=0 ; --i )
     {
@@ -255,7 +311,6 @@ namespace tool_path_planner
     double max = x > y ? x : y;
     max = max > z ? max : z;
 
-    //vtkSmartPointer<vtkPolyData> cutting_mesh = createSurfaceFromSpline(start_curve, max);
     vtkSmartPointer<vtkPolyData> cutting_mesh = extrudeSplineToSurface(start_curve, max);
     if(!cutting_mesh)
     {
@@ -278,12 +333,11 @@ namespace tool_path_planner
 
     if(!findIntersectionLine(cutting_mesh, intersection_line, spline))
     {
-      cout << "No intersection found\n";
+      LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER,"No intersection found");
       return false;
     }
 
     ProcessPath this_path;
-    //estimateNewNormals(intersection_line);
     if(!computeSurfaceLineNormals(intersection_line))
     {
       return false;
@@ -302,7 +356,7 @@ namespace tool_path_planner
   {
     if(dist == 0.0 && this_path.intersection_plane->GetPoints()->GetNumberOfPoints() < 2)
     {
-      cout << "No path offset and no intersection plane given. Cannot generate next path\n";
+      LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER,"No path offset and no intersection plane given. Cannot generate next path");
       return false;
     }
 
@@ -361,7 +415,7 @@ namespace tool_path_planner
 
     if(!findIntersectionLine(next_path.intersection_plane, intersection_line, spline))
     {
-      logDebug("No intersection found for creating spline");
+      LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER,"No intersection found for creating spline");
       return false;
     }
 
@@ -378,7 +432,7 @@ namespace tool_path_planner
       intersection_filter->Update();
       if(intersection_filter->GetOutput()->GetPoints()->GetNumberOfPoints() > 0)
       {
-        logDebug("Self intersection found with back path");
+        LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER,"Self intersection found with back path");
         return false;
       }
 
@@ -386,7 +440,7 @@ namespace tool_path_planner
       intersection_filter->Update();
       if(intersection_filter->GetOutput()->GetPoints()->GetNumberOfPoints() > 0)
       {
-        logDebug("Self intersection found with front path");
+        LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER, "Self intersection found with front path");
         return false;
       }
     }
@@ -423,7 +477,7 @@ namespace tool_path_planner
 
     if(points->GetPoints()->GetNumberOfPoints() < 2)
     {
-      cout << "Number of points after smoothing is less than 2\n";
+      LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER,"Number of points after smoothing is less than 2, skip computing path data");
       return false;
     }
     next_path.line = points;
@@ -542,13 +596,12 @@ namespace tool_path_planner
           }
           else
           {
-            logDebug("Hole segment has less than 2 points, skipping resampling");
+            LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER,"Hole segment has less than 2 points, skipping resampling");
           }
 
           new_line->SetPoints(new_points);
 
           ProcessPath this_path, new_path;
-          //estimateNewNormals(new_line);
           computeSurfaceLineNormals(new_line);
           this_path.intersection_plane = new_line;
 
@@ -576,7 +629,6 @@ namespace tool_path_planner
       new_line->SetPoints(new_points);
 
       ProcessPath this_path, new_path;
-      //estimateNewNormals(new_line);
       computeSurfaceLineNormals(new_line);
       this_path.intersection_plane = new_line;
 
@@ -749,8 +801,8 @@ namespace tool_path_planner
     // Check to make sure that the input cut surface contains a valid mesh
     if(cut_surface->GetNumberOfCells() < 1)
     {
-      cout << "Number of input cells for calculating intersection is less than 1.\n";
-      cout << "Cannot compute intersection.\n";
+      LOG4CXX_ERROR(RASTER_PATH_PLANNER_LOGGER,
+                    "Number of input cells for calculating intersection is less than 1, cannot compute intersection");
       return false;
     }
 
@@ -788,7 +840,7 @@ namespace tool_path_planner
 
     if(temp_pts->GetNumberOfPoints() == 0)
     {
-      logError("No connected lines were found");
+      LOG4CXX_ERROR(RASTER_PATH_PLANNER_LOGGER, "No connected lines were found");
       return false;
     }
 
@@ -1125,25 +1177,15 @@ namespace tool_path_planner
     vtkSmartPointer<vtkDoubleArray> derv = vtkSmartPointer<vtkDoubleArray>::New();
     derv->SetNumberOfComponents(3);
 
-    Eigen::Vector3d new_pt(0, 0, 0);
 
     // get points which are evenly spaced along the spline
     // initialize num_line_pts to some number, find the Euclidean distance between two points (m & n),
     // then use this distance to determine how many points should be used in the given line
-    int num_line_pts = 10;
+    Eigen::Vector3d new_pt(0, 0, 0);
+    int num_line_pts;
     double m[3], n[3];
-
     double u[3], pt[3], d[9]; // u - search point, pt - resulting point, d - unused but still required
     u[0] = u[1] = u[2] = 0;
-
-    // spline->Evaluate() takes a number in the range [0,1]
-/*    spline->Evaluate(u, m, d);
-    u[0] = 1/double(num_line_pts);
-    spline->Evaluate(u, n, d);
-
-    // calculate new point spacing
-    double s = sqrt(vtk_viewer::pt_dist(&m[0], &n[0]));
-    num_line_pts = round( double(num_line_pts) / (tool_.pt_spacing / s));*/
 
     // computing entire line length
     double spline_length = 0;
@@ -1211,7 +1253,6 @@ namespace tool_path_planner
     }
     // Set points and normals
     points->SetPoints(new_points);
-    //estimateNewNormals(points);
     computeSurfaceLineNormals(points);
 
     // Set points and derivatives
@@ -1248,7 +1289,7 @@ namespace tool_path_planner
       else
       {
         int next = findClosestPoint(sorted_points.back(), new_points);
-        if (squared_distance(sorted_points.back(), new_points[next]) < squared_distance(sorted_points.front(), new_points[next]))
+        if (computeSquaredDistance(sorted_points.back(), new_points[next]) < computeSquaredDistance(sorted_points.front(), new_points[next]))
         {
           sorted_points.push_back(new_points[next]);
           new_points.erase(new_points.begin() + next);
@@ -1272,32 +1313,6 @@ namespace tool_path_planner
     points = line_points;
   }
 
-  void RasterToolPathPlanner::generateNormals(vtkSmartPointer<vtkPolyData>& data)
-  {
-    vtkSmartPointer<vtkPolyDataNormals> normal_generator = vtkSmartPointer<vtkPolyDataNormals>::New();
-    normal_generator->SetInputData(data);
-    normal_generator->ComputePointNormalsOn();
-    normal_generator->ComputeCellNormalsOn();
-
-    // Optional settings
-    normal_generator->SetFeatureAngle(0.1);
-    normal_generator->SetSplitting(0);
-    normal_generator->SetConsistency(1);
-    normal_generator->SetAutoOrientNormals(1);
-    normal_generator->SetComputePointNormals(1);
-    normal_generator->SetComputeCellNormals(1);
-    normal_generator->SetFlipNormals(0);
-    normal_generator->SetNonManifoldTraversal(1);
-
-    normal_generator->Update();
-
-    vtkDataArray* normals = normal_generator->GetOutput()->GetPointData()->GetNormals();
-    if(normals)
-    {
-      data->GetPointData()->SetNormals(normals);
-    }
-  }
-
   bool RasterToolPathPlanner::computeSurfaceLineNormals(vtkSmartPointer<vtkPolyData>& data)
   {
     // Find closest cell to each point and uses its normal vector
@@ -1318,7 +1333,7 @@ namespace tool_path_planner
       cell_locator_->FindClosestPoint(query_point.data(),closest_point.data(),cell_id,sub_index,dist);
       if(cell_id < 0)
       {
-        logError("FindClosestPoint returned an invalid cell id");
+        LOG4CXX_ERROR(RASTER_PATH_PLANNER_LOGGER,"FindClosestPoint returned an invalid cell id");
         return false;
       }
 
@@ -1333,159 +1348,6 @@ namespace tool_path_planner
     return true;
   }
 
-  void RasterToolPathPlanner::estimateNewNormals(vtkSmartPointer<vtkPolyData>& data)
-  {
-    if(use_ransac_normal_estimation_){
-      estimateNewNormalsRansac(data);
-      return;
-    }
-
-    // Find k nearest neighbors and use their normals to estimate the normal of the desired point
-    vtkSmartPointer<vtkDoubleArray> new_norm = vtkSmartPointer<vtkDoubleArray>::New();
-    new_norm->SetNumberOfComponents(3);
-    new_norm->SetNumberOfTuples(data->GetPoints()->GetNumberOfPoints());
-
-    for(int i = 0; i < data->GetPoints()->GetNumberOfPoints(); ++i)
-    {
-      // Get the next point to estimate the normal
-      double pt[3];
-      data->GetPoints()->GetPoint(i, &pt[0]);
-
-
-      double testPoint[3] = {pt[0], pt[1], pt[2]};
-      vtkSmartPointer<vtkIdList> result = vtkSmartPointer<vtkIdList>::New();
-
-      // Find N nearest neighbors to the point, if N is greater than # of points, return all points
-      if(tool_.nearest_neighbors > input_mesh_->GetPoints()->GetNumberOfPoints())
-      {
-        for(int j = 0; j < input_mesh_->GetPoints()->GetNumberOfPoints(); ++j)
-        {
-          result->InsertNextId(j);
-        }
-      }
-      else
-      {
-        kd_tree_->FindClosestNPoints(tool_.nearest_neighbors, testPoint, result);
-      }
-      Eigen::Vector3d final(0, 0, 0);
-      int count = 0;
-
-      // For N neighbors found, get their normals and add them together
-      for(int j = 0; j < result->GetNumberOfIds(); ++j)
-      {
-        double pt2[3];
-        input_mesh_->GetPointData()->GetNormals()->GetTuple(result->GetId(j), &pt2[0]);
-        if(std::isnan(pt2[0]) || std::isnan(pt2[1]) || std::isnan(pt2[2]))
-        {
-          continue;
-        }
-        final[0] += pt2[0];
-        final[1] += pt2[1];
-        final[2] += pt2[2];
-        ++count;
-      }
-
-      // If at least 1 neighbor is found, average the normals, else set to zero
-      if(count > 0)
-      {
-        final[0] /= double(count);
-        final[1] /= double(count);
-        final[2] /= double(count);
-        final.normalize();
-      }
-
-      // Insert the averaged normal
-      new_norm->SetTuple3(i, final[0], final[1], final[2]);
-    }
-    // Insert the normal data
-    data->GetPointData()->SetNormals(new_norm);
-  }
-  void RasterToolPathPlanner::estimateNewNormalsRansac(vtkSmartPointer<vtkPolyData>& data)
-  {
-    // Find k nearest neighbors and use their normals to estimate the normal of the desired point
-    vtkSmartPointer<vtkDoubleArray> new_norm = vtkSmartPointer<vtkDoubleArray>::New();
-    new_norm->SetNumberOfComponents(3);
-    new_norm->SetNumberOfTuples(data->GetPoints()->GetNumberOfPoints());
-
-    for(int i = 0; i < data->GetPoints()->GetNumberOfPoints(); ++i)
-    {
-      // Get the next point to estimate the normal
-      double pt[3],pn[3];
-      data->GetPoints()->GetPoint(i, &pt[0]);
-
-      double testPoint[3] = {pt[0], pt[1], pt[2]};
-      vtkSmartPointer<vtkIdList> result = vtkSmartPointer<vtkIdList>::New();
-
-      // Find N nearest neighbors to the point, if N is greater than # of points, return all points
-      if(tool_.nearest_neighbors > input_mesh_->GetPoints()->GetNumberOfPoints())
-      {
-        for(int j = 0; j < input_mesh_->GetPoints()->GetNumberOfPoints(); ++j)
-        {
-          result->InsertNextId(j);
-        }
-      }
-      else
-      {
-        kd_tree_->FindClosestNPoints(tool_.nearest_neighbors, testPoint, result);
-      }
-      input_mesh_->GetPointData()->GetNormals()->GetTuple(result->GetId(0), &pn[0]);
-
-      Eigen::Vector3d final(0, 0, 0);
-
-      pcl::PointCloud<pcl::PointXYZ>::Ptr local_cloud(new pcl::PointCloud<pcl::PointXYZ>());
-      int cloud_count = 0;
-      for(int j = 0; j < result->GetNumberOfIds(); ++j)
-      {
-        double pt2[3];
-        input_mesh_->GetPoints()->GetPoint(result->GetId(j),&pt2[0]);
-        if(std::isnan(pt2[0]) || std::isnan(pt2[1]) || std::isnan(pt2[2]))
-        {
-          continue;
-        }
-        local_cloud->push_back(pcl::PointXYZ(pt2[0],pt2[1],pt2[2]));
-        cloud_count++;
-      }
-      std::vector<int> inliers;
-      inliers.clear();
-      pcl::SampleConsensusModelPlane<pcl::PointXYZ>::Ptr
-          model_p(new pcl::SampleConsensusModelPlane<pcl::PointXYZ> (local_cloud));
-      pcl::RandomSampleConsensus<pcl::PointXYZ> ransac(model_p,tool_.plane_fit_threhold);
-
-      bool isgood = ransac.computeModel();
-      Eigen::VectorXf icoeff;
-      Eigen::VectorXf coeff;
-      if(isgood){
-        std::vector<int> inliers;
-        ransac.getInliers(inliers);
-        ransac.getModelCoefficients (icoeff);
-        if(inliers.size()>3){
-          model_p->optimizeModelCoefficients(inliers,icoeff,coeff);
-        }
-        else{
-          coeff[0] = icoeff[0];
-          coeff[1] = icoeff[1];
-          coeff[2] = icoeff[2];
-        }
-        // switch sign of normal if its not aligned with original point's normal
-        double dot = coeff[0]*pn[0] + coeff[1]*pn[1] + coeff[2]*pn[2];
-        int normal_sign = 1;
-        if(dot<0) normal_sign = -1;
-        final[0] = normal_sign*coeff[0];
-        final[1] = normal_sign*coeff[1];
-        final[2] = normal_sign*coeff[2];
-      }
-      else{
-        cout << "ransac failed to find a plane\n";
-      }
-      final.normalize(); // not sure we need this
-
-      // Insert the ransac normal
-      new_norm->SetTuple3(i, final[0], final[1], final[2]);
-    }
-    // Insert the normal data
-    data->GetPointData()->SetNormals(new_norm);
-  }
-
   vtkSmartPointer<vtkPolyData> RasterToolPathPlanner::createOffsetLine(vtkSmartPointer<vtkPolyData> line, vtkSmartPointer<vtkPolyData> derivatives, double dist)
   {
     vtkSmartPointer<vtkPolyData> new_points;
@@ -1496,13 +1358,13 @@ namespace tool_path_planner
     // If normal or derivative data does not exist, or number of normals and derivatives do not match, return a null pointer
     if(!normals || !ders || normals->GetNumberOfTuples() != ders->GetNumberOfTuples())
     {
-      logError("Could not create offset line");
+      LOG4CXX_ERROR(RASTER_PATH_PLANNER_LOGGER,"Could not create offset line");
       return new_points;
     }
 
     if(normals->GetNumberOfTuples() != line->GetNumberOfPoints())
     {
-      logError("ERROR IN CALC OFFSET LINE");
+      LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER,"ERROR IN CALC OFFSET LINE");
       return new_points;
     }
 
@@ -1528,9 +1390,9 @@ namespace tool_path_planner
       }
       else
       {
-        // check offset direction consistency to correct due to flipped normal
+        // check offset direction consistency to correct due to flipped normals
         double angle = computeAngle(offset_dir,w);
-        if(angle > M_PI_2)
+        if(angle > ANGLE_CORRECTION_THRESHOLD)
         {
           // flip direction of w
           w *= -1;
@@ -1576,24 +1438,20 @@ namespace tool_path_planner
     new_pts->SetPoint(0, new_pt);
 
     new_points->SetPoints(new_pts);
-    
-    //estimateNewNormals(new_points);
     computeSurfaceLineNormals(new_points);
 
     return new_points;
   }
 
   vtkSmartPointer<vtkPolyData> RasterToolPathPlanner::extrudeSplineToSurface(vtkSmartPointer<vtkPolyData> line,
-                                                                             double min_extrude_dist )
+                                                                             double intersection_dist )
   {
-    static const double EXTRUDE_EXTEND_PERCENTAGE = 1.5;
-    static const double RAY_INTERSECTION_TOLERANCE = 0.001;
     vtkSmartPointer<vtkPolyData> new_surface;
     vtkSmartPointer<vtkDataArray> normals = line->GetPointData()->GetNormals();
 
     if(!normals)
     {
-      logError("no normals, cannot create surface from spline");
+      LOG4CXX_ERROR(RASTER_PATH_PLANNER_LOGGER,"no normals, cannot create surface from spline");
       return new_surface;
     }
 
@@ -1616,12 +1474,8 @@ namespace tool_path_planner
       current_normal.normalize();
 
       // finding distance and closest point to surface
-/*      cell_locator_->FindClosestPoint(current_point.data(),closest_point.data(),cell_id,sub_index,dist_to_surf);
-      input_mesh_->GetCellData()->GetNormals()->GetTuple(cell_id,cell_normal.data());
-      cell_normal.normalize();*/
-
-      Eigen::Vector3d ray_source_point = min_extrude_dist * current_normal + current_point;
-      Eigen::Vector3d ray_target_point = -min_extrude_dist * current_normal + current_point;
+      Eigen::Vector3d ray_source_point = intersection_dist * current_normal + current_point;
+      Eigen::Vector3d ray_target_point = -intersection_dist * current_normal + current_point;
       Eigen::Vector3d extruded_point_a, extruded_point_b, intersection_point;
       vtkSmartPointer<vtkPoints> intersection_points = vtkSmartPointer<vtkPoints>::New();
       int res = bsp_tree_->IntersectWithLine(ray_source_point.data(),ray_target_point.data(),
@@ -1631,7 +1485,6 @@ namespace tool_path_planner
       bool refine_extrude_points = false;
       Eigen::Vector3d dir;
       double dist = 0.0;
-
       if(res > 0)
       {
         intersection_points->GetPoint(0,intersection_point.data());
@@ -1686,7 +1539,7 @@ namespace tool_path_planner
 
     if(!normals)
     {
-      logError("no normals, cannot create surface from spline");
+      LOG4CXX_ERROR(RASTER_PATH_PLANNER_LOGGER,"no normals, cannot create surface from spline");
       return new_surface;
     }
 
@@ -1743,4 +1596,11 @@ namespace tool_path_planner
     cut_centroid_[2] = centroid[2];
   }
 
+  void RasterToolPathPlanner::enableConsoleDebug(bool enable)
+  {
+    RASTER_PATH_PLANNER_LOGGER->setLevel(enable ? log4cxx::Level::getDebug() : log4cxx::Level::getInfo());
+  }
+
 }
+
+

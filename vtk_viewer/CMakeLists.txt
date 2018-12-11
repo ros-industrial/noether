@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 2.8.3)
+
+## Compile as C++14, 
+add_compile_options(-std=c++14)
+
 project(vtk_viewer)
 
-find_package(catkin REQUIRED cmake_modules)
+find_package(catkin REQUIRED cmake_modules rosconsole)
 
 find_package(VTK 7.1 REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})

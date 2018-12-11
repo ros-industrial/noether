@@ -88,8 +88,6 @@ TEST(IntersectTest, TestCase1)
 
 
   // Plan paths for given mesh
-  tool_path_planner::ProcessPath path;
-  planner.getFirstPath(path);
   planner.computePaths();
   std::vector<tool_path_planner::ProcessPath> paths = planner.getPaths();
 
@@ -188,8 +186,6 @@ TEST(IntersectTest, TestCaseRansac)
 
 
   // Plan paths for given mesh
-  tool_path_planner::ProcessPath path;
-  planner.getFirstPath(path);
   planner.computePaths();
   std::vector<tool_path_planner::ProcessPath> paths = planner.getPaths();
 

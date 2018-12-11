@@ -27,22 +27,31 @@ namespace tool_path_planner
 
   struct ProcessTool
   {
-    double pt_spacing; // requried spacing between path points
-    double line_spacing; // offset between two rasters
-    double tool_offset; // how far off the surface the tool needs to be
-    double intersecting_plane_height; // Used by the raster_tool_path_planner when offsetting to an adjacent path, a new plane has to be formed, but not too big
-    int nearest_neighbors; // how many neighbors are used to compute local normals
-    double min_hole_size; // A path may pass over holes smaller than this, but must be broken when larger holes are encounterd. 
-    bool use_ransac_normal_estimation; // set to use ransac to determine normals, otherwise, average normals of nearby mesh vertices
-    double plane_fit_threhold; // how much deviation from the plane is acceptable for it to be an inlier (ransac normal estiamtion)
-    double min_segment_size; // the minimum segment size to allow when finding intersections; small segments will be discarded
+    double pt_spacing;                /** required spacing between path points */
+    double line_spacing;              /** offset between two rasters  */
+    double tool_offset;               /** how far off the surface the tool needs to be */
+    double intersecting_plane_height; /** Used in creating planes from that originate from an adjacent raster line to
+                                          the surface*/
+    double min_hole_size;             /** A path may pass over holes smaller than this, but must be broken when larger holes
+                                          are encountered */
+    double min_segment_size;          /** The minimum segment size to allow when finding intersections; small segments will
+                                          be discarded */
   };
 
+  /**
+   * @brief flipPointOrder Inverts a path, points, normals, and derivatives (not necessarily the spline)
+   * @param path The input path to invert
+   */
+  void flipPointOrder(tool_path_planner::ProcessPath& path);
+
+  /**
+   * @class tool_path_planner::ToolPathPlanner
+   * @brief Interface class for tool path planner implementations.
+   */
   class ToolPathPlanner
   {
   public:
 
-    //ToolPathPlanner()
     virtual ~ToolPathPlanner(){}
 
     /**
@@ -80,16 +89,6 @@ namespace tool_path_planner
     virtual ProcessTool getTool()=0;
 
     /**
-     * @brief getNextPath Creates the next path offset from the current path
-     * @param this_path The current path, from which to create an offset path
-     * @param next_path The next path returned after calling the function
-     * @param dist The distance to offset the next path from the current
-     * * @param test_self_intersection Disables check to see if new path intersects with any previously generated paths
-     * @return True if the next path is successfully created, False if no path can be generated
-     */
-    virtual bool getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist = 0.0, bool test_self_intersection = true)=0;
-
-    /**
      * @brief computePaths Will create and store all paths possible from the given mesh and starting path
      * @return True if paths were generated, False if the first path is not available (nothing to start from)
      */
@@ -107,22 +106,6 @@ namespace tool_path_planner
      */
     virtual void setDebugMode(bool debug)=0;
   };
-
-  double squared_distance(std::vector<double>& pt1, std::vector<double>& pt2);
-
-  /**
-   * @brief flipPointOrder Inverts a path, points, normals, and derivatives (not necessarily the spline)
-   * @param path The input path to invert
-   */
-  void flipPointOrder(ProcessPath& path);
-
-  /**
-   * @brief findClosestPoint Finds the closest point in a list to a target point
-   * @param pt The target point
-   * @param pts The list of points to search for the closest point
-   * @return The index of the closest point
-   */
-  int findClosestPoint(std::vector<double>& pt,  std::vector<std::vector<double> >& pts);
 
 }
 

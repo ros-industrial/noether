@@ -5,7 +5,6 @@
  */
 
 #include "vtk_viewer/vtk_utils.h"
-#include <console_bridge/console.h>
 #include <cmath>
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/vtk_lib_io.h>
@@ -50,9 +49,25 @@
 #include <vtkImplicitSelectionLoop.h>
 #include <vtkClipPolyData.h>
 
+#include <log4cxx/basicconfigurator.h>
+#include <log4cxx/patternlayout.h>
+#include <log4cxx/consoleappender.h>
+
+log4cxx::LoggerPtr createConsoleLogger(const std::string& logger_name)
+{
+  using namespace log4cxx;
+  PatternLayoutPtr pattern_layout(new PatternLayout( "[\%-5p] [\%c](L:\%L): \%m\%n"));
+  ConsoleAppenderPtr console_appender(new ConsoleAppender(pattern_layout));
+  log4cxx::LoggerPtr logger(Logger::getLogger(logger_name));
+  logger->addAppender(console_appender);
+  logger->setLevel(Level::getInfo());
+  return logger;
+}
 
 namespace vtk_viewer
 {
+
+log4cxx::LoggerPtr VTK_LOGGER = createConsoleLogger("VTK_VIEWER");
 
 
 vtkSmartPointer<vtkPoints> createPlane()
@@ -267,10 +282,7 @@ void vtkSurfaceReconstructionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr clou
     mesh = vtkSmartPointer<vtkPolyData>::New();
   }
 
-  //Convert pcl::PointCloud<T> -> vtkPolyData
   vtkSmartPointer<vtkPolyData> point_data = vtkSmartPointer<vtkPolyData>::New();
-  //const pcl::PointCloud<pcl::PointNormal>::ConstPtr cloud_with_normals(new pcl::PointCloud<pcl::PointNormal>(mls_points));
-
   PCLtoVTK(mls_points, point_data);
 
   // Mesh
@@ -381,7 +393,7 @@ void generateNormals(vtkSmartPointer<vtkPolyData>& data, int flip_normals)
   // If point data exists but cell data does not, iterate through the cells and generate normals manually
   if(data->GetPointData()->GetNormals() && !data->GetCellData()->GetNormals())
   {
-    logDebug("Generating Mesh Normals manually");
+    LOG4CXX_DEBUG(VTK_LOGGER,"Generating Mesh Normals manually");
     int size = data->GetNumberOfCells();
     vtkDoubleArray* cell_normals = vtkDoubleArray::New();
 
@@ -425,7 +437,7 @@ void generateNormals(vtkSmartPointer<vtkPolyData>& data, int flip_normals)
   }
   else
   {
-    logDebug("Recomputing Mesh normals");
+    LOG4CXX_DEBUG(VTK_LOGGER,"Recomputing Mesh normals");
     vtkSmartPointer<vtkPolyDataNormals> normal_generator = vtkSmartPointer<vtkPolyDataNormals>::New();
     normal_generator->SetInputData(data);
     normal_generator->ComputePointNormalsOn();
@@ -440,23 +452,23 @@ void generateNormals(vtkSmartPointer<vtkPolyData>& data, int flip_normals)
     if(!data->GetPointData()->GetNormals())
     {
       normal_generator->SetComputePointNormals(1);
-      logDebug("Point Normals Computation ON");
+      LOG4CXX_DEBUG(VTK_LOGGER,"Point Normals Computation ON");
     }
     else
     {
       normal_generator->SetComputePointNormals(0);
-      logDebug("Point Normals Computation OFF");
+      LOG4CXX_DEBUG(VTK_LOGGER,"Point Normals Computation OFF");
     }
 
     if(!data->GetCellData()->GetNormals())
     {
       normal_generator->SetComputeCellNormals(1);
-      logDebug("Cell Normals Computation ON");
+      LOG4CXX_DEBUG(VTK_LOGGER,"Cell Normals Computation ON");
     }
     else
     {
       normal_generator->SetComputeCellNormals(0);
-      logDebug("Cell Normals Computation OFF");
+      LOG4CXX_DEBUG(VTK_LOGGER,"Cell Normals Computation OFF");
     }
 
     normal_generator->SetFlipNormals(0);

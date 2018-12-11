@@ -11,7 +11,8 @@
 #include <vtkKdTreePointLocator.h>
 #include <vtkCellLocator.h>
 #include <vtkModifiedBSPTree.h>
-
+#include <log4cxx/logger.h>
+#include "log4cxx/basicconfigurator.h"
 #include <tool_path_planner/tool_path_planner.h>
 
 namespace tool_path_planner
@@ -20,11 +21,13 @@ namespace tool_path_planner
   {
   public:
 
+    static log4cxx::LoggerPtr RASTER_PATH_PLANNER_LOGGER;
+
     /**
      * @brief constructor
      * @param use_ransac set flag to use ransac plane estimation to determine path normals
      */
-    RasterToolPathPlanner(bool use_ransac=false);
+    RasterToolPathPlanner();
     ~RasterToolPathPlanner(){}
 
     /**
@@ -32,34 +35,87 @@ namespace tool_path_planner
      * @param meshes A vector of meshes to plan paths for
      * @param paths The resulting path data generated
      */
-    void planPaths(const vtkSmartPointer<vtkPolyData> mesh, std::vector<ProcessPath>& paths);
-    void planPaths(const std::vector<vtkSmartPointer<vtkPolyData> > meshes, std::vector< std::vector<ProcessPath> >& paths);
-    void planPaths(const std::vector<pcl::PolygonMesh>& meshes, std::vector< std::vector<ProcessPath> >& paths);
-    void planPaths(const pcl::PolygonMesh& mesh, std::vector<ProcessPath>& paths);
+    void planPaths(const vtkSmartPointer<vtkPolyData> mesh, std::vector<ProcessPath>& paths) override;
+    void planPaths(const std::vector<vtkSmartPointer<vtkPolyData> > meshes, std::vector< std::vector<ProcessPath> >& paths)  override;
+    void planPaths(const std::vector<pcl::PolygonMesh>& meshes, std::vector< std::vector<ProcessPath> >& paths)  override;
+    void planPaths(const pcl::PolygonMesh& mesh, std::vector<ProcessPath>& paths)  override;
 
     /**
      * @brief setInputMesh Sets the input mesh to generate paths
      * @param mesh The input mesh to be operated on
      */
-    void setInputMesh(vtkSmartPointer<vtkPolyData> mesh);
+    void setInputMesh(vtkSmartPointer<vtkPolyData> mesh)  override;
 
     /**
      * @brief getInputMesh Gets the input mesh used for generating paths
      * @return The stored input mesh
      */
-    vtkSmartPointer<vtkPolyData> getInputMesh(){return input_mesh_;}
+    vtkSmartPointer<vtkPolyData> getInputMesh()  override {return input_mesh_;}
 
     /**
      * @brief setTool Sets the tool parameters used during path generation
      * @param tool The tool object with all of the parameters necessary for path generation
      */
-    void setTool(ProcessTool tool){tool_ = tool;}
+    void setTool(ProcessTool tool)  override {tool_ = tool;}
 
     /**
      * @brief getTool Gets the tool parameters used during path generation
      * @return The set of tool parameters
      */
-    ProcessTool getTool(){return tool_;}
+    ProcessTool getTool()  override {return tool_;}
+
+    /**
+     * @brief computePaths Will create and store all paths possible from the given mesh and starting path
+     * @return True if paths were generated, False if the first path is not available (nothing to start from)
+     */
+    bool computePaths() override;
+
+    /**
+     * @brief getPaths Gets all of the paths generated
+     * @return The paths generated from the computePaths() function
+     */
+    std::vector<ProcessPath> getPaths()  override {return paths_;}
+
+    /**
+     * @brief setDebugModeOn Turn on debug mode to visualize every step of the path planning process
+     * @param debug Turns on debug if true, turns off debug if false
+     */
+    void setDebugMode(bool debug)  override {debug_on_ = debug;}
+
+    /**
+     * @brief setLogDir Set the directory for saving polydata files to
+     * @param dir The directory to save data to
+     */
+    void setLogDir(std::string dir){debug_viewer_.setLogDir(dir);}
+
+    /**
+     * @brief enables printing debug messages to the console
+     * @param enable  True to enable
+     */
+    static void enableConsoleDebug(bool enable);
+
+    /**
+     * @brief getLogDir Get the directory used for saving polydata files to
+     * @return The directory currently used for saving data
+     */
+    std::string getLogDir(){return debug_viewer_.getLogDir();}
+
+    void setCutDirection(double direction [3]);
+    void setCutCentroid(double centroid [3]);
+
+  private:
+
+    bool debug_on_;                                   /**< Turns on/off the debug display which views the path planning output one step at a time */
+    vtk_viewer::VTKViewer debug_viewer_;              /**< The vtk viewer for displaying debug output */
+    vtkSmartPointer<vtkKdTreePointLocator> kd_tree_;  /**< kd tree for finding nearest neighbor points */
+    vtkSmartPointer<vtkCellLocator> cell_locator_;    /** @brief allows locating closest cell */
+    vtkSmartPointer<vtkModifiedBSPTree> bsp_tree_;    /** @brief use to perform ray casting on the mesh */
+    vtkSmartPointer<vtkPolyData> input_mesh_;         /**< input mesh to operate on */
+    std::vector<ProcessPath> paths_;                  /**< series of intersecting lines on the given mesh */
+    ProcessTool tool_;                                /**< The tool parameters which defines how to generate the tool paths (spacing, offset, etc.) */
+
+    double cut_direction_ [3];
+    double cut_centroid_ [3];
 
     /**
      * @brief getFirstPath Uses the input mesh, generates the first path by intersecting the mesh with a plane
@@ -75,75 +131,15 @@ namespace tool_path_planner
      * @param test_self_intersection Disables check to see if new path intersects with any previously generated paths
      * @return True if the next path is successfully created, False if no path can be generated
      */
-    bool getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist = 0.0, bool test_self_intersection = true);
+    bool getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist = 0.0,
+                     bool test_self_intersection = true);
+
 
     /**
-     * @brief computePaths Will create and store all paths possible from the given mesh and starting path
-     * @return True if paths were generated, False if the first path is not available (nothing to start from)
-     */
-    bool computePaths();
-
-    /**
-     * @brief getPaths Gets all of the paths generated
-     * @return The paths generated from the computePaths() function
-     */
-    std::vector<ProcessPath> getPaths(){return paths_;}
-
-    /**
-     * @brief generateNormals For a set of new points, estimates the normal from the input mesh normals by averaging N nearest neighbors' normals
-     * @param data The points to operate on, normal data inserted in place
-     */
-    void estimateNewNormals(vtkSmartPointer<vtkPolyData>& data);
-
-    /**
-     * @brief generateNormals For a set of new points, estimates the normal from the input mesh normals ransac plane fit
-     * @param data The points to operate on, normal data inserted in place
-     */
-    void estimateNewNormalsRansac(vtkSmartPointer<vtkPolyData>& data);
-
-    /**
-     * @brief setDebugModeOn Turn on debug mode to visualize every step of the path planning process
-     * @param debug Turns on debug if true, turns off debug if false
-     */
-    void setDebugMode(bool debug){debug_on_ = debug;}
-
-    /**
-     * @brief setLogDir Set the directory for saving polydata files to
-     * @param dir The directory to save data to
-     */
-    void setLogDir(std::string dir){debug_viewer_.setLogDir(dir);}
-
-    /**
-     * @brief getLogDir Get the directory used for saving polydata files to
-     * @return The directory currently used for saving data
-     */
-    std::string getLogDir(){return debug_viewer_.getLogDir();}
-
-    void setCutDirection(double direction [3]);
-    void setCutCentroid(double centroid [3]);
-
-  private:
-
-    bool use_ransac_normal_estimation_;
-
-
-    bool debug_on_;  /**< Turns on/off the debug display which views the path planning output one step at a time */
-    vtk_viewer::VTKViewer debug_viewer_;  /**< The vtk viewer for displaying debug output */
-    vtkSmartPointer<vtkKdTreePointLocator> kd_tree_; /**< kd tree for finding nearest neighbor points */
-    vtkSmartPointer<vtkCellLocator> cell_locator_;  /** @brief allows locating closest cell */
-    vtkSmartPointer<vtkModifiedBSPTree> bsp_tree_;          /** @brief use to perform ray casting on the mesh */
-    vtkSmartPointer<vtkPolyData> input_mesh_; /**< input mesh to operate on */
-    std::vector<ProcessPath> paths_; /**< series of intersecting lines on the given mesh */
-    ProcessTool tool_; /**< The tool parameters which defines how to generate the tool paths (spacing, offset, etc.) */
-
-    double cut_direction_ [3];
-    double cut_centroid_ [3];
-
-    /**
-     * @brief Estimates the normal of a line that lies on the surface of the current mesh.  For each point, it uses the normal of
+     * @brief Estimates the normals of a line that lies on the surface of the current mesh.  For each point, it uses the normal of
      * the closes cell in the mesh
      * @param data  The points to operate on, normal data inserted in place
-     * @return
+     * @return True on success, false otherwise.
      */
     bool computeSurfaceLineNormals(vtkSmartPointer<vtkPolyData>& data);
 
@@ -175,7 +171,7 @@ namespace tool_path_planner
      * @brief generateNormals Generates point normals for a given mesh, normals are located on polydata vertices
      * @param data The mesh to operate on, normal data inserted in place
      */
-    void generateNormals(vtkSmartPointer<vtkPolyData>& data);
+    //void generateNormals(vtkSmartPointer<vtkPolyData>& data);
 
     /**
      * @brief createOffsetLine Given a line with normals, generate a new line which is offset by a given distance
@@ -197,10 +193,11 @@ namespace tool_path_planner
     /**
      * @brief Creates planes that connect the line to its projection on the surface mesh.
      * @param line  The  line
-     * @param dist  Rays queries are created from points in the line along the local normal vector by this distance.
+     * @param intersection_dist  Rays queries are created from points in the line along the local normal vector
+     *                            by this distance.
      * @return  The surface planes in the form of a mesh.
      */
-    vtkSmartPointer<vtkPolyData> extrudeSplineToSurface(vtkSmartPointer<vtkPolyData> line, double dist);
+    vtkSmartPointer<vtkPolyData> extrudeSplineToSurface(vtkSmartPointer<vtkPolyData> line, double intersection_dist);
 
     /**
      * @brief sortPoints Sorts points in order to form a contiguous line with the shortest length possible
