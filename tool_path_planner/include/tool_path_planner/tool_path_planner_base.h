@@ -39,20 +39,14 @@ namespace tool_path_planner
   };
 
   /**
-   * @brief flipPointOrder Inverts a path, points, normals, and derivatives (not necessarily the spline)
-   * @param path The input path to invert
-   */
-  void flipPointOrder(tool_path_planner::ProcessPath& path);
-
-  /**
    * @class tool_path_planner::ToolPathPlanner
    * @brief Interface class for tool path planner implementations.
    */
-  class ToolPathPlanner
+  class ToolPathPlannerBase
   {
   public:
 
-    virtual ~ToolPathPlanner(){}
+    virtual ~ToolPathPlannerBase(){}
 
     /**
      * @brief planPaths plans a set of paths for all meshes in a given list

@@ -125,8 +125,6 @@ static std::string toLower(const std::string& in)
 
 int main(int argc, char **argv)
 {
-  //log4cxx::BasicConfigurator::configure();
-
 
   ros::init(argc, argv, "noether_node");
   ros::NodeHandle pnh ("~");

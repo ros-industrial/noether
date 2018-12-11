@@ -7,7 +7,7 @@
 #ifndef PATH_SEQUENCE_PLANNER_H
 #define PATH_SEQUENCE_PLANNER_H
 
-#include <tool_path_planner/raster_tool_path_planner.h>
+#include "../../../tool_path_planner/include/tool_path_planner/raster_tool_path_planner.h"
 
 namespace path_sequence_planner
 {

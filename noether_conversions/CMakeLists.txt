@@ -5,8 +5,8 @@ find_package(catkin REQUIRED
     cmake_modules
     eigen_conversions
     geometry_msgs
-    tool_path_planner
     tf
+    tool_path_planner
 )
 
 find_package(VTK 7.1 REQUIRED NO_MODULE)
@@ -21,8 +21,8 @@ catkin_package(
   CATKIN_DEPENDS
     eigen_conversions
     geometry_msgs
-    tool_path_planner
     tf
+    tool_path_planner
   DEPENDS
     Eigen
     VTK

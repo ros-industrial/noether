@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package>
+<package format="2">
   <name>noether_conversions</name>
   <version>0.0.0</version>
   <description>The noether_conversions package</description>
@@ -8,16 +8,8 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>tool_path_planner</build_depend>
-  <build_depend>eigen_conversions</build_depend>
-  <build_depend>tf</build_depend>
-
-
-  <run_depend>eigen_conversions</run_depend>
-  <run_depend>geometry_msgs</run_depend>
-  <run_depend>tool_path_planner</run_depend>
-  <run_depend>tf</run_depend>
-
-
+  <depend>geometry_msgs</depend>
+  <depend>eigen_conversions</depend>
+  <depend>tool_path_planner</depend>
+  <depend>tf</depend>
 </package>

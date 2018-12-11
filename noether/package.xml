@@ -1,23 +1,20 @@
 <?xml version="1.0"?>
-<package>
+<package format="2">
   <name>noether</name>
   <version>0.0.0</version>
   <description>The noether package</description>
-  <maintainer email="alex.goins@swri.org">alex</maintainer>
+  <author email="alex.goins@swri.org">alex</author>
+  <maintainer email="jorge.nicho@swri.org">Jorge Nicho</maintainer>
   <license>Proprietary</license>
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>roscpp</build_depend>
-  <build_depend>mesh_segmenter</build_depend>
-  <build_depend>tool_path_planner</build_depend>
-  <build_depend>path_sequence_planner</build_depend>
-  <build_depend>vtk_viewer</build_depend>
+  <depend>roscpp</depend>
+  <depend>mesh_segmenter</depend>
+  <depend>tool_path_planner</depend>
+  <depend>path_sequence_planner</depend>
+  <depend>vtk_viewer</depend>
+  <depend>noether_conversions</depend>
 
-  <run_depend>roscpp</run_depend>
-  <run_depend>mesh_segmenter</run_depend>
-  <run_depend>tool_path_planner</run_depend>
-  <run_depend>path_sequence_planner</run_depend>
-  <run_depend>vtk_viewer</run_depend>
 
 </package>

@@ -10,6 +10,10 @@
 
   <depend>vtk_viewer</depend>
   <depend>rosconsole</depend>
+  <depend>noether_msgs</depend>
+  <depend>shape_msgs</depend>
+  <depend>eigen_conversions</depend>
+  <depend>geometry_msgs</depend>
   
 
 </package>

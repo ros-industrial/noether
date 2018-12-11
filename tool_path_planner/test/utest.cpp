@@ -5,11 +5,12 @@
  *
  */
 
-#include <tool_path_planner/raster_tool_path_planner.h>
 #include <vtk_viewer/vtk_utils.h>
 #include <vtk_viewer/vtk_viewer.h>
 #include <gtest/gtest.h>
 #include <vtkIdTypeArray.h>
+
+#include "../include/tool_path_planner/raster_tool_path_planner.h"
 
 #define DISPLAY_LINES  1
 #define DISPLAY_NORMALS  0
@@ -56,10 +57,7 @@ TEST(IntersectTest, TestCase1)
   tool.line_spacing = 0.75;
   tool.tool_offset = 0.0; // currently unused
   tool.intersecting_plane_height = 0.2; // 0.5 works best, not sure if this should be included in the tool
-  tool.nearest_neighbors = 30; // not sure if this should be a part of the tool
   tool.min_hole_size = 0.1;
-  tool.use_ransac_normal_estimation = false;
-  tool.plane_fit_threhold = .01;
   planner.setTool(tool);
   planner.setDebugMode(false);
 
@@ -145,7 +143,7 @@ TEST(IntersectTest, TestCaseRansac)
 
 
   // Set input mesh
-  tool_path_planner::RasterToolPathPlanner planner(true);
+  tool_path_planner::RasterToolPathPlanner planner;
   planner.setInputMesh(data2);
 
   // Set input tool data
@@ -154,10 +152,7 @@ TEST(IntersectTest, TestCaseRansac)
   tool.line_spacing = 0.75;
   tool.tool_offset = 0.0; // currently unused
   tool.intersecting_plane_height = 0.2; // 0.5 works best, not sure if this should be included in the tool
-  tool.nearest_neighbors = 30; // not sure if this should be a part of the tool
   tool.min_hole_size = 0.1;
-  tool.use_ransac_normal_estimation = true;
-  tool.plane_fit_threhold = .01;
   planner.setTool(tool);
   planner.setDebugMode(false);
 

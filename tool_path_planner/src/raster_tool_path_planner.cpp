@@ -36,8 +36,8 @@
 #include <log4cxx/basicconfigurator.h>
 #include <log4cxx/patternlayout.h>
 #include <log4cxx/consoleappender.h>
-
 #include <tool_path_planner/raster_tool_path_planner.h>
+#include "tool_path_planner/utilities.h"
 
 
 static const std::size_t MAX_ATTEMPTS = 1000;

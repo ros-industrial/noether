@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8.3)
 add_compile_options(-std=c++14)
 
 project(tool_path_planner)
-find_package(catkin REQUIRED cmake_modules vtk_viewer rosconsole)
+find_package(catkin REQUIRED cmake_modules vtk_viewer rosconsole noether_msgs shape_msgs geometry_msgs eigen_conversions)
 
 find_package(VTK 7.1 REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
@@ -15,7 +15,7 @@ find_package(Eigen3 REQUIRED)
 
 catkin_package(
     INCLUDE_DIRS include
-    LIBRARIES raster_tool_path_planner rosconsole
+    LIBRARIES ${PROJECT_NAME} rosconsole
     DEPENDS Eigen VTK vtk_viewer PCL  
 )
 
@@ -25,12 +25,13 @@ include_directories(
     ${PCL_INCLUDE_DIRS}
 )
 
-add_library(raster_tool_path_planner
+add_library(${PROJECT_NAME}
     src/raster_tool_path_planner.cpp
-    src/tool_path_planner.cpp
+    src/raster_path_generator.cpp
+    src/utilities.cpp
 )
 
-target_link_libraries(raster_tool_path_planner
+target_link_libraries(${PROJECT_NAME}
     ${catkin_LIBRARIES}
     ${VTK_LIBRARIES}
     ${PCL_LIBRARIES}
@@ -40,7 +41,7 @@ target_link_libraries(raster_tool_path_planner
 if(CATKIN_ENABLE_TESTING)
   catkin_add_gtest(raster_tool_path_planner-test test/utest.cpp)
   target_link_libraries(raster_tool_path_planner-test
-      raster_tool_path_planner
+      ${PROJECT_NAME}
       ${catkin_LIBRARIES}
       ${VTK_LIBRARIES})
 endif()

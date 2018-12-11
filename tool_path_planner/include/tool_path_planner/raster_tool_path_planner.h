@@ -13,11 +13,12 @@
 #include <vtkModifiedBSPTree.h>
 #include <log4cxx/logger.h>
 #include "log4cxx/basicconfigurator.h"
-#include <tool_path_planner/tool_path_planner.h>
+
+#include "tool_path_planner_base.h"
 
 namespace tool_path_planner
 {
-  class RasterToolPathPlanner : public ToolPathPlanner
+  class RasterToolPathPlanner : public ToolPathPlannerBase
   {
   public:
 

@@ -9,8 +9,8 @@
 
 #include <vtk_viewer/vtk_viewer.h>
 #include <mesh_segmenter/mesh_segmenter.h>
-#include <tool_path_planner/raster_tool_path_planner.h>
 #include <path_sequence_planner/path_sequence_planner.h>
+#include <tool_path_planner/raster_tool_path_planner.h>
 
 namespace noether
 {
