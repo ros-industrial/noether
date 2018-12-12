@@ -7,8 +7,8 @@
  *      Author: Jorge Nicho
  */
 
-#ifndef INCLUDE_TPP_PATH_GEN_TOOL_PATH_GENERATOR_H_
-#define INCLUDE_TPP_PATH_GEN_TOOL_PATH_GENERATOR_H_
+#ifndef INCLUDE_TOOL_PATH_PLANNER_RASTER_PATH_GENERATOR_H_
+#define INCLUDE_TOOL_PATH_PLANNER_RASTER_PATH_GENERATOR_H_
 
 #include <geometry_msgs/PoseArray.h>
 #include <shape_msgs/Mesh.h>
@@ -54,4 +54,4 @@ public:
 
 } /* namespace tool_path_planner */
 
-#endif /* INCLUDE_TPP_PATH_GEN_TOOL_PATH_GENERATOR_H_ */
+#endif /* INCLUDE_TOOL_PATH_PLANNER_RASTER_PATH_GENERATOR_H_ */

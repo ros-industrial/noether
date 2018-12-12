@@ -10,8 +10,8 @@
  */
 
 
-#ifndef INCLUDE_TPP_PATH_GEN_UTILITIES_H_
-#define INCLUDE_TPP_PATH_GEN_UTILITIES_H_
+#ifndef INCLUDE_TOOL_PATH_PLANNER_UTILITIES_H_
+#define INCLUDE_TOOL_PATH_PLANNER_UTILITIES_H_
 
 #include <noether_msgs/ToolPathConfig.h>
 #include <Eigen/Dense>
@@ -65,4 +65,4 @@ namespace tool_path_planner
 
 
 
-#endif /* INCLUDE_TPP_PATH_GEN_UTILITIES_H_ */
+#endif /* INCLUDE_TOOL_PATH_PLANNER_UTILITIES_H_ */

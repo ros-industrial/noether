@@ -4,14 +4,14 @@
  *
  */
 
-#include "noether/noether.h"
+#include <noether/surface_raster_planner_application.h>
 #include <vtkPointData.h>
 #include <ros/ros.h>
 #include <ros/file_log.h>
 
 namespace noether {
 
-void Noether::addMeshDisplay(std::vector<vtkSmartPointer<vtkPolyData> >& meshes)
+void SurfaceRasterPlannerApplication::addMeshDisplay(std::vector<vtkSmartPointer<vtkPolyData> >& meshes)
 {
   // mesh colors should be darker than path colors
   int colors[] = {
@@ -43,7 +43,7 @@ void Noether::addMeshDisplay(std::vector<vtkSmartPointer<vtkPolyData> >& meshes)
   }
 }
 
-void Noether::addPathDisplay(std::vector<std::vector< tool_path_planner::ProcessPath > >& paths,
+void SurfaceRasterPlannerApplication::addPathDisplay(std::vector<std::vector< tool_path_planner::ProcessPath > >& paths,
                     double scale, bool show_path, bool show_cutting_meshes, bool show_derivatives)
 {
   for(int i = 0; i < paths.size(); ++i)
@@ -52,7 +52,7 @@ void Noether::addPathDisplay(std::vector<std::vector< tool_path_planner::Process
   }
 }
 
-void Noether::addPathDisplay(std::vector< tool_path_planner::ProcessPath >& paths, double scale, bool show_path,
+void SurfaceRasterPlannerApplication::addPathDisplay(std::vector< tool_path_planner::ProcessPath >& paths, double scale, bool show_path,
                     bool show_cutting_meshes, bool show_derivatives)
 {
   int colors[] = {
@@ -220,7 +220,7 @@ int main(int argc, char **argv)
 
     // visualize results
     double scale = tool.pt_spacing * 1.5;
-    noether::Noether viz;
+    noether::SurfaceRasterPlannerApplication viz;
     viz.setLogDir(log_directory);
     ROS_INFO_STREAM("log directory " << viz.getLogDir());
 

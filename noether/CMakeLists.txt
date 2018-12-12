@@ -14,6 +14,8 @@ find_package(catkin REQUIRED cmake_modules
     path_sequence_planner
     vtk_viewer
     roscpp
+    noether_msgs
+    noether_conversions
 )
 
 catkin_package(
@@ -29,19 +31,14 @@ catkin_package(
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 
-add_library(noether
-    src/noether.cpp
-)
-
-target_link_libraries(noether
+add_executable(surface_raster_planner_server src/surface_raster_planner_server.cpp)
+target_link_libraries(surface_raster_planner_server
     ${catkin_LIBRARIES}
     ${VTK_LIBRARIES}
 )
 
-add_executable(noether_node src/noether.cpp)
-
-target_link_libraries(noether_node
-    noether
+add_executable(surface_raster_planner_application src/surface_raster_planner_application.cpp)
+target_link_libraries(surface_raster_planner_application
     ${catkin_LIBRARIES}
     ${VTK_LIBRARIES}
 )

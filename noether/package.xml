@@ -14,6 +14,7 @@
   <depend>tool_path_planner</depend>
   <depend>path_sequence_planner</depend>
   <depend>vtk_viewer</depend>
+  <depend>noether_msgs</depend>
   <depend>noether_conversions</depend>
 
 
