@@ -63,18 +63,35 @@ This package depends on PCL 1.8 and VTK 7.1.
 - Create a catkin workspace and clone this repository in the `src` directory
 - Build the noether packages
   ```
-  catkin build noether noether_conversions
+  catkin build noether
   ```
   
   _Note: You can just run catkin build in order to build everything in your workspace including the noether packages_
 
-## Test Noether (DEPRECATED)
-Run the unit tests for each package:
-catkin_make run_tests_<package-name>
+## Run Unit Tests
+- Run the unit tests for a package:
+    ```
+    catkin run_tests tool_path_planner --no-deps
+    ```
+    
+- Run all unit test in the noether repository
+    ```
+    catkin run_tests noether --no-deps
+    ```
+    >> NOTE: Press 'q' to close the vtk window and proceed with the test program.
+
+## Run applications
+
+The noether package has a *surface raster planner* executable which is able to take in a mesh file (.stl format), and generate raster paths on it, you can run it through the launch file with preconfigured parameters as follows:
 ```
-catkin_make run_tests_tool_path_planner
+roslaunch noether surf_raster_planner_application.launch filename:=</absolute/path/to/my/mesh.stl>
 ```
 
-The noether package has an executable which is able to take in a mesh file (.stl format), read it, segment the file into adjacent surfaces,
-and plan paths for each surface.  Work is in progress to read in point cloud (.pcd) files, but meshing results are not reliable right now.
+or you can run it with your own custom parameters as well by calling the node directly:
+```
+rosrun noether surface_raster_planner_application _pt_spacing:=0.05 _line_spacing:=0.15 _intersecting_plane_height:=0.05 _min_hole_size:=0.01 _min_segment_size:=0.01 _debug_on:=False _console_debug_on:=False _file_path:=</path/to/mesh/file.stl> 
+```
+The `debug_on` and `console_debug_on` argurments enable visual and console debugging respectively.  During visual debugging press 'q' on the vtk window in order to step through.
+
+Work is in progress to read in point cloud (.pcd) files, but meshing results are not reliable right now.
 

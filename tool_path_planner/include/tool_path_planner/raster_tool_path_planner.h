@@ -12,7 +12,8 @@
 #include <vtkCellLocator.h>
 #include <vtkModifiedBSPTree.h>
 #include <log4cxx/logger.h>
-#include "log4cxx/basicconfigurator.h"
+#include <log4cxx/basicconfigurator.h>
+#include <vtk_viewer/vtk_viewer.h>
 
 #include "tool_path_planner_base.h"
 

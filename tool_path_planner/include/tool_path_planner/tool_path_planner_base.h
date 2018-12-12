@@ -13,8 +13,6 @@
 
 #include <pcl/PolygonMesh.h>
 
-#include <vtk_viewer/vtk_viewer.h>
-
 namespace tool_path_planner
 {
   struct ProcessPath

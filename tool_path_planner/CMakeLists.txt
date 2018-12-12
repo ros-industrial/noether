@@ -15,8 +15,9 @@ find_package(Eigen3 REQUIRED)
 
 catkin_package(
     INCLUDE_DIRS include
-    LIBRARIES ${PROJECT_NAME} rosconsole
-    DEPENDS Eigen VTK vtk_viewer PCL  
+    LIBRARIES ${PROJECT_NAME}
+    CATKIN_DEPENDS vtk_viewer rosconsole noether_msgs shape_msgs geometry_msgs eigen_conversions
+    DEPENDS Eigen3 VTK PCL  
 )
 
 include_directories(

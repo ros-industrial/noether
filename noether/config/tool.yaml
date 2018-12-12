@@ -1,8 +1,7 @@
-pt_spacing: 0.1
+pt_spacing: 0.05
 line_spacing: 0.15
 tool_offset: 0.0 # currently unused
 intersecting_plane_height: 0.1 # 0.5 works best, not sure if this should be included in the tool
-nearest_neighbors: 5 # not sure if this should be a part of the tool
 min_hole_size: 0.01
 min_segment_size: 0.01
 #cut_norm_x: -8.0

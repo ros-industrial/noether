@@ -31,7 +31,6 @@ catkin_package(
 include_directories(
     include
     ${catkin_INCLUDE_DIRS}
-    ${EIGEN_INCLUDE_DIRS}
 )
 
 add_library(noether_conversions
