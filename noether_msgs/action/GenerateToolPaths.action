@@ -1,0 +1,11 @@
+# Goal
+shape_msgs/Mesh[] surface_meshes	# The surfaces on which to generate paths.
+ToolPathConfig[] path_configs		# The path configuration parameters for each surface. 
+bool proceed_on_failure				# When True, path generation will proceed to the next surface when planning fails on the current surface. 
+---
+# Result
+bool success
+ToolRasterPath[] tool_raster_paths	# The resulting raster paths
+bool[] tool_path_validities			# True when the tool path in 'tool_raster_paths' with the same index is valid.
+---
+# Feedback

@@ -5,16 +5,18 @@
  *
  */
 
-#include <tool_path_planner/raster_tool_path_planner.h>
 #include <vtk_viewer/vtk_utils.h>
 #include <vtk_viewer/vtk_viewer.h>
 #include <gtest/gtest.h>
 #include <vtkIdTypeArray.h>
 
+#include "../include/tool_path_planner/raster_tool_path_planner.h"
+
 #define DISPLAY_LINES  1
 #define DISPLAY_NORMALS  0
 #define DISPLAY_DERIVATIVES  1
 #define DISPLAY_CUTTING_MESHES  0
+#define POINT_SPACING 0.5
 
 // This test shows the results of the tool path planner on a square grid that has a sinusoidal
 // variation in the z axis and a cutout in the middle.  It will generate a series of evenly spaced lines (aprox. equal to line_spacing)
@@ -51,14 +53,11 @@ TEST(IntersectTest, TestCase1)
 
   // Set input tool data
   tool_path_planner::ProcessTool tool;
-  tool.pt_spacing = 0.5;
+  tool.pt_spacing = POINT_SPACING;
   tool.line_spacing = 0.75;
   tool.tool_offset = 0.0; // currently unused
   tool.intersecting_plane_height = 0.2; // 0.5 works best, not sure if this should be included in the tool
-  tool.nearest_neighbors = 30; // not sure if this should be a part of the tool
   tool.min_hole_size = 0.1;
-  tool.use_ransac_normal_estimation = false;
-  tool.plane_fit_threhold = .01;
   planner.setTool(tool);
   planner.setDebugMode(false);
 
@@ -87,8 +86,6 @@ TEST(IntersectTest, TestCase1)
 
 
   // Plan paths for given mesh
-  tool_path_planner::ProcessPath path;
-  planner.getFirstPath(path);
   planner.computePaths();
   std::vector<tool_path_planner::ProcessPath> paths = planner.getPaths();
 
@@ -146,19 +143,16 @@ TEST(IntersectTest, TestCaseRansac)
 
 
   // Set input mesh
-  tool_path_planner::RasterToolPathPlanner planner(true);
+  tool_path_planner::RasterToolPathPlanner planner;
   planner.setInputMesh(data2);
 
   // Set input tool data
   tool_path_planner::ProcessTool tool;
-  tool.pt_spacing = 0.5;
+  tool.pt_spacing = POINT_SPACING;
   tool.line_spacing = 0.75;
   tool.tool_offset = 0.0; // currently unused
   tool.intersecting_plane_height = 0.2; // 0.5 works best, not sure if this should be included in the tool
-  tool.nearest_neighbors = 30; // not sure if this should be a part of the tool
   tool.min_hole_size = 0.1;
-  tool.use_ransac_normal_estimation = true;
-  tool.plane_fit_threhold = .01;
   planner.setTool(tool);
   planner.setDebugMode(false);
 
@@ -187,8 +181,6 @@ TEST(IntersectTest, TestCaseRansac)
 
 
   // Plan paths for given mesh
-  tool_path_planner::ProcessPath path;
-  planner.getFirstPath(path);
   planner.computePaths();
   std::vector<tool_path_planner::ProcessPath> paths = planner.getPaths();
 

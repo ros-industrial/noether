@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package>
+<package format="2">
   <name>vtk_viewer</name>
   <version>0.0.0</version>
   <description>The vtk_viewer package</description>
@@ -7,5 +7,6 @@
   <license>Proprietary</license>
 
   <buildtool_depend>catkin</buildtool_depend>
+  <depend>rosconsole</depend>
 
 </package>

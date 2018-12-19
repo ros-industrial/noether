@@ -4,14 +4,14 @@
  *
  */
 
-#include "noether/noether.h"
+#include <noether/surface_raster_planner_application.h>
 #include <vtkPointData.h>
 #include <ros/ros.h>
 #include <ros/file_log.h>
 
 namespace noether {
 
-void Noether::addMeshDisplay(std::vector<vtkSmartPointer<vtkPolyData> >& meshes)
+void SurfaceRasterPlannerApplication::addMeshDisplay(std::vector<vtkSmartPointer<vtkPolyData> >& meshes)
 {
   // mesh colors should be darker than path colors
   int colors[] = {
@@ -43,7 +43,7 @@ void Noether::addMeshDisplay(std::vector<vtkSmartPointer<vtkPolyData> >& meshes)
   }
 }
 
-void Noether::addPathDisplay(std::vector<std::vector< tool_path_planner::ProcessPath > >& paths,
+void SurfaceRasterPlannerApplication::addPathDisplay(std::vector<std::vector< tool_path_planner::ProcessPath > >& paths,
                     double scale, bool show_path, bool show_cutting_meshes, bool show_derivatives)
 {
   for(int i = 0; i < paths.size(); ++i)
@@ -52,7 +52,7 @@ void Noether::addPathDisplay(std::vector<std::vector< tool_path_planner::Process
   }
 }
 
-void Noether::addPathDisplay(std::vector< tool_path_planner::ProcessPath >& paths, double scale, bool show_path,
+void SurfaceRasterPlannerApplication::addPathDisplay(std::vector< tool_path_planner::ProcessPath >& paths, double scale, bool show_path,
                     bool show_cutting_meshes, bool show_derivatives)
 {
   int colors[] = {
@@ -110,10 +110,7 @@ tool_path_planner::ProcessTool loadTool(ros::NodeHandle& nh)
   nh.param<double>("line_spacing", tool.line_spacing, 0.05);
   nh.param<double>("tool_offset", tool.tool_offset, 0);
   nh.param<double>("intersecting_plane_height", tool.intersecting_plane_height, 0.05);
-  nh.param<int>("nearest_neighbors", tool.nearest_neighbors, 5);
   nh.param<double>("min_hole_size", tool.min_hole_size, 0.01);
-  nh.param<bool>("use_ransac_normal_estimation", tool.use_ransac_normal_estimation, false);
-  nh.param<double>("use_plane_fit_threshold", tool.plane_fit_threhold, .01);
   nh.param<double>("min_segment_size", tool.min_segment_size, 0.01);
 
   return tool;
@@ -128,12 +125,33 @@ static std::string toLower(const std::string& in)
 
 int main(int argc, char **argv)
 {
+
   ros::init(argc, argv, "noether_node");
   ros::NodeHandle pnh ("~");
 
   // Step 1: Load the 'filename' parameter
   std::string file;
   pnh.param<std::string>("filename", file, "");
+
+  bool debug_on;
+  bool console_debug_on;
+  pnh.param<bool>("debug_on", debug_on, false);
+  pnh.param<bool>("console_debug_on", console_debug_on, false);
+
+  double vect[3], center[3];
+  pnh.param<double>("cut_norm_x", vect[0], 0.0);
+  pnh.param<double>("cut_norm_y", vect[1], 0.0);
+  pnh.param<double>("cut_norm_z", vect[2], 0.0);
+  pnh.param<double>("centroid_x", center[0], 0.0);
+  pnh.param<double>("centroid_y", center[1], 0.0);
+  pnh.param<double>("centroid_z", center[2], 0.0);
+
+  vtk_viewer::VTK_LOGGER->setLevel(console_debug_on ? log4cxx::Level::getDebug(): log4cxx::Level::getInfo());
+
+  // load tool config
+  tool_path_planner::ProcessTool tool = loadTool(pnh);
+  tool_path_planner::RasterToolPathPlanner planner;
+  planner.enableConsoleDebug(console_debug_on);
 
 
   if(!file.empty())
@@ -192,21 +210,6 @@ int main(int argc, char **argv)
 
     std::string log_directory = ros::file_log::getLogDirectory();
 
-    // plan paths for segmented meshes
-    tool_path_planner::ProcessTool tool = loadTool(pnh);
-    tool_path_planner::RasterToolPathPlanner planner(tool.use_ransac_normal_estimation);
-
-    bool debug_on;
-    pnh.param<bool>("debug_on", debug_on, false);
-    double vect[3], center[3];
-    pnh.param<double>("cut_norm_x", vect[0], 0.0);
-    pnh.param<double>("cut_norm_y", vect[1], 0.0);
-    pnh.param<double>("cut_norm_z", vect[2], 0.0);
-    pnh.param<double>("centroid_x", center[0], 0.0);
-    pnh.param<double>("centroid_y", center[1], 0.0);
-    pnh.param<double>("centroid_z", center[2], 0.0);
-
-
     planner.setTool(tool);
     planner.setCutDirection(vect);
     planner.setCutCentroid(center);
@@ -217,7 +220,7 @@ int main(int argc, char **argv)
 
     // visualize results
     double scale = tool.pt_spacing * 1.5;
-    noether::Noether viz;
+    noether::SurfaceRasterPlannerApplication viz;
     viz.setLogDir(log_directory);
     ROS_INFO_STREAM("log directory " << viz.getLogDir());
 

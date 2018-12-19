@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <path_sequence_planner/simple_path_sequence_planner.h>
+#include <tool_path_planner/utilities.h>
 #include <vtk_viewer/vtk_utils.h>
 
 namespace path_sequence_planner

@@ -28,6 +28,7 @@
 
 namespace vtk_viewer
 {
+
   VTKViewer::VTKViewer()
   {
     // We create the basic parts of a pipeline and connect them

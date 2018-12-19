@@ -24,6 +24,7 @@ namespace vtk_viewer
   class VTKViewer
   {
   public:
+
     VTKViewer();
     ~VTKViewer();
 

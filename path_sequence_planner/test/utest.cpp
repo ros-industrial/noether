@@ -57,7 +57,6 @@ TEST(IntersectTest, TestCase1)
   tool.line_spacing = 0.75;
   tool.tool_offset = 0.0; // currently unused
   tool.intersecting_plane_height = 0.2; // 0.5 works best, not sure if this should be included in the tool
-  tool.nearest_neighbors = 20; // not sure if this should be a part of the tool
   tool.min_hole_size = 0.1;
   planner.setTool(tool);
 
@@ -84,7 +83,6 @@ TEST(IntersectTest, TestCase1)
   }
 
   tool_path_planner::ProcessPath path;
-  planner.getFirstPath(path);
   planner.computePaths();
   std::vector<tool_path_planner::ProcessPath> paths = planner.getPaths();
 
