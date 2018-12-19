@@ -45,7 +45,6 @@ static const double ANGLE_CORRECTION_THRESHOLD = (150.0/180.0)*M_PI;
 static const double EXTRUDE_EXTEND_PERCENTAGE = 1.5;
 static const double RAY_INTERSECTION_TOLERANCE = 0.001;
 
-
 log4cxx::LoggerPtr createConsoleLogger(const std::string& logger_name)
 {
   using namespace log4cxx;
@@ -56,6 +55,8 @@ log4cxx::LoggerPtr createConsoleLogger(const std::string& logger_name)
   logger->setLevel(Level::getInfo());
   return logger;
 }
+log4cxx::LoggerPtr tool_path_planner::RasterToolPathPlanner::RASTER_PATH_PLANNER_LOGGER = createConsoleLogger(
+    "RasterPathPlanner");
 
 /**
  * @brief computes the angle between two vectors
@@ -106,7 +107,6 @@ int findClosestPoint(const std::vector<double>& pt,  const std::vector<std::vect
 }
 
 
-log4cxx::LoggerPtr tool_path_planner::RasterToolPathPlanner::RASTER_PATH_PLANNER_LOGGER = createConsoleLogger("RasterPathPlanner");
 
 
 namespace tool_path_planner
@@ -384,7 +384,6 @@ namespace tool_path_planner
       points = this_path.intersection_plane->GetPoints();
       resamplePoints(points);
       offset_line->SetPoints(points);
-      //estimateNewNormals(offset_line);
       if(!computeSurfaceLineNormals(offset_line))
       {
         return false;

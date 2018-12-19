@@ -14,8 +14,7 @@
 #include <log4cxx/logger.h>
 #include <log4cxx/basicconfigurator.h>
 #include <vtk_viewer/vtk_viewer.h>
-
-#include "tool_path_planner_base.h"
+#include "tool_path_planner/tool_path_planner_base.h"
 
 namespace tool_path_planner
 {

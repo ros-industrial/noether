@@ -302,16 +302,19 @@ boost::optional< std::vector<geometry_msgs::PoseArray> > RasterPathGenerator::ge
     return  boost::none;
   }
 
-  bool all_empty = std::all_of(tool_process_paths.begin(),tool_process_paths.end(),[](auto& tp){
-    return tp.empty();
+  // counting non-empty paths
+  std::size_t non_empty_paths = std::accumulate(tool_process_paths.begin(), tool_process_paths.end(),0,[](
+      std::size_t count, auto& tp) ->std::size_t {
+    return count + (tp.empty() ? 0 : 1);
   });
-  if(all_empty)
+
+  if(non_empty_paths == 0)
   {
     ROS_ERROR("All tool paths generated are empty");
     return boost::none;
   }
 
-  ROS_INFO("Found %lu tool paths",tool_process_paths.size());
+  ROS_INFO("Found %lu tool paths",non_empty_paths);
 
   // converting to result type
   ToolPath tool_process_path = tool_process_paths.front();

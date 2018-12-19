@@ -46,7 +46,10 @@ public:
 	boost::optional<std::vector<geometry_msgs::PoseArray>> generate(const tool_path_planner::ProcessTool& path_gen_config,
 			const shape_msgs::Mesh& mesh) const;
 
-
+	/**
+	 * @brief Generates a ProcessTool configuration structure with default parameters filled in.
+	 * @return  The ProcessTool structure.
+	 */
 	static tool_path_planner::ProcessTool generateDeaultToolConfig();
 
 
