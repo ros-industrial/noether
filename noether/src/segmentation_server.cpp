@@ -6,13 +6,12 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/io/vtk_lib_io.h>
 
-
 #include <vtkPolyDataNormals.h>
 #include <vtkCleanPolyData.h>
 #include <vtkWindowedSincPolyDataFilter.h>
 #include <vtkSmoothPolyDataFilter.h>
 
-#include <noether/noether.h>
+//#include <noether/noether.h>
 #include <vtk_viewer/vtk_utils.h>
 
 class SegmentationAction
@@ -53,11 +52,8 @@ public:
     vtkSmartPointer<vtkPolyData> mesh;
     pcl::PolygonMesh input_pcl_mesh;
     pcl_conversions::toPCL(goal->input_mesh, input_pcl_mesh);
-    vtk_viewer::pclEncodeMeshAndNormals(input_pcl_mesh, mesh);//, 100, pcl::PointXYZ(0, 50.0, 50.0));
+    vtk_viewer::pclEncodeMeshAndNormals(input_pcl_mesh, mesh);  //, 100, pcl::PointXYZ(0, 50.0, 50.0));
     vtk_viewer::generateNormals(mesh);
-//    pcl::VTKUtils::convertToVTK(input_pcl_mesh, mesh);            // Converts w
-
-
 
     // Step 2: Filter the mesh
     // Create some pointers - not used since passing with VTK pipeline but useful for debugging
@@ -67,21 +63,27 @@ public:
     vtkSmartPointer<vtkPolyData> mesh_filtered1;
     vtkSmartPointer<vtkPolyData> mesh_filtered2;
 
+    /*
+     * This is left in to show how to do this in case we need to later. Cleaning the mesh seems like a logical thing to
+     * do, and I only disabled it because it seemed to cause some issues. I'm hopeful after I switch to MLS for
+     * curvature calculations it will solve some of these problems, and this can be on by default.
+     *
+     * When this is done line 87 can be removed and line 86 can be uncommented.
+     * 12/31/2018
     // Remove duplicate points (Note: this seems to cause problems sometimes)
-//    vtkSmartPointer<vtkCleanPolyData> cleanPolyData = vtkSmartPointer<vtkCleanPolyData>::New();
-//    cleanPolyData->SetInputData(mesh_in);
-//    cleanPolyData->Update();
-//    mesh_cleaned = cleanPolyData->GetOutput();
-
+    //    vtkSmartPointer<vtkCleanPolyData> cleanPolyData = vtkSmartPointer<vtkCleanPolyData>::New();
+    //    cleanPolyData->SetInputData(mesh_in);
+    //    cleanPolyData->Update();
+    //    mesh_cleaned = cleanPolyData->GetOutput();
+*/
     vtk_viewer::generateNormals(mesh_in);
-
 
     if (goal->filter)
     {
       // Apply Windowed Sinc function interpolation Smoothing
       vtkSmartPointer<vtkWindowedSincPolyDataFilter> smooth_filter1 =
           vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
-//      smooth_filter1->SetInputConnection(cleanPolyData->GetOutputPort());
+      //      smooth_filter1->SetInputConnection(cleanPolyData->GetOutputPort());       // See note above
       smooth_filter1->SetInputData(mesh_in);
       smooth_filter1->SetNumberOfIterations(20);
       smooth_filter1->SetPassBand(0.1);
@@ -98,10 +100,9 @@ public:
       // This moves the coordinates of each point toward the average of its adjoining points
       vtkSmartPointer<vtkSmoothPolyDataFilter> smooth_filter2 = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
       smooth_filter2->SetInputConnection(smooth_filter1->GetOutputPort());
-      //  smooth_filter2->SetInputData(mesh_cleaned);
       smooth_filter2->SetNumberOfIterations(10);
       smooth_filter2->SetRelaxationFactor(0.1);
-      //  smooth_filter2->SetEdgeAngle(somenumber);
+      //  smooth_filter2->SetEdgeAngle(somenumber);     // This is left as an example of a useful filter that could be applied
       smooth_filter2->FeatureEdgeSmoothingOff();
       smooth_filter2->BoundarySmoothingOff();
       smooth_filter2->Update();
@@ -131,7 +132,7 @@ public:
     for (int ind = 0; ind < segmented_meshes.size(); ind++)
     {
       pcl::PolygonMesh pcl_mesh;
-      pcl::io::vtk2mesh(segmented_meshes[ind],pcl_mesh);
+      pcl::io::vtk2mesh(segmented_meshes[ind], pcl_mesh);
       pcl_msgs::PolygonMesh pcl_mesh_msg;
       pcl_conversions::fromPCL(pcl_mesh, pcl_mesh_msg);
       pcl_mesh_msgs.push_back(pcl_mesh_msg);

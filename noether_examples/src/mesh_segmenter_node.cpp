@@ -13,10 +13,45 @@
 #include <vtkWindowedSincPolyDataFilter.h>
 #include <vtkSmoothPolyDataFilter.h>
 
+#include <noether_examples/noether_examples.h>
 #include <vtk_viewer/vtk_utils.h>
-#include <noether/noether.h>
 #include <vtkSTLWriter.h>
 #include <ros/package.h>
+
+namespace noether {
+
+void Noether::addMeshDisplay(std::vector<vtkSmartPointer<vtkPolyData> >& meshes)
+{
+  // mesh colors should be darker than path colors
+  int colors[] = {
+    0xcc0000,
+    0xcc6500,
+    0xcccc00,
+    0x65cc00,
+    0x00cc00,
+    0x00cc65,
+    0x00cccc,
+    0x0065cc,
+    0x0000cc,
+    0x6500cc,
+    0xcc00cc,
+    0xcc0065,
+    };
+
+  size_t size;
+  size=sizeof(colors)/sizeof(colors[0]);
+
+  for(int i = 0; i < meshes.size(); ++i)
+  {
+    std::vector<float> color(3);
+    color[2] = float(colors[i % size] & 0xff)/255.0;
+    color[1] = float((colors[i % size] & 0xff00) >> 8)/255.0;
+    color[0] = float((colors[i % size] & 0xff0000) >> 16)/255.0;
+
+    viewer_.addPolyDataDisplay(meshes[i], color);
+  }
+}
+}
 
 static std::string toLower(const std::string& in)
 {
@@ -107,15 +142,8 @@ int main(int argc, char** argv)
   vtkSmartPointer<vtkPolyData> mesh_filtered1;
   vtkSmartPointer<vtkPolyData> mesh_filtered2;
 
-//  // Remove duplicate points (Note: this seems to cause problems sometimes)
-//    vtkSmartPointer<vtkCleanPolyData> cleanPolyData = vtkSmartPointer<vtkCleanPolyData>::New();
-//    cleanPolyData->SetInputData(mesh_in);
-//    cleanPolyData->Update();
-//    mesh_cleaned = cleanPolyData->GetOutput();
-
   // Apply Windowed Sinc function interpolation Smoothing
   vtkSmartPointer<vtkWindowedSincPolyDataFilter> smooth_filter1 = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
-//    smooth_filter1->SetInputConnection(cleanPolyData->GetOutputPort());
   smooth_filter1->SetInputData(mesh_in);
   smooth_filter1->SetNumberOfIterations(20);
   smooth_filter1->SetPassBand(0.1);
@@ -132,10 +160,8 @@ int main(int argc, char** argv)
   // This moves the coordinates of each point toward the average of its adjoining points
   vtkSmartPointer<vtkSmoothPolyDataFilter> smooth_filter2 = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
   smooth_filter2->SetInputConnection(smooth_filter1->GetOutputPort());
-  //  smooth_filter2->SetInputData(mesh_cleaned);
   smooth_filter2->SetNumberOfIterations(10);
   smooth_filter2->SetRelaxationFactor(0.1);
-  //  smooth_filter2->SetEdgeAngle(somenumber);
   smooth_filter2->FeatureEdgeSmoothingOff();
   smooth_filter2->BoundarySmoothingOff();
   smooth_filter2->Update();
@@ -157,10 +183,8 @@ int main(int argc, char** argv)
   // Get Mesh segment
   std::vector<vtkSmartPointer<vtkPolyData> > segmented_meshes = segmenter.getMeshSegments();
   std::vector<vtkSmartPointer<vtkPolyData> > panels(segmented_meshes.begin(), segmented_meshes.end() - 1);
-//  std::vector<vtkSmartPointer<vtkPolyData> > edges(1);
-//  edges.push_back(segmented_meshes.back());
 
-  std::cout << "Displaying " << segmented_meshes.size() << " meshes \n";
+  ROS_INFO_STREAM("Displaying " << segmented_meshes.size() << " meshes \n");
   ROS_INFO("Close VTK window to continue");
   if (show_individually)
   {
@@ -168,7 +192,7 @@ int main(int argc, char** argv)
     {
       if (true)
       {
-        std::cout << "Mesh: " << ind << "\n";
+        ROS_INFO_STREAM( "Mesh: " << ind << "\n");
         std::vector<vtkSmartPointer<vtkPolyData> > tmp(1);
         tmp.push_back(segmented_meshes[ind]);
         noether::Noether viz;
@@ -180,13 +204,7 @@ int main(int argc, char** argv)
   else
   {
     noether::Noether viz;
-//    ROS_INFO("Displaying Edges");
-//    viz.addMeshDisplay(edges);
-//    viz.visualizeDisplay();
     ROS_INFO("Displaying Segments");
-//    viz.addMeshDisplay(panels);
-//    viz.visualizeDisplay();
-//    ROS_INFO("Displaying Both");
     viz.addMeshDisplay(segmented_meshes);
     viz.visualizeDisplay();
   }
@@ -195,7 +213,7 @@ int main(int argc, char** argv)
   {
     for (int ind = 0; ind < segmented_meshes.size(); ind++)
     {
-      std::cout << "Saving: " << ind << "\n";
+      ROS_INFO_STREAM("Saving: " << ind << "\n");
 
       std::ostringstream ss;
       ss << ind;

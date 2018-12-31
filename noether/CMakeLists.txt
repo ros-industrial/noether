@@ -51,7 +51,6 @@ target_link_libraries(surface_raster_planner_application
 
 add_executable(segmentation_server src/segmentation_server.cpp)
 target_link_libraries(segmentation_server
-    noether
     ${catkin_LIBRARIES}
     ${VTK_LIBRARIES}
 )

@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   shape_msgs
   std_msgs
+  pcl_msgs
 )
 
 ################################################
@@ -25,14 +26,16 @@ add_message_files(
 add_action_files(
   FILES
   GenerateToolPaths.action
+  Segment.action
 )
 
 generate_messages(
   DEPENDENCIES
-  	actionlib_msgs
+    actionlib_msgs
     geometry_msgs
     shape_msgs
     std_msgs
+    pcl_msgs
 )
 
 ###################################
