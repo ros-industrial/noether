@@ -31,8 +31,7 @@ std::vector<vtkSmartPointer<vtkPolyData> > MeshSegmenter::getMeshSegments()
   vtkSmartPointer<vtkPolyData> input_copy = vtkSmartPointer<vtkPolyData>::New();
   input_copy->DeepCopy(input_mesh_);
   std::vector<vtkSmartPointer<vtkPolyData> > meshes;
-  //TODO: Figure out why the last one fails for some meshes (and then remove the -1)
-  for (int i = 0; i < included_indices_.size() - 1; ++i)
+  for (int i = 0; i < included_indices_.size(); ++i)
   {
     vtkSmartPointer<vtkPolyData> mesh = vtkSmartPointer<vtkPolyData>::New();
     // Create new pointer to a new copy of input_mesh_
@@ -50,15 +49,14 @@ std::vector<vtkSmartPointer<vtkPolyData> > MeshSegmenter::getMeshSegments()
                                        included_indices_[i]->GetNumberOfIds() * 2);
 
     // copy cell data and normals
-      mesh->CopyCells(input_copy, included_indices_[i]);
+    mesh->CopyCells(input_mesh_, included_indices_[i]);
 
-
-      if (mesh->GetNumberOfCells() <= 1)
-      {
-        cout << "NOT ENOUGH CELLS FOR SEGMENTATION\n";
-        continue;
-      }
-      meshes.push_back(mesh);
+    if (mesh->GetNumberOfCells() <= 1)
+    {
+      cout << "NOT ENOUGH CELLS FOR SEGMENTATION\n";
+      continue;
+    }
+    meshes.push_back(mesh);
   }
 
   return meshes;
@@ -66,10 +64,14 @@ std::vector<vtkSmartPointer<vtkPolyData> > MeshSegmenter::getMeshSegments()
 
 void MeshSegmenter::segmentMesh()
 {
+  // Cells that are in included_indices from the segmentation
   vtkSmartPointer<vtkIdList> used_cells = vtkSmartPointer<vtkIdList>::New();
+  // Cells that were rejected because the cluster they were in did not satisfy the parameters defined
+  vtkSmartPointer<vtkIdList> rejected_cells = vtkSmartPointer<vtkIdList>::New();
   int size = input_mesh_->GetCellData()->GetNumberOfTuples();
 
   used_cells->Allocate(size);
+  rejected_cells->Allocate(size);
 
   included_indices_.clear();
 
@@ -92,6 +94,13 @@ void MeshSegmenter::segmentMesh()
           used_cells->InsertNextId(linked_cells->GetId(j));
         }
       }
+      else
+      {
+        for (int j = 0; j < linked_cells->GetNumberOfIds(); ++j)
+        {
+          rejected_cells->InsertNextId(linked_cells->GetId(j));
+        }
+      }
     }
   }
 
@@ -99,9 +108,13 @@ void MeshSegmenter::segmentMesh()
   vtkSmartPointer<vtkIdList> edge_cells = vtkSmartPointer<vtkIdList>::New();
   for (int i = 0; i < size; i++)
   {
-    if (used_cells->IsId(i) == -1)
+    // If ID i is not in the used_cells list (and thus isn't in included_indices) and is a reject (not sure what the
+    // alternative would be)
+    if ((used_cells->IsId(i) == -1) && (rejected_cells->IsId(i) != -1))
     {
-      edge_cells->InsertNextId(used_cells->GetId(i));
+      // Then that cell is an "edge". Note - there is still something odd here. If you have trouble with it, try looking
+      // at the IDs you are getting inserting for each i
+      edge_cells->InsertNextId(rejected_cells->GetId(i));
     }
   }
   included_indices_.push_back(edge_cells);
@@ -110,7 +123,6 @@ void MeshSegmenter::segmentMesh()
   std::cout << "Total mesh size: " << size << '\n';
   std::cout << "Used cells size: " << used_cells->GetNumberOfIds() << "\n";
   std::cout << "Edge cells size: " << edge_cells->GetNumberOfIds() << "\n";
-
 }
 
 vtkSmartPointer<vtkIdList> MeshSegmenter::segmentMesh(int start_cell)
