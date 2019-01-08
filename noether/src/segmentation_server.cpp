@@ -17,15 +17,15 @@
 class SegmentationAction
 {
 protected:
-  ros::NodeHandle nh_;
+  ros::NodeHandle pnh_;
   actionlib::SimpleActionServer<noether_msgs::SegmentAction> server_;
   std::string action_name_;
   noether_msgs::SegmentFeedback feedback_;
   noether_msgs::SegmentResult result_;
 
 public:
-  SegmentationAction(ros::NodeHandle nh, std::string name)
-    : server_(nh_, name, boost::bind(&SegmentationAction::executeCB, this, _1), false), action_name_(name), nh_(nh)
+  SegmentationAction(ros::NodeHandle pnh, std::string name)
+    : server_(pnh_, name, boost::bind(&SegmentationAction::executeCB, this, _1), false), action_name_(name), pnh_(pnh)
   {
     server_.start();
     ROS_INFO("Segmentation action server online");
@@ -41,12 +41,12 @@ public:
     double curvature_threshold;
     int min_cluster_size, max_cluster_size;
     bool show_individually, save_outputs;
-    nh_.param<std::string>("/mesh_segmenter_client_node/filename", file, "");
-    nh_.param<int>("/mesh_segmenter_client_node/min_cluster_size", min_cluster_size, 500);
-    nh_.param<int>("/mesh_segmenter_client_node/max_cluster_size", max_cluster_size, 1000000);
-    nh_.param<double>("/mesh_segmenter_client_node/curvature_threshold", curvature_threshold, 0.3);
-    nh_.param<bool>("/mesh_segmenter_client_node/show_individually", show_individually, false);
-    nh_.param<bool>("/mesh_segmenter_client_node/save_outputs", save_outputs, false);
+    pnh_.param<std::string>("filename", file, "");
+    pnh_.param<int>("min_cluster_size", min_cluster_size, 500);
+    pnh_.param<int>("max_cluster_size", max_cluster_size, 1000000);
+    pnh_.param<double>("curvature_threshold", curvature_threshold, 0.3);
+    pnh_.param<bool>("show_individually", show_individually, false);
+    pnh_.param<bool>("save_outputs", save_outputs, false);
 
     // Convert ROS msg -> PCL Mesh -> VTK Mesh
     vtkSmartPointer<vtkPolyData> mesh;
@@ -160,9 +160,9 @@ public:
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "segmentation_server");
-  ros::NodeHandle nh;
+  ros::NodeHandle pnh("~");
 
-  SegmentationAction segmenter(nh, "segmenter");
+  SegmentationAction segmenter(pnh, "segmenter");
   ros::spin();
 
   return 0;

@@ -90,7 +90,7 @@ int main(int argc, char** argv)
   ROS_INFO_STREAM( "Imported as PCL mesh of size " << pcl_mesh.cloud.data.size() << '\n');
 
   // Step 3: Use action interface
-  actionlib::SimpleActionClient<noether_msgs::SegmentAction> action("segmenter", true);
+  actionlib::SimpleActionClient<noether_msgs::SegmentAction> action("mesh_segmenter_server_node/segmenter", true);
   ROS_INFO("Waiting for action server to start.");
   action.waitForServer();  // will wait for infinite time
 
