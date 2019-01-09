@@ -5,7 +5,6 @@ find_package(VTK 7.1 REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
 
 find_package(catkin REQUIRED
-    vtk_viewer
 )
 
 catkin_package(

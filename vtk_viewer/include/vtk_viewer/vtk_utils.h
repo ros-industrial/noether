@@ -5,8 +5,8 @@
  */
 
 
-#ifndef VTK_UTILS_H
-#define VTK_UTILS_H
+#ifndef NOETHER_VTK_UTILS_H
+#define NOETHER_VTK_UTILS_H
 
 #include <pcl/common/common.h>
 #include <pcl/point_traits.h>

@@ -4,24 +4,23 @@
  *
  */
 
-#ifndef INCLUDE_NOETHER_SURFACE_RASTER_PLANNER_APPLICATION_H
-#define INCLUDE_NOETHER_SURFACE_RASTER_PLANNER_APPLICATION_H
+#ifndef INCLUDE_NOETHER_EXAMPLES_H
+#define INCLUDE_NOETHER_EXAMPLES_H
 
 #include <vtk_viewer/vtk_viewer.h>
-#include <vtk_viewer/vtk_utils.h>
 #include <mesh_segmenter/mesh_segmenter.h>
-#include <path_sequence_planner/path_sequence_planner.h>
 #include <tool_path_planner/raster_tool_path_planner.h>
+#include <path_sequence_planner/path_sequence_planner.h>
 
 namespace noether
 {
 
-  class SurfaceRasterPlannerApplication
+  class Noether
   {
 
   public:
-    SurfaceRasterPlannerApplication(){}
-    ~SurfaceRasterPlannerApplication(){}
+    Noether(){}
+    ~Noether(){}
 
     /**
      * @brief addMeshDisplay Add a display for a vector of meshes (each mesh will be colored differently)
@@ -79,4 +78,4 @@ namespace noether
   };
 }
 
-#endif // INCLUDE_NOETHER_SURFACE_RASTER_PLANNER_APPLICATION_H
+#endif // INCLUDE_NOETHER_EXAMPLES_H

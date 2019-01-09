@@ -1,0 +1,19 @@
+<launch>
+  <arg name="filename"/>
+  <arg name="min_cluster_size" default="500"/>
+  <arg name="max_cluster_size" default="1000000"/>
+  <arg name="curvature_threshold" default="0.05"/>
+  <arg name="show_individually" default="false"/>
+  <arg name="save_outputs" default="false"/>
+
+  <node name="mesh_segmenter_node" type="mesh_segmenter_node" pkg="noether_examples" output="screen" required="true" >
+    <!--Loads a particular test file: pcd, ply, or stl -->
+    <param name="filename" value="$(arg filename)" type="string"/>
+    <param name="min_cluster_size" value="$(arg min_cluster_size)" type="int" />
+    <param name="max_cluster_size" value="$(arg max_cluster_size)" type="int" />
+    <param name="curvature_threshold" value="$(arg curvature_threshold)" type="double" />
+    <param name="show_individually" value="$(arg show_individually)" type="bool" />
+    <param name="save_outputs" value="$(arg save_outputs)" type="bool" />
+  </node>
+
+</launch>
