@@ -95,13 +95,20 @@ int main(int argc, char** argv)
   action.waitForServer();  // will wait for infinite time
 
   ROS_INFO("Action server started, sending goal.");
+
   // Convert to ROS message
   pcl_msgs::PolygonMesh pcl_mesh_msgs;
   pcl_conversions::fromPCL(pcl_mesh, pcl_mesh_msgs);
+
   // Set Goal
   noether_msgs::SegmentGoal msg;
   msg.input_mesh = pcl_mesh_msgs;
-  msg.filter = true;
+
+  msg.segmentation_config.max_cluster_size = max_cluster_size;
+  msg.segmentation_config.min_cluster_size = min_cluster_size;
+  msg.segmentation_config.curvature_threshold = curvature_threshold;
+  msg.filtering_config.enable_filtering = true;
+  msg.filtering_config.windowed_sinc_iterations = 20;
   ros::Time tStart = ros::Time::now();
   action.sendGoal(msg);
 
