@@ -25,7 +25,7 @@ protected:
 
 public:
   SegmentationAction(ros::NodeHandle pnh, std::string name)
-    : server_(pnh_, name, boost::bind(&SegmentationAction::executeCB, this, _1), false), action_name_(name), pnh_(pnh)
+    : pnh_(pnh), server_(pnh_, name, boost::bind(&SegmentationAction::executeCB, this, _1), false), action_name_(name)
   {
     server_.start();
     ROS_INFO("Segmentation action server online");
@@ -40,20 +40,21 @@ public:
     int min_cluster_size = goal->segmentation_config.min_cluster_size;
     int max_cluster_size = goal->segmentation_config.max_cluster_size;
 
-    int windowed_sinc_iterations = goal->filtering_config.windowed_sinc_iterations;
-    double windowed_sinc_pass_band = goal->filtering_config.windowed_sinc_pass_band;
-    double windowed_sinc_feature_angle = goal->filtering_config.windowed_sinc_edge_angle;
-    double windowed_sinc_edge_angle = goal->filtering_config.windowed_sinc_edge_angle;
-    bool windowed_sinc_edge_smoothing = goal->filtering_config.windowed_sinc_edge_smoothing;
-    bool windowed_sinc_boundary_smoothing = goal->filtering_config.windowed_sinc_boundary_smoothing;
-    bool windowed_sinc_nonmanifold_smoothing = goal->filtering_config.windowed_sinc_nonmanifold_smoothing;
-    bool windowed_sinc_normalize_coordinates = goal->filtering_config.windowed_sinc_normalize_coordinates;
+    auto& cfg = goal->filtering_config;
+    int windowed_sinc_iterations = cfg.windowed_sinc_iterations;
+    double windowed_sinc_pass_band = cfg.windowed_sinc_pass_band;
+    double windowed_sinc_feature_angle = cfg.windowed_sinc_edge_angle;
+    double windowed_sinc_edge_angle = cfg.windowed_sinc_edge_angle;
+    bool windowed_sinc_edge_smoothing = cfg.windowed_sinc_edge_smoothing;
+    bool windowed_sinc_boundary_smoothing = cfg.windowed_sinc_boundary_smoothing;
+    bool windowed_sinc_nonmanifold_smoothing = cfg.windowed_sinc_nonmanifold_smoothing;
+    bool windowed_sinc_normalize_coordinates = cfg.windowed_sinc_normalize_coordinates;
 
-    int laplacian_iterations = goal->filtering_config.laplacian_iterations;
-    double laplacian_relaxation_factor = goal->filtering_config.laplacian_relaxation_factor;
-    double laplacian_edge_angle = goal->filtering_config.laplacian_edge_angle;
-    bool laplacian_edge_smoothing = goal->filtering_config.laplacian_edge_smoothing;
-    bool laplacian_boundary_smoothing = goal->filtering_config.laplacian_boundary_smoothing;
+    int laplacian_iterations = cfg.laplacian_iterations;
+    double laplacian_relaxation_factor = cfg.laplacian_relaxation_factor;
+    double laplacian_edge_angle = cfg.laplacian_edge_angle;
+    bool laplacian_edge_smoothing = cfg.laplacian_edge_smoothing;
+    bool laplacian_boundary_smoothing = cfg.laplacian_boundary_smoothing;
 
 
     // Set defaults if invalid data given (or not set). Note: No guarantee of fitness of defaults
@@ -67,6 +68,7 @@ public:
     windowed_sinc_edge_angle = (windowed_sinc_edge_angle < 0.0001) ? 15. : windowed_sinc_edge_angle;
 
     laplacian_iterations = (laplacian_iterations == 0) ? 10 : laplacian_iterations;
+    laplacian_relaxation_factor = (laplacian_relaxation_factor < 0.0001) ? 0.1 : laplacian_relaxation_factor;
     laplacian_edge_angle = (laplacian_edge_angle < 0.0001) ? 15 : laplacian_edge_angle;
 
 
@@ -100,21 +102,21 @@ public:
 */
     vtk_viewer::generateNormals(mesh_in);
 
-    if (goal->filtering_config.enable_filtering)
+    if (cfg.enable_filtering)
     {
       // Apply Windowed Sinc function interpolation Smoothing
       vtkSmartPointer<vtkWindowedSincPolyDataFilter> smooth_filter1 =
           vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
       //      smooth_filter1->SetInputConnection(cleanPolyData->GetOutputPort());       // See note above
       smooth_filter1->SetInputData(mesh_in);
-      smooth_filter1->SetNumberOfIterations(20);
-      smooth_filter1->SetPassBand(0.1);
-      smooth_filter1->FeatureEdgeSmoothingOff();  // Smooth along sharp interior edges
-      smooth_filter1->SetFeatureAngle(45);        // Angle to identify sharp edges (degrees)
-      smooth_filter1->SetEdgeAngle(15);           // Not sure what this controls (degrees)
-      smooth_filter1->BoundarySmoothingOff();
-      smooth_filter1->NonManifoldSmoothingOff();
-      smooth_filter1->NormalizeCoordinatesOn();  // "Improves numerical stability"
+      smooth_filter1->SetNumberOfIterations(windowed_sinc_iterations);
+      smooth_filter1->SetPassBand(windowed_sinc_pass_band);
+      windowed_sinc_edge_smoothing  ? smooth_filter1->FeatureEdgeSmoothingOn() : smooth_filter1->FeatureEdgeSmoothingOff();  // Smooth along sharp interior edges
+      smooth_filter1->SetFeatureAngle(windowed_sinc_feature_angle);        // Angle to identify sharp edges (degrees)
+      smooth_filter1->SetEdgeAngle(windowed_sinc_edge_angle);           // Not sure what this controls (degrees)
+      windowed_sinc_boundary_smoothing ? smooth_filter1->BoundarySmoothingOn() : smooth_filter1->BoundarySmoothingOff();
+      windowed_sinc_nonmanifold_smoothing ? smooth_filter1->NonManifoldSmoothingOn() : smooth_filter1->NonManifoldSmoothingOff();
+      windowed_sinc_normalize_coordinates ? smooth_filter1->NormalizeCoordinatesOn() : smooth_filter1->NormalizeCoordinatesOff();  // "Improves numerical stability"
       smooth_filter1->Update();
       mesh_filtered1 = smooth_filter1->GetOutput();
 
@@ -122,19 +124,18 @@ public:
       // This moves the coordinates of each point toward the average of its adjoining points
       vtkSmartPointer<vtkSmoothPolyDataFilter> smooth_filter2 = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
       smooth_filter2->SetInputConnection(smooth_filter1->GetOutputPort());
-      smooth_filter2->SetNumberOfIterations(10);
-      smooth_filter2->SetRelaxationFactor(0.1);
-      //  smooth_filter2->SetEdgeAngle(somenumber);     // This is left as an example of a useful filter that could be
-      //  applied
-      smooth_filter2->FeatureEdgeSmoothingOff();
-      smooth_filter2->BoundarySmoothingOff();
+      smooth_filter2->SetNumberOfIterations(laplacian_iterations);
+      smooth_filter2->SetRelaxationFactor(laplacian_relaxation_factor);
+      smooth_filter2->SetEdgeAngle(laplacian_edge_angle);
+      laplacian_edge_smoothing ? smooth_filter2->FeatureEdgeSmoothingOn() : smooth_filter2->FeatureEdgeSmoothingOff();
+      laplacian_boundary_smoothing ? smooth_filter2->BoundarySmoothingOn() : smooth_filter2->BoundarySmoothingOff();
       smooth_filter2->Update();
       mesh_filtered2 = smooth_filter2->GetOutput();
     }
 
     // Step 3: Segment the mesh
     mesh_segmenter::MeshSegmenter segmenter;
-    if (goal->filtering_config.enable_filtering)
+    if (cfg.enable_filtering)
       segmenter.setInputMesh(mesh_filtered2);
     else
       segmenter.setInputMesh(mesh_in);
