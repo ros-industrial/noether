@@ -36,17 +36,39 @@ public:
   void executeCB(const noether_msgs::SegmentGoalConstPtr& goal)
   {
     // Step 1: Load parameters
-    // TODO: Pass these in along with action
-    std::string file;
-    double curvature_threshold;
-    int min_cluster_size, max_cluster_size;
-    bool show_individually, save_outputs;
-    pnh_.param<std::string>("filename", file, "");
-    pnh_.param<int>("min_cluster_size", min_cluster_size, 500);
-    pnh_.param<int>("max_cluster_size", max_cluster_size, 1000000);
-    pnh_.param<double>("curvature_threshold", curvature_threshold, 0.3);
-    pnh_.param<bool>("show_individually", show_individually, false);
-    pnh_.param<bool>("save_outputs", save_outputs, false);
+    double curvature_threshold = goal->segmentation_config.curvature_threshold;
+    int min_cluster_size = goal->segmentation_config.min_cluster_size;
+    int max_cluster_size = goal->segmentation_config.max_cluster_size;
+
+    int windowed_sinc_iterations = goal->filtering_config.windowed_sinc_iterations;
+    double windowed_sinc_pass_band = goal->filtering_config.windowed_sinc_pass_band;
+    double windowed_sinc_feature_angle = goal->filtering_config.windowed_sinc_edge_angle;
+    double windowed_sinc_edge_angle = goal->filtering_config.windowed_sinc_edge_angle;
+    bool windowed_sinc_edge_smoothing = goal->filtering_config.windowed_sinc_edge_smoothing;
+    bool windowed_sinc_boundary_smoothing = goal->filtering_config.windowed_sinc_boundary_smoothing;
+    bool windowed_sinc_nonmanifold_smoothing = goal->filtering_config.windowed_sinc_nonmanifold_smoothing;
+    bool windowed_sinc_normalize_coordinates = goal->filtering_config.windowed_sinc_normalize_coordinates;
+
+    int laplacian_iterations = goal->filtering_config.laplacian_iterations;
+    double laplacian_relaxation_factor = goal->filtering_config.laplacian_relaxation_factor;
+    double laplacian_edge_angle = goal->filtering_config.laplacian_edge_angle;
+    bool laplacian_edge_smoothing = goal->filtering_config.laplacian_edge_smoothing;
+    bool laplacian_boundary_smoothing = goal->filtering_config.laplacian_boundary_smoothing;
+
+
+    // Set defaults if invalid data given (or not set). Note: No guarantee of fitness of defaults
+    curvature_threshold = (curvature_threshold < 0.0001) ? 0.05 : curvature_threshold;
+    min_cluster_size = (min_cluster_size ==0) ? 500 : min_cluster_size;
+    max_cluster_size = (max_cluster_size == 0) ? 1000000 : max_cluster_size;
+
+    windowed_sinc_iterations = (windowed_sinc_iterations == 0) ? 20 : windowed_sinc_iterations;
+    windowed_sinc_pass_band = (windowed_sinc_pass_band < 0.0001) ?  0.1 : windowed_sinc_pass_band;
+    windowed_sinc_feature_angle = (windowed_sinc_feature_angle < 0.0001) ? 45. : windowed_sinc_feature_angle;
+    windowed_sinc_edge_angle = (windowed_sinc_edge_angle < 0.0001) ? 15. : windowed_sinc_edge_angle;
+
+    laplacian_iterations = (laplacian_iterations == 0) ? 10 : laplacian_iterations;
+    laplacian_edge_angle = (laplacian_edge_angle < 0.0001) ? 15 : laplacian_edge_angle;
+
 
     // Convert ROS msg -> PCL Mesh -> VTK Mesh
     vtkSmartPointer<vtkPolyData> mesh;
@@ -78,7 +100,7 @@ public:
 */
     vtk_viewer::generateNormals(mesh_in);
 
-    if (goal->filter)
+    if (goal->filtering_config.enable_filtering)
     {
       // Apply Windowed Sinc function interpolation Smoothing
       vtkSmartPointer<vtkWindowedSincPolyDataFilter> smooth_filter1 =
@@ -102,7 +124,8 @@ public:
       smooth_filter2->SetInputConnection(smooth_filter1->GetOutputPort());
       smooth_filter2->SetNumberOfIterations(10);
       smooth_filter2->SetRelaxationFactor(0.1);
-      //  smooth_filter2->SetEdgeAngle(somenumber);     // This is left as an example of a useful filter that could be applied
+      //  smooth_filter2->SetEdgeAngle(somenumber);     // This is left as an example of a useful filter that could be
+      //  applied
       smooth_filter2->FeatureEdgeSmoothingOff();
       smooth_filter2->BoundarySmoothingOff();
       smooth_filter2->Update();
@@ -111,7 +134,7 @@ public:
 
     // Step 3: Segment the mesh
     mesh_segmenter::MeshSegmenter segmenter;
-    if (goal->filter)
+    if (goal->filtering_config.enable_filtering)
       segmenter.setInputMesh(mesh_filtered2);
     else
       segmenter.setInputMesh(mesh_in);
@@ -123,6 +146,9 @@ public:
     ros::Time tStart = ros::Time::now();
     segmenter.segmentMesh();
     ROS_INFO("Segmentation time: %.3f", (ros::Time::now() - tStart).toSec());
+    // TODO: Since this can take a long time to run, it would be nice if the action was able to give feedback in the
+    // form of completion percentage while this is running. I believe this could be roughly done by monitoring i in
+    // MeshSegmenter::segmentMesh() in a seperate thread and updating the feedback there
 
     // Get Mesh segment
     std::vector<vtkSmartPointer<vtkPolyData> > segmented_meshes = segmenter.getMeshSegments();

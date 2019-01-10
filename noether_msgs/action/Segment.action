@@ -1,6 +1,8 @@
 #goal definition - Input Mesh
 pcl_msgs/PolygonMesh input_mesh
-bool filter
+
+noether_msgs/SegmentationConfig segmentation_config
+noether_msgs/FilteringConfig filtering_config
 ---
 #result definition - Output Meshes
 pcl_msgs/PolygonMesh[] output_mesh

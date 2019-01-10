@@ -107,7 +107,7 @@ private:
   int min_cluster_size_;
   /** @brief Currently unimplemented 12/31/2018 - should be the largest number of cells allowed in a segment */
   int max_cluster_size_;
-  /** @brief The desired threshold for "nearness" in radians, 1 - must be perfectly aligned, 0 - any angle is accepted
+  /** @brief The desired threshold for "nearness" in radians
    */
   double curvature_threshold_;
 
