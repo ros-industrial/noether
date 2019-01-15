@@ -31,41 +31,45 @@
 #include <vtkSTLWriter.h>
 #include <ros/package.h>
 
-namespace noether {
 
+
+namespace noether
+{
 void Noether::addMeshDisplay(std::vector<vtkSmartPointer<vtkPolyData> >& meshes)
 {
   // mesh colors should be darker than path colors
   int colors[] = {
-    0xcc0000,
-    0xcc6500,
-    0xcccc00,
-    0x65cc00,
-    0x00cc00,
-    0x00cc65,
-    0x00cccc,
-    0x0065cc,
-    0x0000cc,
-    0x6500cc,
-    0xcc00cc,
-    0xcc0065,
-    };
+    0xcc0000, 0xcc6500, 0xcccc00, 0x65cc00, 0x00cc00, 0x00cc65,
+    0x00cccc, 0x0065cc, 0x0000cc, 0x6500cc, 0xcc00cc, 0xcc0065,
+  };
 
   size_t size;
-  size=sizeof(colors)/sizeof(colors[0]);
+  size = sizeof(colors) / sizeof(colors[0]);
 
-  for(int i = 0; i < meshes.size(); ++i)
+  for (int i = 0; i < meshes.size(); ++i)
   {
     std::vector<float> color(3);
-    color[2] = float(colors[i % size] & 0xff)/255.0;
-    color[1] = float((colors[i % size] & 0xff00) >> 8)/255.0;
-    color[0] = float((colors[i % size] & 0xff0000) >> 16)/255.0;
+    color[2] = float(colors[i % size] & 0xff) / 255.0;
+    color[1] = float((colors[i % size] & 0xff00) >> 8) / 255.0;
+    color[0] = float((colors[i % size] & 0xff0000) >> 16) / 255.0;
 
     viewer_.addPolyDataDisplay(meshes[i], color);
   }
 }
+}  // namespace noether
+
+// Called once when the goal completes
+void doneCb(const actionlib::SimpleClientGoalState& state, const noether_msgs::SegmentResultConstPtr& result)
+{
+  ROS_INFO("Finished in state [%s]", state.toString().c_str());
+
+  ros::shutdown();
 }
 
+void activeCb() { ROS_INFO("Goal just went active"); }
+
+// Called every time feedback is received for the goal
+void feedbackCb(const noether_msgs::SegmentFeedbackConstPtr& feedback) { ROS_INFO("Got Feedback"); }
 
 int main(int argc, char** argv)
 {
@@ -87,7 +91,7 @@ int main(int argc, char** argv)
   // Step 2: Import the mesh
   pcl::PolygonMesh pcl_mesh;
   pcl::io::loadPLYFile(file, pcl_mesh);
-  ROS_INFO_STREAM( "Imported as PCL mesh of size " << pcl_mesh.cloud.data.size() << '\n');
+  ROS_INFO_STREAM("Imported as PCL mesh of size " << pcl_mesh.cloud.data.size() << '\n');
 
   // Step 3: Use action interface
   actionlib::SimpleActionClient<noether_msgs::SegmentAction> action("mesh_segmenter_server_node/segmenter", true);
@@ -110,7 +114,8 @@ int main(int argc, char** argv)
   msg.filtering_config.enable_filtering = true;
   msg.filtering_config.windowed_sinc_iterations = 20;
   ros::Time tStart = ros::Time::now();
-  action.sendGoal(msg);
+  // Note this will take a long time. It will also be blocking unless you have started an async spinner
+  action.sendGoal(msg, &doneCb, &activeCb, &feedbackCb);
 
   // wait for the action to return
   bool finished_before_timeout = action.waitForResult(ros::Duration(600.0));
