@@ -33,6 +33,8 @@ std::vector<vtkSmartPointer<vtkPolyData> > MeshSegmenter::getMeshSegments()
   std::vector<vtkSmartPointer<vtkPolyData> > meshes;
   for (int i = 0; i < included_indices_.size(); ++i)
   {
+    std::cout << "Segment " << i << " size: " << included_indices_.at(i)->GetNumberOfIds() << "\n";
+
     vtkSmartPointer<vtkPolyData> mesh = vtkSmartPointer<vtkPolyData>::New();
     // Create new pointer to a new copy of input_mesh_
     mesh->DeepCopy(input_mesh_);
@@ -66,12 +68,9 @@ void MeshSegmenter::segmentMesh()
 {
   // Cells that are in included_indices from the segmentation
   vtkSmartPointer<vtkIdList> used_cells = vtkSmartPointer<vtkIdList>::New();
-  // Cells that were rejected because the cluster they were in did not satisfy the parameters defined
-  vtkSmartPointer<vtkIdList> rejected_cells = vtkSmartPointer<vtkIdList>::New();
   int size = input_mesh_->GetCellData()->GetNumberOfTuples();
 
   used_cells->Allocate(size);
-  rejected_cells->Allocate(size);
 
   included_indices_.clear();
 
@@ -94,27 +93,30 @@ void MeshSegmenter::segmentMesh()
           used_cells->InsertNextId(linked_cells->GetId(j));
         }
       }
-      else
-      {
-        for (int j = 0; j < linked_cells->GetNumberOfIds(); ++j)
-        {
-          rejected_cells->InsertNextId(linked_cells->GetId(j));
-        }
-      }
+    }
+  }
+  // Loop over included indices to get full list of Ids included in some segment
+  vtkSmartPointer<vtkIdList> all_included = vtkSmartPointer<vtkIdList>::New();
+  for (int j = 0; j < included_indices_.size(); j++)
+  {
+    vtkSmartPointer<vtkIdList> one = included_indices_.at(j);
+    int one_size = one->GetNumberOfIds();
+    for (int i = 0; i < one_size; i++)
+    {
+      all_included->InsertUniqueId(one->GetId(i));
     }
   }
 
-  // Anything still not used in a segment is an "edge" - There has to be an easier way...
+  // Anything still not used in a segment is an "edge"
   vtkSmartPointer<vtkIdList> edge_cells = vtkSmartPointer<vtkIdList>::New();
   for (int i = 0; i < size; i++)
   {
-    // If ID i is not in the used_cells list (and thus isn't in included_indices) and is a reject (not sure what the
-    // alternative would be)
-    if ((used_cells->IsId(i) == -1) && (rejected_cells->IsId(i) != -1))
+    // If this id is not in a previous segment
+    if (all_included->IsId(i) == -1)
     {
-      // Then that cell is an "edge". Note - there is still something odd here. If you have trouble with it, try looking
-      // at the IDs you are getting inserting for each i
-      edge_cells->InsertNextId(rejected_cells->GetId(i));
+      // Then that cell is an "edge"
+      // This insures that every cell is included in a segment
+      edge_cells->InsertNextId(i);
     }
   }
   included_indices_.push_back(edge_cells);
