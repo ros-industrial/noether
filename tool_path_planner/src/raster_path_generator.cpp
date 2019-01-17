@@ -286,16 +286,28 @@ tool_path_planner::ProcessTool RasterPathGenerator::generateDeaultToolConfig()
   return tool;
 }
 
-boost::optional< std::vector<geometry_msgs::PoseArray> > RasterPathGenerator::generate(const tool_path_planner::ProcessTool& path_gen_config,
-                                                                      const pcl::PolygonMesh& mesh) const
+boost::optional<std::vector<ToolPaths> > RasterPathGenerator::generate(const tool_path_planner::ProcessTool& path_gen_config,
+    const std::vector<pcl::PolygonMesh>& meshes)
 {
-  //
-  using ToolPath = std::vector<tool_path_planner::ProcessPath>;
-
   // instantiate raster tool planner
   tool_path_planner::RasterToolPathPlanner tool_path_planner;
   tool_path_planner.setTool(path_gen_config);
-  std::vector<ToolPath> tool_process_paths;
+  std::vector<ToolPaths> tool_process_paths;
+  tool_path_planner.planPaths(meshes, tool_process_paths);
+  if(tool_process_paths.size() != 1)
+  {
+    return  boost::none;
+  }
+  return tool_process_paths;
+}
+
+boost::optional< std::vector<geometry_msgs::PoseArray> > RasterPathGenerator::generate(const tool_path_planner::ProcessTool& path_gen_config,
+                                                                      const pcl::PolygonMesh& mesh) const
+{
+  // instantiate raster tool planner
+  tool_path_planner::RasterToolPathPlanner tool_path_planner;
+  tool_path_planner.setTool(path_gen_config);
+  std::vector<ToolPaths> tool_process_paths;
   tool_path_planner.planPaths({mesh}, tool_process_paths);
   if(tool_process_paths.size() != 1)
   {
@@ -317,7 +329,7 @@ boost::optional< std::vector<geometry_msgs::PoseArray> > RasterPathGenerator::ge
   ROS_INFO("Found %lu tool paths",non_empty_paths);
 
   // converting to result type
-  ToolPath tool_process_path = tool_process_paths.front();
+  ToolPaths tool_process_path = tool_process_paths.front();
   std::vector<geometry_msgs::PoseArray> tool_path_poses = toPosesMsgs(tool_process_path);
 
   // rearranging
@@ -338,3 +350,4 @@ boost::optional< std::vector<geometry_msgs::PoseArray> > RasterPathGenerator::ge
 }
 
 } /* namespace tool_path_planner */
+

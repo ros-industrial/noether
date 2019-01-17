@@ -23,10 +23,15 @@ namespace tool_path_planner {
  * @details Generates a raster tool path from a surface using the RasterToolPathPlanner and then sequences the path
  *        so that the points are properly ordered relative to the cut direction.
  */
+using ToolPaths = std::vector<tool_path_planner::ProcessPath>;
+
 class RasterPathGenerator {
 public:
 	RasterPathGenerator();
 	virtual ~RasterPathGenerator();
+
+	boost::optional< std::vector<ToolPaths> > generate(const tool_path_planner::ProcessTool& path_gen_config,
+      const std::vector<pcl::PolygonMesh>& meshes);
 
   /**
    * @brief plans a tool path using a default configuration
