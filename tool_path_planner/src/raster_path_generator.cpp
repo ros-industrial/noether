@@ -293,9 +293,12 @@ boost::optional<std::vector<ToolPaths> > RasterPathGenerator::generate(const too
   tool_path_planner::RasterToolPathPlanner tool_path_planner;
   tool_path_planner.setTool(path_gen_config);
   std::vector<ToolPaths> tool_process_paths;
+  tool_process_paths.clear();
   tool_path_planner.planPaths(meshes, tool_process_paths);
-  if(tool_process_paths.size() != 1)
+  if(tool_process_paths.size() != meshes.size())
   {
+    ROS_ERROR("Number of Tool paths generated (%lu) differs from number of meshes passed (%lu)",
+              tool_process_paths.size(),meshes.size());
     return  boost::none;
   }
   return tool_process_paths;
