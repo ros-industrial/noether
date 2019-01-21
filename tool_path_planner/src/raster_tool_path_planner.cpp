@@ -106,9 +106,6 @@ int findClosestPoint(const std::vector<double>& pt,  const std::vector<std::vect
   return index;
 }
 
-
-
-
 namespace tool_path_planner
 {
 
@@ -143,8 +140,12 @@ namespace tool_path_planner
   {
     for(int i = 0; i < meshes.size(); ++i)
     {
-      std::vector<ProcessPath> new_path;
+      std::vector<ProcessPath> new_path = {};
       planPaths(meshes[i], new_path);
+      if(new_path.empty())
+      {
+        LOG4CXX_WARN(RASTER_PATH_PLANNER_LOGGER, "Could not plan path for mesh " << i);
+      }
       paths.push_back(new_path);
     }
   }
