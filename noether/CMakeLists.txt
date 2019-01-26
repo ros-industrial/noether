@@ -16,6 +16,7 @@ find_package(catkin REQUIRED cmake_modules
     vtk_viewer
     noether_msgs
     roscpp
+    pcl_conversions
     actionlib
     noether_msgs
     noether_conversions
@@ -25,6 +26,8 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES noether
   CATKIN_DEPENDS
+    roscpp
+    pcl_conversions
     mesh_segmenter
     tool_path_planner
     path_sequence_planner
