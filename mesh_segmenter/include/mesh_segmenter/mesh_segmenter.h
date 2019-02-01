@@ -15,7 +15,6 @@ namespace mesh_segmenter
 class MeshSegmenter
 {
 public:
-
   /**
    * @brief Sets the minimum cluster size - the smallest number of cells allowed in a segment
    * @param x The size to which the paramter is set

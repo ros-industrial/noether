@@ -70,17 +70,16 @@ namespace vtk_viewer
 log4cxx::LoggerPtr VTK_LOGGER = createConsoleLogger("VTK_VIEWER");
 
 
-vtkSmartPointer<vtkPoints> createPlane()
+vtkSmartPointer<vtkPoints> createPlane(unsigned int gridSize)
 {
   // Create points on an XY grid with a sinusoidal Z component
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 
-  unsigned int gridSize = 10;
   for(unsigned int x = 0; x < gridSize; x++)
     {
     for(unsigned int y = 0; y < gridSize; y++)
       {
-        points->InsertNextPoint(x  , y , 1.0 * cos(double(x)/2.0) - 1.0 * sin(double(y)/2.0) + vtkMath::Random(0.0, 0.001));
+        points->InsertNextPoint(x  , y , /*1.0 * cos(double(x)/2.0) -*/ 1.0 * sin(double(y)/2.0) + vtkMath::Random(0.0, 0.001));
       }
     }
 

@@ -31,7 +31,7 @@ namespace vtk_viewer
    * @brief createPlane Creates a surface mesh that has a sinusoidal function
    * @return The points associated with the mesh
    */
-  vtkSmartPointer<vtkPoints> createPlane();
+  vtkSmartPointer<vtkPoints> createPlane(unsigned int gridSize = 10);
 
   /**
    * @brief visualizePlane Creates a simple VTK viewer to visualize a mesh object

@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(mesh_segmenter)
 
+## Compile as C++14,
+add_compile_options(-std=c++14)
+
 find_package(VTK 7.1 REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
 
@@ -45,18 +48,13 @@ install(DIRECTORY include/${PROJECT_NAME}/
   PATTERN ".svn" EXCLUDE
 )
 
+
 #############
 ## Testing ##
 #############
-if (CATKIN_ENABLE_TESTING)
-  find_package(vtk_viewer REQUIRED)
-  catkin_add_gtest(${PROJECT_NAME}-test
-    test/utest.cpp
-  )
-  if(TARGET ${PROJECT_NAME}-test)
-    target_link_libraries(${PROJECT_NAME}-test
-      ${PROJECT_NAME}
-      ${vtk_viewer_LIBRARIES}
-    )
-  endif()
+if(CATKIN_ENABLE_TESTING)
+  find_package(catkin REQUIRED vtk_viewer)
+  include_directories(include ${catkin_INCLUDE_DIRS})
+  catkin_add_gtest(${PROJECT_NAME}-test test/utest.cpp)
+  target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME} ${catkin_LIBRARIES} )
 endif()
