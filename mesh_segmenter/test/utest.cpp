@@ -7,7 +7,7 @@
 #include <vtkCellData.h>
 
 // Set to true for debugging (Breaks CI compliance)
-const bool g_display_meshes = false;
+const bool g_display_meshes = true;
 
 /**
  * @brief Creates a sinusoidal mesh and runs segmentation on it. The results are then checked
@@ -22,7 +22,7 @@ TEST(SegmentationTest, TestCase1)
   double curvature_threshold = 0.2;
 
   // Get mesh - This leaves some holes in it for some reason.
-  vtkSmartPointer<vtkPoints> points = vtk_viewer::createPlane(20);
+  vtkSmartPointer<vtkPoints> points = vtk_viewer::createPlane(20, vtk_viewer::SINUSOIDAL_1D);
   vtkSmartPointer<vtkPolyData> data = vtk_viewer::createMesh(points, 0.25, 7);
 
   // Generate normals
@@ -63,8 +63,6 @@ TEST(SegmentationTest, TestCase1)
       color[0] = float((colors[i % size] & 0xff0000) >> 16) / 255.0;
 
       viz.addPolyDataDisplay(meshes[i], color);
-      //    viz.addPolyNormalsDisplay(meshes[i], color, 1.0);
-      //    viz.addCellNormalDisplay(meshes[i], color, 1.0);
       viz.renderDisplay();
     }
   }
@@ -73,9 +71,9 @@ TEST(SegmentationTest, TestCase1)
   EXPECT_EQ(meshes.size(), 7);
   long long cells_out = 0;
   long long cells_in = normalGenerator->GetOutput()->GetCellData()->GetNumberOfTuples();
-  for (std::size_t ind = 0; ind < meshes.size(); ind++ )
+  for (std::size_t ind = 0; ind < meshes.size(); ind++)
   {
-      cells_out += meshes.at(ind)->GetNumberOfCells();
+    cells_out += meshes.at(ind)->GetNumberOfCells();
   }
   // There should be the same number of cells coming in as there are going out
   EXPECT_EQ(cells_in, cells_out);
@@ -84,7 +82,6 @@ TEST(SegmentationTest, TestCase1)
 // Run all the tests that were declared with TEST()
 int main(int argc, char** argv)
 {
-  // ros::init(argc, argv, "test");  // some tests need ROS framework
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
