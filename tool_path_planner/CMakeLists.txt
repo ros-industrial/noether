@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 
 ## Compile as C++14, 
-add_compile_options(-std=c++14)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(tool_path_planner)
 find_package(catkin REQUIRED cmake_modules vtk_viewer rosconsole noether_msgs shape_msgs geometry_msgs eigen_conversions)

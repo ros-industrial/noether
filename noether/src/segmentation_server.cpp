@@ -11,7 +11,6 @@
 #include <vtkWindowedSincPolyDataFilter.h>
 #include <vtkSmoothPolyDataFilter.h>
 
-//#include <noether/noether.h>
 #include <vtk_viewer/vtk_utils.h>
 
 class SegmentationAction

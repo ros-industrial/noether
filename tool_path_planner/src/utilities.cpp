@@ -34,8 +34,7 @@
 #include <vtkGenericCell.h>
 #include <vtkTriangleFilter.h>
 
-
-#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/conversions.h>
 #include <tool_path_planner/utilities.h>
 
 namespace tool_path_planner
@@ -115,9 +114,7 @@ bool convertToPCLMesh(const shape_msgs::Mesh& mesh_msg, pcl::PolygonMesh& mesh)
     return p;
   });
 
-  sensor_msgs::PointCloud2 cloud_msg;
-  pcl::toROSMsg(mesh_points,cloud_msg);
-  pcl_conversions::toPCL(cloud_msg,mesh.cloud);
+  pcl::toPCLPointCloud2(mesh_points,mesh.cloud);
   return true;
 }
 
