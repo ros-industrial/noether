@@ -8,36 +8,58 @@ project(path_sequence_planner)
 find_package(VTK 7.1 REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
 
-find_package(catkin REQUIRED
-    vtk_viewer
+find_package(catkin REQUIRED COMPONENTS
     tool_path_planner
+    vtk_viewer
 )
 
 catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES simple_path_sequence_planner
+  INCLUDE_DIRS
+    include
+  LIBRARIES
+    simple_path_sequence_planner
   CATKIN_DEPENDS
     tool_path_planner
+    vtk_viewer
 )
 
 include_directories(
-    include
-    ${catkin_INCLUDE_DIRS}
+  include
+  ${catkin_INCLUDE_DIRS}
 )
 
 add_library(simple_path_sequence_planner
-    src/simple_path_sequence_planner.cpp
+  src/simple_path_sequence_planner.cpp
 )
-
 target_link_libraries(simple_path_sequence_planner
-    ${catkin_LIBRARIES}
-    ${VTK_LIBRARIES}
+  ${catkin_LIBRARIES}
+  ${VTK_LIBRARIES}
 )
 
-catkin_add_gtest(simple_path_sequence_planner-test test/utest.cpp)
-target_link_libraries(simple_path_sequence_planner-test
+#############
+## Install ##
+#############
+install(TARGETS simple_path_sequence_planner
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  PATTERN ".svn" EXCLUDE
+)
+
+#############
+## Testing ##
+#############
+if (CATKIN_ENABLE_TESTING)
+  catkin_add_gtest(simple_path_sequence_planner-test
+    test/utest.cpp
+  )
+  target_link_libraries(simple_path_sequence_planner-test
     simple_path_sequence_planner
     ${catkin_LIBRARIES}
     ${VTK_LIBRARIES}
-)
-
+  )
+endif()

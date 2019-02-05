@@ -13,4 +13,6 @@
   <run_depend>vtk_viewer</run_depend>
   <run_depend>tool_path_planner</run_depend>
 
+  <test_depend>rosunit</test_depend>
+
 </package>
