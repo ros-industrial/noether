@@ -6,8 +6,8 @@
   <maintainer email="alex.goins@swri.org">alex</maintainer>
   <license>Proprietary</license>
 
-  <depend>catkin</depend>
-  <depend>vtk_viewer</depend>
+  <buildtool_depend>catkin</buildtool_depend>
 
+  <test_depend>vtk_viewer</test_depend>
 
 </package>

@@ -7,7 +7,8 @@
   <maintainer email="jorge.nicho@swri.org">Jorge Nicho</maintainer>
   <license>Proprietary</license>
 
-  <depend>catkin</depend>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>cmake_modules</build_depend>
 
   <depend>roscpp</depend>
   <depend>pcl_conversions</depend>
