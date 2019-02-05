@@ -4,17 +4,13 @@ project(mesh_segmenter)
 find_package(VTK 7.1 REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
 
-find_package(catkin REQUIRED COMPONENTS
-  vtk_viewer
-)
+find_package(catkin REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS
     include
   LIBRARIES
     ${PROJECT_NAME}
-  CATKIN_DEPENDS
-    vtk_viewer
   DEPENDS
     VTK
 )
@@ -53,12 +49,14 @@ install(DIRECTORY include/${PROJECT_NAME}/
 ## Testing ##
 #############
 if (CATKIN_ENABLE_TESTING)
+  find_package(vtk_viewer REQUIRED)
   catkin_add_gtest(${PROJECT_NAME}-test
     test/utest.cpp
   )
   if(TARGET ${PROJECT_NAME}-test)
     target_link_libraries(${PROJECT_NAME}-test
       ${PROJECT_NAME}
+      ${vtk_viewer_LIBRARIES}
     )
   endif()
 endif()

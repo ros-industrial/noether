@@ -23,7 +23,7 @@ catkin_package(
   LIBRARIES
     ${PROJECT_NAME}
   DEPENDS
-    Eigen3
+    EIGEN3
     PCL
     VTK
 )

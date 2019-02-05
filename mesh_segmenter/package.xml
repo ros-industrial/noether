@@ -7,8 +7,7 @@
   <license>Proprietary</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <depend>vtk_viewer</depend>
 
-  <test_depend>rosunit</test_depend>
+  <test_depend>vtk_viewer</test_depend>
 
 </package>

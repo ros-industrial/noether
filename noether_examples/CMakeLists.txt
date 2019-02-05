@@ -33,8 +33,8 @@ catkin_package(
     noether_msgs
     path_sequence_planner
     pcl_conversions
-    roslib
     roscpp
+    roslib
     tool_path_planner
     vtk_viewer
   DEPENDS

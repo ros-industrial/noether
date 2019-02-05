@@ -25,7 +25,7 @@ catkin_package(
     tf
     tool_path_planner
   DEPENDS
-    Eigen3
+    EIGEN3
     VTK
 )
 

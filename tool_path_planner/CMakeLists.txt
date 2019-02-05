@@ -36,7 +36,7 @@ catkin_package(
     shape_msgs
     vtk_viewer
   DEPENDS
-    Eigen3
+    EIGEN3
     PCL
     VTK
 )
