@@ -65,8 +65,13 @@ TEST(ViewerTest, TestCase1)
   viz.addPolyDataDisplay(cut,color);
   viz.addPointDataDisplay(cut->GetPoints(), color);
 
+  #ifdef NDEBUG
+  // release build stuff goes here
+  LOG4CXX_ERROR(vtk_viewer::VTK_LOGGER,"noether/vtk_viewer: visualization is only available in debug mode");
+  #else
+  // Debug-specific code goes here
   viz.renderDisplay();
-
+  #endif
 }
 
 // Run all the tests that were declared with TEST()
