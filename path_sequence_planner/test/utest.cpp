@@ -146,7 +146,13 @@ TEST(IntersectTest, TestCase1)
   color[2] = 0.9;
   viz.addPolyNormalsDisplay(connecting_data, color, 1.0);
 
+  #ifdef NDEBUG
+  // release build stuff goes here
+  // LOGGING_FUNCTION("noether/path_sequence_planner test: visualization is only available in debug mode");
+  #else
+  // Debug-specific code goes here
   viz.renderDisplay();
+  #endif
 }
 
 // Run all the tests that were declared with TEST()
