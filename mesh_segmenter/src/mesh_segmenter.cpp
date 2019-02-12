@@ -12,8 +12,25 @@
 
 #include <mesh_segmenter/mesh_segmenter.h>
 
+#include <log4cxx/basicconfigurator.h>
+#include <log4cxx/patternlayout.h>
+#include <log4cxx/consoleappender.h>
+
+log4cxx::LoggerPtr createConsoleLogger(const std::string& logger_name)
+{
+  using namespace log4cxx;
+  PatternLayoutPtr pattern_layout(new PatternLayout("[\%-5p] [\%c](L:\%L): \%m\%n"));
+  ConsoleAppenderPtr console_appender(new ConsoleAppender(pattern_layout));
+  log4cxx::LoggerPtr logger(Logger::getLogger(logger_name));
+  logger->addAppender(console_appender);
+  logger->setLevel(Level::getInfo());
+  return logger;
+}
+
 namespace mesh_segmenter
 {
+static log4cxx::LoggerPtr SEGMENTATION_LOGGER = createConsoleLogger("SegmentationLogger");
+
 void MeshSegmenter::setInputMesh(vtkSmartPointer<vtkPolyData> mesh)
 {
   input_mesh_ = mesh;
@@ -33,6 +50,8 @@ std::vector<vtkSmartPointer<vtkPolyData> > MeshSegmenter::getMeshSegments()
   std::vector<vtkSmartPointer<vtkPolyData> > meshes;
   for (int i = 0; i < included_indices_.size(); ++i)
   {
+    LOG4CXX_INFO(SEGMENTATION_LOGGER, "Segment " << i << " size: " << included_indices_.at(i)->GetNumberOfIds());
+
     vtkSmartPointer<vtkPolyData> mesh = vtkSmartPointer<vtkPolyData>::New();
     // Create new pointer to a new copy of input_mesh_
     mesh->DeepCopy(input_mesh_);
@@ -53,7 +72,7 @@ std::vector<vtkSmartPointer<vtkPolyData> > MeshSegmenter::getMeshSegments()
 
     if (mesh->GetNumberOfCells() <= 1)
     {
-      cout << "NOT ENOUGH CELLS FOR SEGMENTATION\n";
+      LOG4CXX_WARN(SEGMENTATION_LOGGER, "NOT ENOUGH CELLS FOR SEGMENTATION");
       continue;
     }
     meshes.push_back(mesh);
@@ -66,12 +85,9 @@ void MeshSegmenter::segmentMesh()
 {
   // Cells that are in included_indices from the segmentation
   vtkSmartPointer<vtkIdList> used_cells = vtkSmartPointer<vtkIdList>::New();
-  // Cells that were rejected because the cluster they were in did not satisfy the parameters defined
-  vtkSmartPointer<vtkIdList> rejected_cells = vtkSmartPointer<vtkIdList>::New();
   int size = input_mesh_->GetCellData()->GetNumberOfTuples();
 
   used_cells->Allocate(size);
-  rejected_cells->Allocate(size);
 
   included_indices_.clear();
 
@@ -94,35 +110,38 @@ void MeshSegmenter::segmentMesh()
           used_cells->InsertNextId(linked_cells->GetId(j));
         }
       }
-      else
-      {
-        for (int j = 0; j < linked_cells->GetNumberOfIds(); ++j)
-        {
-          rejected_cells->InsertNextId(linked_cells->GetId(j));
-        }
-      }
+    }
+  }
+  // Loop over included indices to get full list of Ids included in some segment
+  vtkSmartPointer<vtkIdList> all_included = vtkSmartPointer<vtkIdList>::New();
+  for (int j = 0; j < included_indices_.size(); j++)
+  {
+    vtkSmartPointer<vtkIdList> one = included_indices_.at(j);
+    int one_size = one->GetNumberOfIds();
+    for (int i = 0; i < one_size; i++)
+    {
+      all_included->InsertUniqueId(one->GetId(i));
     }
   }
 
-  // Anything still not used in a segment is an "edge" - There has to be an easier way...
+  // Anything still not used in a segment is an "edge"
   vtkSmartPointer<vtkIdList> edge_cells = vtkSmartPointer<vtkIdList>::New();
   for (int i = 0; i < size; i++)
   {
-    // If ID i is not in the used_cells list (and thus isn't in included_indices) and is a reject (not sure what the
-    // alternative would be)
-    if ((used_cells->IsId(i) == -1) && (rejected_cells->IsId(i) != -1))
+    // If this id is not in a previous segment
+    if (all_included->IsId(i) == -1)
     {
-      // Then that cell is an "edge". Note - there is still something odd here. If you have trouble with it, try looking
-      // at the IDs you are getting inserting for each i
-      edge_cells->InsertNextId(rejected_cells->GetId(i));
+      // Then that cell is an "edge"
+      // This insures that every cell is included in a segment
+      edge_cells->InsertNextId(i);
     }
   }
   included_indices_.push_back(edge_cells);
 
-  std::cout << "Found " << included_indices_.size() << " segments" << '\n';
-  std::cout << "Total mesh size: " << size << '\n';
-  std::cout << "Used cells size: " << used_cells->GetNumberOfIds() << "\n";
-  std::cout << "Edge cells size: " << edge_cells->GetNumberOfIds() << "\n";
+  LOG4CXX_INFO(SEGMENTATION_LOGGER, "Found " << included_indices_.size() << " segments");
+  LOG4CXX_INFO(SEGMENTATION_LOGGER, "Total mesh size: " << size);
+  LOG4CXX_INFO(SEGMENTATION_LOGGER, "Used cells size: " << used_cells->GetNumberOfIds());
+  LOG4CXX_INFO(SEGMENTATION_LOGGER, "Edge cells size: " << edge_cells->GetNumberOfIds());
 }
 
 vtkSmartPointer<vtkIdList> MeshSegmenter::segmentMesh(int start_cell)
