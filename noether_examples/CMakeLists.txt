@@ -15,7 +15,6 @@ find_package(catkin REQUIRED COMPONENTS
   noether_conversions
   noether_msgs
   path_sequence_planner
-  pcl_conversions
   roscpp
   roslib
   tool_path_planner
@@ -32,7 +31,6 @@ catkin_package(
     mesh_segmenter
     noether_msgs
     path_sequence_planner
-    pcl_conversions
     roscpp
     roslib
     tool_path_planner
