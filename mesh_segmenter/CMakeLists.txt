@@ -53,8 +53,16 @@ install(DIRECTORY include/${PROJECT_NAME}/
 ## Testing ##
 #############
 if(CATKIN_ENABLE_TESTING)
-  find_package(catkin REQUIRED vtk_viewer)
-  include_directories(include ${catkin_INCLUDE_DIRS})
-  catkin_add_gtest(${PROJECT_NAME}-test test/utest.cpp)
-  target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME} ${catkin_LIBRARIES} )
+  find_package(catkin REQUIRED COMPONENTS vtk_viewer)
+  include_directories(
+    include
+    ${catkin_INCLUDE_DIRS}
+  )
+  catkin_add_gtest(${PROJECT_NAME}-test
+    test/utest.cpp
+  )
+  target_link_libraries(${PROJECT_NAME}-test
+    ${PROJECT_NAME}
+    ${catkin_LIBRARIES}
+  )
 endif()

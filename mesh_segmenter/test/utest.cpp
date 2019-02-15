@@ -6,13 +6,10 @@
 #include <vtkPolyDataNormals.h>
 #include <vtkCellData.h>
 
-// Set to true for debugging (Breaks CI compliance)
-const bool g_display_meshes = true;
-
 /**
  * @brief Creates a sinusoidal mesh and runs segmentation on it. The results are then checked
  *
- * Successfult test will have the expected number of results and will have the same number of cells in the output as are
+ * Successful test will have the expected number of results and will have the same number of cells in the output as are
  * in the input
  */
 TEST(SegmentationTest, TestCase1)
@@ -42,30 +39,32 @@ TEST(SegmentationTest, TestCase1)
   seg.segmentMesh();
   std::vector<vtkSmartPointer<vtkPolyData> > meshes = seg.getMeshSegments();
 
+  #ifdef NDEBUG
+  // release build stuff goes here
+  #else
   // Display meshes for debugging
-  if (g_display_meshes)
+  vtk_viewer::VTKViewer viz;
+
+  // Display mesh results
+  int colors[] = {
+    0xcc0000, 0xcc6500, 0xcccc00, 0x65cc00, 0x00cc00, 0x00cc65,
+    0x00cccc, 0x0065cc, 0x0000cc, 0x6500cc, 0xcc00cc, 0xcc0065,
+  };
+  size_t size;
+  size = sizeof(colors) / sizeof(colors[0]);
+
+  for (std::size_t i = 0; i < meshes.size(); ++i)
   {
-    vtk_viewer::VTKViewer viz;
+    std::vector<float> color(3);
+    color[2] = float(colors[i % size] & 0xff) / 255.0;
+    color[1] = float((colors[i % size] & 0xff00) >> 8) / 255.0;
+    color[0] = float((colors[i % size] & 0xff0000) >> 16) / 255.0;
 
-    // Display mesh results
-    int colors[] = {
-      0xcc0000, 0xcc6500, 0xcccc00, 0x65cc00, 0x00cc00, 0x00cc65,
-      0x00cccc, 0x0065cc, 0x0000cc, 0x6500cc, 0xcc00cc, 0xcc0065,
-    };
-    size_t size;
-    size = sizeof(colors) / sizeof(colors[0]);
-
-    for (std::size_t i = 0; i < meshes.size(); ++i)
-    {
-      std::vector<float> color(3);
-      color[2] = float(colors[i % size] & 0xff) / 255.0;
-      color[1] = float((colors[i % size] & 0xff00) >> 8) / 255.0;
-      color[0] = float((colors[i % size] & 0xff0000) >> 16) / 255.0;
-
-      viz.addPolyDataDisplay(meshes[i], color);
-      viz.renderDisplay();
-    }
+    viz.addPolyDataDisplay(meshes[i], color);
+    // Debug-specific code goes here
+    viz.renderDisplay();
   }
+  #endif
 
   // Check results
   EXPECT_EQ(meshes.size(), 7);
