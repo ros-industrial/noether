@@ -39,9 +39,10 @@ TEST(SegmentationTest, TestCase1)
   seg.segmentMesh();
   std::vector<vtkSmartPointer<vtkPolyData> > meshes = seg.getMeshSegments();
 
-  #ifdef NDEBUG
-  // release build stuff goes here
-  #else
+  // The NDEBUG variable is defined by the C/C++ standard when building
+  // "Not Debug" (e.g. release).  NDEBUG is not defined during debug
+  // builds - so the below code runs when building debug
+  #ifndef NDEBUG
   // Display meshes for debugging
   vtk_viewer::VTKViewer viz;
 
