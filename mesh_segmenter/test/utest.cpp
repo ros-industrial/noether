@@ -19,7 +19,7 @@ TEST(SegmentationTest, TestCase1)
   double curvature_threshold = 0.2;
 
   // Get mesh - This leaves some holes in it for some reason.
-  vtkSmartPointer<vtkPoints> points = vtk_viewer::createPlane(20, vtk_viewer::SINUSOIDAL_1D);
+  vtkSmartPointer<vtkPoints> points = vtk_viewer::createPlane(20, 20, vtk_viewer::SINUSOIDAL_1D);
   vtkSmartPointer<vtkPolyData> data = vtk_viewer::createMesh(points, 0.25, 7);
 
   // Generate normals
