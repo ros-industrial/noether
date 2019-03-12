@@ -731,7 +731,7 @@ namespace tool_path_planner
     // Create additional points for the starting curve
     double pt[3];
     double raster_axis[3];
-    switch(raster_direction_)
+    switch(tool_.raster_direction)
     {
     case MAJOR_AXIS:
     {

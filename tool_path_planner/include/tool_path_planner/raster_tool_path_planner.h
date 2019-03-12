@@ -123,7 +123,7 @@ namespace tool_path_planner
      * MAJOR_MIDDLE_NEG45 = Halfway in between major and negative middle axes
      * @param direction The direction used
      */
-    void setRasterDirection(RasterDirection direction) {raster_direction_ = direction;}
+    void setRasterDirection(RasterDirection direction) {tool_.raster_direction = direction;}
 
   private:
     bool debug_on_; /**< Turns on/off the debug display which views the path planning output one step at a time */
@@ -134,9 +134,6 @@ namespace tool_path_planner
     vtkSmartPointer<vtkPolyData> input_mesh_;        /**< input mesh to operate on */
     std::vector<ProcessPath> paths_;                 /**< series of intersecting lines on the given mesh */
     ProcessTool tool_; /**< The tool parameters which defines how to generate the tool paths (spacing, offset, etc.) */
-    RasterDirection raster_direction_ =
-        MAJOR_AXIS; /** @brief sets the direction used for rastering with respect to the mesh's bounding box (assuming
-                       cut_direction is not set to override it)*/
 
     double cut_direction_[3];
     double cut_centroid_[3];
