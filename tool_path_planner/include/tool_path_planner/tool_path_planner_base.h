@@ -35,6 +35,24 @@ namespace tool_path_planner
     double min_segment_size;          /** The minimum segment size to allow when finding intersections; small segments will
                                           be discarded */
   };
+/**
+ * @brief This is used to specify the direction of the raster path generated.
+ *
+ * MAJOR_AXIS = along the largest axis of the mesh bounding box
+ * MIDDLE_AXIS = along the 2nd largest axis of the mesh bounding box
+ * MINOR_AXIS = along the smallest axis of the mesh bounding box
+ * MAJOR_MIDDLE_45 = Halfway in between the major and middle axes
+ * MAJOR_MIDDLE_NEG45 = Halfway in between major and negative middle axes
+ */
+enum RasterDirection
+{
+  MAJOR_AXIS,
+  MIDDLE_AXIS,
+  MINOR_AXIS,
+  MAJOR_MIDDLE_45,
+  MAJOR_MIDDLE_NEG45
+};
+
 
   /**
    * @class tool_path_planner::ToolPathPlanner

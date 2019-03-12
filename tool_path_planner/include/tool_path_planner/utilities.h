@@ -61,6 +61,13 @@ namespace tool_path_planner
 	 */
 	noether_msgs::ToolPathConfig toTppMsg(const tool_path_planner::ProcessTool& tool_config);
 
+        /**
+         * @brief Returns the magnitude of the vector represented by the array
+         * @param vec double array input vector
+         * @return magnitude of the vector
+         */
+        inline double vectorMag(const double vec[3]) {return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[3]*vec[3]);}
+
 }
 
 

@@ -728,19 +728,87 @@ namespace tool_path_planner
         max[2] = (max[2] + mid[2]) * temp_max;
       }
     }
-
-    // Use the max axis to create additional points for the starting curve
+    // Create additional points for the starting curve
     double pt[3];
-    pt[0] = avg_center[0] + max[0];
-    pt[1] = avg_center[1] + max[1];
-    pt[2] = avg_center[2] + max[2];
+    double raster_axis[3];
+    switch(raster_direction_)
+    {
+    case MAJOR_AXIS:
+    {
+        raster_axis[0] = max[0];
+        raster_axis[1] = max[1];
+        raster_axis[2] = max[2];
+        break;
+    }
+    case MIDDLE_AXIS:
+    {
+        raster_axis[0] = mid[0];
+        raster_axis[1] = mid[1];
+        raster_axis[2] = mid[2];
+        break;
+    }
+    case MINOR_AXIS:
+    {
+        raster_axis[0] = min[0];
+        raster_axis[1] = min[1];
+        raster_axis[2] = min[2];
+        break;
+    }
+    case MAJOR_MIDDLE_45:
+    {
+        // Calculate magnitudes to convert inputs to unit vectors
+        double max_mag = vectorMag(max);
+        double mid_mag = vectorMag(mid);
+
+        // This vector would give you rasters from corner to corner of the bounding box if that's ever needed
+        double vec_sum[3] = {max[0]+mid[0], max[1]+mid[1], max[2]+mid[2]};
+        double vec_sum_mag = vectorMag(vec_sum);
+
+        // This gets you a vector 45 degrees between max and mid
+        raster_axis[0] = max[0]/max_mag + mid[0]/mid_mag;
+        raster_axis[1] = max[1]/max_mag + mid[1]/mid_mag;
+        raster_axis[2] = max[2]/max_mag + mid[2]/mid_mag;
+
+        // We now scale it by the magnitude of the vector sum to insure that the result is larger than the bounding box
+        double raster_mag = vectorMag(raster_axis);
+        raster_axis[0] = (raster_axis[0]/raster_mag) * vec_sum_mag;    // ( raster unit vector) * desired magnitude
+        raster_axis[1] = (raster_axis[1]/raster_mag) * vec_sum_mag;
+        raster_axis[2] = (raster_axis[2]/raster_mag) * vec_sum_mag;
+        break;
+    }
+    case MAJOR_MIDDLE_NEG45:
+    {
+        // Calculate magnitudes to convert inputs to unit vectors
+        double max_mag = vectorMag(max);
+        double mid_mag = vectorMag(mid);
+
+        // This vector would give you rasters from corner to corner of the bounding box if that's ever needed
+        double vec_sum[3] = {max[0]-mid[0], max[1]-mid[1], max[2]-mid[2]};
+        double vec_sum_mag = vectorMag(vec_sum);
+
+        // This gets you a vector 45 degrees between max and mid
+        raster_axis[0] = max[0]/max_mag - mid[0]/mid_mag;
+        raster_axis[1] = max[1]/max_mag - mid[1]/mid_mag;
+        raster_axis[2] = max[2]/max_mag - mid[2]/mid_mag;
+
+        // We now scale it by the magnitude of the vector sum to insure that the result is larger than the bounding box
+        double raster_mag = vectorMag(raster_axis);
+        raster_axis[0] = (raster_axis[0]/raster_mag) * vec_sum_mag;    // ( raster unit vector) * desired magnitude
+        raster_axis[1] = (raster_axis[1]/raster_mag) * vec_sum_mag;
+        raster_axis[2] = (raster_axis[2]/raster_mag) * vec_sum_mag;
+        break;
+    }
+    }
+    pt[0] = avg_center[0] + raster_axis[0];
+    pt[1] = avg_center[1] + raster_axis[1];
+    pt[2] = avg_center[2] + raster_axis[2];
     line->GetPoints()->InsertNextPoint(pt);
 
     line->GetPoints()->InsertNextPoint(avg_center);
 
-    pt[0] = avg_center[0] - max[0];
-    pt[1] = avg_center[1] - max[1];
-    pt[2] = avg_center[2] - max[2];
+    pt[0] = avg_center[0] - raster_axis[0];
+    pt[1] = avg_center[1] - raster_axis[1];
+    pt[2] = avg_center[2] - raster_axis[2];
     line->GetPoints()->InsertNextPoint(pt);
 
     // set the normal for all points inserted

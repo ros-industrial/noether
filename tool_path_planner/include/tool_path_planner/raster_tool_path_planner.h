@@ -101,22 +101,45 @@ namespace tool_path_planner
      */
     std::string getLogDir(){return debug_viewer_.getLogDir();}
 
-    void setCutDirection(double direction [3]);
-    void setCutCentroid(double centroid [3]);
+    /**
+     * @brief Overrides the direction of the raster paths so that paths are generated in the direction of this unit vector
+     * @param direction Unit vector associated with the direction
+     */
+    void setCutDirection(double direction[3]);
+    /**
+     * @brief Overrides the location of the centroid used for generating the first tool path
+     * @param centroid Location for the center of the middle raster line (which is used to generate the entire raster)
+     */
+    void setCutCentroid(double centroid[3]);
+
+    /**
+     * @brief  Sets the direction used for rastering with respect to the mesh's bounding box (assuming setCutDirection is
+     * not set to override it)
+     *
+     * MAJOR_AXIS = along the largest axis of the mesh bounding box
+     * MIDDLE_AXIS = along the 2nd largest axis of the mesh bounding box
+     * MINOR_AXIS = along the smallest axis of the mesh bounding box
+     * MAJOR_MIDDLE_45 = Halfway in between the major and middle axes
+     * MAJOR_MIDDLE_NEG45 = Halfway in between major and negative middle axes
+     * @param direction The direction used
+     */
+    void setRasterDirection(RasterDirection direction) {raster_direction_ = direction;}
 
   private:
+    bool debug_on_; /**< Turns on/off the debug display which views the path planning output one step at a time */
+    vtk_viewer::VTKViewer debug_viewer_;             /**< The vtk viewer for displaying debug output */
+    vtkSmartPointer<vtkKdTreePointLocator> kd_tree_; /**< kd tree for finding nearest neighbor points */
+    vtkSmartPointer<vtkCellLocator> cell_locator_;   /** @brief allows locating closest cell */
+    vtkSmartPointer<vtkModifiedBSPTree> bsp_tree_;   /** @brief use to perform ray casting on the mesh */
+    vtkSmartPointer<vtkPolyData> input_mesh_;        /**< input mesh to operate on */
+    std::vector<ProcessPath> paths_;                 /**< series of intersecting lines on the given mesh */
+    ProcessTool tool_; /**< The tool parameters which defines how to generate the tool paths (spacing, offset, etc.) */
+    RasterDirection raster_direction_ =
+        MAJOR_AXIS; /** @brief sets the direction used for rastering with respect to the mesh's bounding box (assuming
+                       cut_direction is not set to override it)*/
 
-    bool debug_on_;                                   /**< Turns on/off the debug display which views the path planning output one step at a time */
-    vtk_viewer::VTKViewer debug_viewer_;              /**< The vtk viewer for displaying debug output */
-    vtkSmartPointer<vtkKdTreePointLocator> kd_tree_;  /**< kd tree for finding nearest neighbor points */
-    vtkSmartPointer<vtkCellLocator> cell_locator_;    /** @brief allows locating closest cell */
-    vtkSmartPointer<vtkModifiedBSPTree> bsp_tree_;    /** @brief use to perform ray casting on the mesh */
-    vtkSmartPointer<vtkPolyData> input_mesh_;         /**< input mesh to operate on */
-    std::vector<ProcessPath> paths_;                  /**< series of intersecting lines on the given mesh */
-    ProcessTool tool_;                                /**< The tool parameters which defines how to generate the tool paths (spacing, offset, etc.) */
-
-    double cut_direction_ [3];
-    double cut_centroid_ [3];
+    double cut_direction_[3];
+    double cut_centroid_[3];
 
     /**
      * @brief getFirstPath Uses the input mesh, generates the first path by intersecting the mesh with a plane
