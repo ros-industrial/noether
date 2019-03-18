@@ -728,19 +728,41 @@ namespace tool_path_planner
         max[2] = (max[2] + mid[2]) * temp_max;
       }
     }
-
-    // Use the max axis to create additional points for the starting curve
+    // Create additional points for the starting curve
     double pt[3];
-    pt[0] = avg_center[0] + max[0];
-    pt[1] = avg_center[1] + max[1];
-    pt[2] = avg_center[2] + max[2];
+    double raster_axis[3];
+    if (raster_wrt_principal_axis_)
+    {
+      // Principal axis is longest axis of the bounding box
+      Eigen::Vector3d principal_axis(max);
+      Eigen::Vector3d rotation_axis(min);
+      rotation_axis.normalize();
+      // Form rotation by specified angle about smallest axis of the bounding box
+      Eigen::Quaterniond rot(Eigen::AngleAxisd(raster_angle_, Eigen::Vector3d(rotation_axis)));
+      rot.normalize();
+      // Rotate principal axis by quaternion to get raster axis
+      Eigen::Vector3d raster_axis_eigen = rot.toRotationMatrix() * principal_axis;
+      // Copy out the resuts
+      raster_axis[0] = raster_axis_eigen.x();
+      raster_axis[1] = raster_axis_eigen.y();
+      raster_axis[2] = raster_axis_eigen.z();
+    }
+    else
+    {
+      // TODO: Add the ability to define a rotation in mesh coordinates that is then projected onto the mesh plane
+    }
+
+    // Use raster_axis to create additional points for the starting curve
+    pt[0] = avg_center[0] + raster_axis[0];
+    pt[1] = avg_center[1] + raster_axis[1];
+    pt[2] = avg_center[2] + raster_axis[2];
     line->GetPoints()->InsertNextPoint(pt);
 
     line->GetPoints()->InsertNextPoint(avg_center);
 
-    pt[0] = avg_center[0] - max[0];
-    pt[1] = avg_center[1] - max[1];
-    pt[2] = avg_center[2] - max[2];
+    pt[0] = avg_center[0] - raster_axis[0];
+    pt[1] = avg_center[1] - raster_axis[1];
+    pt[2] = avg_center[2] - raster_axis[2];
     line->GetPoints()->InsertNextPoint(pt);
 
     // set the normal for all points inserted
