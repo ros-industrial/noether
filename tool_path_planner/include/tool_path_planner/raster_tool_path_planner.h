@@ -101,8 +101,19 @@ namespace tool_path_planner
      */
     std::string getLogDir(){return debug_viewer_.getLogDir();}
 
-    void setCutDirection(double direction [3]);
-    void setCutCentroid(double centroid [3]);
+    /**
+     * @brief Overrides the direction of the raster paths so that paths are generated in the direction of this unit vector
+     *
+     * Note: This is essentially assigning the axis to use instead of using the principal axis. Giving a vector not in the plane of the mesh
+     * could cause problems.
+     * @param direction Unit vector associated with the direction
+     */
+    void setCutDirection(double direction[3]);
+    /**
+     * @brief Overrides the location of the centroid used for generating the first tool path
+     * @param centroid Location for the center of the middle raster line (which is used to generate the entire raster)
+     */
+    void setCutCentroid(double centroid[3]);
 
   private:
 
