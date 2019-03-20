@@ -38,6 +38,8 @@ public:
     double curvature_threshold = goal->segmentation_config.curvature_threshold;
     int min_cluster_size = goal->segmentation_config.min_cluster_size;
     int max_cluster_size = goal->segmentation_config.max_cluster_size;
+    double neighborhood_size = goal->segmentation_config.neighborhood_size;
+    bool use_mesh_normals = goal->segmentation_config.use_mesh_normals;
 
     auto& cfg = goal->filtering_config;
     int windowed_sinc_iterations = cfg.windowed_sinc_iterations;
@@ -55,14 +57,14 @@ public:
     bool laplacian_edge_smoothing = cfg.laplacian_edge_smoothing;
     bool laplacian_boundary_smoothing = cfg.laplacian_boundary_smoothing;
 
-
     // Set defaults if invalid data given (or not set). Note: No guarantee of fitness of defaults
     curvature_threshold = (curvature_threshold < 0.0001) ? 0.05 : curvature_threshold;
-    min_cluster_size = (min_cluster_size ==0) ? 500 : min_cluster_size;
+    min_cluster_size = (min_cluster_size == 0) ? 500 : min_cluster_size;
     max_cluster_size = (max_cluster_size == 0) ? 1000000 : max_cluster_size;
+    neighborhood_size = (neighborhood_size < 0.0001) ? 0.05 : neighborhood_size;
 
     windowed_sinc_iterations = (windowed_sinc_iterations == 0) ? 20 : windowed_sinc_iterations;
-    windowed_sinc_pass_band = (windowed_sinc_pass_band < 0.0001) ?  0.1 : windowed_sinc_pass_band;
+    windowed_sinc_pass_band = (windowed_sinc_pass_band < 0.0001) ? 0.1 : windowed_sinc_pass_band;
     windowed_sinc_feature_angle = (windowed_sinc_feature_angle < 0.0001) ? 45. : windowed_sinc_feature_angle;
     windowed_sinc_edge_angle = (windowed_sinc_edge_angle < 0.0001) ? 15. : windowed_sinc_edge_angle;
 
@@ -70,13 +72,21 @@ public:
     laplacian_relaxation_factor = (laplacian_relaxation_factor < 0.0001) ? 0.1 : laplacian_relaxation_factor;
     laplacian_edge_angle = (laplacian_edge_angle < 0.0001) ? 15 : laplacian_edge_angle;
 
-
     // Convert ROS msg -> PCL Mesh -> VTK Mesh
     vtkSmartPointer<vtkPolyData> mesh;
     pcl::PolygonMesh input_pcl_mesh;
     pcl_conversions::toPCL(goal->input_mesh, input_pcl_mesh);
-    vtk_viewer::pclEncodeMeshAndNormals(input_pcl_mesh, mesh);  //, 100, pcl::PointXYZ(0, 50.0, 50.0));
-    vtk_viewer::generateNormals(mesh);
+    vtk_viewer::pclEncodeMeshAndNormals(input_pcl_mesh, mesh, neighborhood_size);
+    if (use_mesh_normals)
+    {
+      ROS_INFO("Embedding Triangle Normals.");
+      vtk_viewer::embedRightHandRuleNormals(mesh);
+    }
+    else
+    {
+      ROS_INFO("Calculating Cell Normals.");
+      vtk_viewer::generateNormals(mesh);
+    }
 
     // Step 2: Filter the mesh
     // Create some pointers - not used since passing with VTK pipeline but useful for debugging

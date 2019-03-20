@@ -78,13 +78,15 @@ int main(int argc, char** argv)
 
   // Step 1: Load parameters
   std::string file;
-  double curvature_threshold;
+  double curvature_threshold, neighborhood_size;
   int min_cluster_size, max_cluster_size;
-  bool show_individually, save_outputs;
+  bool show_individually, save_outputs, use_mesh_normals;
   pnh.param<std::string>("filename", file, "");
   pnh.param<int>("min_cluster_size", min_cluster_size, 500);
   pnh.param<int>("max_cluster_size", max_cluster_size, 1000000);
   pnh.param<double>("curvature_threshold", curvature_threshold, 0.3);
+  pnh.param<double>("neighborhood_size", neighborhood_size, 0.05);
+  pnh.param<bool>("use_mesh_normals", use_mesh_normals, true);
   pnh.param<bool>("show_individually", show_individually, false);
   pnh.param<bool>("save_outputs", save_outputs, false);
 
@@ -111,6 +113,8 @@ int main(int argc, char** argv)
   msg.segmentation_config.max_cluster_size = max_cluster_size;
   msg.segmentation_config.min_cluster_size = min_cluster_size;
   msg.segmentation_config.curvature_threshold = curvature_threshold;
+  msg.segmentation_config.neighborhood_size = neighborhood_size;
+  msg.segmentation_config.use_mesh_normals = use_mesh_normals;
   msg.filtering_config.enable_filtering = true;
   msg.filtering_config.windowed_sinc_iterations = 20;
   ros::Time tStart = ros::Time::now();
