@@ -86,6 +86,15 @@ namespace vtk_viewer
   vtkSmartPointer<vtkPolyData> estimateCurvature(vtkSmartPointer<vtkPolyData> mesh, int method);
 
   /**
+   * @brief embedRightHandRuleNormals Embeds the Polydata cells with the normals generated from the right hand rule
+   *
+   * This is as opposed to generateNormals which takes the cell point normals, averages them, and uses that average as the cell normal
+   * Note: This does assume that the mesh is formed correctly with uniformly oriented normals. If not, use something like Meshlab to fix it.
+   * @param data The input mesh to operate. When this function returns, the normals will be embedded.
+   */
+  void embedRightHandRuleNormals(vtkSmartPointer<vtkPolyData>& data);
+
+  /**
    * @brief generateNormals Generate point and cell (surface) normals (in place)
    * @param data The mesh to generate and add normals to
    */
