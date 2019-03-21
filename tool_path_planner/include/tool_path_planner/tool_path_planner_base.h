@@ -34,6 +34,8 @@ namespace tool_path_planner
                                           are encountered */
     double min_segment_size;          /** The minimum segment size to allow when finding intersections; small segments will
                                           be discarded */
+    double  raster_angle;             /** Specifies the direction of the raster path wrt to the principal axes */
+    bool raster_wrt_principal_axis;   /** When true, 0 raster_angle is aligned with the principal axis */
   };
 
   /**

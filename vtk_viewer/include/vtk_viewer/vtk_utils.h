@@ -46,7 +46,7 @@ namespace vtk_viewer
    * SINUSOIDAL_2D = Sinusoidal in two dimensions
    * @return The points associated with the mesh
    */
-  vtkSmartPointer<vtkPoints> createPlane(unsigned int gridSize = 10, vtk_viewer::plane_type = vtk_viewer::SINUSOIDAL_2D);
+  vtkSmartPointer<vtkPoints> createPlane(unsigned int grid_size_x = 10, unsigned int grid_size_y = 10, vtk_viewer::plane_type = vtk_viewer::SINUSOIDAL_2D);
 
   /**
    * @brief visualizePlane Creates a simple VTK viewer to visualize a mesh object

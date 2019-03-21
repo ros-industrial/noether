@@ -183,7 +183,9 @@ tool_path_planner::ProcessTool fromTppMsg(const noether_msgs::ToolPathConfig& tp
     .tool_offset = tpp_msg_config.tool_offset,
     .intersecting_plane_height = tpp_msg_config.intersecting_plane_height,
     .min_hole_size = tpp_msg_config.min_hole_size,
-    .min_segment_size = tpp_msg_config.min_segment_size
+    .min_segment_size = tpp_msg_config.min_segment_size,
+    .raster_angle = tpp_msg_config.raster_angle,
+    .raster_wrt_principal_axis = tpp_msg_config.raster_wrt_principal_axis
   };
 }
 
@@ -196,6 +198,8 @@ noether_msgs::ToolPathConfig toTppMsg(const tool_path_planner::ProcessTool& tool
   tpp_config_msg.intersecting_plane_height = tool_config.intersecting_plane_height;
   tpp_config_msg.min_hole_size = tool_config.min_hole_size;
   tpp_config_msg.min_segment_size = tool_config.min_segment_size;
+  tpp_config_msg.raster_angle = tpp_config_msg.raster_angle;
+  tpp_config_msg.raster_wrt_principal_axis = tpp_config_msg.raster_wrt_principal_axis;
 
   return std::move(tpp_config_msg);
 }

@@ -101,8 +101,32 @@ namespace tool_path_planner
      */
     std::string getLogDir(){return debug_viewer_.getLogDir();}
 
-    void setCutDirection(double direction [3]);
-    void setCutCentroid(double centroid [3]);
+    /**
+     * @brief Overrides the direction of the raster paths so that paths are generated in the direction of this unit vector
+     *
+     * Note: This is essentially assigning the axis to use instead of using the principal axis. Giving a vector not in the plane of the mesh
+     * could cause problems.
+     * @param direction Unit vector associated with the direction
+     */
+    void setCutDirection(double direction[3]);
+    /**
+     * @brief Overrides the location of the centroid used for generating the first tool path
+     * @param centroid Location for the center of the middle raster line (which is used to generate the entire raster)
+     */
+    void setCutCentroid(double centroid[3]);
+
+    /**
+     * @brief Specifies the direction of the rasters wrt either the mesh coordinates or the principal axis. Rotation is in radians. Default is 0.0
+     * @param angle (radians)
+     */
+    void setRasterAngle(double angle) {raster_angle_= angle;}
+
+    /** @brief Specifies axis about which raster_angle_ is applied. Default is true
+     *
+     * If true, raster angle is specified about the smallest axis of the bounding box with 0 being in the direction of the
+     * principal axis. If false (TODO 3/19/2019), the raster angle is about the mesh z coordinate with the x axis being 0. Then the resultant vecotor is projected onto the plane created
+     * by the bounding box x and y axes */
+    void setRasterWRTPrincipalAxis(bool axis) {raster_wrt_principal_axis_ = axis;}
 
   private:
 
@@ -114,6 +138,13 @@ namespace tool_path_planner
     vtkSmartPointer<vtkPolyData> input_mesh_;         /**< input mesh to operate on */
     std::vector<ProcessPath> paths_;                  /**< series of intersecting lines on the given mesh */
     ProcessTool tool_;                                /**< The tool parameters which defines how to generate the tool paths (spacing, offset, etc.) */
+    double raster_angle_ = 0.0;                       /** @brief Specifies the direction of the rasters wrt either the mesh coordinates or the principal axis. Rotation is in radians. Default is 0.0*/
+    /** @brief Specifies axis about which raster_angle_ is applied. Default is true
+     *
+     * If true, raster angle is specified about the smallest axis of the bounding box with 0 being in the direction of the
+     * principal axis. If false, the raster angle is about the mesh z coordinate with the x axis being 0. Then the resultant vecotor is projected onto the plane created
+     * by the bounding box x and y axes */
+    bool raster_wrt_principal_axis_ = true;
 
     double cut_direction_ [3];
     double cut_centroid_ [3];
