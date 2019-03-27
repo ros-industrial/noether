@@ -394,8 +394,9 @@ vtkSmartPointer<vtkPolyData> estimateCurvature(vtkSmartPointer<vtkPolyData> mesh
   return curvature_filter->GetOutput();
 }
 
-void embedRightHandRuleNormals(vtkSmartPointer<vtkPolyData>& data)
+bool embedRightHandRuleNormals(vtkSmartPointer<vtkPolyData>& data)
 {
+  bool success = true;
   LOG4CXX_DEBUG(VTK_LOGGER, "Embedding mesh normals from right hand rule");
   int size = data->GetNumberOfCells();
   vtkDoubleArray* cell_normals = vtkDoubleArray::New();
@@ -429,15 +430,33 @@ void embedRightHandRuleNormals(vtkSmartPointer<vtkPolyData>& data)
         // Get vectors obeying RHR
         double v1[3];
         double v2[3];
+        double v3[3];
         for (int ind = 0; ind < 3; ind++)
         {
           v1[ind] = p1[ind] - p0[ind];
           v2[ind] = p2[ind] - p1[ind];
+          v3[ind] = p0[ind] - p2[ind];
         }
-        // Normal is v1 x v2
-        norm[0] = v1[1] * v2[2] - v2[1] * v1[2];
-        norm[1] = -1 * (v1[0] * v2[2] - v2[0] * v1[2]);
-        norm[2] = v1[0] * v2[1] - v2[0] * v1[1];
+        // Normalize the vectors
+        vtkMath::Normalize(v1);
+        vtkMath::Normalize(v2);
+        vtkMath::Normalize(v3);
+
+        // Make sure the angle between the vectors fairly large (dot product > threshold)
+        if (std::abs(v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]) > 0.707)
+        {
+          // Normal is v1 x v2
+          norm[0] = v1[1] * v2[2] - v2[1] * v1[2];
+          norm[1] = -1 * (v1[0] * v2[2] - v2[0] * v1[2]);
+          norm[2] = v1[0] * v2[1] - v2[0] * v1[1];
+        }
+        else
+        {
+          // Normal is v2 x v3
+          norm[0] = v2[1] * v3[2] - v3[1] * v2[2];
+          norm[1] = -1 * (v2[0] * v3[2] - v3[0] * v2[2]);
+          norm[2] = v2[0] * v3[1] - v3[0] * v2[1];
+        }
 
         // Normalize the normals
         vtkMath::Normalize(norm);
@@ -448,11 +467,13 @@ void embedRightHandRuleNormals(vtkSmartPointer<vtkPolyData>& data)
       else
       {
         LOG4CXX_ERROR(VTK_LOGGER, "Could not embed normals");
+        success = false;
       }
     }
   }
   // We have looped over every cell. Now embed the normals
   data->GetCellData()->SetNormals(cell_normals);
+  return success;
 }
 
 void generateNormals(vtkSmartPointer<vtkPolyData>& data, int flip_normals)

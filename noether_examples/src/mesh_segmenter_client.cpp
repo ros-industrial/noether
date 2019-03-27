@@ -113,7 +113,7 @@ int main(int argc, char** argv)
   msg.segmentation_config.max_cluster_size = max_cluster_size;
   msg.segmentation_config.min_cluster_size = min_cluster_size;
   msg.segmentation_config.curvature_threshold = curvature_threshold;
-  msg.segmentation_config.neighborhood_size = neighborhood_size;
+  msg.segmentation_config.neighborhood_radius = neighborhood_size;
   msg.segmentation_config.use_mesh_normals = use_mesh_normals;
   msg.filtering_config.enable_filtering = true;
   msg.filtering_config.windowed_sinc_iterations = 20;

@@ -38,7 +38,7 @@ public:
     double curvature_threshold = goal->segmentation_config.curvature_threshold;
     int min_cluster_size = goal->segmentation_config.min_cluster_size;
     int max_cluster_size = goal->segmentation_config.max_cluster_size;
-    double neighborhood_size = goal->segmentation_config.neighborhood_size;
+    double neighborhood_radius = goal->segmentation_config.neighborhood_radius;
     bool use_mesh_normals = goal->segmentation_config.use_mesh_normals;
 
     auto& cfg = goal->filtering_config;
@@ -61,7 +61,7 @@ public:
     curvature_threshold = (curvature_threshold < 0.0001) ? 0.05 : curvature_threshold;
     min_cluster_size = (min_cluster_size == 0) ? 500 : min_cluster_size;
     max_cluster_size = (max_cluster_size == 0) ? 1000000 : max_cluster_size;
-    neighborhood_size = (neighborhood_size < 0.0001) ? 0.05 : neighborhood_size;
+    neighborhood_radius = (neighborhood_radius < 0.0001) ? 0.05 : neighborhood_radius;
 
     windowed_sinc_iterations = (windowed_sinc_iterations == 0) ? 20 : windowed_sinc_iterations;
     windowed_sinc_pass_band = (windowed_sinc_pass_band < 0.0001) ? 0.1 : windowed_sinc_pass_band;
@@ -76,7 +76,7 @@ public:
     vtkSmartPointer<vtkPolyData> mesh;
     pcl::PolygonMesh input_pcl_mesh;
     pcl_conversions::toPCL(goal->input_mesh, input_pcl_mesh);
-    vtk_viewer::pclEncodeMeshAndNormals(input_pcl_mesh, mesh, neighborhood_size);
+    vtk_viewer::pclEncodeMeshAndNormals(input_pcl_mesh, mesh, neighborhood_radius);
     if (use_mesh_normals)
     {
       ROS_INFO("Embedding Triangle Normals.");
