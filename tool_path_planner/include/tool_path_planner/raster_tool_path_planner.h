@@ -119,14 +119,14 @@ namespace tool_path_planner
      * @brief Specifies the direction of the rasters wrt either the mesh coordinates or the principal axis. Rotation is in radians. Default is 0.0
      * @param angle (radians)
      */
-    void setRasterAngle(double angle) {raster_angle_= angle;}
+    void setRasterAngle(double angle) {tool_.raster_angle= angle;}
 
     /** @brief Specifies axis about which raster_angle_ is applied. Default is true
      *
      * If true, raster angle is specified about the smallest axis of the bounding box with 0 being in the direction of the
      * principal axis. If false (TODO 3/19/2019), the raster angle is about the mesh z coordinate with the x axis being 0. Then the resultant vecotor is projected onto the plane created
      * by the bounding box x and y axes */
-    void setRasterWRTPrincipalAxis(bool axis) {raster_wrt_principal_axis_ = axis;}
+    void setRasterWRTPrincipalAxis(bool axis) {tool_.raster_wrt_principal_axis = axis;}
 
   private:
 
@@ -138,13 +138,6 @@ namespace tool_path_planner
     vtkSmartPointer<vtkPolyData> input_mesh_;         /**< input mesh to operate on */
     std::vector<ProcessPath> paths_;                  /**< series of intersecting lines on the given mesh */
     ProcessTool tool_;                                /**< The tool parameters which defines how to generate the tool paths (spacing, offset, etc.) */
-    double raster_angle_ = 0.0;                       /** @brief Specifies the direction of the rasters wrt either the mesh coordinates or the principal axis. Rotation is in radians. Default is 0.0*/
-    /** @brief Specifies axis about which raster_angle_ is applied. Default is true
-     *
-     * If true, raster angle is specified about the smallest axis of the bounding box with 0 being in the direction of the
-     * principal axis. If false, the raster angle is about the mesh z coordinate with the x axis being 0. Then the resultant vecotor is projected onto the plane created
-     * by the bounding box x and y axes */
-    bool raster_wrt_principal_axis_ = true;
 
     double cut_direction_ [3];
     double cut_centroid_ [3];

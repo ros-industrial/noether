@@ -60,7 +60,7 @@ protected:
       if(goal->path_configs.empty())
       {
         ROS_WARN("Path configuration array is empty, using default values");
-        tpp_configs.resize(goal->surface_meshes.size(),toTppMsg(RasterPathGenerator::generateDeaultToolConfig()));
+        tpp_configs.resize(goal->surface_meshes.size(),toTppMsg(RasterPathGenerator::generateDefaultToolConfig()));
       }
       else
       {

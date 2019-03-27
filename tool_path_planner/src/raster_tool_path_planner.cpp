@@ -731,14 +731,14 @@ namespace tool_path_planner
     // Create additional points for the starting curve
     double pt[3];
     double raster_axis[3];
-    if (raster_wrt_principal_axis_)
+    if (tool_.raster_wrt_principal_axis)
     {
       // Principal axis is longest axis of the bounding box
       Eigen::Vector3d principal_axis(max);
       Eigen::Vector3d rotation_axis(min);
       rotation_axis.normalize();
       // Form rotation by specified angle about smallest axis of the bounding box
-      Eigen::Quaterniond rot(Eigen::AngleAxisd(raster_angle_, Eigen::Vector3d(rotation_axis)));
+      Eigen::Quaterniond rot(Eigen::AngleAxisd(tool_.raster_angle, Eigen::Vector3d(rotation_axis)));
       rot.normalize();
       // Rotate principal axis by quaternion to get raster axis
       Eigen::Vector3d raster_axis_eigen = rot.toRotationMatrix() * principal_axis;

@@ -55,7 +55,7 @@ public:
 	 * @brief Generates a ProcessTool configuration structure with default parameters filled in.
 	 * @return  The ProcessTool structure.
 	 */
-	static tool_path_planner::ProcessTool generateDeaultToolConfig();
+  static tool_path_planner::ProcessTool generateDefaultToolConfig();
 
 
 };
