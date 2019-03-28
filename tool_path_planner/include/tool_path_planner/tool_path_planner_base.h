@@ -34,8 +34,14 @@ namespace tool_path_planner
                                           are encountered */
     double min_segment_size;          /** The minimum segment size to allow when finding intersections; small segments will
                                           be discarded */
-    double  raster_angle;             /** Specifies the direction of the raster path wrt to the principal axes */
-    bool raster_wrt_principal_axis;   /** When true, 0 raster_angle is aligned with the principal axis */
+     /** @brief Specifies the direction of the rasters wrt either the mesh coordinates or the principal axis. Rotation is in radians. Default is 0.0*/
+    double  raster_angle;
+    /** @brief Specifies axis about which raster_angle_ is applied. Default is true
+     *
+     * If true, raster angle is specified about the smallest axis of the bounding box with 0 being in the direction of the
+     * principal axis. If false, the raster angle is about the mesh z coordinate with the x axis being 0. Then the resultant vecotor is projected onto the plane created
+     * by the bounding box x and y axes */
+    bool raster_wrt_principal_axis;
   };
 
   /**

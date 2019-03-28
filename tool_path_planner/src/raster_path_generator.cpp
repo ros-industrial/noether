@@ -275,7 +275,7 @@ RasterPathGenerator::~RasterPathGenerator()
 
 }
 
-tool_path_planner::ProcessTool RasterPathGenerator::generateDeaultToolConfig()
+tool_path_planner::ProcessTool RasterPathGenerator::generateDefaultToolConfig()
 {
   tool_path_planner::ProcessTool tool;
   tool.pt_spacing = 0.01;
@@ -283,6 +283,8 @@ tool_path_planner::ProcessTool RasterPathGenerator::generateDeaultToolConfig()
   tool.tool_offset = 0.0; // currently unused
   tool.intersecting_plane_height = 0.5; // 0.5 works best, not sure if this should be included in the tool
   tool.min_hole_size = 0.01;
+  tool.raster_angle = 0.0;
+  tool.raster_wrt_principal_axis = true;
   return tool;
 }
 
