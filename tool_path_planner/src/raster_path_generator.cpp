@@ -7,6 +7,8 @@
  *      Author: Jorge Nicho
  */
 
+#include <numeric>
+
 #include <ros/assert.h>
 #include <Eigen/Dense>
 #include <eigen_conversions/eigen_msg.h>
