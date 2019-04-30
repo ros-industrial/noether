@@ -404,6 +404,9 @@ bool embedRightHandRuleNormals(vtkSmartPointer<vtkPolyData>& data)
   cell_normals->SetNumberOfComponents(3);
   cell_normals->SetNumberOfTuples(size);
 
+  // Counter for cells that are malformed
+  unsigned long bad_cells = 0;
+
   // loop through all cells and add cell normals
   for (int i = 0; i < size; ++i)
   {
@@ -466,11 +469,14 @@ bool embedRightHandRuleNormals(vtkSmartPointer<vtkPolyData>& data)
       }
       else
       {
-        LOG4CXX_ERROR(VTK_LOGGER, "Could not embed normals");
+        bad_cells++;
         success = false;
       }
     }
   }
+  if (bad_cells > 0)
+    LOG4CXX_ERROR(VTK_LOGGER, "Could not embed normals on " << bad_cells << "cells");
+
   // We have looped over every cell. Now embed the normals
   data->GetCellData()->SetNormals(cell_normals);
   return success;
