@@ -2,7 +2,7 @@
   <arg name="filename"/>
   <arg name="tool" default="$(find noether)/config/tool.yaml"/>
 
-  <node name="noether" type="noether_node" pkg="noether" output="screen" required="true">
+  <node name="noether" type="surface_raster_planner_application" pkg="noether" output="screen" required="true">
     <!--Loads a particular test file: pcd or stl -->
     <param name="filename" value="$(arg filename)" type="string"/>
     <rosparam command="load" file="$(arg tool)"/>
