@@ -394,6 +394,94 @@ vtkSmartPointer<vtkPolyData> estimateCurvature(vtkSmartPointer<vtkPolyData> mesh
   return curvature_filter->GetOutput();
 }
 
+bool embedRightHandRuleNormals(vtkSmartPointer<vtkPolyData>& data)
+{
+  bool success = true;
+  LOG4CXX_DEBUG(VTK_LOGGER, "Embedding mesh normals from right hand rule");
+  int size = data->GetNumberOfCells();
+  vtkDoubleArray* cell_normals = vtkDoubleArray::New();
+
+  cell_normals->SetNumberOfComponents(3);
+  cell_normals->SetNumberOfTuples(size);
+
+  // Counter for cells that are malformed
+  unsigned long bad_cells = 0;
+
+  // loop through all cells and add cell normals
+  for (int i = 0; i < size; ++i)
+  {
+    vtkCell* cell = data->GetCell(i);
+    if (cell)
+    {
+      // Get all point IDs associated with the given cell
+      vtkIdList* pts = cell->GetPointIds();
+      double norm[3] = { 0, 0, 0 };
+
+      // If there are at least 3 points associated with the cell
+      if (pts->GetNumberOfIds() >= 3)
+      {
+        // Define arrays to store the points
+        double p0[3] = { 1, 0, 0 };
+        double p1[3] = { 0, 1, 0 };
+        double p2[3] = { 0, 0, 1 };
+
+        // Extract points from polydata that are associated with this cell
+        data->GetPoint(pts->GetId(0), p0);
+        data->GetPoint(pts->GetId(1), p1);
+        data->GetPoint(pts->GetId(2), p2);
+
+        // Get vectors obeying RHR
+        double v1[3];
+        double v2[3];
+        double v3[3];
+        for (int ind = 0; ind < 3; ind++)
+        {
+          v1[ind] = p1[ind] - p0[ind];
+          v2[ind] = p2[ind] - p1[ind];
+          v3[ind] = p0[ind] - p2[ind];
+        }
+        // Normalize the vectors
+        vtkMath::Normalize(v1);
+        vtkMath::Normalize(v2);
+        vtkMath::Normalize(v3);
+
+        // Make sure the angle between the vectors fairly large (dot product > threshold)
+        if (std::abs(v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]) > 0.707)
+        {
+          // Normal is v1 x v2
+          norm[0] = v1[1] * v2[2] - v2[1] * v1[2];
+          norm[1] = -1 * (v1[0] * v2[2] - v2[0] * v1[2]);
+          norm[2] = v1[0] * v2[1] - v2[0] * v1[1];
+        }
+        else
+        {
+          // Normal is v2 x v3
+          norm[0] = v2[1] * v3[2] - v3[1] * v2[2];
+          norm[1] = -1 * (v2[0] * v3[2] - v3[0] * v2[2]);
+          norm[2] = v2[0] * v3[1] - v3[0] * v2[1];
+        }
+
+        // Normalize the normals
+        vtkMath::Normalize(norm);
+
+        // set the normal for the given cell
+        cell_normals->SetTuple(i, norm);
+      }
+      else
+      {
+        bad_cells++;
+        success = false;
+      }
+    }
+  }
+  if (bad_cells > 0)
+    LOG4CXX_ERROR(VTK_LOGGER, "Could not embed normals on " << bad_cells << "cells");
+
+  // We have looped over every cell. Now embed the normals
+  data->GetCellData()->SetNormals(cell_normals);
+  return success;
+}
+
 void generateNormals(vtkSmartPointer<vtkPolyData>& data, int flip_normals)
 {
   // If point data exists but cell data does not, iterate through the cells and generate normals manually
