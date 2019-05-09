@@ -34,6 +34,7 @@ namespace tool_path_planner
                                           are encountered */
     double min_segment_size;          /** The minimum segment size to allow when finding intersections; small segments will
                                           be discarded */
+
      /** @brief Specifies the direction of the rasters wrt either the mesh coordinates or the principal axis. Rotation is in radians. Default is 0.0*/
     double  raster_angle;
 
@@ -46,6 +47,8 @@ namespace tool_path_planner
      * axis being 0. Then the resultant vector is projected onto the plane
      * created by the bounding box x and y axes */
     bool raster_wrt_global_axes;
+
+    bool generate_extra_rasters;      /** Whether an extra path should be added to the beginning and end of the raster pattern */
   };
 
   /**

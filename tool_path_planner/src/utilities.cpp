@@ -185,7 +185,8 @@ tool_path_planner::ProcessTool fromTppMsg(const noether_msgs::ToolPathConfig& tp
     .min_hole_size = tpp_msg_config.min_hole_size,
     .min_segment_size = tpp_msg_config.min_segment_size,
     .raster_angle = tpp_msg_config.raster_angle,
-    .raster_wrt_global_axes = tpp_msg_config.raster_wrt_global_axes
+    .raster_wrt_global_axes = tpp_msg_config.raster_wrt_global_axes,
+    .generate_extra_rasters = tpp_msg_config.generate_extra_rasters
   };
 }
 
@@ -198,8 +199,9 @@ noether_msgs::ToolPathConfig toTppMsg(const tool_path_planner::ProcessTool& tool
   tpp_config_msg.intersecting_plane_height = tool_config.intersecting_plane_height;
   tpp_config_msg.min_hole_size = tool_config.min_hole_size;
   tpp_config_msg.min_segment_size = tool_config.min_segment_size;
-  tpp_config_msg.raster_angle = tpp_config_msg.raster_angle;
-  tpp_config_msg.raster_wrt_global_axes = tpp_config_msg.raster_wrt_global_axes;
+  tpp_config_msg.raster_angle = tool_config.raster_angle;
+  tpp_config_msg.raster_wrt_global_axes = tool_config.raster_wrt_global_axes;
+  tpp_config_msg.generate_extra_rasters = tool_config.generate_extra_rasters;
 
   return std::move(tpp_config_msg);
 }
