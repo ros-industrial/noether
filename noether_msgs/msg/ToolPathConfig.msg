@@ -5,4 +5,11 @@ float64 intersecting_plane_height 	# Used by the raster_tool_path_planner when o
 float64 min_hole_size 				# A path may pass over holes smaller than this, but must be broken when larger holes are encounterd. 
 float64 min_segment_size 			# The minimum segment size to allow when finding intersections; small segments will be discarded
 float64 raster_angle          # Specifies the direction of the raster path in radians
-bool raster_wrt_principal_axis # When true, 0 raster_angle is aligned with the principal axis
+
+# When set to TRUE: initial cuts are determined using the axes of the
+# coordinate frame in which the mesh is placed.  This may cause the
+# initial cut to miss the part.
+# When set to FALSE: initial cuts are determined using the centroid and
+# principal axes of the part.  This is the old default behavior.  (Note
+# that ROS sets message fields to 0/False by default.)
+bool raster_wrt_global_axes

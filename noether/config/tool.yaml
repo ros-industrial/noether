@@ -4,6 +4,8 @@ tool_offset: 0.0 # currently unused
 intersecting_plane_height: 0.1 # 0.5 works best, not sure if this should be included in the tool
 min_hole_size: 0.01
 min_segment_size: 0.01
+raster_angle: 0.0
+raster_wrt_global_axes: false
 #cut_norm_x: -8.0
 #cut_norm_y: 0.0
 #cut_norm_z: 0.0

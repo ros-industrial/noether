@@ -731,7 +731,7 @@ namespace tool_path_planner
     // Create additional points for the starting curve
     double pt[3];
     double raster_axis[3];
-    if (tool_.raster_wrt_principal_axis)
+    if (!tool_.raster_wrt_global_axes)
     {
       // Principal axis is longest axis of the bounding box
       Eigen::Vector3d principal_axis(max);

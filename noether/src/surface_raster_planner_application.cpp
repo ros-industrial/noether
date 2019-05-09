@@ -112,6 +112,8 @@ tool_path_planner::ProcessTool loadTool(ros::NodeHandle& nh)
   nh.param<double>("intersecting_plane_height", tool.intersecting_plane_height, 0.05);
   nh.param<double>("min_hole_size", tool.min_hole_size, 0.01);
   nh.param<double>("min_segment_size", tool.min_segment_size, 0.01);
+  nh.param<double>("raster_angle", tool.raster_angle, 0.0);
+  nh.param<bool>("raster_wrt_global_axes", tool.raster_wrt_global_axes, false);
 
   return tool;
 }

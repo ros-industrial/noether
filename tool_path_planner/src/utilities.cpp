@@ -185,7 +185,7 @@ tool_path_planner::ProcessTool fromTppMsg(const noether_msgs::ToolPathConfig& tp
     .min_hole_size = tpp_msg_config.min_hole_size,
     .min_segment_size = tpp_msg_config.min_segment_size,
     .raster_angle = tpp_msg_config.raster_angle,
-    .raster_wrt_principal_axis = tpp_msg_config.raster_wrt_principal_axis
+    .raster_wrt_global_axes = tpp_msg_config.raster_wrt_global_axes
   };
 }
 
@@ -199,7 +199,7 @@ noether_msgs::ToolPathConfig toTppMsg(const tool_path_planner::ProcessTool& tool
   tpp_config_msg.min_hole_size = tool_config.min_hole_size;
   tpp_config_msg.min_segment_size = tool_config.min_segment_size;
   tpp_config_msg.raster_angle = tpp_config_msg.raster_angle;
-  tpp_config_msg.raster_wrt_principal_axis = tpp_config_msg.raster_wrt_principal_axis;
+  tpp_config_msg.raster_wrt_global_axes = tpp_config_msg.raster_wrt_global_axes;
 
   return std::move(tpp_config_msg);
 }
