@@ -123,10 +123,13 @@ namespace tool_path_planner
 
     /** @brief Specifies axis about which raster_angle_ is applied. Default is true
      *
-     * If true, raster angle is specified about the smallest axis of the bounding box with 0 being in the direction of the
-     * principal axis. If false (TODO 3/19/2019), the raster angle is about the mesh z coordinate with the x axis being 0. Then the resultant vecotor is projected onto the plane created
-     * by the bounding box x and y axes */
-    void setRasterWRTPrincipalAxis(bool axis) {tool_.raster_wrt_principal_axis = axis;}
+     * If false, raster angle is specified about the smallest axis of the
+     * bounding box with 0 being in the direction of the principal axis.
+     * If true, the raster angle is about the mesh z
+     * coordinate with the x axis being 0. Then the resultant vecotor is
+     * projected onto the plane created by the bounding box x and y axes
+     */
+    void setRasterWRTPrincipalAxis(bool axis) {tool_.raster_wrt_global_axes = axis;}
 
   private:
 

@@ -36,12 +36,16 @@ namespace tool_path_planner
                                           be discarded */
      /** @brief Specifies the direction of the rasters wrt either the mesh coordinates or the principal axis. Rotation is in radians. Default is 0.0*/
     double  raster_angle;
-    /** @brief Specifies axis about which raster_angle_ is applied. Default is true
+
+    /** @brief Specifies axis about which raster_angle_ is applied.
      *
-     * If true, raster angle is specified about the smallest axis of the bounding box with 0 being in the direction of the
-     * principal axis. If false, the raster angle is about the mesh z coordinate with the x axis being 0. Then the resultant vecotor is projected onto the plane created
-     * by the bounding box x and y axes */
-    bool raster_wrt_principal_axis;
+     * If false, raster angle is specified about the smallest axis of the
+     * bounding box with 0 being in the direction of the principal axis.
+     *
+     * If true, the raster angle is about the mesh z coordinate with the x
+     * axis being 0. Then the resultant vector is projected onto the plane
+     * created by the bounding box x and y axes */
+    bool raster_wrt_global_axes;
   };
 
   /**
