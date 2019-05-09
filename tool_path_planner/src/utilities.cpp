@@ -185,8 +185,8 @@ tool_path_planner::ProcessTool fromTppMsg(const noether_msgs::ToolPathConfig& tp
     .min_hole_size = tpp_msg_config.min_hole_size,
     .min_segment_size = tpp_msg_config.min_segment_size,
     .raster_angle = tpp_msg_config.raster_angle,
-    .raster_wrt_global_axes = tpp_msg_config.raster_wrt_global_axes,
-    .generate_extra_rasters = tpp_msg_config.generate_extra_rasters
+    .raster_wrt_global_axes = static_cast<bool>(tpp_msg_config.raster_wrt_global_axes),
+    .generate_extra_rasters = static_cast<bool>(tpp_msg_config.generate_extra_rasters)
   };
 }
 
