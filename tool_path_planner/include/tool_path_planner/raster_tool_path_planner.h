@@ -162,6 +162,16 @@ namespace tool_path_planner
     bool getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist = 0.0,
                      bool test_self_intersection = true);
 
+    /**
+     * @brief getExtraPath - Using the last path generated, creates and
+     * places an extra path that does not need to intersect with the part
+     * @param last_path - input - the last valid path
+     * @param extra_path - output - a path that may lie beyond the edge of the part
+     * @param dist - input - the distance to offset the next path from the current
+     * @return True if path is successfully created, False if no path can be generated
+     */
+    bool getExtraPath(const ProcessPath& last_path, ProcessPath& extra_path, double dist = 0.0);
+
 
     /**
      * @brief Estimates the normals of a line that lies on the surface of the current mesh.  For each point, it uses the normal of

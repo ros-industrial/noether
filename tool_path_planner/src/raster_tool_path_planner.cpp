@@ -222,6 +222,13 @@ namespace tool_path_planner
       ++count;
     }
 
+    // If requested, generate one extra path extending past the edge of the part
+    if (tool_.generate_extra_rasters == true)
+    {
+      ProcessPath path2;
+      getExtraPath(paths_.back(), path2, tool_.line_spacing);
+    }
+
     // From existing cutting plane, create more offset planes in opposite direction
     count = 0;
     done = false;
@@ -238,6 +245,13 @@ namespace tool_path_planner
       }
 
       ++count;
+    }
+
+    // If requested, generate one extra path extending past the edge of the part
+    if (tool_.generate_extra_rasters == true)
+    {
+      ProcessPath path2;
+      getExtraPath(paths_.back(), path2, -1.0*tool_.line_spacing);
     }
 
     // clear all but the first (mesh) display
@@ -503,6 +517,12 @@ namespace tool_path_planner
       debug_viewer_.renderDisplay();
     }
 
+    return true;
+  }
+
+  bool RasterToolPathPlanner::getExtraPath(const ProcessPath& last_path, ProcessPath& extra_path, double dist)
+  {
+    LOG4CXX_WARN(RASTER_PATH_PLANNER_LOGGER, "getExtraPath not yet implemented");
     return true;
   }
 
