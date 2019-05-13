@@ -65,18 +65,16 @@ void flipPointOrder(tool_path_planner::ProcessPath& path)
   }
   path.line->GetPointData()->SetNormals(new_norms);
 
-  // flip derivative directions
+  // flip point order
   points = path.derivatives->GetPoints();
   vtkSmartPointer<vtkPoints> dpoints2 = vtkSmartPointer<vtkPoints>::New();
-
-  // flip point order
   for(int i = points->GetNumberOfPoints() - 1; i >= 0; --i)
   {
     dpoints2->InsertNextPoint(points->GetPoint(i));
   }
   path.derivatives->SetPoints(dpoints2);
 
-
+  // flip derivative directions
   vtkDataArray* ders = path.derivatives->GetPointData()->GetNormals();
   vtkSmartPointer<vtkDoubleArray> new_ders = vtkSmartPointer<vtkDoubleArray>::New();
   new_ders->SetNumberOfComponents(3);
