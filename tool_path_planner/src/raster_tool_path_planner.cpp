@@ -562,6 +562,13 @@ namespace tool_path_planner
     // Make sure the spline is using the new points
     extra_path.spline = vtkSmartPointer<vtkParametricSpline>::New();
     extra_path.spline->SetPoints(extra_path.derivatives->GetPoints());
+    vtkSmartPointer<vtkPolyData> points = vtkSmartPointer<vtkPolyData>::New();
+    vtkSmartPointer<vtkPolyData> derivatives = vtkSmartPointer<vtkPolyData>::New();
+    smoothData(extra_path.spline, points, derivatives);
+
+    // Use the points, normals, and derivatives calculated from the spline
+    extra_path.line = points;
+    extra_path.derivatives = derivatives;
 
     return true;
   }
