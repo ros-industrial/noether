@@ -222,13 +222,6 @@ namespace tool_path_planner
       ++count;
     }
 
-    // If requested, generate one extra path extending past the edge of the part
-    if (tool_.generate_extra_rasters == true)
-    {
-      ProcessPath path2;
-      getExtraPath(paths_.back(), path2, tool_.line_spacing);
-    }
-
     // From existing cutting plane, create more offset planes in opposite direction
     count = 0;
     done = false;
@@ -245,13 +238,6 @@ namespace tool_path_planner
       }
 
       ++count;
-    }
-
-    // If requested, generate one extra path extending past the edge of the part
-    if (tool_.generate_extra_rasters == true)
-    {
-      ProcessPath path2;
-      getExtraPath(paths_.back(), path2, -1.0*tool_.line_spacing);
     }
 
     // clear all but the first (mesh) display
@@ -279,10 +265,17 @@ namespace tool_path_planner
       }
     }
 
+    // Get the first and last paths before checking for holes. Paths
+    // containing holes will be removed, broken up, and inserted at the
+    // end. This disrupts the order and makes the last path difficult to
+    // find during generation of extra rasters.
+    ProcessPath first = paths_.front();
+    ProcessPath last = paths_.back();
+
     // if paths need to be modified, delete all old paths (starting at the back) and insert new ones
     if(!delete_paths.empty())
     {
-      LOG4CXX_INFO(RASTER_PATH_PLANNER_LOGGER, "Deleting path " << delete_paths.size());
+      LOG4CXX_INFO(RASTER_PATH_PLANNER_LOGGER, "Deleting " << delete_paths.size() << " paths");
     }
     for(int i = delete_paths.size() - 1; i >=0 ; --i )
     {
@@ -300,6 +293,28 @@ namespace tool_path_planner
 
         debug_viewer_.addPolyDataDisplay(new_paths[i].intersection_plane, color);
         debug_viewer_.renderDisplay();
+      }
+    }
+
+    // If requested, generate extra paths extending past the edge of the part
+    if (tool_.generate_extra_rasters == true && paths_.size() >= 1)
+    {
+      ProcessPath first_path, last_path;
+      if (getExtraPath(first, first_path, -tool_.line_spacing))
+      {
+        paths_.insert(paths_.begin(), first_path );
+      }
+      else
+      {
+        LOG4CXX_ERROR(RASTER_PATH_PLANNER_LOGGER, "Failed to generate path off leading edge");
+      }
+      if (getExtraPath(last, last_path, tool_.line_spacing))
+      {
+        paths_.push_back(last_path);
+      }
+      else
+      {
+        LOG4CXX_ERROR(RASTER_PATH_PLANNER_LOGGER, "Failed to generate path off trailing edge");
       }
     }
 
@@ -522,7 +537,32 @@ namespace tool_path_planner
 
   bool RasterToolPathPlanner::getExtraPath(const ProcessPath& last_path, ProcessPath& extra_path, double dist)
   {
-    LOG4CXX_WARN(RASTER_PATH_PLANNER_LOGGER, "getExtraPath not yet implemented");
+    if (std::fabs(dist) == 0.0)
+    {
+      LOG4CXX_ERROR(RASTER_PATH_PLANNER_LOGGER, "No offset given. Cannot generate extra path");
+      return false;
+    }
+
+    // create offset points in the adjacent line at a distance "dist"
+    extra_path.line = vtkSmartPointer<vtkPolyData>::New();
+    extra_path.line = createOffsetLine(last_path.line, last_path.derivatives, dist);
+    if(!extra_path.line)
+    {
+      return false;
+    }
+
+    // Use the same derivatives (we want to translate in space, not rotate)
+    extra_path.derivatives = vtkSmartPointer<vtkPolyData>::New();
+    extra_path.derivatives->SetPoints(extra_path.line->GetPoints());
+    extra_path.derivatives->GetPointData()->SetNormals(last_path.derivatives->GetPointData()->GetNormals());
+
+    // Don't assign an intersection plane.
+    extra_path.intersection_plane = vtkSmartPointer<vtkPolyData>::New();
+
+    // Make sure the spline is using the new points
+    extra_path.spline = vtkSmartPointer<vtkParametricSpline>::New();
+    extra_path.spline->SetPoints(extra_path.derivatives->GetPoints());
+
     return true;
   }
 

@@ -48,7 +48,7 @@ namespace tool_path_planner
      * created by the bounding box x and y axes */
     bool raster_wrt_global_axes;
 
-    bool generate_extra_rasters;      /** Whether an extra path should be added to the beginning and end of the raster pattern */
+    bool generate_extra_rasters = false;      /** Whether an extra path should be added to the beginning and end of the raster pattern */
   };
 
   /**
