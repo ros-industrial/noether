@@ -121,7 +121,7 @@ namespace tool_path_planner
      */
     void setRasterAngle(double angle) {tool_.raster_angle= angle;}
 
-    /** @brief Specifies axis about which raster_angle_ is applied. Default is true
+    /** @brief Specifies axis about which raster_angle_ is applied.
      *
      * If false, raster angle is specified about the smallest axis of the
      * bounding box with 0 being in the direction of the principal axis.
@@ -129,7 +129,7 @@ namespace tool_path_planner
      * coordinate with the x axis being 0. Then the resultant vecotor is
      * projected onto the plane created by the bounding box x and y axes
      */
-    void setRasterWRTPrincipalAxis(bool axis) {tool_.raster_wrt_global_axes = axis;}
+    void setRasterWRTGlobalAxis(bool axis) {tool_.raster_wrt_global_axes = axis;}
 
   private:
 
