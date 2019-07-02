@@ -5,7 +5,7 @@
   <description>The noether package</description>
   <author email="alex.goins@swri.org">alex</author>
   <maintainer email="jorge.nicho@swri.org">Jorge Nicho</maintainer>
-  <license>Proprietary</license>
+  <license>Apache 2.0</license>
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>cmake_modules</build_depend>
