@@ -1,8 +1,7 @@
-sudo: required
-dist: trusty
 language: generic
-compiler:
-  - gcc
+services:
+  - docker
+
 notifications:
   email:
     on_success: never
@@ -13,11 +12,12 @@ env:
     - ROS_DISTRO=kinetic
     - DOCKER_IMAGE=rosindustrial/noether:kinetic
     - NOT_TEST_BUILD=true
-    - BEFORE_SCRIPT='catkin config -w $CATKIN_WORKSPACE --no-install'
+    - BEFORE_INIT="apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654"
   matrix:
-    - ROS_REPOSITORY_PATH=http://packages.ros.org/ros/ubuntu
-    - ROS_REPOSITORY_PATH=http://packages.ros.org/ros-shadow-fixed/ubuntu
+    - ROS_REPO=ros
+    - ROS_REPO=ros-shadow-fixed
+
 install:
-  - git clone https://github.com/ros-industrial/industrial_ci.git .ci_config
+  - git clone --quiet --depth 1 https://github.com/ros-industrial/industrial_ci.git .industrial_ci
 script:
-  - source .ci_config/travis.sh
+  - .industrial_ci/travis.sh
