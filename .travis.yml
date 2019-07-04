@@ -13,9 +13,6 @@ env:
     - DOCKER_IMAGE=rosindustrial/noether:kinetic
     - NOT_TEST_BUILD=true
     - BEFORE_INIT="apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654"
-  matrix:
-    - ROS_REPO=ros
-    - ROS_REPO=ros-shadow-fixed
 
 install:
   - git clone --quiet --depth 1 https://github.com/ros-industrial/industrial_ci.git .industrial_ci -b master
