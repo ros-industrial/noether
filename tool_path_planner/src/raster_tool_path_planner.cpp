@@ -146,7 +146,10 @@ namespace tool_path_planner
       {
         LOG4CXX_WARN(RASTER_PATH_PLANNER_LOGGER, "Could not plan path for mesh " << i);
       }
-      paths.push_back(new_path);
+      else
+      {
+        paths.push_back(new_path);
+      }
     }
   }
 
