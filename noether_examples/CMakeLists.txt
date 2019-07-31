@@ -8,12 +8,8 @@ project(noether_examples)
 find_package(VTK 7.1 REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
 
-find_package(PCL 1.8 REQUIRED)
-find_package(Boost REQUIRED COMPONENTS system)
-
 find_package(catkin REQUIRED COMPONENTS
   actionlib
-  #actionlib_msgs
   cmake_modules
   mesh_segmenter
   noether_conversions
@@ -47,9 +43,6 @@ catkin_package(
     VTK
 )
 
-
-
-
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
@@ -71,7 +64,6 @@ target_link_libraries(mesh_segmenter_node
   ${VTK_LIBRARIES}
 )
 
-#action client
 add_executable(thickness_simulator_client src/thickness_simulator_client.cpp)
 add_dependencies(thickness_simulator_client ${${PROJECT_NAME}_EXPORTED_TARGETS}
     ${catkin_EXPORTED_TARGETS}
@@ -87,7 +79,7 @@ target_link_libraries(thickness_simulator_client
 #############
 ## Install ##
 #############
-install(TARGETS mesh_segmenter_client_node mesh_segmenter_node
+install(TARGETS mesh_segmenter_client_node mesh_segmenter_node thickness_simulator_client
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

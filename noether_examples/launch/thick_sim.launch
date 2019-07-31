@@ -1,5 +1,3 @@
 <launch>
-
-<!--><node name="noether_simulator" pkg="noether_simulator" type="noether_simulator_node"></node></!-->
 <node name="thickn_sim" pkg="noether_simulator" type="thick_sim"></node>
 </launch>

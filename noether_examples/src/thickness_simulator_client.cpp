@@ -2,25 +2,21 @@
 #include <ros/ros.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
-#include <vtk_viewer/vtk_utils.h>
 #include <pcl/surface/vtk_smoothing/vtk_utils.h>
 #include <pcl/PolygonMesh.h>
-#include <vtkPointData.h>
 #include <pcl_conversions/pcl_conversions.h>
-#include <tool_path_planner/raster_tool_path_planner.h>
-
-#include <tool_path_planner/utilities.h>
-#include <mesh_segmenter/mesh_segmenter.h>
 #include <vtkPolyDataNormals.h>
 #include <vtkCellData.h>
+#include <vtkPointData.h>
+#include <vtk_viewer/vtk_utils.h>
 
+#include <tool_path_planner/raster_tool_path_planner.h>
+#include <tool_path_planner/utilities.h>
+#include <mesh_segmenter/mesh_segmenter.h>
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
-
 #include <noether_msgs/ThickSimulatorAction.h>
 #include <noether_msgs/ToolRasterPath.h>
-
-
 
 //make modified meshes
 vtkSmartPointer<vtkPoints> createPlaneMod(unsigned int grid_size_x, unsigned int grid_size_y, vtk_viewer::plane_type type)
@@ -61,7 +57,6 @@ vtkSmartPointer<vtkPoints> createPlaneMod(unsigned int grid_size_x, unsigned int
   return points;
 }
 
-
 int main (int argc, char **argv)
 {
   ros::init(argc, argv, "test_noether_simulator");
@@ -88,7 +83,6 @@ int main (int argc, char **argv)
   double pt2[3] = {4.0, 2.0, 0.0};
   double pt3[3] = {5.0, 3.0, 0.0};
   double pt4[3] = {4.0, 4.0, 0.0};
-
 
   points2->InsertNextPoint(pt1);
   points2->InsertNextPoint(pt2);
@@ -129,51 +123,41 @@ int main (int argc, char **argv)
     }
     //........end create control meshes
     //........create robot path
-    //if(count==0)
-    //{
-      //vtkSmartPointer<vtkPolyData> cut = vtkSmartPointer<vtkPolyData>::New();
-      cut = vtk_viewer::cutMesh(data, points2, false);
-      //pcl::PolygonMesh *test = new(pcl::PolygonMesh);
-      pcl::VTKUtils::convertToPCL(cut, *test);
 
-      // Run tool path planner on mesh
-      tool_path_planner::RasterToolPathPlanner planner;
-      planner.setInputMesh(cut);
+    cut = vtk_viewer::cutMesh(data, points2, false);
+    pcl::VTKUtils::convertToPCL(cut, *test);
 
-      tool_path_planner::ProcessTool tool;
-      tool.pt_spacing = 0.5;
-      tool.line_spacing = .75;
-      tool.tool_offset = 0.0; // currently unused
-      tool.intersecting_plane_height = 0.15; // 0.5 works best, not sure if this should be included in the tool
-      tool.nearest_neighbors = 30; // not sure if this should be a part of the tool
-      tool.min_hole_size = 0.1;
-      tool.min_segment_size = 1;
-      tool.raster_angle = 0;
-      tool.raster_wrt_global_axes = 0;
-      tool.tool_radius = 1;
-      tool.tool_height = 2;
-      planner.setTool(tool);
-      planner.setDebugMode(false);
+    // Run tool path planner on mesh
+    tool_path_planner::RasterToolPathPlanner planner;
+    planner.setInputMesh(cut);
 
-      planner.computePaths();
+    tool_path_planner::ProcessTool tool;
+    tool.pt_spacing = 0.5;
+    tool.line_spacing = .75;
+    tool.tool_offset = 0.0; // currently unused
+    tool.intersecting_plane_height = 0.15; // 0.5 works best, not sure if this should be included in the tool
+    tool.nearest_neighbors = 30; // not sure if this should be a part of the tool
+    tool.min_hole_size = 0.1;
+    tool.min_segment_size = 1;
+    tool.raster_angle = 0;
+    tool.raster_wrt_global_axes = 0;
+    tool.tool_radius = 1;
+    tool.tool_height = 2;
+    planner.setTool(tool);
+    planner.setDebugMode(false);
+    planner.computePaths();
+    std::vector<tool_path_planner::ProcessPath> paths = planner.getPaths();
+    myPath = tool_path_planner::toPosesMsgs(paths);
 
+    noether_msgs::ToolRasterPath rasterPath;
+    rasterPath.paths = myPath;
+    goal.path.push_back(rasterPath);
 
-      std::vector<tool_path_planner::ProcessPath> paths = planner.getPaths();
-      myPath = tool_path_planner::toPosesMsgs(paths);
-
-      noether_msgs::ToolRasterPath rasterPath;
-      rasterPath.paths = myPath;
-      goal.path.push_back(rasterPath);
-
-    //}
     //........end robot path
   }//end multimesh creation loop
 
   //set goal values
   goal.input_mesh = myMeshs;
-  //noether_msgs::ToolRasterPath rasterPath;
-  //rasterPath.paths = myPath;
-  //goal.path.push_back(rasterPath);
   ac.sendGoal(goal);
   ROS_INFO(" sent mesh and path generation");
   ROS_INFO("number of paths sent: %d ",goal.path.size());

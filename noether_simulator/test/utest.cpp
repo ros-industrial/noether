@@ -19,7 +19,6 @@
 // result of painting the mesh using the
 // given path.
 
-
 //This test uses poor path to paint mesh
 TEST(ViewerTest, TestCase1)
 {
@@ -122,7 +121,6 @@ TEST(ViewerTest, TestCase1)
     intensity[0] = processedPoints->GetPointData()->GetScalars()->GetComponent(i,0);
     intensity[1] = processedPoints->GetPointData()->GetScalars()->GetComponent(i,1);
     intensity[2] = processedPoints->GetPointData()->GetScalars()->GetComponent(i,2);
-
 
     if((intensity[0]+intensity[1]+intensity[2])/3.0 < 5) //averge of each pixel if less than threshold incrament counter
     {
@@ -245,7 +243,6 @@ TEST(ViewerTest, TestCase2)
     {
       missed++;
     }
-
   }
   if(missed/float(processedPoints->GetNumberOfPoints())>0.1)//get ratio of missed spots, if below threshold set not painted
   {
@@ -254,7 +251,6 @@ TEST(ViewerTest, TestCase2)
   else painted = true;
   EXPECT_TRUE(painted);//expect good mesh to pass
 }
-
 
 // Run all the tests that were declared with TEST()
 int main(int argc, char **argv)

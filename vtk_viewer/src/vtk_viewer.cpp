@@ -24,6 +24,7 @@
 #include <vtkScalarBarActor.h>
 
 #include <vtk_viewer/mouse_interactor.h>
+
 #define VTK_SP(type, name)\
   vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
 
@@ -138,7 +139,6 @@ namespace vtk_viewer
     // Add actor to renderer
     this->renderer_->AddActor(actors_.back());
   }
-
 
   VTKViewer::~VTKViewer()
   {

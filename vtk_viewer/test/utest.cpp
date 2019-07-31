@@ -8,7 +8,7 @@
 #include <vtk_viewer/vtk_viewer.h>
 #include <vtkPointData.h>
 #include <gtest/gtest.h>
-#include <iostream>
+
 // This test shows the results of meshing on a square grid that has a sinusoidal
 // variability in the z axis.  Red arrows show the surface normal for each triangle
 // in the mesh, and cyan boxes show the points used to seed the mesh creation algorithm
@@ -37,8 +37,6 @@ TEST(ViewerTest, TestCase1)
 
   cout << "cutter points: " << cut->GetPoints()->GetNumberOfPoints() << "\n";
   cout << "cutter lines: " << cut->GetNumberOfLines() << "\n";
-
-
 
   vtk_viewer::VTKViewer viz;
   std::vector<float> color(3);

@@ -6,7 +6,6 @@
 
 #include <limits>
 #include <cmath>
-#include <stdio.h>
 
 #include <Eigen/Core>
 #include <vtkParametricFunctionSource.h>
@@ -822,7 +821,6 @@ namespace tool_path_planner
     // Check to make sure that the input cut surface contains a valid mesh
     if(cut_surface->GetNumberOfCells() < 1)
     {
-
       LOG4CXX_ERROR(RASTER_PATH_PLANNER_LOGGER,
                     "Number of input cells for calculating intersection is less than 1, cannot compute intersection");
       return false;

@@ -76,7 +76,6 @@ target_link_libraries(noether_simulator_
     ${PCL_LIBRARIES}
 )
 
-#action server
 add_executable(thick_sim src/thickness_simulator_node.cpp)
 add_dependencies(thick_sim ${${PROJECT_NAME}_EXPORTED_TARGETS}
     ${catkin_EXPORTED_TARGETS}
@@ -101,3 +100,17 @@ target_link_libraries(noether_simulator-test
     ${VTK_LIBRARIES}
 )
 endif()
+
+#############
+## Install ##
+#############
+install(TARGETS noether_simulator_ thick_sim
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  PATTERN ".svn" EXCLUDE
+)

@@ -10,6 +10,7 @@
 
 #include <pcl/surface/vtk_smoothing/vtk_utils.h>
 #include <pcl_conversions/pcl_conversions.h>
+
 #include <dynamic_reconfigure/server.h>
 
 #include "noether_simulator/noether_simulator.h"
@@ -18,8 +19,6 @@
 
 #include <tool_path_planner/tool_path_planner_base.h>
 #include <tool_path_planner/raster_tool_path_planner.h>
-#include <pcl/kdtree/kdtree_flann.h>
-
 
 namespace noether_simulator {
 class ProcessSimulatorNode{
@@ -236,8 +235,6 @@ public:
   }//end executeCB
 };//end class
 }//end namespace
-
-
 
 int main(int argc, char** argv)
 {
