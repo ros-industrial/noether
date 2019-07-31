@@ -10,6 +10,7 @@
   <build_depend>cmake_modules</build_depend>
   <build_depend>noether_conversions</build_depend>
 
+
   <depend>actionlib</depend>
   <depend>mesh_segmenter</depend>
   <depend>noether_msgs</depend>
@@ -19,5 +20,6 @@
   <depend>roslib</depend>
   <depend>tool_path_planner</depend>
   <depend>vtk_viewer</depend>
+  <depend>noether_simulator</depend>
 
 </package>

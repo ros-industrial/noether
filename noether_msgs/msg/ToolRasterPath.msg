@@ -1,1 +1,1 @@
-geometry_msgs/PoseArray[] paths			# The raster paths on a surface
+geometry_msgs/PoseArray[] paths		# The raster paths on a surface

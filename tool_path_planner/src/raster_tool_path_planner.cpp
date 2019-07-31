@@ -6,6 +6,7 @@
 
 #include <limits>
 #include <cmath>
+#include <stdio.h>
 
 #include <Eigen/Core>
 #include <vtkParametricFunctionSource.h>
@@ -38,7 +39,6 @@
 #include <log4cxx/consoleappender.h>
 #include <tool_path_planner/raster_tool_path_planner.h>
 #include "tool_path_planner/utilities.h"
-
 
 static const std::size_t MAX_ATTEMPTS = 1000;
 static const double ANGLE_CORRECTION_THRESHOLD = (150.0/180.0)*M_PI;
@@ -247,7 +247,6 @@ namespace tool_path_planner
       for(int i = 0; i < num_obj; ++i)
       debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
     }
-
 
     std::vector<ProcessPath> new_paths;
     std::vector<int> delete_paths;
@@ -823,6 +822,7 @@ namespace tool_path_planner
     // Check to make sure that the input cut surface contains a valid mesh
     if(cut_surface->GetNumberOfCells() < 1)
     {
+
       LOG4CXX_ERROR(RASTER_PATH_PLANNER_LOGGER,
                     "Number of input cells for calculating intersection is less than 1, cannot compute intersection");
       return false;
@@ -943,7 +943,6 @@ namespace tool_path_planner
                                              lines[i]->GetPoint(lines[i]->GetNumberOfPoints() - 1) );
           double dist4 = vtk_viewer::pt_dist(temp_points->GetPoint( temp_points->GetNumberOfPoints() - 1 ),
                                              lines[i]->GetPoint(lines[i]->GetNumberOfPoints() - 1) );
-
 
           double dist = std::min(dist1, dist2);
           dist = std::min(dist, dist3);
@@ -1186,7 +1185,6 @@ namespace tool_path_planner
     new_pt[2] +=  (new_pt[2] - pt1[2]);
     new_points->SetPoint(0, new_pt);
 
-
     points->SetNumberOfPoints(new_points->GetNumberOfPoints());
     points->DeepCopy(new_points);
   }
@@ -1198,7 +1196,6 @@ namespace tool_path_planner
 
     vtkSmartPointer<vtkDoubleArray> derv = vtkSmartPointer<vtkDoubleArray>::New();
     derv->SetNumberOfComponents(3);
-
 
     // get points which are evenly spaced along the spline
     // initialize num_line_pts to some number, find the Euclidean distance between two points (m & n),
@@ -1232,7 +1229,6 @@ namespace tool_path_planner
       u[2] = i * du; // double(i)/double(num_line_pts);
       spline->Evaluate(u, pt, d);
       new_points->InsertNextPoint(pt);
-
 
       double pt1[3], pt2[3];
       // find nearby points in order to calculate the local derivative

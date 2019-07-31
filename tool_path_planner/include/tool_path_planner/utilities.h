@@ -9,7 +9,6 @@
  *      Author: Jorge Nicho
  */
 
-
 #ifndef INCLUDE_TOOL_PATH_PLANNER_UTILITIES_H_
 #define INCLUDE_TOOL_PATH_PLANNER_UTILITIES_H_
 
@@ -21,7 +20,6 @@
 #include <geometry_msgs/PoseArray.h>
 
 #include "tool_path_planner_base.h"
-
 
 namespace tool_path_planner
 {
@@ -62,7 +60,5 @@ namespace tool_path_planner
 	noether_msgs::ToolPathConfig toTppMsg(const tool_path_planner::ProcessTool& tool_config);
 
 }
-
-
 
 #endif /* INCLUDE_TOOL_PATH_PLANNER_UTILITIES_H_ */

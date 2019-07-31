@@ -8,7 +8,7 @@
 #include <vtk_viewer/vtk_viewer.h>
 #include <vtkPointData.h>
 #include <gtest/gtest.h>
-
+#include <iostream>
 // This test shows the results of meshing on a square grid that has a sinusoidal
 // variability in the z axis.  Red arrows show the surface normal for each triangle
 // in the mesh, and cyan boxes show the points used to seed the mesh creation algorithm
@@ -19,7 +19,6 @@ TEST(ViewerTest, TestCase1)
 
   vtkSmartPointer<vtkPolyData> data = vtkSmartPointer<vtkPolyData>::New();
   data = vtk_viewer::createMesh(points, 0.5, 5);
-
   vtk_viewer::generateNormals(data);
 
   vtkSmartPointer<vtkPoints> points2 = vtkSmartPointer<vtkPoints>::New();
@@ -32,7 +31,7 @@ TEST(ViewerTest, TestCase1)
   points2->InsertNextPoint(pt2);
   points2->InsertNextPoint(pt3);
   points2->InsertNextPoint(pt4);
-  
+
   vtkSmartPointer<vtkPolyData> cut = vtkSmartPointer<vtkPolyData>::New();
   cut = vtk_viewer::cutMesh(data, points2, false);
 

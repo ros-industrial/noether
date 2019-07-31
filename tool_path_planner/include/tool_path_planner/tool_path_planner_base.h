@@ -30,6 +30,7 @@ namespace tool_path_planner
     double tool_offset;               /** how far off the surface the tool needs to be */
     double intersecting_plane_height; /** Used in creating planes from that originate from an adjacent raster line to
                                           the surface*/
+    int nearest_neighbors;            /** how many neighbors are used to compute local normals*/
     double min_hole_size;             /** A path may pass over holes smaller than this, but must be broken when larger holes
                                           are encountered */
     double min_segment_size;          /** The minimum segment size to allow when finding intersections; small segments will
@@ -46,6 +47,8 @@ namespace tool_path_planner
      * axis being 0. Then the resultant vector is projected onto the plane
      * created by the bounding box x and y axes */
     bool raster_wrt_global_axes;
+    double tool_radius; /** the radius of the tool (for process simulation)*/
+    double tool_height; /** the height of the tool (for process simulation)*/
   };
 
   /**

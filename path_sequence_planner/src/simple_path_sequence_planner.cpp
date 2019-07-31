@@ -37,8 +37,6 @@ void SimplePathSequencePlanner::linkPaths()
 
       int next_index = findNextNearestPath(paths_, indices_, last_index, insert_front);
 
-
-
       if(indices_.size() > 1)
       {
         // check the distance of next_index with front and back to make sure it is in the right location

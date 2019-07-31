@@ -57,7 +57,6 @@ public:
 	 */
   static tool_path_planner::ProcessTool generateDefaultToolConfig();
 
-
 };
 
 } /* namespace tool_path_planner */

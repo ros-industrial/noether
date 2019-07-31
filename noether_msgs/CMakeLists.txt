@@ -29,6 +29,7 @@ add_action_files(
   FILES
     GenerateToolPaths.action
     Segment.action
+    ThickSimulator.action
 )
 
 generate_messages(

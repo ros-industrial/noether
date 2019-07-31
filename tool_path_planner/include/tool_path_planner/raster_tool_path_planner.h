@@ -162,7 +162,6 @@ namespace tool_path_planner
     bool getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist = 0.0,
                      bool test_self_intersection = true);
 
-
     /**
      * @brief Estimates the normals of a line that lies on the surface of the current mesh.  For each point, it uses the normal of
      * the closes cell in the mesh

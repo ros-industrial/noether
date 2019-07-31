@@ -357,4 +357,3 @@ boost::optional< std::vector<geometry_msgs::PoseArray> > RasterPathGenerator::ge
 }
 
 } /* namespace tool_path_planner */
-

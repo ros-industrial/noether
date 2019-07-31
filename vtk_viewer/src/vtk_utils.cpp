@@ -52,7 +52,6 @@
 #include <log4cxx/basicconfigurator.h>
 #include <log4cxx/patternlayout.h>
 #include <log4cxx/consoleappender.h>
-
 log4cxx::LoggerPtr createConsoleLogger(const std::string& logger_name)
 {
   using namespace log4cxx;
@@ -115,7 +114,6 @@ vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points,
   // surface reconstruction
   vtkSmartPointer<vtkContourFilter> cf;
   vtkSmartPointer<vtkSurfaceReconstructionFilter> surf = vtkSmartPointer<vtkSurfaceReconstructionFilter>::New();
-
   surf->SetInputData(polydata);
   surf->SetSampleSpacing(sample_spacing);
   surf->SetNeighborhoodSize(neigborhood_size);

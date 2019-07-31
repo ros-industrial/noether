@@ -35,7 +35,7 @@ namespace vtk_viewer
      * @param polydata The polydata to be displayed
      * @param color The color to use for rendering the data
      */
-    void addPolyDataDisplay(vtkPolyData* polydata, std::vector<float> color);
+    void addPolyDataDisplay(vtkPolyData* polydata, std::vector<float> color, double lower_bounds = 0.0, double upper_bounds = 0.0);
 
     /**
      * @brief addPolyNormalsDisplay Add a renderer and actor for a polydata

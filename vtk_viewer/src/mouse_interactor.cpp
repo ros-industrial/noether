@@ -85,8 +85,6 @@ namespace vtk_viewer
           {
             std::cout << "Directory " << save_location_.str().c_str() << " does not exist.  Not saving polydata file." << std::endl;
           }
-
-
         }
       }
     }
