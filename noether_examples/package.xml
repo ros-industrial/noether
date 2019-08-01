@@ -19,5 +19,6 @@
   <depend>roslib</depend>
   <depend>tool_path_planner</depend>
   <depend>vtk_viewer</depend>
+  <depend>noether_simulator</depend>
 
 </package>

@@ -1,12 +1,20 @@
 /*
- * Copyright (c) 2018, Southwest Research Institute
- * All rights reserved.*
- * utilities.cpp
+ * Software License Agreement (Apache License)
  *
- *  Created on: Nov 16, 2018
- *      Author: Jorge Nicho
+ * Copyright (c) 2018, Southwest Research Institute
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
 
 #include <limits>
 #include <cmath>
@@ -76,7 +84,6 @@ void flipPointOrder(tool_path_planner::ProcessPath& path)
   }
   path.derivatives->SetPoints(dpoints2);
 
-
   vtkDataArray* ders = path.derivatives->GetPointData()->GetNormals();
   vtkSmartPointer<vtkDoubleArray> new_ders = vtkSmartPointer<vtkDoubleArray>::New();
   new_ders->SetNumberOfComponents(3);
@@ -117,7 +124,6 @@ bool convertToPCLMesh(const shape_msgs::Mesh& mesh_msg, pcl::PolygonMesh& mesh)
   pcl::toPCLPointCloud2(mesh_points,mesh.cloud);
   return true;
 }
-
 
 std::vector<geometry_msgs::PoseArray> toPosesMsgs(const std::vector<tool_path_planner::ProcessPath>& paths)
 {
@@ -182,10 +188,13 @@ tool_path_planner::ProcessTool fromTppMsg(const noether_msgs::ToolPathConfig& tp
     .line_spacing = tpp_msg_config.line_spacing,
     .tool_offset = tpp_msg_config.tool_offset,
     .intersecting_plane_height = tpp_msg_config.intersecting_plane_height,
+    .simulator_nearest_neighbors = tpp_msg_config.nearest_neighbors,
     .min_hole_size = tpp_msg_config.min_hole_size,
     .min_segment_size = tpp_msg_config.min_segment_size,
     .raster_angle = tpp_msg_config.raster_angle,
-    .raster_wrt_global_axes = tpp_msg_config.raster_wrt_global_axes
+    .raster_wrt_global_axes = tpp_msg_config.raster_wrt_global_axes,
+    .simulator_tool_radius = tpp_msg_config.tool_radius,
+    .simulator_tool_height = tpp_msg_config.tool_height
   };
 }
 
@@ -196,10 +205,13 @@ noether_msgs::ToolPathConfig toTppMsg(const tool_path_planner::ProcessTool& tool
   tpp_config_msg.line_spacing = tool_config.line_spacing;
   tpp_config_msg.tool_offset = tool_config.tool_offset;
   tpp_config_msg.intersecting_plane_height = tool_config.intersecting_plane_height;
+  tpp_config_msg.nearest_neighbors = tool_config.simulator_nearest_neighbors;
   tpp_config_msg.min_hole_size = tool_config.min_hole_size;
   tpp_config_msg.min_segment_size = tool_config.min_segment_size;
   tpp_config_msg.raster_angle = tpp_config_msg.raster_angle;
   tpp_config_msg.raster_wrt_global_axes = tpp_config_msg.raster_wrt_global_axes;
+  tpp_config_msg.tool_radius = tpp_config_msg.tool_radius;
+  tpp_config_msg.tool_height = tpp_config_msg.tool_radius;
 
   return std::move(tpp_config_msg);
 }

@@ -1,7 +1,19 @@
 /*
- * Copyright (c) 2016, Southwest Research Institute
- * All rights reserved.
+ * Software License Agreement (Apache License)
  *
+ * Copyright (c) 2018, Southwest Research Institute
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #ifndef TOOL_PATH_PLANNER_H
@@ -30,6 +42,7 @@ namespace tool_path_planner
     double tool_offset;               /** how far off the surface the tool needs to be */
     double intersecting_plane_height; /** Used in creating planes from that originate from an adjacent raster line to
                                           the surface*/
+    int simulator_nearest_neighbors;            /** how many neighbors are used to compute local normals*/
     double min_hole_size;             /** A path may pass over holes smaller than this, but must be broken when larger holes
                                           are encountered */
     double min_segment_size;          /** The minimum segment size to allow when finding intersections; small segments will
@@ -46,6 +59,8 @@ namespace tool_path_planner
      * axis being 0. Then the resultant vector is projected onto the plane
      * created by the bounding box x and y axes */
     bool raster_wrt_global_axes;
+    double simulator_tool_radius; /** the radius of the tool (for process simulation)*/
+    double simulator_tool_height; /** the height of the tool (for process simulation)*/
   };
 
   /**

@@ -1,11 +1,23 @@
-/*
- * Copyright (c) 2016, Southwest Research Institute
- * All rights reserved.
- *
- */
-
 #ifndef VTK_VIEWER_H
 #define VTK_VIEWER_H
+
+/*
+ * Software License Agreement (Apache License)
+ *
+ * Copyright (c) 2016, Southwest Research Institute
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include "vtkConeSource.h"
 #include "vtkPolyDataMapper.h"
@@ -35,7 +47,7 @@ namespace vtk_viewer
      * @param polydata The polydata to be displayed
      * @param color The color to use for rendering the data
      */
-    void addPolyDataDisplay(vtkPolyData* polydata, std::vector<float> color);
+    void addPolyDataDisplay(vtkPolyData* polydata, std::vector<float> color, double lower_bounds = 0.0, double upper_bounds = 0.0);
 
     /**
      * @brief addPolyNormalsDisplay Add a renderer and actor for a polydata

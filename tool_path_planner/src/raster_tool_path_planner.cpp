@@ -1,7 +1,19 @@
 /*
- * Copyright (c) 2016, Southwest Research Institute
- * All rights reserved.
+ * Software License Agreement (Apache License)
  *
+ * Copyright (c) 2018, Southwest Research Institute
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #include <limits>
@@ -38,7 +50,6 @@
 #include <log4cxx/consoleappender.h>
 #include <tool_path_planner/raster_tool_path_planner.h>
 #include "tool_path_planner/utilities.h"
-
 
 static const std::size_t MAX_ATTEMPTS = 1000;
 static const double ANGLE_CORRECTION_THRESHOLD = (150.0/180.0)*M_PI;
@@ -247,7 +258,6 @@ namespace tool_path_planner
       for(int i = 0; i < num_obj; ++i)
       debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
     }
-
 
     std::vector<ProcessPath> new_paths;
     std::vector<int> delete_paths;
@@ -944,7 +954,6 @@ namespace tool_path_planner
           double dist4 = vtk_viewer::pt_dist(temp_points->GetPoint( temp_points->GetNumberOfPoints() - 1 ),
                                              lines[i]->GetPoint(lines[i]->GetNumberOfPoints() - 1) );
 
-
           double dist = std::min(dist1, dist2);
           dist = std::min(dist, dist3);
           dist = std::min(dist, dist4);
@@ -1186,7 +1195,6 @@ namespace tool_path_planner
     new_pt[2] +=  (new_pt[2] - pt1[2]);
     new_points->SetPoint(0, new_pt);
 
-
     points->SetNumberOfPoints(new_points->GetNumberOfPoints());
     points->DeepCopy(new_points);
   }
@@ -1198,7 +1206,6 @@ namespace tool_path_planner
 
     vtkSmartPointer<vtkDoubleArray> derv = vtkSmartPointer<vtkDoubleArray>::New();
     derv->SetNumberOfComponents(3);
-
 
     // get points which are evenly spaced along the spline
     // initialize num_line_pts to some number, find the Euclidean distance between two points (m & n),
@@ -1232,7 +1239,6 @@ namespace tool_path_planner
       u[2] = i * du; // double(i)/double(num_line_pts);
       spline->Evaluate(u, pt, d);
       new_points->InsertNextPoint(pt);
-
 
       double pt1[3], pt2[3];
       // find nearby points in order to calculate the local derivative

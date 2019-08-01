@@ -1,7 +1,19 @@
 /*
- * Copyright (c) 2016, Southwest Research Institute
- * All rights reserved.
+ * Software License Agreement (Apache License)
  *
+ * Copyright (c) 2016, Southwest Research Institute
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #include "vtk_viewer/vtk_viewer.h"
@@ -20,6 +32,8 @@
 #include <vtkDoubleArray.h>
 #include <vtkCell.h>
 #include <vtkTriangle.h>
+#include <vtkLookupTable.h>
+#include <vtkScalarBarActor.h>
 
 #include <vtk_viewer/mouse_interactor.h>
 
@@ -82,15 +96,53 @@ namespace vtk_viewer
 
   }
 
-  void VTKViewer::addPolyDataDisplay(vtkPolyData* polydata , std::vector<float> color)
+  void VTKViewer::addPolyDataDisplay(vtkPolyData* polydata , std::vector<float> color, double lower_bounds, double upper_bounds)
   {
     // create mapper and add to list
     vtkSmartPointer<vtkPolyDataMapper> triangulated_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     triangulated_mapper->SetInputData(polydata);
+
+    // check to see if there is scalar data, if so, create a look up table to display
+    vtkSmartPointer<vtkDoubleArray> scalars = vtkDoubleArray::SafeDownCast(polydata->GetPointData()->GetScalars());
+    if(scalars)
+    {
+      vtkSmartPointer<vtkLookupTable> color_table = vtkSmartPointer<vtkLookupTable>::New();
+      double *bounds = polydata->GetPointData()->GetScalars()->GetRange();
+      if((lower_bounds != 0.0 || upper_bounds != 0.0) && upper_bounds > lower_bounds)
+      {
+        color_table->SetTableRange(lower_bounds, upper_bounds );
+        bounds[0] = lower_bounds;
+        bounds[1] = upper_bounds;
+      }
+      else
+      {
+        color_table->SetTableRange(bounds[0], bounds[1] );
+      }
+      color_table->SetHueRange(0.0,0.66);
+      color_table->SetRampToLinear();
+      color_table->SetNumberOfTableValues(256);
+      color_table->Build();
+
+      triangulated_mapper->SetLookupTable(color_table);
+      triangulated_mapper->SetScalarRange(bounds[0], bounds[1]); // this line is necessary otherwise display is incorrect
+      vtkSmartPointer<vtkScalarBarActor> scalar_bar = vtkSmartPointer<vtkScalarBarActor>::New();
+      scalar_bar->SetLookupTable(color_table);
+      scalar_bar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedDisplay();
+      scalar_bar->SetOrientationToHorizontal();
+      scalar_bar->GetPositionCoordinate()->SetValue(0.1,0.01);
+      scalar_bar->SetWidth(0.8);
+      scalar_bar->SetHeight(0.15);
+      this->renderer_->AddActor2D(scalar_bar);
+    }
     this->poly_mappers_.push_back(triangulated_mapper);
 
     // create actor and add to list
     vtkSmartPointer<vtkActor> triangulated_actor = vtkSmartPointer<vtkActor>::New();
+    if(scalars)
+    {
+      triangulated_actor->GetProperty()->SetPointSize(20);
+    }
+
     triangulated_actor->SetMapper(poly_mappers_.back());
     triangulated_actor->GetProperty()->SetColor(color[0],color[1],color[2]);
 

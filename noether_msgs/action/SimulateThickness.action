@@ -1,0 +1,10 @@
+#goal definition - Input Mesh
+pcl_msgs/PolygonMesh[] input_mesh
+noether_msgs/ToolRasterPath[] path
+---
+#result definition - are messhes painted enough
+bool[] painted
+noether_msgs/ToolRasterPath[] requiredPath
+---
+#feedback - Some sort of percentage
+float32 percent
