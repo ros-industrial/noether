@@ -1,3 +1,28 @@
+/*
+ * Software License Agreement (Apache License)
+ *
+ * Copyright (c) 2016, Southwest Research Institute
+ *
+ * file thickness_simulator_client.cpp
+ * All rights reserved.
+ * copyright Copyright (c) 2019, Southwest Research Institute
+ *
+ * License
+ * Software License Agreement (Apache License)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include <ros/ros.h>
 #include <ros/ros.h>
 #include <pcl/io/pcd_io.h>
@@ -17,6 +42,22 @@
 #include <actionlib/client/terminal_state.h>
 #include <noether_msgs/ThickSimulatorAction.h>
 #include <noether_msgs/ToolRasterPath.h>
+
+/*This example shows how the thickness_simulator_node.cpp works.
+ * First, it creates 3 meshes and three paths.
+ * Then, it passes these meshes and paths to the thickness_simulator_node.
+ * The thickness_simulator_node runs the first path across each mesh.
+ * If the mesh is sufficently painted the bool corasponding to that mesh in the painted[]
+ * is set to true, the mesh is excluded from future iterations, and the path is added to the reuqiredPaths[] unless,
+ * it has already been added.
+ * once all the meshes have been evaluated using the first path, the simulator moves on to the second path.
+ * The simulator evaluates the remaining meshes with the second path and so on until all meshes have the coraspoinding
+ * bool value in painted[] set to true, or all paths have been tried.
+ *
+ * To use roslauch to launch the thick_sim.launch file. Then, in a seperate termial window use rosrun to run the
+ * noether_simulator_node.cpp
+ *
+*/
 
 //make modified meshes
 vtkSmartPointer<vtkPoints> createPlaneMod(unsigned int grid_size_x, unsigned int grid_size_y, vtk_viewer::plane_type type)

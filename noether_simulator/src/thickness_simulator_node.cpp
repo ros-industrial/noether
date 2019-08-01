@@ -1,3 +1,27 @@
+/*
+ * Software License Agreement (Apache License)
+ *
+ * Copyright (c) 2016, Southwest Research Institute
+ *
+ * file thickness_simulator_node.cpp
+ * All rights reserved.
+ * copyright Copyright (c) 2019, Southwest Research Institute
+ *
+ * License
+ * Software License Agreement (Apache License)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include "ros/ros.h"
 #include <actionlib/server/simple_action_server.h>
 #include <ros/service_server.h>
@@ -35,7 +59,6 @@ private:
   void updateParameters(noether_simulator::NoetherSimulatorConfig& config, uint32_t level);
   dynamic_reconfigure::Server<noether_simulator::NoetherSimulatorConfig> reconfigurer_;
   boost::mutex param_lock_;
-  //tool_path_planner::ProcessTool tool_;
   double vect_[3], center_[3];
   bool debug_on_;
   std::string log_directory_;
@@ -128,17 +151,17 @@ public:
 
     //add tool
     tool_path_planner::ProcessTool tool;
-    tool.pt_spacing = 0.5;
-    tool.line_spacing = 0.75;
-    tool.tool_offset = 0.0; // currently unused
-    tool.intersecting_plane_height = 0.15; // 0.5 works best, not sure if this should be included in the tool
-    tool.nearest_neighbors = 30; // not sure if this should be a part of the tool
-    tool.min_hole_size = 0.1;
-    tool.min_segment_size = 1;
-    tool.raster_angle = 0;
-    tool.raster_wrt_global_axes = 0;
-    tool.tool_radius = 1;
-    tool.tool_height = 2;
+    nh_.param("/noether_simulator/pt_spacing",tool.pt_spacing, 0.5);
+    nh_.param("/nnoether_simulator/line_spacing",tool.line_spacing,0.75);
+    nh_.param("/noether_simulator/tool_offset",tool.tool_offset, 0.0);
+    nh_.param("/noether_simulator/intersecting_plane_hiehgt",tool.intersecting_plane_height,0.15);
+    nh_.param("/noether_simulator/nearest_neighbors",tool.nearest_neighbors,30);
+    nh_.param("/noether_simulator/min_hole_size",tool.min_hole_size,0.1);
+    nh_.param("/noether_simulator/min_segment_size",tool.min_segment_size,1.0);
+    nh_.param("/noether_simulator/raster_angle",tool.raster_angle,0.0);
+    nh_.param("/noether_simulator/raster_wrt_global_axes",tool.raster_wrt_global_axes ,false);
+    nh_.param("/noether_simulator/tool_radius",tool.tool_radius,1.0);
+    nh_.param("/noeterh_simulator/tool_height",tool.tool_height,2.0);
     sim.setTool(tool);
 
     for(int i=0; i<num_meshes;i++)
@@ -161,8 +184,7 @@ public:
 
       sim.setInputPaths(robot_paths_arg);//add path to simulator
 
-      //run simulator for each mesh
-      for(int i=0; i <num_meshes; i++)
+      for(int i=0; i <num_meshes; i++)//run simulator for each mesh
       {
         if(simulation_service_.isPreemptRequested() || !ros::ok())
         {
@@ -186,20 +208,40 @@ public:
           vtkSmartPointer<vtkPolyData> processedPoints = vtkSmartPointer<vtkPolyData>::New();
           processedPoints = sim.getSimulatedPoints();//get a copy of simulated points to operate on
           vtkIdType length = processedPoints->GetNumberOfPoints();
-          double intensity[3];
+
+          double intensity[3] = {0,0,0};//setup flann
           int missed = 0;
           double minPaintThreshold = 5;
           double maxPassableNonpainted = 0.1;
+          double p [3];
+          vtkSmartPointer<vtkKdTreePointLocator> pointTree =
+              vtkSmartPointer<vtkKdTreePointLocator>::New();
+          pointTree->SetDataSet(processedPoints);
+          pointTree->BuildLocator();
+          unsigned int k = 30;
+          double currPoint [3];
 
-          //******TODO*******//
-          //  replace with FLANN
           for(vtkIdType a = 0; a < length; a++)//iterate through points to check if painted
           {
-            intensity[0] = processedPoints->GetPointData()->GetScalars()->GetComponent(a,0);
-            intensity[1] = processedPoints->GetPointData()->GetScalars()->GetComponent(a,1);
-            intensity[2] = processedPoints->GetPointData()->GetScalars()->GetComponent(a,2);
+            intensity[0] =0;//reseting intensity for next point in mesh
+            intensity[1] =0;
+            intensity[2] =0;
 
-            if((intensity[0]+intensity[1]+intensity[2])/3.0 < minPaintThreshold) //averge of each pixel if less than threshold incrament counter
+            vtkSmartPointer<vtkIdList> result = vtkSmartPointer<vtkIdList>::New();
+            processedPoints->GetPoint(a,currPoint);
+            pointTree->FindClosestNPoints(k, currPoint, result);//flann
+
+            for (vtkIdType i = 0; i < k; i++)//iterate through k closest points average intensities
+            {
+              vtkIdType point_ind = result->GetId(i);
+
+              //find average color intensity for each neighorhood
+              intensity[0] += processedPoints->GetPointData()->GetScalars()->GetComponent(point_ind,0);
+              intensity[1] += processedPoints->GetPointData()->GetScalars()->GetComponent(point_ind,1);
+              intensity[2] += processedPoints->GetPointData()->GetScalars()->GetComponent(point_ind,2);
+            }
+
+            if((intensity[0])/float(k)+(intensity[1])/float(k)+(intensity[2])/30 < minPaintThreshold) //averge of each pixel if less than threshold incrament counter
             {
               missed++;
             }
@@ -218,7 +260,6 @@ public:
               added = true;
             }
           }
-          //******END TODO******//
           feedback_.percent =float(i)/float(num_meshes);
           simulation_service_.publishFeedback(feedback_);
 

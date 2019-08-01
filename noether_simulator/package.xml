@@ -3,8 +3,8 @@
   <name>noether_simulator</name>
   <version>0.0.0</version>
   <description>The noether_simulator package</description>
-  <maintainer email="alex.goins@swri.org">alex</maintainer>
-  <license>Proprietary</license>
+  <maintainer email="trent.wall@swri.org">trent</maintainer>
+  <license>Apache</license>
 
   <buildtool_depend>catkin</buildtool_depend>
 

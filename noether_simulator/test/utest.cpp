@@ -1,7 +1,26 @@
 /*
- * Copyright (c) 2016, Southwest Research Institute
- * All rights reserved.
+ * Software License Agreement (Apache License)
  *
+ * Copyright (c) 2016, Southwest Research Institute
+ *
+ * file utest.cpp
+ * All rights reserved.
+ * copyright Copyright (c) 2019, Southwest Research Institute
+ *
+ * License
+ * Software License Agreement (Apache License)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 #include <ros/ros.h>
 #include <noether_simulator/noether_simulator.h>
@@ -69,6 +88,10 @@ TEST(ViewerTest, TestCase1)
 
   planner.computePaths();
 
+  // The NDEBUG variable is defined by the C/C++ standard when building
+  // "Not Debug" (e.g. release).  NDEBUG is not defined during debug
+  // builds - so the below code runs when building debug
+  #ifndef NDEBUG
   vtk_viewer::VTKViewer viz;
   std::vector<float> color(3);
 
@@ -95,7 +118,7 @@ TEST(ViewerTest, TestCase1)
   viz.addPolyNormalsDisplay(paths[i].derivatives, color, scale);
   }
   viz.renderDisplay();
-
+  #endif
   // Run simulator on mesh and tool paths
 
   noether_simulator::NoetherSimulator simulator;
@@ -187,6 +210,10 @@ TEST(ViewerTest, TestCase2)
 
   planner.computePaths();
 
+  // The NDEBUG variable is defined by the C/C++ standard when building
+  // "Not Debug" (e.g. release).  NDEBUG is not defined during debug
+  // builds - so the below code runs when building debug
+  #ifndef NDEBUG
   vtk_viewer::VTKViewer viz;
   std::vector<float> color(3);
 
@@ -213,7 +240,7 @@ TEST(ViewerTest, TestCase2)
   viz.addPolyNormalsDisplay(paths[i].derivatives, color, scale);
   }
   viz.renderDisplay();//display planned paths on mesh
-
+  #endif
   // Run simulator on mesh and tool paths
 
   noether_simulator::NoetherSimulator simulator;

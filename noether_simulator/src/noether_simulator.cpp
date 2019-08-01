@@ -1,9 +1,28 @@
 /*
- * Copyright (c) 2016, Southwest Research Institute
- * All rights reserved.
+ * Software License Agreement (Apache License)
  *
+ * Copyright (c) 2016, Southwest Research Institute
+ *
+ * file noether_simulator.cpp
+ * All rights reserved.
+ * copyright Copyright (c) 2019, Southwest Research Institute
+ *
+ * License
+ * Software License Agreement (Apache License)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
+#include <ros/ros.h>
 #include <noether_simulator/noether_simulator.h>
 
 #include <Eigen/Geometry>
@@ -34,14 +53,9 @@ namespace noether_simulator
 
   double NoetherSimulator::integral(double pt[3])
   {
-    //double k = process_base_rate_;
+
     double result;
-    // t is not currently added/used, but can be so as to allow time parameterization between process points
-    // f(x,y,z,t) = -x^2 - y^2 - (z - k)
-    // integral(f) = -x^3*y*z/3 - x*y^3*z/3 - x*y*z^2/2 + k*x*y*z
-    // TODO: the above equation does not work (integrates area, not along a line)
-    // TODO: again, cylinder is along y-axis, so y and z are flipped
-      result = -( pow(pt[0],3.0)) /3.0 - (pow(pt[2],3.0))/3.0 ;
+    result = -( pow(pt[0],3.0)) /3.0 - (pow(pt[2],3.0))/3.0 ;
 
     return 10*result;
   }
@@ -50,8 +64,6 @@ namespace noether_simulator
   {
     if(points->GetNumberOfPoints() < 2)
       return 0;
-    // This is a place holder equation for the tool and is process specific
-    // TODO: create a more generic interface to allow for other tools to be created and used
 
     double pt1[3], pt2[3];
     double val1, val2;
@@ -74,8 +86,7 @@ vtkSmartPointer<vtkPolyData>  NoetherSimulator::getSimulatedPoints()
 
   void  NoetherSimulator::runSimulation()
   {
-
-    cout << "starting simulation\n";
+    ROS_INFO("starting simulation\n");
     std::vector<float> color(3);
     color[0] = 0.9; color[1] = 0.9; color[2] = 0.9;
 
@@ -111,8 +122,6 @@ vtkSmartPointer<vtkPolyData>  NoetherSimulator::getSimulatedPoints()
     int number_paths =input_paths_.size();
     for(int i = 0; i <number_paths; ++i)
     {
-      cout << "simulating path " << i+1 << " of " << input_paths_.size() << "\n";
-
       tool_path_planner::ProcessPath this_path = input_paths_[i];
       int number_points = this_path.line->GetNumberOfPoints() - 1;
       for(int j = 0; j < number_points; ++j)
@@ -333,7 +342,7 @@ vtkSmartPointer<vtkPolyData>  NoetherSimulator::getSimulatedPoints()
     double range[2];
     scalars->GetRange(range);
 
-    cout << "scalar range " << range[0] << " " << range[1] << "\n";
+    ROS_INFO("scalar range %f %f \n",range[0],range[1]);
     double upper_bound = mean + std_dev * scalar_sigma_;
     double lower_bound = mean - std_dev * scalar_sigma_;
 
