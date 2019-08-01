@@ -3,7 +3,7 @@
   <name>noether_simulator</name>
   <version>0.0.0</version>
   <description>The noether_simulator package</description>
-  <maintainer email="trent.wall@swri.org">trent</maintainer>
+  <maintainer email="jorge.nicho@swri.org">jorge</maintainer>
   <license>Apache 2</license>
 
   <buildtool_depend>catkin</buildtool_depend>
@@ -14,10 +14,6 @@
   <depend>tool_path_planner</depend>
   <depend>path_sequence_planner</depend>
   <depend>vtk_viewer</depend>
-  <depend>sensor_msgs</depend>
-  <depend>geometry_msgs</depend>
-  <depend>pcl_msgs</depend>
-  <depend>std_srvs</depend>
   <depend>pcl_conversions</depend>
   <depend>dynamic_reconfigure</depend>
 

@@ -17,15 +17,9 @@ find_package(catkin REQUIRED cmake_modules
     tool_path_planner
     path_sequence_planner
     vtk_viewer
-    sensor_msgs
-    geometry_msgs
     roscpp
-    pcl_msgs
-    std_srvs
-    pcl_conversions
     dynamic_reconfigure
     actionlib
-    actionlib_msgs
 )
 
 generate_dynamic_reconfigure_options(
@@ -40,11 +34,7 @@ catkin_package(
     tool_path_planner
     path_sequence_planner
     vtk_viewer
-    sensor_msgs
-    std_srvs
-    pcl_msgs
-    geometry_msgs
-    pcl_conversions
+
     dynamic_reconfigure
   DEPENDS
     VTK
@@ -76,15 +66,18 @@ target_link_libraries(thick_sim
 
 #Test
 if (CATKIN_ENABLE_TESTING)
-    catkin_add_gtest(${PROJECT_NAME}-test
+  find_package(catkin REQUIRED COMPONENTS vtk_viewer)
+  include_directories(
+    include
+    ${catkin_INCLUDE_DIRS}
+  )
+  catkin_add_gtest(${PROJECT_NAME}-test
     test/utest.cpp
-)
-
-target_link_libraries(noether_simulator-test
+  )
+  target_link_libraries(${PROJECT_NAME}-test
     ${PROJECT_NAME}
     ${catkin_LIBRARIES}
-    ${VTK_LIBRARIES}
-)
+  )
 endif()
 
 #############
