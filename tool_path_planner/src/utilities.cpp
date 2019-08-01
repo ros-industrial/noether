@@ -188,13 +188,13 @@ tool_path_planner::ProcessTool fromTppMsg(const noether_msgs::ToolPathConfig& tp
     .line_spacing = tpp_msg_config.line_spacing,
     .tool_offset = tpp_msg_config.tool_offset,
     .intersecting_plane_height = tpp_msg_config.intersecting_plane_height,
-    .nearest_neighbors = tpp_msg_config.nearest_neighbors,
+    .simulator_nearest_neighbors = tpp_msg_config.nearest_neighbors,
     .min_hole_size = tpp_msg_config.min_hole_size,
     .min_segment_size = tpp_msg_config.min_segment_size,
     .raster_angle = tpp_msg_config.raster_angle,
     .raster_wrt_global_axes = tpp_msg_config.raster_wrt_global_axes,
-    .tool_radius = tpp_msg_config.tool_radius,
-    .tool_height = tpp_msg_config.tool_height
+    .simulator_tool_radius = tpp_msg_config.tool_radius,
+    .simulator_tool_height = tpp_msg_config.tool_height
   };
 }
 
@@ -205,7 +205,7 @@ noether_msgs::ToolPathConfig toTppMsg(const tool_path_planner::ProcessTool& tool
   tpp_config_msg.line_spacing = tool_config.line_spacing;
   tpp_config_msg.tool_offset = tool_config.tool_offset;
   tpp_config_msg.intersecting_plane_height = tool_config.intersecting_plane_height;
-  tpp_config_msg.nearest_neighbors = tool_config.nearest_neighbors;
+  tpp_config_msg.nearest_neighbors = tool_config.simulator_nearest_neighbors;
   tpp_config_msg.min_hole_size = tool_config.min_hole_size;
   tpp_config_msg.min_segment_size = tool_config.min_segment_size;
   tpp_config_msg.raster_angle = tpp_config_msg.raster_angle;

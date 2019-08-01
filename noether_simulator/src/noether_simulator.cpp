@@ -22,7 +22,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <ros/ros.h>
 #include <noether_simulator/noether_simulator.h>
 
 #include <Eigen/Geometry>
@@ -86,7 +85,6 @@ vtkSmartPointer<vtkPolyData>  NoetherSimulator::getSimulatedPoints()
 
   void  NoetherSimulator::runSimulation()
   {
-    ROS_INFO("starting simulation\n");
     std::vector<float> color(3);
     color[0] = 0.9; color[1] = 0.9; color[2] = 0.9;
 
@@ -108,8 +106,8 @@ vtkSmartPointer<vtkPolyData>  NoetherSimulator::getSimulatedPoints()
     // create tool object
     vtkSmartPointer<vtkCylinderSource> cylinder = vtkSmartPointer<vtkCylinderSource>::New();
     cylinder->SetCenter(0.0, 0.0, 0.0);
-    cylinder->SetRadius(tool_.tool_radius );
-    cylinder->SetHeight(tool_.tool_height);
+    cylinder->SetRadius(tool_.simulator_tool_radius );
+    cylinder->SetHeight(tool_.simulator_tool_height);
     cylinder->SetResolution(20);
     cylinder->Update();
 
@@ -342,7 +340,6 @@ vtkSmartPointer<vtkPolyData>  NoetherSimulator::getSimulatedPoints()
     double range[2];
     scalars->GetRange(range);
 
-    ROS_INFO("scalar range %f %f \n",range[0],range[1]);
     double upper_bound = mean + std_dev * scalar_sigma_;
     double lower_bound = mean - std_dev * scalar_sigma_;
 

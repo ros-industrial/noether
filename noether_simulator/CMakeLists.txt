@@ -13,7 +13,6 @@ find_package(PCL 1.8 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system)
 
 find_package(catkin REQUIRED cmake_modules
-    message_generation
     mesh_segmenter
     tool_path_planner
     path_sequence_planner
@@ -25,16 +24,7 @@ find_package(catkin REQUIRED cmake_modules
     std_srvs
     pcl_conversions
     dynamic_reconfigure
-    genmsg
     actionlib
-    actionlib_msgs
-)
-
-generate_messages(
-    DEPENDENCIES
-    pcl_msgs
-    sensor_msgs
-    geometry_msgs
     actionlib_msgs
 )
 
@@ -44,13 +34,12 @@ generate_dynamic_reconfigure_options(
 
 catkin_package(
   INCLUDE_DIRS include  
-  LIBRARIES noether_simulator_
+  LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS
     mesh_segmenter
     tool_path_planner
     path_sequence_planner
     vtk_viewer
-    message_runtime
     sensor_msgs
     std_srvs
     pcl_msgs
@@ -66,11 +55,11 @@ include_directories(include
   ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS}
 )
 
-add_library(noether_simulator_
+add_library(${PROJECT_NAME}
     src/noether_simulator.cpp
 )
 
-target_link_libraries(noether_simulator_
+target_link_libraries(${PROJECT_NAME}
     ${catkin_LIBRARIES}
     ${VTK_LIBRARIES}
     ${PCL_LIBRARIES}
@@ -82,10 +71,7 @@ add_dependencies(thick_sim ${${PROJECT_NAME}_EXPORTED_TARGETS}
     ${actionlib_tutorials_EXPORTED_TARGETS}
 )
 target_link_libraries(thick_sim
-    noether_simulator_
-    ${catkin_LIBRARIES}
-    ${VTK_LIBRARIES}
-    ${PCL_LIBRARIES}
+    ${PROJECT_NAME}
 )
 
 #Test
@@ -95,7 +81,7 @@ if (CATKIN_ENABLE_TESTING)
 )
 
 target_link_libraries(noether_simulator-test
-    noether_simulator_
+    ${PROJECT_NAME}
     ${catkin_LIBRARIES}
     ${VTK_LIBRARIES}
 )
@@ -104,7 +90,7 @@ endif()
 #############
 ## Install ##
 #############
-install(TARGETS noether_simulator_ thick_sim
+install(TARGETS ${PROJECT_NAME} thick_sim
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

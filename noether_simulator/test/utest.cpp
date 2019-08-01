@@ -76,13 +76,13 @@ TEST(ViewerTest, TestCase1)
   tool.line_spacing = 0.75;
   tool.tool_offset = 0.0; // currently unused
   tool.intersecting_plane_height = 0.5; // 0.5 works best, not sure if this should be included in the tool
-  tool.nearest_neighbors = 30; // not sure if this should be a part of the tool
+  tool.simulator_nearest_neighbors = 30; // not sure if this should be a part of the tool
   tool.min_hole_size = 0.1;
   tool.min_segment_size = 1;
   tool.raster_angle = 0;
   tool.raster_wrt_global_axes = 0;
-  tool.tool_radius = 1;
-  tool.tool_height = 2;
+  tool.simulator_tool_radius = 1;
+  tool.simulator_tool_height = 2;
   planner.setTool(tool);
   planner.setDebugMode(false);
 
@@ -198,13 +198,13 @@ TEST(ViewerTest, TestCase2)
   tool.line_spacing = 0.75;
   tool.tool_offset = 0.0; // currentlyc unused
   tool.intersecting_plane_height = 0.15; // 0.5 works best, not sure if this should be included in the tool
-  tool.nearest_neighbors = 30; // not sure if this should be a part of the tool
+  tool.simulator_nearest_neighbors = 30; // not sure if this should be a part of the tool
   tool.min_hole_size = 0.1;
   tool.min_segment_size = 1;
   tool.raster_angle = 0;
   tool.raster_wrt_global_axes = 0;
-  tool.tool_radius = 1;
-  tool.tool_height = 2;
+  tool.simulator_tool_radius = 1;
+  tool.simulator_tool_height = 2;
   planner.setTool(tool);
   planner.setDebugMode(false);
 

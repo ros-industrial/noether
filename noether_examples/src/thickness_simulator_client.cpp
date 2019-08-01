@@ -23,8 +23,6 @@
  * limitations under the License.
  */
 
-#include <ros/ros.h>
-#include <ros/ros.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl/surface/vtk_smoothing/vtk_utils.h>
@@ -40,7 +38,7 @@
 #include <mesh_segmenter/mesh_segmenter.h>
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
-#include <noether_msgs/ThickSimulatorAction.h>
+#include <noether_msgs/SimulateThicknessAction.h>
 #include <noether_msgs/ToolRasterPath.h>
 
 /*This example shows how the thickness_simulator_node.cpp works.
@@ -104,7 +102,7 @@ int main (int argc, char **argv)
 
   // create the action client
   // true causes the client to spin its own thread
-  actionlib::SimpleActionClient<noether_msgs::ThickSimulatorAction> ac("noether_simulator", true);
+  actionlib::SimpleActionClient<noether_msgs::SimulateThicknessAction> ac("noether_simulator", true);
 
   ROS_INFO("Waiting for action server to start.");
   // wait for the action server to start
@@ -112,7 +110,7 @@ int main (int argc, char **argv)
 
   ROS_INFO("Action server started, sending goal.");
   // send a goal to the action
-  noether_msgs::ThickSimulatorGoal goal;
+  noether_msgs::SimulateThicknessGoal goal;
 
   //......setup test meshes and path
   pcl_msgs::PolygonMesh myMesh;
@@ -175,15 +173,15 @@ int main (int argc, char **argv)
     tool_path_planner::ProcessTool tool;
     tool.pt_spacing = 0.5;
     tool.line_spacing = .75;
-    tool.tool_offset = 0.0; // currently unused
-    tool.intersecting_plane_height = 0.15; // 0.5 works best, not sure if this should be included in the tool
-    tool.nearest_neighbors = 30; // not sure if this should be a part of the tool
+    tool.tool_offset = 0.0;
+    tool.intersecting_plane_height = 0.15;
+    tool.simulator_nearest_neighbors = 30;
     tool.min_hole_size = 0.1;
     tool.min_segment_size = 1;
     tool.raster_angle = 0;
     tool.raster_wrt_global_axes = 0;
-    tool.tool_radius = 1;
-    tool.tool_height = 2;
+    tool.simulator_tool_radius = 1;
+    tool.simulator_tool_height = 2;
     planner.setTool(tool);
     planner.setDebugMode(false);
     planner.computePaths();

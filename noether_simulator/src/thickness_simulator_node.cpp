@@ -22,7 +22,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "ros/ros.h"
+
 #include <actionlib/server/simple_action_server.h>
 #include <ros/service_server.h>
 #include <boost/thread/mutex.hpp>
@@ -39,7 +39,7 @@
 
 #include "noether_simulator/noether_simulator.h"
 #include "noether_simulator/NoetherSimulatorConfig.h"
-#include "noether_msgs/ThickSimulatorAction.h"
+#include "noether_msgs/SimulateThicknessAction.h"
 
 #include <tool_path_planner/tool_path_planner_base.h>
 #include <tool_path_planner/raster_tool_path_planner.h>
@@ -49,7 +49,7 @@ class ProcessSimulatorNode{
 private:
 
   ros::NodeHandle nh_;
-  actionlib::SimpleActionServer<noether_msgs::ThickSimulatorAction> simulation_service_;
+  actionlib::SimpleActionServer<noether_msgs::SimulateThicknessAction> simulation_service_;
 
   double tool_height_;
   double process_rate_;
@@ -62,8 +62,8 @@ private:
   double vect_[3], center_[3];
   bool debug_on_;
   std::string log_directory_;
-  noether_msgs::ThickSimulatorFeedback feedback_;
-  noether_msgs::ThickSimulatorResult result_;
+  noether_msgs::SimulateThicknessFeedback feedback_;
+  noether_msgs::SimulateThicknessResult result_;
 
   tool_path_planner::ProcessPath convertPoseArraytoVTK(geometry_msgs::PoseArray array)
   {
@@ -139,7 +139,7 @@ public:
   {
     simulation_service_.start();
   }
-  void executeCB(const noether_msgs::ThickSimulatorGoalConstPtr &goal)
+  void executeCB(const noether_msgs::SimulateThicknessGoalConstPtr &goal)
   {
     ros::Rate r(0.05);
     bool success = true;
@@ -155,13 +155,13 @@ public:
     nh_.param("/nnoether_simulator/line_spacing",tool.line_spacing,0.75);
     nh_.param("/noether_simulator/tool_offset",tool.tool_offset, 0.0);
     nh_.param("/noether_simulator/intersecting_plane_hiehgt",tool.intersecting_plane_height,0.15);
-    nh_.param("/noether_simulator/nearest_neighbors",tool.nearest_neighbors,30);
+    nh_.param("/noether_simulator/nearest_neighbors",tool.simulator_nearest_neighbors,30);
     nh_.param("/noether_simulator/min_hole_size",tool.min_hole_size,0.1);
     nh_.param("/noether_simulator/min_segment_size",tool.min_segment_size,1.0);
     nh_.param("/noether_simulator/raster_angle",tool.raster_angle,0.0);
     nh_.param("/noether_simulator/raster_wrt_global_axes",tool.raster_wrt_global_axes ,false);
-    nh_.param("/noether_simulator/tool_radius",tool.tool_radius,1.0);
-    nh_.param("/noeterh_simulator/tool_height",tool.tool_height,2.0);
+    nh_.param("/noether_simulator/tool_radius",tool.simulator_tool_radius,1.0);
+    nh_.param("/noeterh_simulator/tool_height",tool.simulator_tool_height,2.0);
     sim.setTool(tool);
 
     for(int i=0; i<num_meshes;i++)
