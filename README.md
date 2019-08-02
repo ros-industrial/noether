@@ -18,7 +18,7 @@ This package depends on PCL 1.8 and VTK 7.1.
 
 #### Dependencies Installation
 ##### 1. VTK
-1. Download [VTK 7.1](https://github.com/Kitware/VTK/releases/tag/v7.1.0)
+1. Download [VTK 7.1](https://github.com/Kitware/VTK/releases/tag/v7.1.1)
 2. Unzip or extract into a user accessible directory
 3. `CD` into that directory and create a new `build` directory
 4. Run cmake
@@ -40,7 +40,7 @@ This package depends on PCL 1.8 and VTK 7.1.
     NOTE: Using `checkinstall` instead of `make install` has the advantage that it builds a debian package which can be easily uninstalled with `sudo dpkg -r [packagename]`.
     
 ##### 2. PCL 
-1. Download [PCL 1.8](https://github.com/PointCloudLibrary/pcl/releases/tag/pcl-1.8.0)
+1. Download [PCL 1.8](https://github.com/PointCloudLibrary/pcl/releases/tag/pcl-1.8.1)
 2. Unzip or extract into a user accessible directory
 3. `cd` into that directory and locate the `CMakeLists.txt` file.
 4. Locate the `find package(VTK)` line (close to line 362) and edit it to `find_package(VTK 7.1 REQUIRED)`
