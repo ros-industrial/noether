@@ -13,3 +13,5 @@ float64 raster_angle          # Specifies the direction of the raster path in ra
 # principal axes of the part.  This is the old default behavior.  (Note
 # that ROS sets message fields to 0/False by default.)
 bool raster_wrt_global_axes
+
+bool generate_extra_rasters   # Whether an extra raster stroke should be added to the beginning and end of the raster pattern

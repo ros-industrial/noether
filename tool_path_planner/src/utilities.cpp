@@ -65,18 +65,16 @@ void flipPointOrder(tool_path_planner::ProcessPath& path)
   }
   path.line->GetPointData()->SetNormals(new_norms);
 
-  // flip derivative directions
+  // flip point order
   points = path.derivatives->GetPoints();
   vtkSmartPointer<vtkPoints> dpoints2 = vtkSmartPointer<vtkPoints>::New();
-
-  // flip point order
   for(int i = points->GetNumberOfPoints() - 1; i >= 0; --i)
   {
     dpoints2->InsertNextPoint(points->GetPoint(i));
   }
   path.derivatives->SetPoints(dpoints2);
 
-
+  // flip derivative directions
   vtkDataArray* ders = path.derivatives->GetPointData()->GetNormals();
   vtkSmartPointer<vtkDoubleArray> new_ders = vtkSmartPointer<vtkDoubleArray>::New();
   new_ders->SetNumberOfComponents(3);
@@ -185,7 +183,8 @@ tool_path_planner::ProcessTool fromTppMsg(const noether_msgs::ToolPathConfig& tp
     .min_hole_size = tpp_msg_config.min_hole_size,
     .min_segment_size = tpp_msg_config.min_segment_size,
     .raster_angle = tpp_msg_config.raster_angle,
-    .raster_wrt_global_axes = tpp_msg_config.raster_wrt_global_axes
+    .raster_wrt_global_axes = static_cast<bool>(tpp_msg_config.raster_wrt_global_axes),
+    .generate_extra_rasters = static_cast<bool>(tpp_msg_config.generate_extra_rasters)
   };
 }
 
@@ -198,8 +197,9 @@ noether_msgs::ToolPathConfig toTppMsg(const tool_path_planner::ProcessTool& tool
   tpp_config_msg.intersecting_plane_height = tool_config.intersecting_plane_height;
   tpp_config_msg.min_hole_size = tool_config.min_hole_size;
   tpp_config_msg.min_segment_size = tool_config.min_segment_size;
-  tpp_config_msg.raster_angle = tpp_config_msg.raster_angle;
-  tpp_config_msg.raster_wrt_global_axes = tpp_config_msg.raster_wrt_global_axes;
+  tpp_config_msg.raster_angle = tool_config.raster_angle;
+  tpp_config_msg.raster_wrt_global_axes = tool_config.raster_wrt_global_axes;
+  tpp_config_msg.generate_extra_rasters = tool_config.generate_extra_rasters;
 
   return std::move(tpp_config_msg);
 }

@@ -121,7 +121,7 @@ namespace tool_path_planner
      */
     void setRasterAngle(double angle) {tool_.raster_angle= angle;}
 
-    /** @brief Specifies axis about which raster_angle_ is applied. Default is true
+    /** @brief Specifies axis about which raster_angle_ is applied.
      *
      * If false, raster angle is specified about the smallest axis of the
      * bounding box with 0 being in the direction of the principal axis.
@@ -129,7 +129,7 @@ namespace tool_path_planner
      * coordinate with the x axis being 0. Then the resultant vecotor is
      * projected onto the plane created by the bounding box x and y axes
      */
-    void setRasterWRTPrincipalAxis(bool axis) {tool_.raster_wrt_global_axes = axis;}
+    void setRasterWRTGlobalAxis(bool axis) {tool_.raster_wrt_global_axes = axis;}
 
   private:
 
@@ -161,6 +161,16 @@ namespace tool_path_planner
      */
     bool getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist = 0.0,
                      bool test_self_intersection = true);
+
+    /**
+     * @brief getExtraPath - Using the last path generated, creates and
+     * places an extra path that does not need to intersect with the part
+     * @param last_path - input - the last valid path
+     * @param extra_path - output - a path that may lie beyond the edge of the part
+     * @param dist - input - the distance to offset the next path from the current
+     * @return True if path is successfully created, False if no path can be generated
+     */
+    bool getExtraPath(const ProcessPath& last_path, ProcessPath& extra_path, double dist = 0.0);
 
 
     /**
