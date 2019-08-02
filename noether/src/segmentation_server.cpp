@@ -197,7 +197,8 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "segmentation_server");
   ros::NodeHandle pnh("~");
-
+  vtkObject::GlobalWarningDisplayOff();
+  pcl::console::setVerbosityLevel(pcl::console::L_ALWAYS);
   SegmentationAction segmenter(pnh, "segmenter");
   ros::spin();
 
