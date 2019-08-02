@@ -29,7 +29,7 @@ add_action_files(
   FILES
     GenerateToolPaths.action
     Segment.action
-    SimulateThickness.action
+    SimulateCoverage.action
 )
 
 generate_messages(

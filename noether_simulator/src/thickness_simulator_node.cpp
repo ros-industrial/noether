@@ -39,7 +39,7 @@
 
 #include "noether_simulator/noether_simulator.h"
 #include "noether_simulator/NoetherSimulatorConfig.h"
-#include "noether_msgs/SimulateThicknessAction.h"
+#include "noether_msgs/SimulateCoverageAction.h"
 
 #include <tool_path_planner/tool_path_planner_base.h>
 #include <tool_path_planner/raster_tool_path_planner.h>
@@ -49,7 +49,7 @@ class ProcessSimulatorNode{
 private:
 
   ros::NodeHandle nh_;
-  actionlib::SimpleActionServer<noether_msgs::SimulateThicknessAction> simulation_service_;
+  actionlib::SimpleActionServer<noether_msgs::SimulateCoverageAction> simulation_service_;
 
   double tool_height_;
   double process_rate_;
@@ -62,8 +62,8 @@ private:
   double vect_[3], center_[3];
   bool debug_on_;
   std::string log_directory_;
-  noether_msgs::SimulateThicknessFeedback feedback_;
-  noether_msgs::SimulateThicknessResult result_;
+  noether_msgs::SimulateCoverageFeedback feedback_;
+  noether_msgs::SimulateCoverageResult result_;
 
   tool_path_planner::ProcessPath convertPoseArraytoVTK(geometry_msgs::PoseArray array)
   {
@@ -134,7 +134,7 @@ public:
   {
     simulation_service_.start();
   }
-  void executeCB(const noether_msgs::SimulateThicknessGoalConstPtr &goal)
+  void executeCB(const noether_msgs::SimulateCoverageGoalConstPtr &goal)
   {
     ros::Rate r(0.05);
     bool success = true;
@@ -147,7 +147,7 @@ public:
     //add tool
     tool_path_planner::ProcessTool tool;
     nh_.param("/noether_simulator/pt_spacing",tool.pt_spacing, 0.5);
-    nh_.param("/noether_simulator/line_spacing",tool.line_spacing,0.75);
+    nh_.param("/noether_simulator/line_spacing",tool.line_spacing,10.75);
     nh_.param("/noether_simulator/tool_offset",tool.tool_offset, 0.0);
     nh_.param("/noether_simulator/intersecting_plane_hiehgt",tool.intersecting_plane_height,0.15);
     nh_.param("/noether_simulator/nearest_neighbors",tool.simulator_nearest_neighbors,30);

@@ -2,7 +2,7 @@
 pcl_msgs/PolygonMesh[] input_mesh
 noether_msgs/ToolRasterPath[] path
 ---
-#result definition - are messhes painted enough
+#result definition - are messhes covered enough
 bool[] coverage
 noether_msgs/ToolRasterPath[] requiredPath
 ---
