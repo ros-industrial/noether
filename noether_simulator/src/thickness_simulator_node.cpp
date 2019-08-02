@@ -120,11 +120,6 @@ private:
     derivatives_->GetPointData()->SetNormals(deriv_normals);
     path.derivatives = derivatives_;
 
-    vtkSmartPointer<vtkPolyData> inter_ = vtkSmartPointer<vtkPolyData>::New();
-    vtkSmartPointer<vtkParametricSpline> spline_ = vtkSmartPointer<vtkParametricSpline>::New();
-    path.intersection_plane = inter_;
-    path.spline = spline_;
-
     return path;
   }
 
@@ -152,7 +147,7 @@ public:
     //add tool
     tool_path_planner::ProcessTool tool;
     nh_.param("/noether_simulator/pt_spacing",tool.pt_spacing, 0.5);
-    nh_.param("/nnoether_simulator/line_spacing",tool.line_spacing,0.75);
+    nh_.param("/noether_simulator/line_spacing",tool.line_spacing,0.75);
     nh_.param("/noether_simulator/tool_offset",tool.tool_offset, 0.0);
     nh_.param("/noether_simulator/intersecting_plane_hiehgt",tool.intersecting_plane_height,0.15);
     nh_.param("/noether_simulator/nearest_neighbors",tool.simulator_nearest_neighbors,30);
@@ -161,12 +156,12 @@ public:
     nh_.param("/noether_simulator/raster_angle",tool.raster_angle,0.0);
     nh_.param("/noether_simulator/raster_wrt_global_axes",tool.raster_wrt_global_axes ,false);
     nh_.param("/noether_simulator/tool_radius",tool.simulator_tool_radius,1.0);
-    nh_.param("/noeterh_simulator/tool_height",tool.simulator_tool_height,2.0);
+    nh_.param("/noether_simulator/tool_height",tool.simulator_tool_height,2.0);
     sim.setTool(tool);
 
     for(int i=0; i<num_meshes;i++)
     {
-      result_.painted.push_back(false);
+      result_.coverage.push_back(false);
     }
     //start multiple paths
     for (int curPathNum=0;curPathNum<goal->path.size();curPathNum++)
@@ -192,7 +187,7 @@ public:
           success = false;
           break;
         }
-        if(result_.painted[i]==false)//if not yet painted
+        if(result_.coverage[i]==false)//if not yet covered
         {
 
           //convert mesh for simulator
@@ -202,9 +197,9 @@ public:
           pcl::VTKUtils::convertToVTK(surface_mesh, surface_mesh_vtk);
 
           sim.setInputMesh(surface_mesh_vtk);//add mesh to simulator
-          sim.runSimulation();//display painted parts
+          sim.runSimulation();//display covered parts
 
-          //deterimine if painted enough
+          //deterimine if covered enough
           vtkSmartPointer<vtkPolyData> processedPoints = vtkSmartPointer<vtkPolyData>::New();
           processedPoints = sim.getSimulatedPoints();//get a copy of simulated points to operate on
           vtkIdType length = processedPoints->GetNumberOfPoints();
@@ -212,7 +207,7 @@ public:
           double intensity[3] = {0,0,0};//setup flann
           int missed = 0;
           double minPaintThreshold = 5;
-          double maxPassableNonpainted = 0.1;
+          double maxPassableNoncoverage = 0.1;
           double p [3];
           vtkSmartPointer<vtkKdTreePointLocator> pointTree =
               vtkSmartPointer<vtkKdTreePointLocator>::New();
@@ -221,7 +216,7 @@ public:
           unsigned int k = 30;
           double currPoint [3];
 
-          for(vtkIdType a = 0; a < length; a++)//iterate through points to check if painted
+          for(vtkIdType a = 0; a < length; a++)//iterate through points to check if covered
           {
             intensity[0] =0;//reseting intensity for next point in mesh
             intensity[1] =0;
@@ -245,15 +240,15 @@ public:
             {
               missed++;
             }
-          }//end iterate through points to check if painted
+          }//end iterate through points to check if covered
 
-          if(missed/float(processedPoints->GetNumberOfPoints())>maxPassableNonpainted)//get ratio of missed spots, if below threshold set not painted
+          if(missed/float(processedPoints->GetNumberOfPoints())>maxPassableNoncoverage)//get ratio of missed spots, if below threshold set not covered
           {
-            result_.painted[i]=false;
+            result_.coverage[i]=false;
           }
           else
           {
-            result_.painted[i]=true;
+            result_.coverage[i]=true;
             if(added ==false)
             {
               result_.requiredPath.push_back(goal->path[curPathNum]);
@@ -263,7 +258,7 @@ public:
           feedback_.percent =float(i)/float(num_meshes);
           simulation_service_.publishFeedback(feedback_);
 
-        }//if not yet painted
+        }//if not yet covered
       }//end each mesh
     }//end multiple paths
 

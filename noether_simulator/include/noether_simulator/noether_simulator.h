@@ -74,12 +74,26 @@ public:
    */
   void setTool(tool_path_planner::ProcessTool tool){tool_ = tool;}
 
+  /**
+   * @brief runSimulation Simulates how to the current path will process the current mesh with the current tool.
+   */
   void runSimulation();
 
+  /**
+   * @brief setDisplaySimga Sets the sigma value for displaying the mesh after being processed
+   * @param sigma A value used to modify how the processed mesh is displayed
+   */
   void setDisplaySigma(double sigma){scalar_sigma_ = sigma;}
 
+  /**
+   * @brief setBaseProcessRate Sets the process rate for the simulator
+   * @param rate The rate that detirmines how many points are processed per line in the mesh
+   */
   void setBaseProcessRate(double rate){process_base_rate_ = rate;}
 
+  /**
+   * @brief displayResults Displays the processed meshes
+   */
   void displayResults();
 
 private:

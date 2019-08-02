@@ -50,15 +50,17 @@ namespace noether_simulator
     simulation_points_ = vtkSmartPointer<vtkPolyData>::New();
   }
 
+  //Integrate in x^2 and z^2
   double NoetherSimulator::integral(double pt[3])
   {
 
     double result;
     result = -( pow(pt[0],3.0)) /3.0 - (pow(pt[2],3.0))/3.0 ;
 
-    return 10*result;
+    return 10*result;//10 to compansate for sampling the mesh
   }
 
+  //Integration between 2 points inside cylinder, or inside point and cylinder edge
   double NoetherSimulator::calculateIntegration(vtkSmartPointer<vtkPoints> points)
   {
     if(points->GetNumberOfPoints() < 2)
@@ -233,7 +235,6 @@ vtkSmartPointer<vtkPolyData>  NoetherSimulator::getSimulatedPoints()
         vtkSmartPointer<vtkPoints> test_pts = vtkSmartPointer<vtkPoints>::New();
         vtkSmartPointer<vtkPoints> integration_pts = vtkSmartPointer<vtkPoints>::New();
 
-        //test_pts->SetNumberOfPoints(2);
         for(int i = 0; i < num_pts; ++i)
         {
           integration_pts->Reset();
@@ -287,7 +288,7 @@ vtkSmartPointer<vtkPolyData>  NoetherSimulator::getSimulatedPoints()
           // get scalar value, color data is stored in scalars
           double *tmp_value = scalars->GetTuple(index);
           double value = *tmp_value + integral_sum;
-          scalars->SetTuple1(index, value);
+          scalars->SetTuple1(index, value);//update intensity values
 
         }// end loop through all tool points found
       }// end loop through all process points in this path
@@ -359,9 +360,6 @@ vtkSmartPointer<vtkPolyData>  NoetherSimulator::getSimulatedPoints()
 
   vtkSmartPointer<vtkMatrix4x4> NoetherSimulator::createMatrix(double pt[3], double norm[3], double derv[3])
   {
-    // Get the point normal and derivative for creating the 3x3 transform
-    //double* norm = paths[j].line->GetPointData()->GetNormals()->GetTuple(k);
-    //double* der = paths[j].derivatives->GetPointData()->GetNormals()->GetTuple(k);
 
     // perform cross product to get the third axis direction
     Eigen::Vector3d u(norm[0], norm[1], norm[2]);

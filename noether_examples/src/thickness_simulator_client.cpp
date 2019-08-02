@@ -28,6 +28,7 @@
 #include <pcl/surface/vtk_smoothing/vtk_utils.h>
 #include <pcl/PolygonMesh.h>
 #include <pcl_conversions/pcl_conversions.h>
+
 #include <vtkPolyDataNormals.h>
 #include <vtkCellData.h>
 #include <vtkPointData.h>
@@ -41,23 +42,28 @@
 #include <noether_msgs/SimulateThicknessAction.h>
 #include <noether_msgs/ToolRasterPath.h>
 
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
+
 /*This example shows how the thickness_simulator_node.cpp works.
  * First, it creates 3 meshes and three paths.
  * Then, it passes these meshes and paths to the thickness_simulator_node.
  * The thickness_simulator_node runs the first path across each mesh.
- * If the mesh is sufficently painted the bool corasponding to that mesh in the painted[]
+ * If the mesh is sufficently covered the bool corasponding to that mesh in the coverage[]
  * is set to true, the mesh is excluded from future iterations, and the path is added to the reuqiredPaths[] unless,
  * it has already been added.
- * once all the meshes have been evaluated using the first path, the simulator moves on to the second path.
+ * Once all the meshes have been evaluated using the first path, the simulator moves on to the second path.
  * The simulator evaluates the remaining meshes with the second path and so on until all meshes have the coraspoinding
- * bool value in painted[] set to true, or all paths have been tried.
+ * bool value in coverage[] set to true, or all paths have been tried.
  *
- * To use roslauch to launch the thick_sim.launch file. Then, in a seperate termial window use rosrun to run the
- * noether_simulator_node.cpp
+ *usage:
+ * roslaunch noether_examples thick_sim.launch
  *
+ * //in a seperate terminal:
+ * rosrun noether_simuator noether_simulator_client
 */
 
-//make modified meshes
+//@brief This a helper function to create test meshes
 vtkSmartPointer<vtkPoints> createPlaneMod(unsigned int grid_size_x, unsigned int grid_size_y, vtk_viewer::plane_type type)
 {
   // Create points on an XY grid with a sinusoidal Z component
@@ -97,7 +103,7 @@ vtkSmartPointer<vtkPoints> createPlaneMod(unsigned int grid_size_x, unsigned int
 }
 
 int main (int argc, char **argv)
-{
+{  
   ros::init(argc, argv, "test_noether_simulator");
 
   // create the action client
@@ -112,88 +118,87 @@ int main (int argc, char **argv)
   // send a goal to the action
   noether_msgs::SimulateThicknessGoal goal;
 
-  //......setup test meshes and path
-  pcl_msgs::PolygonMesh myMesh;
   std::vector <pcl_msgs::PolygonMesh> myMeshs;
   std::vector <geometry_msgs::PoseArray> myPath;
 
-  vtkSmartPointer<vtkPoints> points2 = vtkSmartPointer<vtkPoints>::New();
-  double pt1[3] = {3.0, 3.0, 0.0};
-  double pt2[3] = {4.0, 2.0, 0.0};
-  double pt3[3] = {5.0, 3.0, 0.0};
-  double pt4[3] = {4.0, 4.0, 0.0};
+    //......setup test meshes and path
+    pcl_msgs::PolygonMesh myMesh;
+    vtkSmartPointer<vtkPoints> points2 = vtkSmartPointer<vtkPoints>::New();
+    double pt1[3] = {3.0, 3.0, 0.0};
+    double pt2[3] = {4.0, 2.0, 0.0};
+    double pt3[3] = {5.0, 3.0, 0.0};
+    double pt4[3] = {4.0, 4.0, 0.0};
 
-  points2->InsertNextPoint(pt1);
-  points2->InsertNextPoint(pt2);
-  points2->InsertNextPoint(pt3);
-  points2->InsertNextPoint(pt4);
-  //......end setup test meshes and path
+    points2->InsertNextPoint(pt1);
+    points2->InsertNextPoint(pt2);
+    points2->InsertNextPoint(pt3);
+    points2->InsertNextPoint(pt4);
+    //......end setup test meshes and path
 
-  //.......create control meshes
-  for(int count = 0; count<3; count++)//start multimesh creation loop
-  {
-    vtkSmartPointer<vtkPoints> points;
-    if(count==0)
+    //.......create control meshes
+    for(int count = 0; count<3; count++)//start multimesh creation loop
     {
-      points = vtk_viewer::createPlane(10,10,vtk_viewer::SINUSOIDAL_2D);
-    }
-    if(count==1)
-    {
-      points = vtk_viewer::createPlane(9,10,vtk_viewer::SINUSOIDAL_2D);
-    }
-    if(count==2)
-    {
-      points = createPlaneMod(8,10,vtk_viewer::SINUSOIDAL_2D);
-    }
+      vtkSmartPointer<vtkPoints> points;
+      if(count==0)
+      {
+        points = vtk_viewer::createPlane(10,10,vtk_viewer::SINUSOIDAL_2D);
+      }
+      if(count==1)
+      {
+        points = vtk_viewer::createPlane(9,10,vtk_viewer::SINUSOIDAL_2D);
+      }
+      if(count==2)
+      {
+        points = createPlaneMod(8,10,vtk_viewer::SINUSOIDAL_2D);
+      }
 
-    vtkSmartPointer<vtkPolyData> data = vtkSmartPointer<vtkPolyData>::New();
-    data = vtk_viewer::createMesh(points, 0.5, 5);
+      vtkSmartPointer<vtkPolyData> data = vtkSmartPointer<vtkPolyData>::New();
+      data = vtk_viewer::createMesh(points, 0.5, 5);
 
-    vtk_viewer::generateNormals(data);
+      vtk_viewer::generateNormals(data);
 
-    vtkSmartPointer<vtkPolyData> cut = vtkSmartPointer<vtkPolyData>::New();
-    cut = vtk_viewer::cutMesh(data, points2, false);
-    pcl::PolygonMesh *test = new(pcl::PolygonMesh);
-    pcl::VTKUtils::convertToPCL(cut, *test);
-    pcl_conversions::fromPCL(*test, myMesh);
-    if(count>0)
-    {
-      myMeshs.push_back(myMesh);
-    }
-    //........end create control meshes
-    //........create robot path
+      vtkSmartPointer<vtkPolyData> cut = vtkSmartPointer<vtkPolyData>::New();
+      cut = vtk_viewer::cutMesh(data, points2, false);
+      pcl::PolygonMesh *test = new(pcl::PolygonMesh);
+      pcl::VTKUtils::convertToPCL(cut, *test);
+      pcl_conversions::fromPCL(*test, myMesh);
+      if(count>0)
+      {
+        myMeshs.push_back(myMesh);
+      }
+      //........end create control meshes
+      //........create robot path
+      cut = vtk_viewer::cutMesh(data, points2, false);
+      pcl::VTKUtils::convertToPCL(cut, *test);
 
-    cut = vtk_viewer::cutMesh(data, points2, false);
-    pcl::VTKUtils::convertToPCL(cut, *test);
+      // Run tool path planner on mesh
+      tool_path_planner::RasterToolPathPlanner planner;
+      planner.setInputMesh(cut);
 
-    // Run tool path planner on mesh
-    tool_path_planner::RasterToolPathPlanner planner;
-    planner.setInputMesh(cut);
+      tool_path_planner::ProcessTool tool;
+      tool.pt_spacing = 0.5;
+      tool.line_spacing = .75;
+      tool.tool_offset = 0.0;
+      tool.intersecting_plane_height = 0.15;
+      tool.simulator_nearest_neighbors = 30;
+      tool.min_hole_size = 0.1;
+      tool.min_segment_size = 1;
+      tool.raster_angle = 0;
+      tool.raster_wrt_global_axes = 0;
+      tool.simulator_tool_radius = 1;
+      tool.simulator_tool_height = 2;
+      planner.setTool(tool);
+      planner.setDebugMode(false);
+      planner.computePaths();
+      std::vector<tool_path_planner::ProcessPath> paths = planner.getPaths();
+      myPath = tool_path_planner::toPosesMsgs(paths);
 
-    tool_path_planner::ProcessTool tool;
-    tool.pt_spacing = 0.5;
-    tool.line_spacing = .75;
-    tool.tool_offset = 0.0;
-    tool.intersecting_plane_height = 0.15;
-    tool.simulator_nearest_neighbors = 30;
-    tool.min_hole_size = 0.1;
-    tool.min_segment_size = 1;
-    tool.raster_angle = 0;
-    tool.raster_wrt_global_axes = 0;
-    tool.simulator_tool_radius = 1;
-    tool.simulator_tool_height = 2;
-    planner.setTool(tool);
-    planner.setDebugMode(false);
-    planner.computePaths();
-    std::vector<tool_path_planner::ProcessPath> paths = planner.getPaths();
-    myPath = tool_path_planner::toPosesMsgs(paths);
+      noether_msgs::ToolRasterPath rasterPath;
+      rasterPath.paths = myPath;
+      goal.path.push_back(rasterPath);
 
-    noether_msgs::ToolRasterPath rasterPath;
-    rasterPath.paths = myPath;
-    goal.path.push_back(rasterPath);
-
-    //........end robot path
-  }//end multimesh creation loop
+      //........end robot path
+    }//end multimesh creation loop
 
   //set goal values
   goal.input_mesh = myMeshs;
@@ -213,7 +218,7 @@ int main (int argc, char **argv)
 
   for(int i=0; i<goal.input_mesh.size(); i++)
   {
-    ROS_INFO("part %d, is %d",i+1,ac.getResult()->painted[i]);
+    ROS_INFO("part %d, is %d",i+1,ac.getResult()->coverage[i]);
   }
   ROS_INFO("number of paths required is: %d",ac.getResult()->requiredPath.size());
   //exit
