@@ -139,8 +139,6 @@ TEST(ViewerTest, TestCase1)
 
   for(vtkIdType i = 0; i < length; i++)//iterate through points to check if painted
   {
-
-  //processedPoints->GetPoint(i,p);
     intensity[0] = processedPoints->GetPointData()->GetScalars()->GetComponent(i,0);
     intensity[1] = processedPoints->GetPointData()->GetScalars()->GetComponent(i,1);
     intensity[2] = processedPoints->GetPointData()->GetScalars()->GetComponent(i,2);

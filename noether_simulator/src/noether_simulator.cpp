@@ -50,10 +50,11 @@ namespace noether_simulator
     simulation_points_ = vtkSmartPointer<vtkPolyData>::New();
   }
 
-  //Integrate in x^2 and z^2
+  //This is a definite integral of the function (x^2 + z^2)/10 from one point pt1 to another point pt2.
+  //This function is expecting pt to be in the Tool frame of reference.
+  //The factor of one 10th stems from the subsampling of the surface at a 10x density.
   double NoetherSimulator::integral(double pt[3])
   {
-
     double result;
     result = -( pow(pt[0],3.0)) /3.0 - (pow(pt[2],3.0))/3.0 ;
 
@@ -79,23 +80,26 @@ namespace noether_simulator
     return fabs(value);
   }
 
+//Returns a copy of the private varible simulation_points
 vtkSmartPointer<vtkPolyData>  NoetherSimulator::getSimulatedPoints()
   {
     vtkSmartPointer<vtkPolyData> simulated_points = simulation_points_;
     return simulated_points;
   }
 
-  void  NoetherSimulator::runSimulation()
+//simulate the process on the mesh and path
+void  NoetherSimulator::runSimulation()
   {
     std::vector<float> color(3);
     color[0] = 0.9; color[1] = 0.9; color[2] = 0.9;
 
     // densly sample surface based upon point spacing
     double spacing = tool_.pt_spacing /10.0;
-    vtkSmartPointer<vtkPolyData> simulation_points;
+    vtkSmartPointer<vtkPolyData> simulation_points;//output stored as private member variable
     simulation_points = vtk_viewer::sampleMesh(input_mesh_, spacing);
 
     // add scalar data for all points
+    // where color information is stored
     vtkSmartPointer<vtkDoubleArray> scalars = vtkSmartPointer<vtkDoubleArray>::New();
     scalars->SetNumberOfComponents(1);
     scalars->SetNumberOfTuples(simulation_points->GetNumberOfPoints());
@@ -106,6 +110,7 @@ vtkSmartPointer<vtkPolyData>  NoetherSimulator::getSimulatedPoints()
     }
 
     // create tool object
+    // the cylinder is defined in a different frame than the mesh or path
     vtkSmartPointer<vtkCylinderSource> cylinder = vtkSmartPointer<vtkCylinderSource>::New();
     cylinder->SetCenter(0.0, 0.0, 0.0);
     cylinder->SetRadius(tool_.simulator_tool_radius );
@@ -113,13 +118,12 @@ vtkSmartPointer<vtkPolyData>  NoetherSimulator::getSimulatedPoints()
     cylinder->SetResolution(20);
     cylinder->Update();
 
-    //vtkSmartPointer<vtkOBBTree> tree = vtkSmartPointer<vtkOBBTree>::New();
     vtkSmartPointer<vtkModifiedBSPTree> tree = vtkSmartPointer<vtkModifiedBSPTree>::New();
     tree->SetDataSet(cylinder->GetOutput());
     tree->BuildLocator();
 
     // use tool to integrate over time and distance
-    int number_paths =input_paths_.size();
+    int number_paths = input_paths_.size();
     for(int i = 0; i <number_paths; ++i)
     {
       tool_path_planner::ProcessPath this_path = input_paths_[i];
@@ -137,41 +141,42 @@ vtkSmartPointer<vtkPolyData>  NoetherSimulator::getSimulatedPoints()
         this_path.line->GetPointData()->GetNormals()->GetTuple(j+1, norm2);
         this_path.derivatives->GetPointData()->GetNormals()->GetTuple(j+1, derv2);
 
-        // transform tool to pt1 and pt2 location
-        vtkSmartPointer<vtkMatrix4x4> transform1 = createMatrix(path_pt1, norm1, derv1);
-        vtkSmartPointer<vtkMatrix4x4> transform2 = createMatrix(path_pt2, norm2, derv2);
+        // transform tool (cylinder) to pt1 and pt2 location
+        vtkSmartPointer<vtkMatrix4x4> transform1 = createMatrix(path_pt1, norm1, derv1);//set up to rotate cylinder to pt1 frame
+        vtkSmartPointer<vtkMatrix4x4> transform2 = createMatrix(path_pt2, norm2, derv2);//set up to rotate cylinder to pt2 frame
 
         vtkSmartPointer<vtkTransform> trans = vtkSmartPointer<vtkTransform>::New();
-        trans->SetMatrix(transform1);
+        trans->SetMatrix(transform1);//transform tool to pt1 frame
 
         // transform to point 1 and get data
         vtkSmartPointer<vtkTransformPolyDataFilter> transform_filter =
           vtkSmartPointer<vtkTransformPolyDataFilter>::New();
         vtkSmartPointer<vtkPolyData> cylinder_poly = vtkSmartPointer<vtkPolyData>::New();
         cylinder_poly->DeepCopy(cylinder->GetOutput());
-        transform_filter->SetInputData(cylinder_poly);
-        transform_filter->SetTransform(trans);
+        transform_filter->SetInputData(cylinder_poly);//set data to be transformed (tool)
+        transform_filter->SetTransform(trans);//set transform (tramsform tool to pt1 frame)
         transform_filter->Update();
 
         vtkSmartPointer<vtkPolyData> point_set1 = vtkSmartPointer<vtkPolyData>::New();
-        point_set1->DeepCopy(transform_filter->GetOutput());
+        point_set1->DeepCopy(transform_filter->GetOutput());//holds all the points in the cylinder transformed to pt1 frame
 
         // transform to point 2 and get data
-        trans->SetMatrix(transform2);
+        trans->SetMatrix(transform2);//transform tool to pt2
         transform_filter->SetTransform(trans);
         transform_filter->Update();
 
         vtkSmartPointer<vtkPolyData> point_set2 = vtkSmartPointer<vtkPolyData>::New();
-        point_set2->DeepCopy(transform_filter->GetOutput());
+        point_set2->DeepCopy(transform_filter->GetOutput());//holds all the points in the cylinder transformed to pt2 frame
 
         // create convex hull of two tool locations
         vtkSmartPointer<vtkDelaunay3D> delaunay_3D =
             vtkSmartPointer<vtkDelaunay3D>::New();
         vtkSmartPointer<vtkPolyData> hull_data = vtkSmartPointer<vtkPolyData>::New();
         vtkSmartPointer<vtkPoints> point_data = vtkSmartPointer<vtkPoints>::New();
-        point_data->DeepCopy(point_set1->GetPoints());
-        point_data->Resize(point_set1->GetPoints()->GetNumberOfPoints() + point_set2->GetPoints()->GetNumberOfPoints());
+        point_data->DeepCopy(point_set1->GetPoints());//holds all the points in the cylinder transformed to pt1 frame
+        point_data->Resize(point_set1->GetPoints()->GetNumberOfPoints() + point_set2->GetPoints()->GetNumberOfPoints());//resize to hold both pt1 and pt2 data
         point_data->InsertPoints(point_set1->GetPoints()->GetNumberOfPoints(), point_set2->GetPoints()->GetNumberOfPoints(), 0, point_set2->GetPoints());
+        //adds the data stored in point_set2
 
         hull_data->SetPoints(point_data);
 
@@ -203,9 +208,13 @@ vtkSmartPointer<vtkPolyData>  NoetherSimulator::getSimulatedPoints()
           }
         }
         vtkSmartPointer<vtkPoints> tool_points = vtkSmartPointer<vtkPoints>::New();
-        simulation_points->GetPoints()->GetPoints(pts_inside, tool_points);
+        simulation_points->GetPoints()->GetPoints(pts_inside, tool_points);//pts_inside contains the points from the mesh inside the convex hull
+        //tool_points contains the convex hull of the transformed tool.
 
         // transform all points into tool_pt1 frame of referece
+        //transform both the convex hull and overlaying points from the mesh back to the tool frame of reference
+
+        //transform all points into tool_pt1 frame of referece
         vtkSmartPointer<vtkPolyData> temp_data = vtkSmartPointer<vtkPolyData>::New();
         temp_data->SetPoints(tool_points);
         vtkSmartPointer<vtkPoints> tool_pts1 = vtkSmartPointer<vtkPoints>::New();
