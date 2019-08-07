@@ -22,6 +22,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <ros/ros.h>
 #include <noether_simulator/noether_simulator.h>
 
 #include <Eigen/Geometry>
@@ -48,36 +49,6 @@ namespace noether_simulator
     scalar_sigma_ = 3.0;
     debug_on_ = false;
     simulation_points_ = vtkSmartPointer<vtkPolyData>::New();
-  }
-
-  //This is a definite integral of the function (x^2 + z^2)/10 from one point pt1 to another point pt2.
-  //This function is expecting pt to be in the Tool frame of reference.
-  //The factor of one 10th stems from the subsampling of the surface at a 10x density.
-  double NoetherSimulator::integral(double pt[3])
-  {
-    double result;
-    result = -( pow(pt[0],3.0)) /3.0 - (pow(pt[2],3.0))/3.0 ;
-
-    return 10*result;//10 to compansate for sampling the mesh
-  }
-
-  //Integration between 2 points inside cylinder, or inside point and cylinder edge
-  double NoetherSimulator::calculateIntegration(vtkSmartPointer<vtkPoints> points)
-  {
-    if(points->GetNumberOfPoints() < 2)
-      return 0;
-
-    double pt1[3], pt2[3];
-    double val1, val2;
-
-    points->GetPoint(0, pt1);
-    points->GetPoint(1, pt2);
-
-    val1 = integral(pt1);
-    val2 = integral(pt2);
-
-    double value = (val2 - val1);
-    return fabs(value);
   }
 
 //Returns a copy of the private varible simulation_points
@@ -112,11 +83,30 @@ void  NoetherSimulator::runSimulation()
     // create tool object
     // the cylinder is defined in a different frame than the mesh or path
     vtkSmartPointer<vtkCylinderSource> cylinder = vtkSmartPointer<vtkCylinderSource>::New();
-    cylinder->SetCenter(0.0, 0.0, 0.0);
-    cylinder->SetRadius(tool_.simulator_tool_radius );
+    cylinder->SetCenter(0.0, 0.0,0.0);
+    cylinder->SetRadius(tool_.simulator_tool_radius);
     cylinder->SetHeight(tool_.simulator_tool_height);
     cylinder->SetResolution(20);
     cylinder->Update();
+
+    //test cone
+    vtkSmartPointer<vtkConeSource> cone = vtkSmartPointer<vtkConeSource>::New();
+    cone->SetCenter(0.0, 0.0, (double(tool_.simulator_tool_height)/2.0));
+    cone->SetRadius(tool_.simulator_tool_radius);
+    double temp [3];
+    cone->GetDirection(temp);
+    cone->SetDirection(0,0,1);
+    cone->GetDirection(temp);
+    cone->SetHeight(tool_.simulator_tool_height);
+    cone->SetResolution(20);
+    cone->Update();
+    vtkSmartPointer<vtkPolyData> cone_poly = vtkSmartPointer<vtkPolyData>::New();
+    cone_poly->DeepCopy(cone->GetOutput());
+    vtk_viewer::VTKViewer viewer;
+    std::vector<float> color2(3);
+    color2[0] = 0.1; color2[1] = 0.1; color2[2] = 0.1;
+    //viewer.renderDisplay();
+    //end test cone
 
     vtkSmartPointer<vtkModifiedBSPTree> tree = vtkSmartPointer<vtkModifiedBSPTree>::New();
     tree->SetDataSet(cylinder->GetOutput());
@@ -152,7 +142,9 @@ void  NoetherSimulator::runSimulation()
         vtkSmartPointer<vtkTransformPolyDataFilter> transform_filter =
           vtkSmartPointer<vtkTransformPolyDataFilter>::New();
         vtkSmartPointer<vtkPolyData> cylinder_poly = vtkSmartPointer<vtkPolyData>::New();
-        cylinder_poly->DeepCopy(cylinder->GetOutput());
+        //cylinder_poly->DeepCopy(cylinder->GetOutput());
+        cylinder_poly->DeepCopy(cone->GetOutput());
+
         transform_filter->SetInputData(cylinder_poly);//set data to be transformed (tool)
         transform_filter->SetTransform(trans);//set transform (tramsform tool to pt1 frame)
         transform_filter->Update();
@@ -242,61 +234,17 @@ void  NoetherSimulator::runSimulation()
         select_enclosed2->SetSurfaceData(cylinder->GetOutput());
         vtkSmartPointer<vtkPolyData> test_poly = vtkSmartPointer<vtkPolyData>::New();
         vtkSmartPointer<vtkPoints> test_pts = vtkSmartPointer<vtkPoints>::New();
-        vtkSmartPointer<vtkPoints> integration_pts = vtkSmartPointer<vtkPoints>::New();
+       // vtkSmartPointer<vtkPoints> integration_pts = vtkSmartPointer<vtkPoints>::New();
 
-        for(int i = 0; i < num_pts; ++i)
+        for(int i = 0; i < num_pts; ++i)//for each point inside convex hull incrament the scalor (color) value
         {
-          integration_pts->Reset();
-
-          // check to see if the point begin/end locations are inside of the tool
-          double pt1[3], pt2[3];
-          tool_pts1->GetPoint(i, pt1);
-          tool_pts2->GetPoint(i, pt2);
-
-          test_pts->Reset();
-          test_pts->InsertNextPoint(pt1);
-          test_pts->InsertNextPoint(pt2);
-          test_poly->SetPoints(test_pts);
-          select_enclosed2->SetInputData(test_poly);
-          select_enclosed2->Update();
-
-          if(select_enclosed2->IsInside(0))
-          {
-            integration_pts->InsertNextPoint(pt1);
-          }
-          if(select_enclosed2->IsInside(1))
-          {
-            integration_pts->InsertNextPoint(pt2);
-          }
-
-          // if one or both points are not inside the tool,
-          // create line from point start/stop location and find intersection with the tool
-          if(integration_pts->GetNumberOfPoints() < 2)
-          {
-            vtkSmartPointer<vtkPoints> temp_pts = vtkSmartPointer<vtkPoints>::New();
-            tree->IntersectWithLine(pt1, pt2, 0.001, temp_pts, NULL);
-
-            int intersections = temp_pts->GetNumberOfPoints();
-
-            // get intersection point(s)
-            for(int j = 0; j < intersections; ++j)
-            {
-              double temp_pt[3];
-              temp_pts->GetPoint(j, temp_pt);
-              integration_pts->InsertNextPoint(temp_pt);
-            }
-          }
-
-          // We should now have two points; combine pts with tool to get integrated value
-          double integral_sum = 0;
-          integral_sum = calculateIntegration(integration_pts);
-
-          // assuming that the tool_pts are in the same order as pts_inside,
           // use the point indeces from pts_inside to modify the scalar values
           int index = pts_inside->GetId(i);
           // get scalar value, color data is stored in scalars
           double *tmp_value = scalars->GetTuple(index);
-          double value = *tmp_value + integral_sum;
+          //double value = *tmp_value + integral_sum;
+          double process_sum = 0.75;
+          double value = *tmp_value + process_sum;
           scalars->SetTuple1(index, value);//update intensity values
 
         }// end loop through all tool points found
@@ -369,6 +317,11 @@ void  NoetherSimulator::runSimulation()
 
   vtkSmartPointer<vtkMatrix4x4> NoetherSimulator::createMatrix(double pt[3], double norm[3], double derv[3])
   {
+    //test vectors view transform
+    Eigen::Vector4d a(1,0,0,0);
+    Eigen::Vector4d b(0,1,0,0);
+    Eigen::Vector4d c(0,0,1,0);
+    Eigen::Vector4d d(0,0,0,1);
 
     // perform cross product to get the third axis direction
     Eigen::Vector3d u(norm[0], norm[1], norm[2]);
@@ -388,6 +341,22 @@ void  NoetherSimulator::runSimulation()
     epose.matrix().col(1).head<3>() = u;
     epose.matrix().col(2).head<3>() = -v;
     epose.matrix().col(3).head<3>() = Eigen::Vector3d(pt[0], pt[1], pt[2]);
+
+    //print out transforms
+    Eigen::Vector4d a1(0,0,0,0);
+    Eigen::Vector4d b1(0,0,0,0);
+    Eigen::Vector4d c1(0,0,0,0);
+    Eigen::Vector4d d1(0,0,0,0);
+
+    a1 = epose*a;
+    b1 = epose*b;
+    c1 = epose*c;
+    d1 = epose*d;
+    ROS_INFO("w0: %f w1: %f w2: %f w3: %f\n",a1[0], a1[1], a1[2],a1[3]);
+    ROS_INFO("u0: %f u1: %f u2: %f u3: %f\n",b1[0], b1[1], b1[2],b1[3]);
+    ROS_INFO("-v0: %f -v1:  %f -v2: %f -v3: %f\n",c1[0], c1[1], c1[2],c1[3]);
+    ROS_INFO("pt x:%f y:%f Z:%f last:%f\n",d1[0], d1[1], d1[2],d1[3]);
+    ROS_INFO("");
 
     // the eigen epose.data() returns column major data whereas the vtk matrix DeepCopy()
     // takes row major data, need to transpose the data before setting the vtk matrix

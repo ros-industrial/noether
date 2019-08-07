@@ -57,10 +57,10 @@
  * bool value in coverage[] set to true, or all paths have been tried.
  *
  *usage:
- * roslaunch noether_examples thick_sim.launch
+ * roslaunch noether_examples coverage_sim.launch
  *
  * //in a seperate terminal:
- * rosrun noether_simuator noether_simulator_client
+ * rosrun noether_examples coverage_simulator_client
 */
 
 //@brief This a helper function to create test meshes
@@ -69,7 +69,7 @@ vtkSmartPointer<vtkPoints> createPlaneMod(unsigned int grid_size_x, unsigned int
   // Create points on an XY grid with a sinusoidal Z component
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 
-  for (unsigned int x = grid_size_x; x < 10; x++)
+  for (unsigned int x = grid_size_x; x < 21; x++)
   {
     for (unsigned int y = 0; y < grid_size_y; y++)
     {
@@ -79,7 +79,13 @@ vtkSmartPointer<vtkPoints> createPlaneMod(unsigned int grid_size_x, unsigned int
           points->InsertNextPoint(x, y, vtkMath::Random(0.0, 0.001));
           break;
         case vtk_viewer::SINUSOIDAL_1D:
-          points->InsertNextPoint(x, y, sin(double(y) / 2.0) + vtkMath::Random(0.0, 0.001));
+          if(x==grid_size_x)
+          {
+            points->InsertNextPoint(x, y, sin(double(y) / 2.0) + vtkMath::Random(0.0, 0.001));
+          }
+          else
+          {
+             points->InsertNextPoint(x+0.25, y, sin(double(y) / 2.0) + vtkMath::Random(0.0, 0.001));          }
           break;
         case vtk_viewer::SINUSOIDAL_2D:
         if(x==grid_size_x)
@@ -136,20 +142,16 @@ int main (int argc, char **argv)
     //......end setup test meshes and path
 
     //.......create control meshes
-    for(int count = 0; count<3; count++)//start multimesh creation loop
+    for(int count = 0; count<2; count++)//start multimesh creation loop
     {
       vtkSmartPointer<vtkPoints> points;
       if(count==0)
       {
-        points = vtk_viewer::createPlane(10,10,vtk_viewer::SINUSOIDAL_2D);
+        points = vtk_viewer::createPlane(19,10,vtk_viewer::SINUSOIDAL_1D);
       }
       if(count==1)
       {
-        points = vtk_viewer::createPlane(9,10,vtk_viewer::SINUSOIDAL_2D);
-      }
-      if(count==2)
-      {
-        points = createPlaneMod(8,10,vtk_viewer::SINUSOIDAL_2D);
+        points = createPlaneMod(19,10,vtk_viewer::SINUSOIDAL_1D);
       }
 
       vtkSmartPointer<vtkPolyData> data = vtkSmartPointer<vtkPolyData>::New();
@@ -162,10 +164,8 @@ int main (int argc, char **argv)
       pcl::PolygonMesh *test = new(pcl::PolygonMesh);
       pcl::VTKUtils::convertToPCL(cut, *test);
       pcl_conversions::fromPCL(*test, myMesh);
-      if(count>0)
-      {
-        myMeshs.push_back(myMesh);
-      }
+
+      myMeshs.push_back(myMesh);
       //........end create control meshes
       //........create robot path
       cut = vtk_viewer::cutMesh(data, points2, false);
@@ -191,8 +191,34 @@ int main (int argc, char **argv)
       planner.setDebugMode(false);
       planner.computePaths();
       std::vector<tool_path_planner::ProcessPath> paths = planner.getPaths();
-      myPath = tool_path_planner::toPosesMsgs(paths);
+      //display path
+      vtk_viewer::VTKViewer viz;
+      std::vector<float> color(3);
 
+      double scale = 1.0;
+
+      // Display mesh results
+      color[0] = 0.9;
+      color[1] = 0.9;
+      color[2] = 0.9;
+      viz.addPolyDataDisplay(cut, color);
+
+      for(int i = 0; i < paths.size(); ++i)
+      {
+      color[0] = 0.2;
+      color[1] = 0.9;
+      color[2] = 0.2;
+      viz.addPolyNormalsDisplay(paths[i].line, color, scale);
+
+      color[0] = 0.9;
+      color[1] = 0.9;
+      color[2] = 0.2;
+      viz.addPolyNormalsDisplay(paths[i].derivatives, color, scale);
+      }
+      viz.renderDisplay();
+      //end display path
+
+      myPath = tool_path_planner::toPosesMsgs(paths);
       noether_msgs::ToolRasterPath rasterPath;
       rasterPath.paths = myPath;
       goal.path.push_back(rasterPath);

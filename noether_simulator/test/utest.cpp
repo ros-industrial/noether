@@ -137,7 +137,7 @@ TEST(ViewerTest, TestCase1)
   double intensity[3];
   int missed = 0;
 
-  for(vtkIdType i = 0; i < length; i++)//iterate through points to check if painted
+  for(vtkIdType i = 0; i < length; i++)//iterate through points to check if covered
   {
     intensity[0] = processedPoints->GetPointData()->GetScalars()->GetComponent(i,0);
     intensity[1] = processedPoints->GetPointData()->GetScalars()->GetComponent(i,1);
@@ -149,13 +149,13 @@ TEST(ViewerTest, TestCase1)
     }
 
   }
-  bool painted;
-  if(missed/float(processedPoints->GetNumberOfPoints())>0.1)//get ratio of missed spots, if below threshold set not painted
+  bool coverage;
+  if(missed/float(processedPoints->GetNumberOfPoints())>0.1)//get ratio of missed spots, if below threshold set not covered
   {
-    painted = false;
+    coverage = false;
   }
-  else painted = true;
-  EXPECT_FALSE(painted);//expect partial path to fail
+  else coverage = true;
+  EXPECT_FALSE(coverage);//expect partial path to fail
 }
 
 //This test uses a good path to paint mesh
@@ -195,7 +195,7 @@ TEST(ViewerTest, TestCase2)
   tool.pt_spacing = 0.5;
   tool.line_spacing = 0.75;
   tool.tool_offset = 0.0; // currentlyc unused
-  tool.intersecting_plane_height = 0.15; // 0.5 works best, not sure if this should be included in the tool
+  tool.intersecting_plane_height = 1.95; // 0.5 works best, not sure if this should be included in the tool
   tool.simulator_nearest_neighbors = 30; // not sure if this should be a part of the tool
   tool.min_hole_size = 0.1;
   tool.min_segment_size = 1;
@@ -255,9 +255,9 @@ TEST(ViewerTest, TestCase2)
   double p[3];
   double intensity[3];
   int missed = 0;
-  bool painted;
+  bool coverage;
 
-  for(vtkIdType i = 0; i < length; i++)//iterate through points to check if painted
+  for(vtkIdType i = 0; i < length; i++)//iterate through points to check if covered
   {
 
     intensity[0] = processedPoints->GetPointData()->GetScalars()->GetComponent(i,0);
@@ -269,12 +269,12 @@ TEST(ViewerTest, TestCase2)
       missed++;
     }
   }
-  if(missed/float(processedPoints->GetNumberOfPoints())>0.1)//get ratio of missed spots, if below threshold set not painted
+  if(missed/float(processedPoints->GetNumberOfPoints())>0.1)//get ratio of missed spots, if below threshold set not covered
   {
-    painted = false;
+    coverage = false;
   }
-  else painted = true;
-  EXPECT_TRUE(painted);//expect good mesh to pass
+  else coverage = true;
+  EXPECT_TRUE(coverage);//expect good mesh to pass
 }
 
 // Run all the tests that were declared with TEST()

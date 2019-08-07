@@ -55,12 +55,12 @@ target_link_libraries(${PROJECT_NAME}
     ${PCL_LIBRARIES}
 )
 
-add_executable(thick_sim src/thickness_simulator_node.cpp)
-add_dependencies(thick_sim ${${PROJECT_NAME}_EXPORTED_TARGETS}
+add_executable(coverage_sim src/coverage_simulator_node.cpp)
+add_dependencies(coverage_sim ${${PROJECT_NAME}_EXPORTED_TARGETS}
     ${catkin_EXPORTED_TARGETS}
     ${actionlib_tutorials_EXPORTED_TARGETS}
 )
-target_link_libraries(thick_sim
+target_link_libraries(coverage_sim
     ${PROJECT_NAME}
 )
 
@@ -83,7 +83,7 @@ endif()
 #############
 ## Install ##
 #############
-install(TARGETS ${PROJECT_NAME} thick_sim
+install(TARGETS ${PROJECT_NAME} coverage_sim
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
