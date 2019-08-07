@@ -200,7 +200,7 @@ TEST(ViewerTest, TestCase2)
   tool.min_segment_size = 1;
   tool.raster_angle = 0;
   tool.raster_wrt_global_axes = 0;
-  tool.simulator_tool_radius = 1;
+  tool.simulator_tool_radius = 2;
   tool.simulator_tool_height = 2;
   planner.setTool(tool);
   planner.setDebugMode(false);

@@ -84,7 +84,7 @@ void  NoetherSimulator::runSimulation()
     // the cylinder is defined in a different frame than the mesh or path
     vtkSmartPointer<vtkCylinderSource> cylinder = vtkSmartPointer<vtkCylinderSource>::New();
     cylinder->SetCenter(0.0, 0.0,0.0);
-    cylinder->SetRadius(tool_.simulator_tool_radius);
+    cylinder->SetRadius(tool_.simulator_tool_radius*3);
     cylinder->SetHeight(tool_.simulator_tool_height);
     cylinder->SetResolution(20);
     cylinder->Update();
@@ -104,11 +104,12 @@ void  NoetherSimulator::runSimulation()
     cone_poly->DeepCopy(cone->GetOutput());
 
     ////display cone
-    //vtk_viewer::VTKViewer viewer;
-    //std::vector<float> color2(3);
-    //color2[0] = 0.1; color2[1] = 0.1; color2[2] = 0.1;
-    //viewer.renderDisplay();
-    ////end test cone
+    vtk_viewer::VTKViewer viewer;
+    std::vector<float> color2(3);
+    color2[0] = 0.1; color2[1] = 0.1; color2[2] = 0.1;
+    viewer.addPolyDataDisplay(cone_poly, color2);
+    viewer.renderDisplay();
+    ////end display cone
 
     vtkSmartPointer<vtkModifiedBSPTree> tree = vtkSmartPointer<vtkModifiedBSPTree>::New();
     //tree->SetDataSet(cylinder->GetOutput());
