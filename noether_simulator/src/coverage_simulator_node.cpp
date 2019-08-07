@@ -166,100 +166,104 @@ public:
     //start multiple paths
     for (int curPathNum=0;curPathNum<goal->path.size();curPathNum++)
     {
-      bool added = false;
-      //convert robot path for simulator
-      std::vector<geometry_msgs::PoseArray> robot_paths_in = goal->path[curPathNum].paths;
-      std::vector<tool_path_planner::ProcessPath> robot_paths_arg;
-      int number_paths = robot_paths_in.size();
-
-      for(int ii = 0; ii < number_paths; ii++)
+      if(result_.coverage[curPathNum]==false)
       {
-        robot_paths_arg.push_back(convertPoseArraytoVTK(robot_paths_in[ii]));
-      }
+        bool added = false;
 
-      sim.setInputPaths(robot_paths_arg);//add path to simulator
+        //convert robot path for simulator
+        std::vector<geometry_msgs::PoseArray> robot_paths_in = goal->path[curPathNum].paths;
+        std::vector<tool_path_planner::ProcessPath> robot_paths_arg;
+        int number_paths = robot_paths_in.size();
 
-      for(int i=0; i <num_meshes; i++)//run simulator for each mesh
-      {
-        if(simulation_service_.isPreemptRequested() || !ros::ok())
+        for(int ii = 0; ii < number_paths; ii++)
         {
-          simulation_service_.setPreempted();
-          success = false;
-          break;
+          robot_paths_arg.push_back(convertPoseArraytoVTK(robot_paths_in[ii]));
         }
-        if(result_.coverage[i]==false)//if not yet covered
+
+        sim.setInputPaths(robot_paths_arg);//add path to simulator
+
+        for(int i=0; i <num_meshes; i++)//run simulator for each mesh
         {
-
-          //convert mesh for simulator
-          pcl::PolygonMesh surface_mesh;
-          pcl_conversions::toPCL(goal->input_mesh[i], surface_mesh);
-          vtkSmartPointer<vtkPolyData> surface_mesh_vtk = vtkSmartPointer<vtkPolyData>::New();
-          pcl::VTKUtils::convertToVTK(surface_mesh, surface_mesh_vtk);
-
-          sim.setInputMesh(surface_mesh_vtk);//add mesh to simulator
-          sim.runSimulation();//display covered parts
-
-          //deterimine if covered enough
-          vtkSmartPointer<vtkPolyData> processedPoints = vtkSmartPointer<vtkPolyData>::New();
-          processedPoints = sim.getSimulatedPoints();//get a copy of simulated points to operate on
-          vtkIdType length = processedPoints->GetNumberOfPoints();
-
-          double intensity[3] = {0,0,0};//setup flann
-          int missed = 0;
-          double minPaintThreshold = 5;
-          double maxPassableNoncoverage = 0.1;
-          double p [3];
-          vtkSmartPointer<vtkKdTreePointLocator> pointTree =
-              vtkSmartPointer<vtkKdTreePointLocator>::New();
-          pointTree->SetDataSet(processedPoints);
-          pointTree->BuildLocator();
-          unsigned int k = 30;
-          double currPoint [3];
-
-          for(vtkIdType a = 0; a < length; a++)//iterate through points to check if covered
+          if(simulation_service_.isPreemptRequested() || !ros::ok())
           {
-            intensity[0] =0;//reseting intensity for next point in mesh
-            intensity[1] =0;
-            intensity[2] =0;
-
-            vtkSmartPointer<vtkIdList> result = vtkSmartPointer<vtkIdList>::New();
-            processedPoints->GetPoint(a,currPoint);
-            pointTree->FindClosestNPoints(k, currPoint, result);//flann
-
-            for (vtkIdType i = 0; i < k; i++)//iterate through k closest points average intensities
-            {
-              vtkIdType point_ind = result->GetId(i);
-
-              //find average color intensity for each neighorhood
-              intensity[0] += processedPoints->GetPointData()->GetScalars()->GetComponent(point_ind,0);
-              intensity[1] += processedPoints->GetPointData()->GetScalars()->GetComponent(point_ind,1);
-              intensity[2] += processedPoints->GetPointData()->GetScalars()->GetComponent(point_ind,2);
-            }
-
-            if((intensity[0])/float(k)+(intensity[1])/float(k)+(intensity[2])/30 < minPaintThreshold) //averge of each pixel if less than threshold incrament counter
-            {
-              missed++;
-            }
-          }//end iterate through points to check if covered
-
-          if(missed/float(processedPoints->GetNumberOfPoints())>maxPassableNoncoverage)//get ratio of missed spots, if below threshold set not covered
-          {
-            result_.coverage[i]=false;
+            simulation_service_.setPreempted();
+            success = false;
+            break;
           }
-          else
+          if(result_.coverage[i]==false)//if not yet covered
           {
-            result_.coverage[i]=true;
-            if(added ==false)
-            {
-              result_.requiredPath.push_back(goal->path[curPathNum]);
-              added = true;
-            }
-          }
-          feedback_.percent =float(i)/float(num_meshes);
-          simulation_service_.publishFeedback(feedback_);
 
-        }//if not yet covered
-      }//end each mesh
+            //convert mesh for simulator
+            pcl::PolygonMesh surface_mesh;
+            pcl_conversions::toPCL(goal->input_mesh[i], surface_mesh);
+            vtkSmartPointer<vtkPolyData> surface_mesh_vtk = vtkSmartPointer<vtkPolyData>::New();
+            pcl::VTKUtils::convertToVTK(surface_mesh, surface_mesh_vtk);
+
+            sim.setInputMesh(surface_mesh_vtk);//add mesh to simulator
+            sim.runSimulation();//display covered parts
+
+            //deterimine if covered enough
+            vtkSmartPointer<vtkPolyData> processedPoints = vtkSmartPointer<vtkPolyData>::New();
+            processedPoints = sim.getSimulatedPoints();//get a copy of simulated points to operate on
+            vtkIdType length = processedPoints->GetNumberOfPoints();
+
+            double intensity[3] = {0,0,0};//setup flann
+            int missed = 0;
+            double minPaintThreshold = 5;
+            double maxPassableNoncoverage = 0.1;
+            double p [3];
+            vtkSmartPointer<vtkKdTreePointLocator> pointTree =
+                vtkSmartPointer<vtkKdTreePointLocator>::New();
+            pointTree->SetDataSet(processedPoints);
+            pointTree->BuildLocator();
+            unsigned int k = 30;
+            double currPoint [3];
+
+            for(vtkIdType a = 0; a < length; a++)//iterate through points to check if covered
+            {
+              intensity[0] =0;//reseting intensity for next point in mesh
+              intensity[1] =0;
+              intensity[2] =0;
+
+              vtkSmartPointer<vtkIdList> result = vtkSmartPointer<vtkIdList>::New();
+              processedPoints->GetPoint(a,currPoint);
+              pointTree->FindClosestNPoints(k, currPoint, result);//flann
+
+              for (vtkIdType i = 0; i < k; i++)//iterate through k closest points average intensities
+              {
+                vtkIdType point_ind = result->GetId(i);
+
+                //find average color intensity for each neighorhood
+                intensity[0] += processedPoints->GetPointData()->GetScalars()->GetComponent(point_ind,0);
+                intensity[1] += processedPoints->GetPointData()->GetScalars()->GetComponent(point_ind,1);
+                intensity[2] += processedPoints->GetPointData()->GetScalars()->GetComponent(point_ind,2);
+              }
+
+              if((intensity[0])/float(k)+(intensity[1])/float(k)+(intensity[2])/30 < minPaintThreshold) //averge of each pixel if less than threshold incrament counter
+              {
+                missed++;
+              }
+            }//end iterate through points to check if covered
+
+            if(missed/float(processedPoints->GetNumberOfPoints())>maxPassableNoncoverage)//get ratio of missed spots, if below threshold set not covered
+            {
+              result_.coverage[i]=false;
+            }
+            else
+            {
+              result_.coverage[i]=true;
+              if(added ==false)
+              {
+                result_.requiredPath.push_back(goal->path[curPathNum]);
+                added = true;
+              }
+            }
+            feedback_.percent =float(i)/float(num_meshes);
+            simulation_service_.publishFeedback(feedback_);
+
+          }//if not yet covered
+        }//end each mesh
+      }//end if path used
     }//end multiple paths
 
     if(success)

@@ -130,21 +130,15 @@ int main (int argc, char **argv)
     //......setup test meshes and path
     pcl_msgs::PolygonMesh myMesh;
     vtkSmartPointer<vtkPoints> points2 = vtkSmartPointer<vtkPoints>::New();
-    double pt1[3] = {3.0, 3.0, 0.0};
-    double pt2[3] = {4.0, 2.0, 0.0};
-    double pt3[3] = {5.0, 3.0, 0.0};
-    double pt4[3] = {4.0, 4.0, 0.0};
-
-    points2->InsertNextPoint(pt1);
-    points2->InsertNextPoint(pt2);
-    points2->InsertNextPoint(pt3);
-    points2->InsertNextPoint(pt4);
-    //......end setup test meshes and path
 
     //.......create control meshes
     for(int count = 0; count<2; count++)//start multimesh creation loop
     {
       vtkSmartPointer<vtkPoints> points;
+      //if(count==0)
+      //{
+      //  points = vtk_viewer::createPlane(20,7,vtk_viewer::SINUSOIDAL_1D);
+      //}
       if(count==0)
       {
         points = vtk_viewer::createPlane(19,10,vtk_viewer::SINUSOIDAL_1D);

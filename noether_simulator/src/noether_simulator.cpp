@@ -102,14 +102,17 @@ void  NoetherSimulator::runSimulation()
     cone->Update();
     vtkSmartPointer<vtkPolyData> cone_poly = vtkSmartPointer<vtkPolyData>::New();
     cone_poly->DeepCopy(cone->GetOutput());
-    vtk_viewer::VTKViewer viewer;
-    std::vector<float> color2(3);
-    color2[0] = 0.1; color2[1] = 0.1; color2[2] = 0.1;
+
+    ////display cone
+    //vtk_viewer::VTKViewer viewer;
+    //std::vector<float> color2(3);
+    //color2[0] = 0.1; color2[1] = 0.1; color2[2] = 0.1;
     //viewer.renderDisplay();
-    //end test cone
+    ////end test cone
 
     vtkSmartPointer<vtkModifiedBSPTree> tree = vtkSmartPointer<vtkModifiedBSPTree>::New();
-    tree->SetDataSet(cylinder->GetOutput());
+    //tree->SetDataSet(cylinder->GetOutput());
+    tree->SetDataSet(cone->GetOutput());
     tree->BuildLocator();
 
     // use tool to integrate over time and distance

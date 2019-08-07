@@ -43,7 +43,7 @@ TEST(ViewerTest, TestCase1)
 {
 
   // Create mesh to work with
-  vtkSmartPointer<vtkPoints> points = vtk_viewer::createPlane();
+  vtkSmartPointer<vtkPoints> points = vtk_viewer::createPlane(19,10,vtk_viewer::SINUSOIDAL_1D);
 
   vtkSmartPointer<vtkPolyData> data = vtkSmartPointer<vtkPolyData>::New();
   data = vtk_viewer::createMesh(points, 0.5, 5);
@@ -163,8 +163,7 @@ TEST(ViewerTest, TestCase2)
 {
 
   // Create mesh to work with
-  vtkSmartPointer<vtkPoints> points = vtk_viewer::createPlane();
-
+  vtkSmartPointer<vtkPoints> points = vtk_viewer::createPlane(19,10,vtk_viewer::SINUSOIDAL_1D);
   vtkSmartPointer<vtkPolyData> data = vtkSmartPointer<vtkPolyData>::New();
   data = vtk_viewer::createMesh(points, 0.5, 5);
 
