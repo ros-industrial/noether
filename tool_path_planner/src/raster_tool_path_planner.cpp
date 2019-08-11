@@ -1276,8 +1276,13 @@ namespace tool_path_planner
       new_pt.normalize();
 
       // insert the next derivative
-      double new_ptr[3] = {new_pt[0], new_pt[1], new_pt[2]};
+      double new_ptr[3];
+      new_ptr[0] = new_pt[0];
+      new_ptr[1] = new_pt[1];
+      new_ptr[2] = new_pt[2];
+
       derv->InsertNextTuple(&new_ptr[0]);
+      printf("new_ptr: %lf %lf %lf\n",new_ptr[0], new_ptr[1], new_ptr[2]);
     }
     // Set points and normals
     points->SetPoints(new_points);

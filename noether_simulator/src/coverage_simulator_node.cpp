@@ -146,17 +146,17 @@ public:
 
     //add tool
     tool_path_planner::ProcessTool tool;
-    nh_.param("/noether_simulator/pt_spacing",tool.pt_spacing, 0.5);
-    nh_.param("/noether_simulator/line_spacing",tool.line_spacing,10.75);
+    nh_.param("/noether_simulator/pt_spacing",tool.pt_spacing,50.0);
+    nh_.param("/noether_simulator/line_spacing",tool.line_spacing, 50.0);
     nh_.param("/noether_simulator/tool_offset",tool.tool_offset, 0.0);
-    nh_.param("/noether_simulator/intersecting_plane_hiehgt",tool.intersecting_plane_height,0.15);
+    nh_.param("/noether_simulator/intersecting_plane_hiehgt",tool.intersecting_plane_height,0.5);
     nh_.param("/noether_simulator/nearest_neighbors",tool.simulator_nearest_neighbors,30);
     nh_.param("/noether_simulator/min_hole_size",tool.min_hole_size,0.1);
     nh_.param("/noether_simulator/min_segment_size",tool.min_segment_size,1.0);
     nh_.param("/noether_simulator/raster_angle",tool.raster_angle,0.0);
     nh_.param("/noether_simulator/raster_wrt_global_axes",tool.raster_wrt_global_axes ,false);
-    nh_.param("/noether_simulator/tool_radius",tool.simulator_tool_radius,1.0);
-    nh_.param("/noether_simulator/tool_height",tool.simulator_tool_height,2.0);
+    nh_.param("/noether_simulator/tool_radius",tool.simulator_tool_radius,100.0);
+    nh_.param("/noether_simulator/tool_height",tool.simulator_tool_height,20.0);
     sim.setTool(tool);
 
     for(int i=0; i<num_meshes;i++)
@@ -190,7 +190,7 @@ public:
             success = false;
             break;
           }
-          if(result_.coverage[i]==false)//if not yet covered
+          if(result_.coverage[i]==false && i==curPathNum)//if not yet covered
           {
 
             //convert mesh for simulator
@@ -209,8 +209,8 @@ public:
 
             double intensity[3] = {0,0,0};//setup flann
             int missed = 0;
-            double minPaintThreshold = 5;
-            double maxPassableNoncoverage = 0.1;
+            double minPaintThreshold = 0.1;
+            double maxPassableNoncoverage = 1.0;
             double p [3];
             vtkSmartPointer<vtkKdTreePointLocator> pointTree =
                 vtkSmartPointer<vtkKdTreePointLocator>::New();

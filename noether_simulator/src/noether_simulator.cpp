@@ -65,9 +65,9 @@ void  NoetherSimulator::runSimulation()
     color[0] = 0.9; color[1] = 0.9; color[2] = 0.9;
 
     // densly sample surface based upon point spacing
-    double spacing = tool_.pt_spacing /10.0;
+    double meshSubSpacing = tool_.pt_spacing /10.0;
     vtkSmartPointer<vtkPolyData> simulation_points;//output stored as private member variable
-    simulation_points = vtk_viewer::sampleMesh(input_mesh_, spacing);
+    simulation_points = vtk_viewer::sampleMesh(input_mesh_, meshSubSpacing);
 
     // add scalar data for all points
     // where color information is stored
@@ -84,36 +84,39 @@ void  NoetherSimulator::runSimulation()
     // the cylinder is defined in a different frame than the mesh or path
     vtkSmartPointer<vtkCylinderSource> cylinder = vtkSmartPointer<vtkCylinderSource>::New();
     cylinder->SetCenter(0.0, 0.0,0.0);
-    cylinder->SetRadius(tool_.simulator_tool_radius*3);
+    cylinder->SetRadius(tool_.simulator_tool_radius);
     cylinder->SetHeight(tool_.simulator_tool_height);
     cylinder->SetResolution(20);
     cylinder->Update();
 
     //test cone
     vtkSmartPointer<vtkConeSource> cone = vtkSmartPointer<vtkConeSource>::New();
-    cone->SetCenter(0.0, 0.0, (double(tool_.simulator_tool_height)/2.0));
+    cone->SetCenter(0.0, 0.0, (double(tool_.simulator_tool_height)));
     cone->SetRadius(tool_.simulator_tool_radius);
     double temp [3];
     cone->GetDirection(temp);
     cone->SetDirection(0,0,1);
+
     cone->GetDirection(temp);
     cone->SetHeight(tool_.simulator_tool_height);
     cone->SetResolution(20);
     cone->Update();
     vtkSmartPointer<vtkPolyData> cone_poly = vtkSmartPointer<vtkPolyData>::New();
-    cone_poly->DeepCopy(cone->GetOutput());
+    //cone_poly->DeepCopy(cone->GetOutput());
+    cone_poly->DeepCopy(cylinder->GetOutput());
+
 
     ////display cone
-    vtk_viewer::VTKViewer viewer;
-    std::vector<float> color2(3);
-    color2[0] = 0.1; color2[1] = 0.1; color2[2] = 0.1;
-    viewer.addPolyDataDisplay(cone_poly, color2);
-    viewer.renderDisplay();
+    //vtk_viewer::VTKViewer viewer;
+    //std::vector<float> color2(3);
+    //color2[0] = 0.1; color2[1] = 0.1; color2[2] = 0.1;
+    //viewer.addPolyDataDisplay(cone_poly, color2);
+    //viewer.renderDisplay();
     ////end display cone
 
     vtkSmartPointer<vtkModifiedBSPTree> tree = vtkSmartPointer<vtkModifiedBSPTree>::New();
-    //tree->SetDataSet(cylinder->GetOutput());
-    tree->SetDataSet(cone->GetOutput());
+    tree->SetDataSet(cylinder->GetOutput());
+    //tree->SetDataSet(cone->GetOutput());
     tree->BuildLocator();
 
     // use tool to integrate over time and distance
@@ -128,8 +131,9 @@ void  NoetherSimulator::runSimulation()
         double path_pt1[3], norm1[3], derv1[3];
         this_path.line->GetPoints()->GetPoint(j, path_pt1);
         this_path.line->GetPointData()->GetNormals()->GetTuple(j, norm1);
+        printf("norm: %lf %lf %lf ", norm1[0],norm1[1],norm1[2]);
         this_path.derivatives->GetPointData()->GetNormals()->GetTuple(j, derv1);
-
+        printf("direv: %f %f %f\n", derv1[0],derv1[1],derv1[2]);
         double path_pt2[3], norm2[3], derv2[3];
         this_path.line->GetPoints()->GetPoint(j+1, path_pt2);
         this_path.line->GetPointData()->GetNormals()->GetTuple(j+1, norm2);
@@ -146,8 +150,8 @@ void  NoetherSimulator::runSimulation()
         vtkSmartPointer<vtkTransformPolyDataFilter> transform_filter =
           vtkSmartPointer<vtkTransformPolyDataFilter>::New();
         vtkSmartPointer<vtkPolyData> cylinder_poly = vtkSmartPointer<vtkPolyData>::New();
-        //cylinder_poly->DeepCopy(cylinder->GetOutput());
-        cylinder_poly->DeepCopy(cone->GetOutput());
+        cylinder_poly->DeepCopy(cylinder->GetOutput());
+        //cylinder_poly->DeepCopy(cone->GetOutput());
 
         transform_filter->SetInputData(cylinder_poly);//set data to be transformed (tool)
         transform_filter->SetTransform(trans);//set transform (tramsform tool to pt1 frame)
@@ -247,13 +251,18 @@ void  NoetherSimulator::runSimulation()
           // get scalar value, color data is stored in scalars
           double *tmp_value = scalars->GetTuple(index);
           //double value = *tmp_value + integral_sum;
-          double process_sum = 0.75;
+          double process_sum = 1;
           double value = *tmp_value + process_sum;
           scalars->SetTuple1(index, value);//update intensity values
 
         }// end loop through all tool points found
-      }// end loop through all process points in this path
+        simulation_points->GetPointData()->SetScalars(scalars);
 
+        //display intermediate results
+       // simulation_points_ = simulation_points;
+       // displayResults();
+
+      }// end loop through all process points in this path
     }// end loop through all paths
 
     // display of simulation points
@@ -268,6 +277,7 @@ void  NoetherSimulator::runSimulation()
 
   } // end runSimulation()
 
+  vtk_viewer::VTKViewer Fviewer;
   void NoetherSimulator::displayResults()
   {
     if(!simulation_points_)
@@ -312,11 +322,11 @@ void  NoetherSimulator::runSimulation()
       lower_bound = 0.0;
     }
 
-    vtk_viewer::VTKViewer viewer;
+
     std::vector<float> color2(3);
     color2[0] = 0.1; color2[1] = 0.1; color2[2] = 0.1;
-    viewer.addPolyDataDisplay(simulation_points_, color2, lower_bound, upper_bound);
-    viewer.renderDisplay();
+    Fviewer.addPolyDataDisplay(simulation_points_, color2, lower_bound, upper_bound);
+    Fviewer.renderDisplay();
   }
 
   vtkSmartPointer<vtkMatrix4x4> NoetherSimulator::createMatrix(double pt[3], double norm[3], double derv[3])
@@ -346,21 +356,37 @@ void  NoetherSimulator::runSimulation()
     epose.matrix().col(2).head<3>() = -v;
     epose.matrix().col(3).head<3>() = Eigen::Vector3d(pt[0], pt[1], pt[2]);
 
-    //print out transforms
-    Eigen::Vector4d a1(0,0,0,0);
-    Eigen::Vector4d b1(0,0,0,0);
-    Eigen::Vector4d c1(0,0,0,0);
-    Eigen::Vector4d d1(0,0,0,0);
+    //test transform cone z plane
+    //Eigen::Affine3d zpose = Eigen::Affine3d::Identity();
+    //Eigen::Vector4d z0(1, 0, 0, 0);
+    //Eigen::Vector4d z1(0, 0, -1, 0);
+    //Eigen::Vector4d z2(0, 1, 0, 0);
+    //Eigen::Vector4d z3(0, 0, 0, 1);
 
-    a1 = epose*a;
-    b1 = epose*b;
-    c1 = epose*c;
-    d1 = epose*d;
-    ROS_INFO("w0: %f w1: %f w2: %f w3: %f\n",a1[0], a1[1], a1[2],a1[3]);
-    ROS_INFO("u0: %f u1: %f u2: %f u3: %f\n",b1[0], b1[1], b1[2],b1[3]);
-    ROS_INFO("-v0: %f -v1:  %f -v2: %f -v3: %f\n",c1[0], c1[1], c1[2],c1[3]);
-    ROS_INFO("pt x:%f y:%f Z:%f last:%f\n",d1[0], d1[1], d1[2],d1[3]);
-    ROS_INFO("");
+    //zpose.matrix().col(0).head<4>() = z0;
+    //zpose.matrix().col(1).head<4>() = z1;
+    //zpose.matrix().col(2).head<4>() = z2;
+    //zpose.matrix().col(3).head<4>() = z3;
+
+    //epose = epose*zpose;
+
+    //setup to print out transforms
+    //Eigen::Vector4d a1(0,0,0,0);
+    //Eigen::Vector4d b1(0,0,0,0);
+    //Eigen::Vector4d c1(0,0,0,0);
+    //Eigen::Vector4d d1(0,0,0,0);
+
+    //a1 = epose*a;
+    //b1 = epose*b;
+    //c1 = epose*c;
+    //d1 = epose*d;
+
+    //print transform information
+   // ROS_INFO("w0: %f u0: %f -v0: %f x: %f\n",a1[0], b1[0], c1[0],d1[0]);
+   // ROS_INFO("w1: %f u1: %f -v1: %f y: %f\n",a1[1], b1[1], c1[1],d1[1]);
+   // ROS_INFO("w2: %f u2: %f -v2: %f z: %f\n",a1[2], b1[2], c1[2],d1[2]);
+   // ROS_INFO("t0: %f t1: %f t2: %f t3: %f\n",a1[3], b1[3], c1[3],d1[3]);
+   // ROS_INFO("");
 
     // the eigen epose.data() returns column major data whereas the vtk matrix DeepCopy()
     // takes row major data, need to transpose the data before setting the vtk matrix
