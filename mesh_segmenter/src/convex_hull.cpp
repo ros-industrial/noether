@@ -1,10 +1,15 @@
-#include "ros/ros.h"
+#include <ros/ros.h>
 #include "noether_msgs/GenerateConvexHull.h"
 #include <fstream>
 #include <string>
-#include<pcl/point_types.h>
+#include <pcl/PolygonMesh.h>
+#include <pcl/point_types.h>
+#include <pcl/conversions.h>
 #include <pcl/io/ply_io.h>
+#include <pcl/io/vtk_lib_io.h>
 #include <pcl/surface/convex_hull.h>
+#include <pcl/common/centroid.h>
+#include <Eigen/Dense>
 
 
 using namespace std;
@@ -16,17 +21,17 @@ bool generate_ch(noether_msgs::GenerateConvexHull::Request& req,
 {
 
   string inMeshFileName = req.file_in; //expects a path to file
-  string modifier_ = "chull.ply";
+  string modifier_ = "_chullt.ply";
   string outMeshFileName = inMeshFileName.substr(0, inMeshFileName.size()-4);
   outMeshFileName.append(modifier_);
   
   pcl::PointCloud<pcl::PointXYZ>::Ptr inMesh (new pcl::PointCloud<pcl::PointXYZ>);
   pcl::PointCloud<pcl::PointXYZ>::Ptr outMesh (new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::PolygonMesh::Ptr outMeshPoly (new pcl::PolygonMesh);
+
   
-  cout<<"attempting to ingest file" << endl;
   //if its a .ply file
   pcl::PLYReader Reader;
-  pcl::PLYWriter Writer;
   Reader.read(inMeshFileName, *inMesh); //populate inMesh
   	
   
@@ -35,12 +40,48 @@ bool generate_ch(noether_msgs::GenerateConvexHull::Request& req,
   pcl::ConvexHull<pcl::PointXYZ> chull;
   
   chull.setInputCloud(inMesh); //generate hull
-  chull.reconstruct(*outMesh); //save to outMesh
+  chull.reconstruct(*outMesh, outMeshPoly->polygons); //save to outMesh
+  
 
-  cout<<inMeshFileName<<endl;
-  cout<<outMeshFileName<<endl;
+  //find centroid coords by finding average x, y, z
 
-  Writer.write(outMeshFileName, *outMesh);
+  Eigen::Matrix< float, 4, 1 > mid; //kinda need this to be a vector
+  int centroid_success = pcl::compute3DCentroid(*outMesh, mid);
+  Eigen::Vector3d midVec= {mid[0], mid[1], mid[2]};
+
+  //invert bad polygons
+  for (int t=0; t < (outMeshPoly->polygons.size()); t++)
+  {
+    pcl::Vertices verts;
+    verts = outMeshPoly->polygons[t];
+
+    pcl::PointXYZ a = outMesh->points[verts.vertices[0]];
+    pcl::PointXYZ b = outMesh->points[verts.vertices[1]];
+    pcl::PointXYZ c = outMesh->points[verts.vertices[2]];
+
+
+    Eigen::Vector3d p0 = {a.x, a.y, a.z};
+    Eigen::Vector3d p1 = {b.x, b.y, b.z};
+    Eigen::Vector3d p2 = {c.x, c.y, c.z};
+
+    Eigen::Vector3d v1 = p1 - p0; 
+    Eigen::Vector3d v2 = p2 - p0;
+    Eigen::Vector3d d = p0 - midVec;
+    Eigen::Vector3d normal = v1.cross(v2);
+    float works = d.dot(normal);
+
+    if (works < 0)
+    {
+      int temp;
+      temp = verts.vertices[1];
+      verts.vertices[1] = verts.vertices[2];
+      verts.vertices[2] = temp;
+
+    }
+    outMeshPoly->polygons[t] = verts;
+  } 
+  pcl::toPCLPointCloud2(*outMesh, outMeshPoly->cloud);
+  pcl::io::savePolygonFile(outMeshFileName, *outMeshPoly, false);
 
  return true;
 }
