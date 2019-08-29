@@ -96,28 +96,17 @@ public:
     vtkSmartPointer<vtkPolyData> mesh_filtered1;
     vtkSmartPointer<vtkPolyData> mesh_filtered2;
 
-    /*
-     * This is left in to show how to do this in case we need to later. Cleaning the mesh seems like a logical thing to
-     * do, and I only disabled it because it seemed to cause some issues. I'm hopeful after I switch to MLS for
-     * curvature calculations it will solve some of these problems, and this can be on by default.
-     *
-     * When this is done line 87 can be removed and line 86 can be uncommented.
-     * 12/31/2018
-    // Remove duplicate points (Note: this seems to cause problems sometimes)
-    //    vtkSmartPointer<vtkCleanPolyData> cleanPolyData = vtkSmartPointer<vtkCleanPolyData>::New();
-    //    cleanPolyData->SetInputData(mesh_in);
-    //    cleanPolyData->Update();
-    //    mesh_cleaned = cleanPolyData->GetOutput();
-*/
-    vtk_viewer::generateNormals(mesh_in);
+    vtkSmartPointer<vtkCleanPolyData> cleanPolyData = vtkSmartPointer<vtkCleanPolyData>::New();
+    cleanPolyData->SetInputData(mesh_in);
+    cleanPolyData->Update();
+    mesh_cleaned = cleanPolyData->GetOutput();
 
     if (cfg.enable_filtering)
     {
       // Apply Windowed Sinc function interpolation Smoothing
       vtkSmartPointer<vtkWindowedSincPolyDataFilter> smooth_filter1 =
-          vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
-      //      smooth_filter1->SetInputConnection(cleanPolyData->GetOutputPort());       // See note above
-      smooth_filter1->SetInputData(mesh_in);
+      vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
+      smooth_filter1->SetInputConnection(cleanPolyData->GetOutputPort());
       smooth_filter1->SetNumberOfIterations(windowed_sinc_iterations);
       smooth_filter1->SetPassBand(windowed_sinc_pass_band);
       windowed_sinc_edge_smoothing  ? smooth_filter1->FeatureEdgeSmoothingOn() : smooth_filter1->FeatureEdgeSmoothingOff();  // Smooth along sharp interior edges
@@ -147,7 +136,7 @@ public:
     if (cfg.enable_filtering)
       segmenter.setInputMesh(mesh_filtered2);
     else
-      segmenter.setInputMesh(mesh_in);
+      segmenter.setInputMesh(mesh_cleaned);
     segmenter.setMinClusterSize(min_cluster_size);
     segmenter.setMaxClusterSize(max_cluster_size);
     segmenter.setCurvatureThreshold(curvature_threshold);
