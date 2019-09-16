@@ -1,55 +1,27 @@
-#include <ros/ros.h>
-#include "noether_msgs/GenerateConvexHull.h"
-#include <fstream>
-#include <string>
-#include <pcl/PolygonMesh.h>
-#include <pcl/point_types.h>
-#include <pcl/conversions.h>
-#include <pcl/io/ply_io.h>
-#include <pcl/io/vtk_lib_io.h>
-#include <pcl/surface/convex_hull.h>
-#include <pcl/common/centroid.h>
-#include <Eigen/Dense>
-
+#include <mesh_segmenter/convex_hull.h>
 
 using namespace std;
+ConvexHullGenerator::ConvexHullGenerator(){}  
+void ConvexHull::makemesh(string input, pcl::PointCloud<pcl::PointXYZ> *inMesh)
+{
+//making mesh----------------------------------------------
+  //expects a .ply file
+  pcl::PLYReader Reader;
+  Reader.read(input, *inMesh); //populate inMesh
+  return;
+}
 
 
-
-bool generate_ch(noether_msgs::GenerateConvexHull::Request& req,
-	                 noether_msgs::GenerateConvexHull::Response& res)
+void ConvexHullGenerator::cleanmesh(pcl::PointCloud<pcl::PointXYZ> outMesh. pcl::PolygonMesh::Ptr outMeshPoly)
 {
 
-  string inMeshFileName = req.file_in; //expects a path to file
-  string modifier_ = "_chullt.ply";
-  string outMeshFileName = inMeshFileName.substr(0, inMeshFileName.size()-4);
-  outMeshFileName.append(modifier_);
-  
-  pcl::PointCloud<pcl::PointXYZ>::Ptr inMesh (new pcl::PointCloud<pcl::PointXYZ>);
-  pcl::PointCloud<pcl::PointXYZ>::Ptr outMesh (new pcl::PointCloud<pcl::PointXYZ>);
-  pcl::PolygonMesh::Ptr outMeshPoly (new pcl::PolygonMesh);
+  //find centroid coords by finding average x, y, z -----------------------
 
-  
-  //if its a .ply file
-  pcl::PLYReader Reader;
-  Reader.read(inMeshFileName, *inMesh); //populate inMesh
-  	
-  
-  //boilerplate
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_hull (new pcl::PointCloud<pcl::PointXYZ>);
-  pcl::ConvexHull<pcl::PointXYZ> chull;
-  
-  chull.setInputCloud(inMesh); //generate hull
-  chull.reconstruct(*outMesh, outMeshPoly->polygons); //save to outMesh
-  
-
-  //find centroid coords by finding average x, y, z
-
-  Eigen::Matrix< float, 4, 1 > mid; //kinda need this to be a vector
-  int centroid_success = pcl::compute3DCentroid(*outMesh, mid);
+  Eigen::Matrix< float, 4, 1 > mid;
+  int centroid_success = pcl::compute3DCentroid(*outMesh, mid); //this needs to be checked
   Eigen::Vector3d midVec= {mid[0], mid[1], mid[2]};
 
-  //invert bad polygons
+  //invert bad polygons --------------------------------
   for (int t=0; t < (outMeshPoly->polygons.size()); t++)
   {
     pcl::Vertices verts;
@@ -80,22 +52,34 @@ bool generate_ch(noether_msgs::GenerateConvexHull::Request& req,
     }
     outMeshPoly->polygons[t] = verts;
   } 
-  pcl::toPCLPointCloud2(*outMesh, outMeshPoly->cloud);
-  pcl::io::savePolygonFile(outMeshFileName, *outMeshPoly, false);
-
- return true;
+  return;
 }
 
-
-int main(int argc, char **argv)
+bool ConvexHullGenerator::savemesh(pcl::PointCloud<pcl::PointXYZ>::Ptr outMesh, pcl::PolygonMesh::Ptr outMeshPoly, string outfile)
 {
-  ros::init(argc, argv, "convex_hull_server");
-  ros::NodeHandle nh;
-  bool response;
-
-  ros::ServiceServer service = nh.advertiseService("convex_hull_generation", generate_ch);
-
-  ros::spin();
-
-  return 0;
+  pcl::toPCLPointCloud2(*outMesh, outMeshPoly->cloud);
+  pcl::io::savePolygonFile(outfile, *outMeshPoly, false);
+  return true;
 }
+
+bool ConvexHullGenerator:: generate_ch(string infile,string outfile)
+{
+    pcl::PointCloud<pcl::PointXYZ>::Ptr inMesh (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr outMesh (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PolygonMesh::Ptr outMeshPoly (new pcl::PolygonMesh);
+    pcl::ConvexHull<pcl::PointXYZ> chull;
+
+    ConvexHullGenerator::makemesh(infile, inMesh); //theres like a 2% chance I'm passing this pointer correctly
+
+    chull.setInputCloud(inMesh); //generate hull
+    chull.reconstruct(*outMesh, outMeshPoly->polygons); //save to outMesh
+
+    ConvexHullGenerator::cleanmesh(outMesh, outMeshPoly);
+    bool success = ConvexHullGenerator::savemesh(outMesh, outMeshPoly, outfile);
+
+  return success;
+}
+  
+
+
+
