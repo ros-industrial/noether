@@ -43,6 +43,7 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 add_executable(surface_raster_planner_server
   src/surface_raster_planner_server.cpp
 )
+
 target_link_libraries(surface_raster_planner_server
   ${catkin_LIBRARIES}
   ${VTK_LIBRARIES}
@@ -63,11 +64,17 @@ target_link_libraries(segmentation_server
   ${catkin_LIBRARIES}
   ${VTK_LIBRARIES}
 )
+add_executable(convex_hull_node
+              src/convex_hull_node.cpp)
+
+target_link_libraries(convex_hull_node   
+  ${catkin_LIBRARIES}
+  ${VTK_LIBRARIES})
 
 #############
 ## Install ##
 #############
-install(TARGETS segmentation_server surface_raster_planner_application surface_raster_planner_server
+install(TARGETS segmentation_server surface_raster_planner_application surface_raster_planner_server convex_hull_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
