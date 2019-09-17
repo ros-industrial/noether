@@ -18,8 +18,8 @@ class ConvexHullGenerator
 {
 public:
   ConvexHullGenerator(); //constructor
-  void makemesh(string input, pcl::PointCloud<pcl::PointXYZ> *inMesh);	
-  bool cleanmesh(pcl::PointCloud<pcl::PointXYZ> outMesh, pcl::PolygonMesh::Ptr outMeshPoly);	
+  void makemesh(string input, pcl::PointCloud<pcl::PointXYZ>::Ptr inMesh);	
+  void cleanmesh(pcl::PointCloud<pcl::PointXYZ>::Ptr outMesh, pcl::PolygonMesh::Ptr outMeshPoly);	
   bool savemesh(pcl::PointCloud<pcl::PointXYZ>::Ptr outMesh, pcl::PolygonMesh::Ptr outMeshPoly, string outfile);
   bool generate_ch(string infile, string outfile);	
 

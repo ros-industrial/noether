@@ -2,7 +2,8 @@
 
 using namespace std;
 ConvexHullGenerator::ConvexHullGenerator(){}  
-void ConvexHull::makemesh(string input, pcl::PointCloud<pcl::PointXYZ> *inMesh)
+
+void ConvexHullGenerator::makemesh(string input, pcl::PointCloud<pcl::PointXYZ>::Ptr inMesh)
 {
 //making mesh----------------------------------------------
   //expects a .ply file
@@ -12,7 +13,7 @@ void ConvexHull::makemesh(string input, pcl::PointCloud<pcl::PointXYZ> *inMesh)
 }
 
 
-void ConvexHullGenerator::cleanmesh(pcl::PointCloud<pcl::PointXYZ> outMesh. pcl::PolygonMesh::Ptr outMeshPoly)
+void ConvexHullGenerator::cleanmesh(pcl::PointCloud<pcl::PointXYZ>::Ptr outMesh, pcl::PolygonMesh::Ptr outMeshPoly)
 {
 
   //find centroid coords by finding average x, y, z -----------------------
