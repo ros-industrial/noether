@@ -10,10 +10,10 @@ find_package(catkin REQUIRED COMPONENTS
   rosconsole
 )
 
-find_package(VTK 7.1 REQUIRED NO_MODULE)
+find_package(VTK 8.2 REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
 
-find_package(PCL 1.8 REQUIRED)
+find_package(PCL 1.9 REQUIRED)
 add_definitions(${PCL_DEFINITIONS})
 
 find_package(Eigen3 REQUIRED)

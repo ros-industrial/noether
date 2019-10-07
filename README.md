@@ -10,7 +10,7 @@ Tool path planning and surface segmenter
 ---
 ## Installation
 
-This package depends on PCL 1.8 and VTK 7.1. 
+This package depends on PCL 1.8 and VTK 8.2. 
 
 #### Prerequisites
 - **checkinstall**
@@ -18,7 +18,7 @@ This package depends on PCL 1.8 and VTK 7.1.
 
 #### Dependencies Installation
 ##### 1. VTK
-1. Download [VTK 7.1](https://github.com/Kitware/VTK/releases/tag/v7.1.1)
+1. Download [VTK 8.2](https://github.com/Kitware/VTK/releases/tag/v8.2.1)
 2. Unzip or extract into a user accessible directory
 3. `CD` into that directory and create a new `build` directory
 4. Run cmake
@@ -33,7 +33,7 @@ This package depends on PCL 1.8 and VTK 7.1.
     _This will take a while ..._
 2. Install 
     ```
-    sudo checkinstall --pkgname=vtk-7.1
+    sudo checkinstall --pkgname=vtk-8.2
     ```
     The installation process will prompt you to accept/reject some options prior to building the debian, **just follow the recommended prompts**.
     
@@ -43,7 +43,7 @@ This package depends on PCL 1.8 and VTK 7.1.
 1. Download [PCL 1.8](https://github.com/PointCloudLibrary/pcl/releases/tag/pcl-1.8.1)
 2. Unzip or extract into a user accessible directory
 3. `cd` into that directory and locate the `CMakeLists.txt` file.
-4. Locate the `find package(VTK)` line (close to line 362) and edit it to `find_package(VTK 7.1 REQUIRED)`
+4. Locate the `find package(VTK)` line (close to line 362) and edit it to `find_package(VTK 8.2 REQUIRED)`
 5. Configure and build
     ```
     cmake .

@@ -9,7 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   tool_path_planner
 )
 
-find_package(VTK 7.1 REQUIRED NO_MODULE)
+find_package(VTK 8.2 REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
 
 find_package(Eigen3 REQUIRED)
