@@ -49,7 +49,7 @@ catkin_package(
 # )
 
 ## Declare Main C++ library
-add_library(${PROJECT_NAME} SHARED src/mesh_filter_manager.cpp)
+add_library(${PROJECT_NAME} SHARED src/filter_group.cpp src/mesh_filter_manager.cpp)
 target_link_libraries(${PROJECT_NAME} PUBLIC ${catkin_LIBRARIES})
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	CXX_STANDARD 14

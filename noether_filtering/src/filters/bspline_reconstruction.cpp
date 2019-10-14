@@ -8,7 +8,9 @@
 #include "noether_filtering/filters/bspline_reconstruction.h"
 #include "noether_filtering/utils.h"
 #include <XmlRpcException.h>
+#include <pcl/io/vtk_lib_io.h>
 #include <pluginlib/class_list_macros.h>
+#include <boost/make_shared.hpp>
 
 PLUGINLIB_EXPORT_CLASS(noether_filtering::filters::BSplineReconstruction, noether_filtering:: MeshFilterBase)
 
@@ -105,6 +107,16 @@ bool BSplineReconstruction::configure(XmlRpc::XmlRpcValue config)
 
 bool BSplineReconstruction::filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMesh& mesh_out)
 {
+  using Cloud = pcl::PointCloud<pcl::PointXYZ>;
+
+  // converting to point cloud
+  Cloud::Ptr cloud_in = boost::make_shared<Cloud>();
+  vtkSmartPointer<vtkPolyData> temp_mesh_in= vtkSmartPointer<vtkPolyData>::New();
+  //pcl::io::mesh2vtk(mesh_in, temp_mesh_in);
+  //pcl::io::vtkPolyDataToPointCloud(temp_mesh_in.Get(), *cloud_in);
+
+
+
 }
 
 std::string BSplineReconstruction::getName()
