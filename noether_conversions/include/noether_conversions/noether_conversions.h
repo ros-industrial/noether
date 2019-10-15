@@ -18,13 +18,26 @@
  */
 
 #include <geometry_msgs/PoseArray.h>
+#include <shape_msgs/Mesh.h>
+#include <pcl/PolygonMesh.h>
 
-#include <tool_path_planner/tool_path_planner_base.h>
+namespace noether_conversions {
 
-namespace noether {
+  /**
+   * @brief Convenience conversion function
+   * @param mesh_msg  The input mesh
+   * @param mesh      The output pcl mesh
+   * @return  True on success, false otherwise.
+   */
+  bool convertToPCLMesh(const shape_msgs::Mesh& mesh_msg, pcl::PolygonMesh& mesh);
 
-  std::vector<geometry_msgs::PoseArray> convertVTKtoGeometryMsgs(
-      const std::vector<tool_path_planner::ProcessPath>& paths);
+  /**
+   * @brief convenience conversion function
+   * @param mesh      a polygon mesh from pcl
+   * @param mesh_msg  a mesh message
+   * @return True on success, false otherwise.
+   */
+  bool convertToMeshMsg(const pcl::PolygonMesh& mesh, shape_msgs::Mesh& mesh_msg);
 
 }
 

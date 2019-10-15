@@ -1,67 +1,79 @@
 #include <noether_conversions/noether_conversions.h>
 #include <Eigen/Geometry>
-#include <tf/LinearMath/Matrix3x3.h>
-#include <tf/transform_datatypes.h>
-#include <geometry_msgs/Transform.h>
-#include <ros/time.h>
 #include <vtkPointData.h>
+#include <pcl/conversions.h>
+#include <pcl/point_types.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <console_bridge/console.h>
 
-
-std::vector<geometry_msgs::PoseArray> noether::convertVTKtoGeometryMsgs(
-    const std::vector<tool_path_planner::ProcessPath>& paths)
+namespace noether_conversions
 {
-  std::vector<geometry_msgs::PoseArray> poseArrayVector;
-  for(int j = 0; j < paths.size(); ++j)
+
+bool convertToPCLMesh(const shape_msgs::Mesh& mesh_msg, pcl::PolygonMesh& mesh)
+{
+  // iterating over triangles
+  pcl::PointCloud<pcl::PointXYZ> mesh_points;
+  mesh.polygons.clear();
+  for(auto& triangle : mesh_msg.triangles)
   {
-     geometry_msgs::PoseArray poses;
-     poses.header.seq = j;
-     poses.header.stamp = ros::Time::now();
-     poses.header.frame_id = "0";
-     for(int k = 0; k < paths[j].line->GetPoints()->GetNumberOfPoints(); ++k)
-     {
-        geometry_msgs::Pose pose;
-        double pt[3];
+    pcl::Vertices vertices;
+    vertices.vertices.assign(triangle.vertex_indices.begin(),triangle.vertex_indices.end());
+    mesh.polygons.push_back(vertices);
+  }
 
-        // Get the point location
-        paths[j].line->GetPoints()->GetPoint(k, pt);
-        pose.position.x = pt[0];
-        pose.position.y = pt[1];
-        pose.position.z = pt[2];
+  std::transform(mesh_msg.vertices.begin(),mesh_msg.vertices.end(),std::back_inserter(mesh_points.points),[](
+      const geometry_msgs::Point& point){
+    pcl::PointXYZ p;
+    std::tie(p.x,p.y,p.z) = std::make_tuple(point.x,point.y,point.z);
+    return p;
+  });
 
-        // Get the point normal and derivative for creating the 3x3 transform
-        double* norm =
-            paths[j].line->GetPointData()->GetNormals()->GetTuple(k);
-        double* der =
-            paths[j].derivatives->GetPointData()->GetNormals()->GetTuple(k);
+  pcl::toPCLPointCloud2(mesh_points,mesh.cloud);
+  return true;
+}
 
-        // perform cross product to get the third axis direction
-        Eigen::Vector3d u(norm[0], norm[1], norm[2]);
-        Eigen::Vector3d v(der[0], der[1], der[2]);
-        Eigen::Vector3d w = u.cross(v);
-        w.normalize();
+bool convertToMeshMsg(const pcl::PolygonMesh& mesh, shape_msgs::Mesh& mesh_msg)
+{
+  if(mesh.polygons.empty())
+  {
+    CONSOLE_BRIDGE_logInform("PolygonMesh has no polygons");
+    return false;
+  }
 
-        // after first cross product, u and w will be orthogonal.
-        // Perform cross product one more time to make sure that v is perfectly
-        // orthogonal to u and w
-        v = u.cross(w);
-        v.normalize();
 
-        Eigen::Affine3d epose = Eigen::Affine3d::Identity();
-        epose.matrix().col(0).head<3>() = v;
-        epose.matrix().col(1).head<3>() = -w;
-        epose.matrix().col(2).head<3>() = u;
-        epose.matrix().col(3).head<3>() = Eigen::Vector3d(pt[0], pt[1], pt[2]);
+  pcl::PointCloud<pcl::PointXYZ> cloud;
+  pcl::fromPCLPointCloud2(mesh.cloud,cloud);
+  if(cloud.empty())
+  {
+    CONSOLE_BRIDGE_logInform("PolygonMesh has vertices data");
+    return false;
+  }
 
-        tf::poseEigenToMsg(epose, pose);
-
-        // push back new matrix (pose and orientation), this makes one long
-        // vector may need to break this up more
-        poses.poses.push_back(pose);
-
-      }
-      poseArrayVector.push_back(poses);
+  // copying triangles
+  mesh_msg.triangles.resize(mesh.polygons.size());
+  for(std::size_t i = 0; i < mesh.polygons.size(); i++)
+  {
+    const pcl::Vertices& vertices = mesh.polygons[i];
+    if(vertices.vertices.size() != 3)
+    {
+      CONSOLE_BRIDGE_logInform("Vertex in PolygonMesh needs to have 3 elements only");
+      return false;
     }
 
-  return poseArrayVector;
+    boost::array<uint32_t, 3>& vertex = mesh_msg.triangles[i].vertex_indices;
+    std::tie(vertex[0], vertex[1], vertex[2]) = std::make_tuple(vertices.vertices[0],
+                                                                vertices.vertices[1],
+                                                                vertices.vertices[2]);
+  }
+
+  // copying vertices
+  mesh_msg.vertices.resize(cloud.size());
+  std::transform(cloud.begin(),cloud.end(),mesh_msg.vertices.begin(),[](pcl::PointXYZ& v){
+    geometry_msgs::Point p;
+    std::tie(p.x, p.y, p.z) = std::make_tuple(v.x,v.y,v.z);
+    return std::move(p);
+  });
+  return true;
+}
+
 }

@@ -8,6 +8,7 @@ project(tool_path_planner)
 find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   eigen_conversions
+  noether_conversions
   geometry_msgs
   noether_msgs
   rosconsole

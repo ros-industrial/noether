@@ -76,7 +76,6 @@ MeshFilterManager::~MeshFilterManager()
 bool MeshFilterManager::init(XmlRpc::XmlRpcValue config)
 {
   using namespace XmlRpc;
-  using MeshFilterGroup = FilterGroup<MeshFilterBase>;
 
   if(!config.hasMember(config_field_names::FILTER_GROUPS))
   {
@@ -131,7 +130,7 @@ bool MeshFilterManager::init(XmlRpc::XmlRpcValue config)
   return true;
 }
 
-std::shared_ptr<FilterGroup<MeshFilterBase> > MeshFilterManager::getFilterGroup(const std::string& name)
+std::shared_ptr< MeshFilterGroup > MeshFilterManager::getFilterGroup(const std::string& name)
 {
   std::string n = name.empty() ? DEFAULT_FILTER_CHAIN_NAME : name;
   if(filter_groups_map_.count(n) == 0)

@@ -5,12 +5,12 @@ find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   eigen_conversions
   geometry_msgs
-  tf
-  tool_path_planner
 )
 
 find_package(VTK 8.2 REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
+
+find_package(PCL 1.8 REQUIRED)
 
 find_package(Eigen3 REQUIRED)
 
@@ -22,8 +22,6 @@ catkin_package(
   CATKIN_DEPENDS
     eigen_conversions
     geometry_msgs
-    tf
-    tool_path_planner
   DEPENDS
     EIGEN3
     VTK
@@ -32,6 +30,7 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
 )
 
 add_library(${PROJECT_NAME}

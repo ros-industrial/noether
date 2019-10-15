@@ -28,6 +28,7 @@ add_message_files(
 add_action_files(
   FILES
     GenerateToolPaths.action
+    ApplyMeshFilters.action
     Segment.action
 )
 

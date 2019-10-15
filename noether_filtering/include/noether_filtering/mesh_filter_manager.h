@@ -12,14 +12,14 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
-#include "filter_group.hpp"
+#include "noether_filtering/filter_group.hpp"
 #include "noether_filtering/mesh_filter_base.h"
 
 
 namespace noether_filtering
 {
 
-
+using MeshFilterGroup = FilterGroup<pcl::PolygonMesh>;
 class MeshFilterManager
 {
 public:
@@ -39,11 +39,11 @@ public:
    * @param name
    * @return
    */
-  std::shared_ptr<FilterGroup<MeshFilterBase>> getFilterGroup(const std::string& name);
+  std::shared_ptr<MeshFilterGroup> getFilterGroup(const std::string& name);
 
 protected:
   
-  std::map<std::string, std::shared_ptr<FilterGroup<MeshFilterBase>> > filter_groups_map_;
+  std::map<std::string, std::shared_ptr<MeshFilterGroup> > filter_groups_map_;
 
 
 };

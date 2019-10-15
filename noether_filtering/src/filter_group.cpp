@@ -148,8 +148,15 @@ template<class F>
 bool FilterGroup<F>::applyFilters(const std::vector<std::string>& filters, const F& input, F& output,
                                     std::string& err_msg)
 {
+  std::vector<std::string> selected_filters = filters;
+  if(selected_filters.empty())
+  {
+    CONSOLE_BRIDGE_logWarn("%s received empty list of filters, using all filters loaded", utils::getClassName< FilterGroup<F> >().c_str());
+    std::copy(filters_loaded_.begin(), filters_loaded_.end(), std::back_inserter(selected_filters));
+  }
+
   // check all filters exists
-  if(!std::all_of(filters.begin(), filters.end(),[&](const std::string& f){
+  if(!std::all_of(selected_filters.begin(), selected_filters.end(),[&](const std::string& f){
     if (filters_map_.count(f) == 0)
     {
       err_msg = boost::str(boost::format("The mesh filter %s was not found") % f);
@@ -164,7 +171,7 @@ bool FilterGroup<F>::applyFilters(const std::vector<std::string>& filters, const
 
   // apply filters
   bool success = false;
-  for(const std::string& fname : filters)
+  for(const std::string& fname : selected_filters)
   {
     bool current_filter_succeeded = filters_map_[fname]->filter(input,output);
     if(!current_filter_succeeded)
