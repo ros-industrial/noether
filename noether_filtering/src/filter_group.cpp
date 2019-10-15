@@ -29,7 +29,7 @@ struct MeshFilterInfo
   XmlRpc::XmlRpcValue config; /** @brief the filter configuration */
 };
 
-bool loadFilterInfos(XmlRpc::XmlRpcValue mesh_filter_configs,std::vector<MeshFilterInfo>& filter_infos)
+static bool loadFilterInfos(XmlRpc::XmlRpcValue mesh_filter_configs,std::vector<MeshFilterInfo>& filter_infos)
 {
   using namespace XmlRpc;
   using namespace config_field_names;

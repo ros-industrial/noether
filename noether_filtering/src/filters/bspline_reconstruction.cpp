@@ -5,10 +5,11 @@
  *      Author: jrgnicho
  */
 
+#include <pcl/surface/on_nurbs/triangulation.h>
+#include <pcl/conversions.h>
 #include "noether_filtering/filters/bspline_reconstruction.h"
 #include "noether_filtering/utils.h"
 #include <XmlRpcException.h>
-#include <pcl/io/vtk_lib_io.h>
 #include <pluginlib/class_list_macros.h>
 #include <boost/make_shared.hpp>
 
@@ -109,13 +110,98 @@ bool BSplineReconstruction::filter(const pcl::PolygonMesh& mesh_in, pcl::Polygon
 {
   using Cloud = pcl::PointCloud<pcl::PointXYZ>;
 
+
   // converting to point cloud
   Cloud::Ptr cloud_in = boost::make_shared<Cloud>();
-  vtkSmartPointer<vtkPolyData> temp_mesh_in= vtkSmartPointer<vtkPolyData>::New();
-  //pcl::io::mesh2vtk(mesh_in, temp_mesh_in);
-  //pcl::io::vtkPolyDataToPointCloud(temp_mesh_in.Get(), *cloud_in);
+  pcl::fromPCLPointCloud2(mesh_in.cloud, *cloud_in);
 
+  // initializing nurbs_surface surface
+  pcl::on_nurbs::NurbsDataSurface nurbs_data = pcl::on_nurbs::NurbsDataSurface();
+  ON_NurbsSurface nurbs_surface;
+  switch(parameters_.surf_init_method)
+  {
+    case SurfInitMethod::PCA:
+      nurbs_surface = pcl::on_nurbs::FittingSurface::initNurbsPCA(parameters_.order, &nurbs_data,
+                                                          Eigen::Vector3d::UnitZ());
+      break;
+    case SurfInitMethod::PCA_BB:
+      nurbs_surface = pcl::on_nurbs::FittingSurface::initNurbsPCABoundingBox (parameters_.order, &nurbs_data,
+                                                                      Eigen::Vector3d::UnitZ());
+      break;
+    case SurfInitMethod::CUSTOM_PLANE:
+      CONSOLE_BRIDGE_logError("The surface initialization method %i is not yet implemented",
+                              static_cast<int>(parameters_.surf_init_method));
+      return false;
+    default:
+      CONSOLE_BRIDGE_logError("The surface initialization method %i was not recognized",
+                              static_cast<int>(parameters_.surf_init_method));
+      return false;
+  }
 
+  // fitting surface
+  pcl::on_nurbs::FittingSurface fit (&nurbs_data, nurbs_surface);
+  fit.setQuiet (false); // enable/disable debug output
+  pcl::on_nurbs::FittingSurface::Parameter surf_params = parameters_.surface_params;
+  for (int i = 0; i < parameters_.refinement; i++)
+  {
+    CONSOLE_BRIDGE_logDebug("Refinement attempt %i",i+1);
+    fit.refine (0);
+    fit.refine (1);
+    fit.assemble (surf_params);
+    fit.solve ();
+  }
+
+  // improving fit
+  for (unsigned i = 0; i < parameters_.iterations; i++)
+  {
+    CONSOLE_BRIDGE_logDebug("Improvement attempt %i",i+1);
+    fit.assemble (surf_params);
+    fit.solve ();
+  }
+
+  if(fit.m_nurbs.IsValid())
+  {
+    CONSOLE_BRIDGE_logError("Surface fitting failed");
+    return false;
+  }
+
+  // fit B-spline boundary curve
+  std::shared_ptr<pcl::on_nurbs::FittingCurve2dASDM> curve_fit;
+  if (parameters_.clip_boundary_curve)
+  {
+    // initialisation (circular)
+    CONSOLE_BRIDGE_logDebug ("Boundary Curve fitting ...");
+    pcl::on_nurbs::NurbsDataCurve2d curve_data;
+    curve_data.interior = nurbs_data.interior_param;
+    curve_data.interior_weight_function.push_back (true);
+    ON_NurbsCurve curve_nurbs = pcl::on_nurbs::FittingCurve2dAPDM::initNurbsCurve2D (
+        parameters_.order, curve_data.interior);
+
+    // curve fitting
+    curve_fit = std::make_shared<pcl::on_nurbs::FittingCurve2dASDM>(&curve_data, curve_nurbs);
+    curve_fit->setQuiet (false); // enable/disable debug output
+    curve_fit->fitting (parameters_.boundary_curve_params);
+
+    if(!curve_fit->m_nurbs.IsValid())
+    {
+      CONSOLE_BRIDGE_logError("Failed to fit boundary curve");
+      return false;
+    }
+  }
+
+  if(curve_fit->m_nurbs.IsValid())
+  {
+    pcl::on_nurbs::Triangulation::convertTrimmedSurface2PolygonMesh (fit.m_nurbs,
+                                                                     curve_fit->m_nurbs,
+                                                                     mesh_out,
+                                                                     parameters_.mesh_resolution);
+  }
+  else
+  {
+    pcl::on_nurbs::Triangulation::convertSurface2PolygonMesh (fit.m_nurbs, mesh_out,
+                                                              parameters_.mesh_resolution);
+  }
+  return true;
 
 }
 
