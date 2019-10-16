@@ -64,7 +64,7 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
 
 
 ## Mesh Filters library
-add_library(${PROJECT_NAME}_mesh_filters SHARED src/filters/bspline_reconstruction.cpp)
+add_library(${PROJECT_NAME}_mesh_filters SHARED src/mesh_filters/bspline_reconstruction.cpp)
 target_link_libraries(${PROJECT_NAME}_mesh_filters PUBLIC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 set_target_properties(${PROJECT_NAME}_mesh_filters PROPERTIES
 	CXX_STANDARD 14

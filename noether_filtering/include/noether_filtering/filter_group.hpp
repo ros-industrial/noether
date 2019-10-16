@@ -17,14 +17,14 @@
 namespace noether_filtering
 {
 
-template<class F>
+template<class F >
 class FilterGroup
 {
 public:
 
   using FilterT = FilterBase< F >;
 
-  FilterGroup();
+  FilterGroup(const std::string& base_class_name);
   virtual ~FilterGroup();
   
     /**
@@ -60,6 +60,7 @@ protected:
   std::shared_ptr< typename pluginlib::ClassLoader< FilterT > > filter_loader_;
   std::vector<std::string> filters_loaded_;
   std::map<std::string, std::unique_ptr< FilterT> > filters_map_;
+  std::string base_class_name_;
   bool continue_on_failure_;
 };
 

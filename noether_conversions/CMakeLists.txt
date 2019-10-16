@@ -39,6 +39,7 @@ add_library(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
   ${VTK_LIBRARIES}
+  ${PCL_LIBRARIES}
 )
 
 #############

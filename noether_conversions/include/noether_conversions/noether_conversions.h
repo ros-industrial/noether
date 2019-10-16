@@ -39,5 +39,21 @@ namespace noether_conversions {
    */
   bool convertToMeshMsg(const pcl::PolygonMesh& mesh, shape_msgs::Mesh& mesh_msg);
 
+  /**
+   * @brief saves to a PLY file
+   * @param filename
+   * @param mesh_msg
+   * @return True on success, false otherwise.
+   */
+  bool savePLYFile(const std::string& filename, const shape_msgs::Mesh& mesh_msg);
+
+  /**
+   * @brief loads from a PLY file
+   * @param filename
+   * @param mesh_msg
+   * @return True on success, false otherwise.
+   */
+  bool loadPLYFile(const std::string& filename, shape_msgs::Mesh& mesh_msg);
+
 }
 

@@ -7,6 +7,7 @@ project(noether_examples)
 
 find_package(VTK 8.2 REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
+find_package(PCL 1.9 REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
   actionlib
@@ -44,6 +45,7 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
 )
 
 add_executable(mesh_segmenter_client_node
@@ -60,6 +62,14 @@ add_executable(mesh_segmenter_node
 target_link_libraries(mesh_segmenter_node
   ${catkin_LIBRARIES}
   ${VTK_LIBRARIES}
+)
+
+add_executable(mesh_filtering_client
+  src/mesh_filtering_client.cpp
+)
+target_link_libraries(mesh_filtering_client
+  ${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
 )
 
 #############

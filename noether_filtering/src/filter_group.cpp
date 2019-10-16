@@ -53,8 +53,9 @@ static bool loadFilterInfos(XmlRpc::XmlRpcValue mesh_filter_configs,std::vector<
 }
 
 template<class F>
-FilterGroup<F>::FilterGroup():
-  continue_on_failure_(false)
+FilterGroup<F>::FilterGroup(const std::string& base_class_name):
+  continue_on_failure_(false),
+  base_class_name_(base_class_name)
 {
 
 }
@@ -72,7 +73,7 @@ bool FilterGroup<F>::init(XmlRpc::XmlRpcValue config)
   using namespace config_field_names;
   using FilterLoader = pluginlib::ClassLoader< FilterT >;
   using PluginPtr = std::unique_ptr<FilterT>;
-  filter_loader_ = std::make_shared< FilterLoader>(PACKAGE_NAME,utils::getClassName<F>());
+  filter_loader_ = std::make_shared< FilterLoader>(PACKAGE_NAME,base_class_name_);
 
   // checking config fields
   const std::vector<std::string> REQUIRED_FIELDS = {CONTINUE_ON_FAILURE, MESH_FILTERS};
@@ -106,7 +107,7 @@ bool FilterGroup<F>::init(XmlRpc::XmlRpcValue config)
   {
     if(filters_map_.count(mi.name) > 0)
     {
-      CONSOLE_BRIDGE_logError("The %s plugin '%s' has already been added",utils::getClassName<F>().c_str(),
+      CONSOLE_BRIDGE_logError("The %s plugin '%s' has already been added",base_class_name_.c_str(),
                 mi.name.c_str());
       return false;
     }
@@ -117,7 +118,7 @@ bool FilterGroup<F>::init(XmlRpc::XmlRpcValue config)
       plugin.reset(filter_loader_->createUnmanagedInstance(mi.type_name));
       if(!plugin->configure(mi.config))
       {
-        CONSOLE_BRIDGE_logError("%s plugin '%s' failed to load configuration",utils::getClassName<F>().c_str(),
+        CONSOLE_BRIDGE_logError("%s plugin '%s' failed to load configuration",base_class_name_.c_str(),
                   mi.name.c_str());
         return false;
       }
@@ -128,8 +129,8 @@ bool FilterGroup<F>::init(XmlRpc::XmlRpcValue config)
     }
     catch(pluginlib::PluginlibException& e)
     {
-      CONSOLE_BRIDGE_logError("%s plugin '%s' could not be created",utils::getClassName<F>().c_str(),
-                mi.name.c_str());
+      CONSOLE_BRIDGE_logError("%s plugin '%s' could not be created, error msg: %s",base_class_name_.c_str(),
+                mi.name.c_str(), e.what());
       return false;
     }
   }

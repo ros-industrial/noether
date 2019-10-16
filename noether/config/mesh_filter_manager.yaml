@@ -1,0 +1,31 @@
+filter_groups:
+  - group_name: DEFAULT
+    continue_on_failure: False
+    mesh_filters:
+    - type: noether_filtering/BSplineReconstruction
+      name: bspline_surf_1
+      config:
+        order: 3
+        refinement: 3
+        iterations: 2
+        mesh_resolution: 20
+        surf_init_method: 2
+        fit_surface_parameters:
+          interior_smoothness: 0.5
+          interior_weight: 1.0
+          boundary_smoothness: 0.5
+          boundary_weight: 1.0
+        clip_boundary_curve: True
+        boundary_fit_order: 2 # applicable only when clip_boundary_curve: True
+        boundary_curve_parameters:
+          addCPsAccuracy: 0.05 #5e-2
+          addCPsIteration: 3
+          maxCPs: 200
+          accuracy: 0.001 #1e-3
+          iterations: 100
+          closest_point_resolution: 0.0
+          closest_point_weight: 1.0
+          closest_point_sigma2: 0.1
+          interior_sigma2: 0.00001
+          smooth_concavity: 1.0
+          smoothness: 1.0

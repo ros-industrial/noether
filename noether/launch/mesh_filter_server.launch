@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+<node name="mesh_filter_server" type="mesh_filter_server" pkg="noether" output="screen">
+  <rosparam command="load" ns="mesh_filter_manager" file="$(find noether)/config/mesh_filter_manager.yaml"/>
+</node>
+
+</launch>

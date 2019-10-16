@@ -5,16 +5,16 @@
  *      Author: jrgnicho
  */
 
-#ifndef INCLUDE_NOETHER_FILTERING_FILTERS_BSPLINE_RECONSTRUCTION_H_
-#define INCLUDE_NOETHER_FILTERING_FILTERS_BSPLINE_RECONSTRUCTION_H_
+#ifndef INCLUDE_NOETHER_FILTERING_MESH_FILTERS_BSPLINE_RECONSTRUCTION_H_
+#define INCLUDE_NOETHER_FILTERING_MESH_FILTERS_BSPLINE_RECONSTRUCTION_H_
 
 #include <pcl/surface/on_nurbs/fitting_surface_tdm.h>
 #include <pcl/surface/on_nurbs/fitting_curve_2d_asdm.h>
-#include "noether_filtering/filter_base.h"
+#include "noether_filtering/mesh_filters/mesh_filter_base.h"
 
 namespace noether_filtering
 {
-namespace filters
+namespace mesh_filters
 {
 
 /**
@@ -22,7 +22,7 @@ namespace filters
  * @details: Smoothes a mesh by fitting a bspline surface to it.  The details of this implementation'
  * can be in found in http://pointclouds.org/documentation/tutorials/bspline_fitting.php
  */
-class BSplineReconstruction : public FilterBase<pcl::PolygonMesh>
+class BSplineReconstruction : public MeshFilterBase
 {
 public:
 
@@ -95,4 +95,4 @@ protected:
 } /* namespace filters */
 } /* namespace noether_filtering */
 
-#endif /* INCLUDE_NOETHER_FILTERING_FILTERS_BSPLINE_RECONSTRUCTION_H_ */
+#endif /* INCLUDE_NOETHER_FILTERING_MESH_FILTERS_BSPLINE_RECONSTRUCTION_H_ */

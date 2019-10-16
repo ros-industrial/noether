@@ -16,6 +16,6 @@
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
-  	<noether_filtering plugin="${prefix}/mesh_filters.xml"/>
+  	<noether_filtering plugin="${prefix}/mesh_filters_plugins.xml"/>
   </export>
 </package>

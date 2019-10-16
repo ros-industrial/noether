@@ -12,7 +12,7 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/PolygonMesh.h>
-#include "noether_filtering/filter_base.h"
+#include "noether_filtering/mesh_filters/mesh_filter_base.h"
 #include "noether_filtering/filter_group.hpp"
 
 namespace noether_filtering

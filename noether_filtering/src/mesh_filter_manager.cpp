@@ -11,6 +11,7 @@
 
 
 static const std::string DEFAULT_FILTER_CHAIN_NAME = "Default";
+static const std::string PLUGIN_BASE_TYPE = "noether_filtering::mesh_filters::MeshFilterBase";
 
 namespace config_field_names
 {
@@ -58,7 +59,7 @@ bool MeshFilterManager::init(XmlRpc::XmlRpcValue config)
     try
     {
       XmlRpcValue config = filter_groups_config[i];
-      std::shared_ptr<MeshFilterGroup> filter_group = std::make_shared<MeshFilterGroup>();
+      std::shared_ptr<MeshFilterGroup> filter_group = std::make_shared<MeshFilterGroup>(PLUGIN_BASE_TYPE);
       std::string group_name = static_cast<std::string>(config[config_field_names::GROUP_NAME]);
 
       if(filter_groups_map_.count(group_name) > 0)
@@ -76,6 +77,9 @@ bool MeshFilterManager::init(XmlRpc::XmlRpcValue config)
       }
 
       filter_groups_map_.insert(std::make_pair(group_name,std::move(filter_group)));
+      CONSOLE_BRIDGE_logInform("%s loaded mesh filter group %s",
+                               utils::getClassName<decltype(*this)>().c_str(),
+                               group_name.c_str());
     }
     catch(XmlRpcException& e)
     {

@@ -7,17 +7,17 @@
 
 #include <pcl/surface/on_nurbs/triangulation.h>
 #include <pcl/conversions.h>
-#include "noether_filtering/filters/bspline_reconstruction.h"
 #include "noether_filtering/utils.h"
 #include <XmlRpcException.h>
 #include <pluginlib/class_list_macros.h>
 #include <boost/make_shared.hpp>
+#include <noether_filtering/mesh_filters/bspline_reconstruction.h>
 
-PLUGINLIB_EXPORT_CLASS(noether_filtering::filters::BSplineReconstruction, noether_filtering::FilterBase<pcl::PolygonMesh>)
+PLUGINLIB_EXPORT_CLASS(noether_filtering::mesh_filters::BSplineReconstruction, noether_filtering::mesh_filters::MeshFilterBase)
 
 namespace noether_filtering
 {
-namespace filters
+namespace mesh_filters
 {
 BSplineReconstruction::BSplineReconstruction()
 {
@@ -29,36 +29,6 @@ BSplineReconstruction::~BSplineReconstruction()
 
 }
 
-/** @details
- * Loads the configuration from a yaml object with the following structure:
- * order: 3
- * refinement: 3
- * iterations: 1
- * mesh_resolution: 50
- * surf_init_method: 2
- * fit_surface_parameters:
- *  interior_smoothness: 0.2
- *  interior_weight: 1.0
- *  boundary_smoothness: 0.2
- *  boundary_weight: 0.0
- * clip_boundary_curve: True
- * boundary_fit_order: 2      # applicable only when clip_boundary_curve: True
- * boundary_curve_parameters: # applicable only when clip_boundary_curve: True
- *  addCPsAccuracy: 5e-2
- *  addCPsIteration: 3
- *  maxCPs: 200
- *  accuracy: 1e-3
- *  iterations: 100
- *  closest_point_resolution: 0
- *  closest_point_weight: 1.0
- *  closest_point_sigma2: 0.1
- *  interior_sigma2: 0.00001
- *  smooth_concavity: 1.0
- *  smoothness: 1.0
- *
- * @param config The configuration
- * @return True on success, false otherwise
- */
 bool BSplineReconstruction::configure(XmlRpc::XmlRpcValue config)
 {
   Parameters& p = parameters_;

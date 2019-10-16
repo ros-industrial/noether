@@ -3,6 +3,7 @@
 #include <vtkPointData.h>
 #include <pcl/conversions.h>
 #include <pcl/point_types.h>
+#include <pcl/io/ply_io.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <console_bridge/console.h>
 
@@ -36,7 +37,7 @@ bool convertToMeshMsg(const pcl::PolygonMesh& mesh, shape_msgs::Mesh& mesh_msg)
 {
   if(mesh.polygons.empty())
   {
-    CONSOLE_BRIDGE_logInform("PolygonMesh has no polygons");
+    CONSOLE_BRIDGE_logError("PolygonMesh has no polygons");
     return false;
   }
 
@@ -45,7 +46,7 @@ bool convertToMeshMsg(const pcl::PolygonMesh& mesh, shape_msgs::Mesh& mesh_msg)
   pcl::fromPCLPointCloud2(mesh.cloud,cloud);
   if(cloud.empty())
   {
-    CONSOLE_BRIDGE_logInform("PolygonMesh has vertices data");
+    CONSOLE_BRIDGE_logError("PolygonMesh has no vertices data");
     return false;
   }
 
@@ -56,7 +57,7 @@ bool convertToMeshMsg(const pcl::PolygonMesh& mesh, shape_msgs::Mesh& mesh_msg)
     const pcl::Vertices& vertices = mesh.polygons[i];
     if(vertices.vertices.size() != 3)
     {
-      CONSOLE_BRIDGE_logInform("Vertex in PolygonMesh needs to have 3 elements only");
+      CONSOLE_BRIDGE_logError("Vertex in PolygonMesh needs to have 3 elements only");
       return false;
     }
 
@@ -74,6 +75,18 @@ bool convertToMeshMsg(const pcl::PolygonMesh& mesh, shape_msgs::Mesh& mesh_msg)
     return std::move(p);
   });
   return true;
+}
+
+bool savePLYFile(const std::string& filename, const shape_msgs::Mesh& mesh_msg)
+{
+  pcl::PolygonMesh mesh;
+  return convertToPCLMesh(mesh_msg, mesh) && pcl::io::savePLYFile(filename,mesh) > 0;
+}
+
+bool loadPLYFile(const std::string& filename, shape_msgs::Mesh& mesh_msg)
+{
+  pcl::PolygonMesh mesh;
+  return (pcl::io::loadPLYFile(filename,mesh) > 0) && convertToMeshMsg(mesh,mesh_msg);
 }
 
 }

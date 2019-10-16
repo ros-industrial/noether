@@ -37,9 +37,11 @@ public:
                                                                XmlRpc::XmlRpcValue());
     if(!filter_manager_.init(config))
     {
+      ROS_ERROR("Mesh Filter Server failed to initialize");
       return false;
     }
     server_.start();
+    ROS_INFO("Mesh Filter Server is ready ...");
     return true;
   }
 
