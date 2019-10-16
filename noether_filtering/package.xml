@@ -6,16 +6,14 @@
   <maintainer email="jrgnichodevel@gmail.com">Jorge Nicho</maintainer>
   <license>Apache 2.0</license>
   <author email="jrgnichodevel@gmail.com">Jorge Nicho</author>
+
   <buildtool_depend>catkin</buildtool_depend>
-  <depend>pluginlib</depend>
-  <depend>roscpp</depend>
-  <depend>libconsole-bridge-dev</depend>
-  <depend>pcl</depend>
-  <depend>vtk</depend>
+  <depend>class_loader</depend>
+  <depend>console_bridge</depend>
+  <depend>PCL</depend>
+  <depend>VTK</depend>
 
-
-  <!-- The export tag contains other, unspecified, tags -->
   <export>
-  	<noether_filtering plugin="${prefix}/mesh_filters_plugins.xml"/>
+    <build_type>cmake</build_type>
   </export>
 </package>
