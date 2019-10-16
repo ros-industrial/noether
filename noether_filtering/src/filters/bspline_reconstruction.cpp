@@ -13,7 +13,7 @@
 #include <pluginlib/class_list_macros.h>
 #include <boost/make_shared.hpp>
 
-PLUGINLIB_EXPORT_CLASS(noether_filtering::filters::BSplineReconstruction, noether_filtering:: MeshFilterBase)
+PLUGINLIB_EXPORT_CLASS(noether_filtering::filters::BSplineReconstruction, noether_filtering::FilterBase<pcl::PolygonMesh>)
 
 namespace noether_filtering
 {

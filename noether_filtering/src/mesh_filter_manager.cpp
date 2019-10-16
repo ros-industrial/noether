@@ -32,47 +32,6 @@ MeshFilterManager::~MeshFilterManager()
 
 }
 
-/**
- * @details loads several filter chain configurations. The yaml structure is expected to be as follows:
- * filter_groups:
- * - group_name: DEFAULT
- *   continue_on_failure: False
- *   mesh_filters:
- *   - type: DemoFilter1
- *     name: demo_filter_1
- *     config:
- *      param1: 20
- *      param2: 'optimize'
- *      .
- *      .
- *      .
- *   - type: DemoFilter2
- *     name: demo_filter_2
- *     config:
- *      x: 1.0
- *      y: 3.5
- * - group_name: GROUP_1
- *   continue_on_failure: False
- *   mesh_filters:
- *   - type: DemoFilterX
- *     name: demo_filter_x
- *     config:
- *      param_x: 20
- *      .
- *      .
- *      .
- *   - type: DemoFilterY
- *     name: demo_filter_y
- *     config:
- *      a: True
- *      b: 20
- *   .
- *   .
- *   .FI
- *
- * @param config The configuration
- * @return True on success, false otherwise
- */
 bool MeshFilterManager::init(XmlRpc::XmlRpcValue config)
 {
   using namespace XmlRpc;

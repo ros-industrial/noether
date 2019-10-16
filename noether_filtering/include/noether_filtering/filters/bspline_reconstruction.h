@@ -10,7 +10,7 @@
 
 #include <pcl/surface/on_nurbs/fitting_surface_tdm.h>
 #include <pcl/surface/on_nurbs/fitting_curve_2d_asdm.h>
-#include "noether_filtering/mesh_filter_base.h"
+#include "noether_filtering/filter_base.h"
 
 namespace noether_filtering
 {
@@ -22,7 +22,7 @@ namespace filters
  * @details: Smoothes a mesh by fitting a bspline surface to it.  The details of this implementation'
  * can be in found in http://pointclouds.org/documentation/tutorials/bspline_fitting.php
  */
-class BSplineReconstruction : public MeshFilterBase
+class BSplineReconstruction : public FilterBase<pcl::PolygonMesh>
 {
 public:
 

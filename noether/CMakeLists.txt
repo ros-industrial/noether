@@ -12,8 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
   cmake_modules
   mesh_segmenter
-  noether_conversions
-  noether_filtering
+  noether_conversions  
   noether_msgs
   path_sequence_planner
   pcl_conversions
@@ -21,6 +20,8 @@ find_package(catkin REQUIRED COMPONENTS
   tool_path_planner
   vtk_viewer
 )
+
+find_package(noether_filtering REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS
@@ -30,7 +31,6 @@ catkin_package(
     actionlib
     mesh_segmenter
     noether_conversions
-    noether_filtering
     noether_msgs
     path_sequence_planner
     pcl_conversions
@@ -41,7 +41,7 @@ catkin_package(
     VTK
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(include ${catkin_INCLUDE_DIRS} ${noether_filtering_INCLUDE_DIRS})
 
 add_executable(surface_raster_planner_server
   src/surface_raster_planner_server.cpp
@@ -70,9 +70,9 @@ target_link_libraries(segmentation_server
 add_executable(mesh_filter_server
   src/mesh_filter_server.cpp
 )
-target_link_libraries(mesh_filter_server
+target_link_libraries(mesh_filter_server PUBLIC
   ${catkin_LIBRARIES}
-  ${VTK_LIBRARIES}
+  ${noether_filtering_LIBRARIES}
 )
 
 #############

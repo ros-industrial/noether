@@ -10,15 +10,20 @@
 
 #include <string>
 #include <memory>
-#include <pluginlib/class_loader.h>
 #include <XmlRpcValue.h>
+#include <pluginlib/class_loader.h>
+#include "noether_filtering/filter_base.h"
 
 namespace noether_filtering
 {
+
 template<class F>
 class FilterGroup
 {
 public:
+
+  using FilterT = FilterBase< F >;
+
   FilterGroup();
   virtual ~FilterGroup();
   
@@ -52,14 +57,14 @@ public:
   bool applyFilters(const std::vector<std::string>& filters, const F& input, F& output, std::string& err_msg);
 
 protected:
-  std::shared_ptr< typename pluginlib::ClassLoader<F> > filter_loader_;
+  std::shared_ptr< typename pluginlib::ClassLoader< FilterT > > filter_loader_;
   std::vector<std::string> filters_loaded_;
-  std::map<std::string, std::unique_ptr<F> > filters_map_;
+  std::map<std::string, std::unique_ptr< FilterT> > filters_map_;
   bool continue_on_failure_;
-
 };
+
 
 } /* namespace noether_filtering */
 
-
+#include <../src/filter_group.cpp>
 #endif /* INCLUDE_NOETHER_FILTERING_FILTER_GROUP_HPP_ */

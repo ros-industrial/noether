@@ -70,8 +70,8 @@ bool FilterGroup<F>::init(XmlRpc::XmlRpcValue config)
 {
   using namespace XmlRpc;
   using namespace config_field_names;
-  using FilterLoader = pluginlib::ClassLoader<F>;
-  using PluginPtr = std::unique_ptr<F>;
+  using FilterLoader = pluginlib::ClassLoader< FilterT >;
+  using PluginPtr = std::unique_ptr<FilterT>;
   filter_loader_ = std::make_shared< FilterLoader>(PACKAGE_NAME,utils::getClassName<F>());
 
   // checking config fields

@@ -32,9 +32,9 @@ find_package(catkin REQUIRED roscpp pluginlib)
 ###################################
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES noether_filtering
+  LIBRARIES ${PROJECT_NAME} ${PROJECT_NAME}_mesh_filters
   CATKIN_DEPENDS roscpp pluginlib
-  DEPENDS console_bridge PCL
+  DEPENDS console_bridge PCL VTK
 )
 
 ###########
@@ -49,8 +49,8 @@ catkin_package(
 # )
 
 ## Declare Main C++ library
-add_library(${PROJECT_NAME} SHARED src/filter_group.cpp src/mesh_filter_manager.cpp)
-target_link_libraries(${PROJECT_NAME} PUBLIC ${catkin_LIBRARIES})
+add_library(${PROJECT_NAME} SHARED src/mesh_filter_manager.cpp)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 set_target_properties(${PROJECT_NAME} PROPERTIES
 	CXX_STANDARD 14
 	CXX_STANDARD_REQUIRED YES
@@ -65,7 +65,7 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
 
 ## Mesh Filters library
 add_library(${PROJECT_NAME}_mesh_filters SHARED src/filters/bspline_reconstruction.cpp)
-target_link_libraries(${PROJECT_NAME}_mesh_filters PUBLIC ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_mesh_filters PUBLIC ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 set_target_properties(${PROJECT_NAME}_mesh_filters PROPERTIES
 	CXX_STANDARD 14
 	CXX_STANDARD_REQUIRED YES
@@ -107,8 +107,14 @@ target_include_directories(${PROJECT_NAME}_mesh_filters SYSTEM PUBLIC
 #############
 ## Install ##
 #############
-install(TARGETS ${PROJECT_NAME} DESTINATION lib)
-install(TARGETS ${PROJECT_NAME}_mesh_filters DESTINATION lib)
+install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME} DESTINATION lib)
+install(TARGETS ${PROJECT_NAME}_mesh_filters EXPORT ${PROJECT_NAME} DESTINATION lib)
+
+install(DIRECTORY include/${PROJECT_NAME}
+  DESTINATION include
+  FILES_MATCHING PATTERN "*.h*"
+  PATTERN ".svn" EXCLUDE
+)
 
 # all install targets should use catkin DESTINATION variables
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
