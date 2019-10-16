@@ -53,12 +53,73 @@ endif()
 #target_include_directories(${PROJECT_NAME}_mesh_filters SYSTEM PUBLIC
 #    ${PCL_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
+# Cloud Filters library
+add_library(${PROJECT_NAME}_cloud_filters SHARED src/cloud/filters.cpp)
+target_link_libraries(${PROJECT_NAME}_cloud_filters PUBLIC ${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME}_cloud_filters PUBLIC
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:include>")
+set_target_properties(${PROJECT_NAME}_cloud_filters PROPERTIES
+  CXX_STANDARD 14
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO)
+if(CXX_FEATURE_FOUND EQUAL "-1")
+  target_compile_options(${PROJECT_NAME}_cloud_filters PRIVATE -std=c++14)
+else()
+  target_compile_features(${PROJECT_NAME}_cloud_filters PRIVATE cxx_std_14)
+endif()
+
+# Cloud Filter Plugins Library
+add_library(${PROJECT_NAME}_cloud_filter_plugins SHARED
+  src/cloud/plugins.cpp
+)
+target_link_libraries(${PROJECT_NAME}_cloud_filter_plugins PUBLIC
+  ${PROJECT_NAME}_cloud_filters
+)
+set_target_properties(${PROJECT_NAME}_cloud_filter_plugins PROPERTIES
+  CXX_STANDARD 14
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+)
+if(CXX_FEATURE_FOUND EQUAL "-1")
+  target_compile_options(${PROJECT_NAME}_cloud_filter_plugins PRIVATE -std=c++14)
+else()
+  target_compile_features(${PROJECT_NAME}_cloud_filter_plugins PRIVATE cxx_std_14)
+endif()
+
 #############
 ## Install ##
 #############
 install(TARGETS ${PROJECT_NAME} DESTINATION lib)
 #install(TARGETS ${PROJECT_NAME}_mesh_filters DESTINATION lib)
+install(TARGETS ${PROJECT_NAME}_cloud_filters DESTINATION lib)
+install(TARGETS ${PROJECT_NAME}_cloud_filter_plugins DESTINATION lib)
 
 #############
 ## Testing ##
 #############
+if(${ENABLE_TESTS})
+  find_package(GTest REQUIRED)
+  add_executable(${PROJECT_NAME}_cloud_unit src/test/cloud_utest.cpp)
+  set_target_properties(${PROJECT_NAME}_cloud_filter_plugins PROPERTIES
+    CXX_STANDARD 14
+    CXX_STANDARD_REQUIRED YES
+    CXX_EXTENSIONS NO
+  )
+  target_link_libraries(${PROJECT_NAME}_cloud_unit PUBLIC
+    ${PROJECT_NAME}_cloud_filter_plugins
+    GTest::GTest
+    GTest::Main
+  )
+  target_compile_options(${PROJECT_NAME}_cloud_unit PRIVATE -Wsuggest-override -Wconversion -Wsign-conversion)
+  if(CXX_FEATURE_FOUND EQUAL "-1")
+    target_compile_options(${PROJECT_NAME}_cloud_unit PRIVATE -std=c++14)
+  else()
+    target_compile_features(${PROJECT_NAME}_cloud_unit PRIVATE cxx_std_14)
+  endif()
+  if(${CMAKE_VERSION} VERSION_LESS "3.10.0")
+    gtest_add_tests(${PROJECT_NAME}_cloud_unit "" AUTO)
+  else()
+    gtest_discover_tests(${PROJECT_NAME}_cloud_unit)
+  endif()
+endif()
