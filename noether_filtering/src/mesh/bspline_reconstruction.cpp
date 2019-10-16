@@ -9,11 +9,16 @@
 #include <pcl/conversions.h>
 #include "noether_filtering/utils.h"
 #include <XmlRpcException.h>
-#include <pluginlib/class_list_macros.h>
+#include <pcl/io/vtk_lib_io.h>
+//#include <pluginlib/class_list_macros.h>
 #include <boost/make_shared.hpp>
 #include <noether_filtering/mesh_filters/bspline_reconstruction.h>
 
+<<<<<<< HEAD:noether_filtering/src/mesh_filters/bspline_reconstruction.cpp
 PLUGINLIB_EXPORT_CLASS(noether_filtering::mesh_filters::BSplineReconstruction, noether_filtering::mesh_filters::MeshFilterBase)
+=======
+//PLUGINLIB_EXPORT_CLASS(noether_filtering::filters::BSplineReconstruction, noether_filtering:: MeshFilterBase)
+>>>>>>> 3767b48... Reorganized and renamed files:noether_filtering/src/mesh/bspline_reconstruction.cpp
 
 static pcl::on_nurbs::vector_vec3d createNurbData(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud )
 {

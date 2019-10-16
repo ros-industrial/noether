@@ -5,30 +5,30 @@
  *      Author: jrgnicho
  */
 
-#ifndef INCLUDE_NOETHER_FILTERING_FILTER_BASE_H_
-#define INCLUDE_NOETHER_FILTERING_FILTER_BASE_H_
+#ifndef INCLUDE_NOETHER_FILTERING_MESH_FILTER_BASE_H_
+#define INCLUDE_NOETHER_FILTERING_MESH_FILTER_BASE_H_
 
 #include <XmlRpcValue.h>
+#include <pcl/PolygonMesh.h>
 
 namespace noether_filtering
 {
 
-template<class F>
-class FilterBase
+class MeshFilterBase
 {
 public:
-  FilterBase()
+  MeshFilterBase()
   {
 
   }
 
-  virtual ~FilterBase()
+  virtual ~MeshFilterBase()
   {
 
   }
 
   virtual bool configure(XmlRpc::XmlRpcValue config) = 0;
-  virtual bool filter(const F& in, F& out) = 0;
+  virtual bool filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMesh& mesh_out) = 0;
   virtual std::string getName() = 0;
 
 };
@@ -36,4 +36,4 @@ public:
 
 
 
-#endif /* INCLUDE_NOETHER_FILTERING_FILTER_BASE_H_ */
+#endif /* INCLUDE_NOETHER_FILTERING_MESH_FILTER_BASE_H_ */
