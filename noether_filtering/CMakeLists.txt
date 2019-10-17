@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.5.0)
 project(noether_filtering VERSION 0.1.0 LANGUAGES CXX)
 
 find_package(console_bridge REQUIRED)
-find_package(PCL REQUIRED)
-find_package(VTK REQUIRED NO_MODULE)
+find_package(PCL 1.9 REQUIRED COMPONENTS common filters)
+find_package(VTK 8.2 REQUIRED NO_MODULE)
 find_package(class_loader REQUIRED)
 find_package(xmlrpcpp REQUIRED)
 
@@ -29,6 +29,7 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
   ${PCL_INCLUDE_DIRS}
   ${xmlrpcpp_INCLUDE_DIRS}
 )
+target_compile_definitions(${PROJECT_NAME} PUBLIC ${PCL_DEFINITIONS})
 set_target_properties(${PROJECT_NAME} PROPERTIES
   CXX_STANDARD 14
   CXX_STANDARD_REQUIRED YES
@@ -39,19 +40,22 @@ else()
   target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_14)
 endif()
 
-## Mesh Filters library
-#add_library(${PROJECT_NAME}_mesh_filters SHARED src/filters/bspline_reconstruction.cpp)
-#target_link_libraries(${PROJECT_NAME}_mesh_filters PUBLIC ${catkin_LIBRARIES})
-#set_target_properties(${PROJECT_NAME}_mesh_filters PROPERTIES
-#  CXX_STANDARD 14
-#  CXX_STANDARD_REQUIRED YES
-#  CXX_EXTENSIONS NO
-#)
-#target_include_directories(${PROJECT_NAME}_mesh_filters PUBLIC
-#    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-#    "$<INSTALL_INTERFACE:include>")
-#target_include_directories(${PROJECT_NAME}_mesh_filters SYSTEM PUBLIC
-#    ${PCL_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
+# Mesh Filters library
+add_library(${PROJECT_NAME}_mesh_filters SHARED src/mesh/bspline_reconstruction.cpp)
+target_link_libraries(${PROJECT_NAME}_mesh_filters PUBLIC ${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME}_mesh_filters PUBLIC
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:include>")
+set_target_properties(${PROJECT_NAME}_mesh_filters PROPERTIES
+  CXX_STANDARD 14
+  CXX_STANDARD_REQUIRED YES
+  CXX_EXTENSIONS NO
+)
+if(CXX_FEATURE_FOUND EQUAL "-1")
+  target_compile_options(${PROJECT_NAME} PRIVATE -std=c++14)
+else()
+  target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_14)
+endif()
 
 # Cloud Filters library
 add_library(${PROJECT_NAME}_cloud_filters SHARED src/cloud/filters.cpp)

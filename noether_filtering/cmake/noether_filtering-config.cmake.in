@@ -6,8 +6,8 @@ set_and_check(@PROJECT_NAME@_LIBRARY_DIRS "${PACKAGE_PREFIX_DIR}/lib")
 
 include(CMakeFindDependencyMacro)
 find_dependency(Boost)
-find_dependency(pcl)
-find_dependency(vtk)
+find_dependency(PCL 1.9)
+find_dependency(VTK 8.2)
 find_dependency(console_bridge)
 
 include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-targets.cmake")

@@ -5,20 +5,14 @@
  *      Author: jrgnicho
  */
 
-#include <pcl/surface/on_nurbs/triangulation.h>
-#include <pcl/conversions.h>
+#include "noether_filtering/mesh/bspline_reconstruction.h"
 #include "noether_filtering/utils.h"
-#include <XmlRpcException.h>
-#include <pcl/io/vtk_lib_io.h>
-//#include <pluginlib/class_list_macros.h>
 #include <boost/make_shared.hpp>
-#include <noether_filtering/mesh_filters/bspline_reconstruction.h>
-
-<<<<<<< HEAD:noether_filtering/src/mesh_filters/bspline_reconstruction.cpp
-PLUGINLIB_EXPORT_CLASS(noether_filtering::mesh_filters::BSplineReconstruction, noether_filtering::mesh_filters::MeshFilterBase)
-=======
-//PLUGINLIB_EXPORT_CLASS(noether_filtering::filters::BSplineReconstruction, noether_filtering:: MeshFilterBase)
->>>>>>> 3767b48... Reorganized and renamed files:noether_filtering/src/mesh/bspline_reconstruction.cpp
+#include <console_bridge/console.h>
+#include <pcl/conversions.h>
+#include <pcl/io/vtk_lib_io.h>
+#include <pcl/surface/on_nurbs/triangulation.h>
+#include <XmlRpcException.h>
 
 static pcl::on_nurbs::vector_vec3d createNurbData(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud )
 {
@@ -34,17 +28,6 @@ static pcl::on_nurbs::vector_vec3d createNurbData(pcl::PointCloud<pcl::PointXYZ>
 
 namespace noether_filtering
 {
-namespace mesh_filters
-{
-BSplineReconstruction::BSplineReconstruction()
-{
-
-}
-
-BSplineReconstruction::~BSplineReconstruction()
-{
-
-}
 
 bool BSplineReconstruction::configure(XmlRpc::XmlRpcValue config)
 {
@@ -199,5 +182,4 @@ std::string BSplineReconstruction::getName()
   return std::move(utils::getClassName<decltype(*this)>());
 }
 
-} /* namespace filters */
 } /* namespace noether_filtering */

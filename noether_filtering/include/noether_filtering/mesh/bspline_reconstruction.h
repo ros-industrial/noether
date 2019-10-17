@@ -8,13 +8,12 @@
 #ifndef INCLUDE_NOETHER_FILTERING_MESH_FILTERS_BSPLINE_RECONSTRUCTION_H_
 #define INCLUDE_NOETHER_FILTERING_MESH_FILTERS_BSPLINE_RECONSTRUCTION_H_
 
+#include "noether_filtering/filter_base.h"
+#include <pcl/PolygonMesh.h>
 #include <pcl/surface/on_nurbs/fitting_surface_tdm.h>
 #include <pcl/surface/on_nurbs/fitting_curve_2d_asdm.h>
-#include "noether_filtering/mesh_filters/mesh_filter_base.h"
 
 namespace noether_filtering
-{
-namespace mesh_filters
 {
 
 /**
@@ -22,7 +21,7 @@ namespace mesh_filters
  * @details: Smoothes a mesh by fitting a bspline surface to it.  The details of this implementation'
  * can be in found in http://pointclouds.org/documentation/tutorials/bspline_fitting.php
  */
-class BSplineReconstruction : public MeshFilterBase
+class BSplineReconstruction : public FilterBase<pcl::PolygonMesh>
 {
 public:
 
@@ -50,9 +49,7 @@ public:
     pcl::on_nurbs::FittingCurve2dAPDM::FitParameter boundary_curve_params;
   };
 
-
-  BSplineReconstruction();
-  virtual ~BSplineReconstruction();
+  using FilterBase<pcl::PolygonMesh>::FilterBase;
 
   /** @details
    * Loads the configuration from a yaml object with the following structure:
@@ -90,10 +87,8 @@ public:
 
 protected:
   Parameters parameters_;
-
 };
 
-} /* namespace filters */
 } /* namespace noether_filtering */
 
 #endif /* INCLUDE_NOETHER_FILTERING_MESH_FILTERS_BSPLINE_RECONSTRUCTION_H_ */
