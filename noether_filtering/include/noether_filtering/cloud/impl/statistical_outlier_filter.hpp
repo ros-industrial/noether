@@ -1,9 +1,11 @@
 #ifndef STATISTICAL_OUTLIER_FILTER_HPP
 #define STATISTICAL_OUTLIER_FILTER_HPP
 
-#include "noether_filtering/cloud/statistical_outlier_filter.h"
-#include <XmlRpcException.h>
 #include <console_bridge/console.h>
+#include "noether_filtering/cloud/statistical_outlier_filter.h"
+#include "noether_filtering/utils.h"
+#include <pcl/filters/statistical_outlier_removal.h>
+#include <XmlRpcException.h>
 
 namespace noether_filtering
 {
@@ -12,8 +14,8 @@ bool StatisticalOutlierFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
 {
   try
   {
-    params_.mean_k = static_cast<int>(value["mean_k"]);
-    params_.std_dev_mult = static_cast<double>(value["std_dev_mult"]);
+    params.mean_k = static_cast<int>(value["mean_k"]);
+    params.std_dev_mult = static_cast<double>(value["std_dev_mult"]);
   }
   catch (const XmlRpc::XmlRpcException &ex)
   {
@@ -29,14 +31,22 @@ bool StatisticalOutlierFilter<PointT>::filter(const T &input, T &output)
 {
   output.reset(new pcl::PointCloud<PointT>());
 
-  // Apply the parameters
-  filter_.setMeanK(params_.mean_k);
-  filter_.setStddevMulThresh(params_.std_dev_mult);
+  pcl::StatisticalOutlierRemoval<PointT> f;
 
-  filter_.setInputCloud(input);
-  filter_.filter(*output);
+  // Apply the parameters
+  f.setMeanK(params.mean_k);
+  f.setStddevMulThresh(params.std_dev_mult);
+
+  f.setInputCloud(input);
+  f.filter(*output);
 
   return true;
+}
+
+template<typename PointT>
+std::string StatisticalOutlierFilter<PointT>::getName()
+{
+  return utils::getClassName<decltype(this)>();
 }
 
 } // namespace noether_filtering
