@@ -16,6 +16,16 @@
 namespace noether_filtering
 {
 
+namespace config_fields
+{
+namespace group
+{
+static const std::string GROUP_NAME = "group_name";
+static const std::string CONTINUE_ON_FAILURE = "continue_on_failure";
+static const std::string FILTERS = "filters";
+} // namespace group
+} // namespace config_fields
+
 /**
  * @brief The FilterManager class
  */

@@ -13,21 +13,15 @@
 namespace noether_filtering
 {
 
-namespace config_field_names
+namespace config_fields
 {
-static const std::string CONTINUE_ON_FAILURE = "continue_on_failure";
-static const std::string FILTERS = "filters";
+namespace filter
+{
 static const std::string TYPE_NAME = "type";
 static const std::string NAME = "name";
 static const std::string CONFIG = "config";
-}
-
-struct FilterInfo
-{
-  std::string type_name;      /** @brief the filter type */
-  std::string name;           /** @brief an alias for the filter */
-  XmlRpc::XmlRpcValue config; /** @brief the filter configuration */
-};
+} // namespace filter
+} // namespace config_fields
 
 template <typename T>
 class FilterBase

@@ -14,28 +14,39 @@
 
 static const std::string FILTER_PLUGINS_LIBRARY = "libnoether_filtering_filter_plugins.so";
 
-namespace noether_filtering
+struct FilterInfo
 {
+  std::string type_name;      /** @brief the filter type */
+  std::string name;           /** @brief an alias for the filter */
+  XmlRpc::XmlRpcValue config; /** @brief the filter configuration */
+};
 
-bool loadFilterInfos(XmlRpc::XmlRpcValue mesh_filter_configs,std::vector<FilterInfo>& filter_infos)
+namespace
 {
-  if(mesh_filter_configs.getType() != XmlRpc::XmlRpcValue::TypeArray)
+bool loadFilterInfos(XmlRpc::XmlRpcValue filter_configs, std::vector<FilterInfo>& filter_infos)
+{
+  if(filter_configs.getType() != XmlRpc::XmlRpcValue::TypeArray)
   {
-    CONSOLE_BRIDGE_logError("The Mesh Filter Manager Configuration is not an array of filters");
+    CONSOLE_BRIDGE_logError("The filter group configuration is not an array of filters");
     return false;
   }
 
-  for(int i = 0; i < mesh_filter_configs.size(); i++)
+  for(int i = 0; i < filter_configs.size(); i++)
   {
-    FilterInfo mi;
-    XmlRpc::XmlRpcValue mi_config = mesh_filter_configs[i];
-    mi.type_name = static_cast<std::string>(mi_config[config_field_names::TYPE_NAME]);
-    mi.name = static_cast<std::string>(mi_config[config_field_names::NAME]);
-    mi.config = mi_config[config_field_names::CONFIG];
-    filter_infos.push_back(std::move(mi));
+    using namespace noether_filtering::config_fields;
+    FilterInfo fi;
+    XmlRpc::XmlRpcValue fi_config = filter_configs[i];
+    fi.type_name = static_cast<std::string>(fi_config[filter::TYPE_NAME]);
+    fi.name = static_cast<std::string>(fi_config[filter::NAME]);
+    fi.config = fi_config[filter::CONFIG];
+    filter_infos.push_back(std::move(fi));
   }
   return !filter_infos.empty();
 }
+} // namespace anonymous
+
+namespace noether_filtering
+{
 
 template<class F>
 FilterGroup<F>::FilterGroup()
@@ -54,7 +65,7 @@ FilterGroup<F>::FilterGroup()
 template<class F>
 bool FilterGroup<F>::init(XmlRpc::XmlRpcValue config)
 {
-  using namespace config_field_names;
+  using namespace config_fields::group;
 
   // checking config fields
   const std::vector<std::string> REQUIRED_FIELDS = {CONTINUE_ON_FAILURE, FILTERS};
@@ -91,7 +102,7 @@ bool FilterGroup<F>::init(XmlRpc::XmlRpcValue config)
   XmlRpc::XmlRpcValue filter_configs = config[FILTERS];
   if(!loadFilterInfos(filter_configs, filter_infos))
   {
-    CONSOLE_BRIDGE_logError("Failed to load mesh filters");
+    CONSOLE_BRIDGE_logError("Failed to load filters");
     return false;
   }
 
@@ -154,7 +165,7 @@ bool FilterGroup<F>::applyFilters(const std::vector<std::string>& filters, const
   auto check_fn = [this, &err_msg](const std::string &f) {
     if (filters_map_.count(f) == 0)
     {
-      err_msg = boost::str(boost::format("The mesh filter %s was not found") % f);
+      err_msg = boost::str(boost::format("The filter %s was not found") % f);
       CONSOLE_BRIDGE_logError("%s", err_msg.c_str());
       return false;
     }
@@ -173,7 +184,7 @@ bool FilterGroup<F>::applyFilters(const std::vector<std::string>& filters, const
     bool current_filter_succeeded = filters_map_[fname]->filter(input,output);
     if(!current_filter_succeeded)
     {
-      err_msg = boost::str(boost::format("The mesh filter %s failed") % fname);
+      err_msg = boost::str(boost::format("The filter %s failed") % fname);
       CONSOLE_BRIDGE_logError("%s", err_msg.c_str());
     }
 
