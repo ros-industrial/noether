@@ -7,13 +7,13 @@ bool executeCB(noether_msgs::GenerateConvexHull::Request& req, noether_msgs::Gen
   	ConvexHullGenerator ch_gen;
 
      //step 1: Read in file
-  	 string inMeshFileName = req.file_in; //expects a path to file
-     string modifier = "_chullt.ply";
-     string outMeshFileName = inMeshFileName.substr(0, inMeshFileName.size()-4);
+     std::string inMeshFileName = req.file_in; //expects a path to file
+     std::string modifier = "_chullt.ply";
+     std::string outMeshFileName = inMeshFileName.substr(0, inMeshFileName.size()-4);
      outMeshFileName.append(modifier);
 
      //step 2: Call library
-  	 bool success = ch_gen.generate_ch(inMeshFileName,outMeshFileName);
+     bool success = ch_gen.generateCH(inMeshFileName,outMeshFileName);
 
   	 return true;
   }

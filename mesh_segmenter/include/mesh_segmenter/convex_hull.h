@@ -12,21 +12,13 @@
 #include <pcl/common/centroid.h>
 #include <Eigen/Dense>
 
-using namespace std; 
-
 class ConvexHullGenerator
 {
 public:
   ConvexHullGenerator(); //constructor
-  void makemesh(string input, pcl::PointCloud<pcl::PointXYZ>::Ptr inMesh);	
-  void cleanmesh(pcl::PointCloud<pcl::PointXYZ>::Ptr outMesh, pcl::PolygonMesh::Ptr outMeshPoly);	
-  bool savemesh(pcl::PointCloud<pcl::PointXYZ>::Ptr outMesh, pcl::PolygonMesh::Ptr outMeshPoly, string outfile);
-  bool generate_ch(string infile, string outfile);	
-
-private: //What needs to be protected?
-	pcl::PointCloud<pcl::PointXYZ>::Ptr inMesh;
-    pcl::PointCloud<pcl::PointXYZ>::Ptr outMesh;
-    pcl::PolygonMesh::Ptr outMeshPoly;
-    pcl::ConvexHull<pcl::PointXYZ> chull;
+  void makeMesh(const std::string& input, pcl::PointCloud<pcl::PointXYZ>& inMesh);
+  void cleanMesh(const pcl::PointCloud<pcl::PointXYZ>& outMesh, pcl::PolygonMesh& outMeshPoly);
+  bool saveMesh(const pcl::PointCloud<pcl::PointXYZ>& outMesh, pcl::PolygonMesh& outMeshPoly, const std::string& outfile);
+  bool generateCH(const std::string& infile, const std::string& outfile);
 };
 #endif
