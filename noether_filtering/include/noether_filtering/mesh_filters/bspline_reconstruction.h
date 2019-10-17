@@ -35,6 +35,7 @@ public:
 
   struct Parameters
   {
+    bool verbosity_on = false;        /** @brief print more info */
     int order = 3;                    /** @brief is the polynomial order of the B-spline surface. */
     int refinement = 3;               /** @brief refinement is the number of refinement iterations, where for each iteration
                                                   control-points are inserted*/

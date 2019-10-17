@@ -15,6 +15,18 @@
 
 PLUGINLIB_EXPORT_CLASS(noether_filtering::mesh_filters::BSplineReconstruction, noether_filtering::mesh_filters::MeshFilterBase)
 
+static pcl::on_nurbs::vector_vec3d createNurbData(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud )
+{
+  pcl::on_nurbs::vector_vec3d data;
+  for (unsigned i = 0; i < cloud->size (); i++)
+  {
+    const pcl::PointXYZ &p = cloud->at (i);
+    if (!std::isnan (p.x) && !std::isnan (p.y) && !std::isnan (p.z))
+      data.push_back (Eigen::Vector3d (p.x, p.y, p.z));
+  }
+  return std::move(data);
+}
+
 namespace noether_filtering
 {
 namespace mesh_filters
@@ -34,6 +46,7 @@ bool BSplineReconstruction::configure(XmlRpc::XmlRpcValue config)
   Parameters& p = parameters_;
   try
   {
+    p.verbosity_on = static_cast<bool>(config["verbosity_on"]);
     p.order = static_cast<int>(config["order"]);
     p.refinement = static_cast<int>(config["refinement"]);
     p.iterations = static_cast<int>(config["iterations"]);
@@ -87,6 +100,7 @@ bool BSplineReconstruction::filter(const pcl::PolygonMesh& mesh_in, pcl::Polygon
 
   // initializing nurbs_surface surface
   pcl::on_nurbs::NurbsDataSurface nurbs_data = pcl::on_nurbs::NurbsDataSurface();
+  nurbs_data.interior = createNurbData(cloud_in);
   ON_NurbsSurface nurbs_surface;
   switch(parameters_.surf_init_method)
   {
@@ -110,7 +124,7 @@ bool BSplineReconstruction::filter(const pcl::PolygonMesh& mesh_in, pcl::Polygon
 
   // fitting surface
   pcl::on_nurbs::FittingSurface fit (&nurbs_data, nurbs_surface);
-  fit.setQuiet (false); // enable/disable debug output
+  fit.setQuiet (!parameters_.verbosity_on); // enable/disable debug output
   pcl::on_nurbs::FittingSurface::Parameter surf_params = parameters_.surface_params;
   for (int i = 0; i < parameters_.refinement; i++)
   {
@@ -129,7 +143,7 @@ bool BSplineReconstruction::filter(const pcl::PolygonMesh& mesh_in, pcl::Polygon
     fit.solve ();
   }
 
-  if(fit.m_nurbs.IsValid())
+  if(!fit.m_nurbs.IsValid())
   {
     CONSOLE_BRIDGE_logError("Surface fitting failed");
     return false;
@@ -149,7 +163,7 @@ bool BSplineReconstruction::filter(const pcl::PolygonMesh& mesh_in, pcl::Polygon
 
     // curve fitting
     curve_fit = std::make_shared<pcl::on_nurbs::FittingCurve2dASDM>(&curve_data, curve_nurbs);
-    curve_fit->setQuiet (false); // enable/disable debug output
+    curve_fit->setQuiet (!parameters_.verbosity_on); // enable/disable debug output
     curve_fit->fitting (parameters_.boundary_curve_params);
 
     if(!curve_fit->m_nurbs.IsValid())

@@ -80,13 +80,13 @@ bool convertToMeshMsg(const pcl::PolygonMesh& mesh, shape_msgs::Mesh& mesh_msg)
 bool savePLYFile(const std::string& filename, const shape_msgs::Mesh& mesh_msg)
 {
   pcl::PolygonMesh mesh;
-  return convertToPCLMesh(mesh_msg, mesh) && pcl::io::savePLYFile(filename,mesh) > 0;
+  return convertToPCLMesh(mesh_msg, mesh) && pcl::io::savePLYFile(filename,mesh) >= 0;
 }
 
 bool loadPLYFile(const std::string& filename, shape_msgs::Mesh& mesh_msg)
 {
   pcl::PolygonMesh mesh;
-  return (pcl::io::loadPLYFile(filename,mesh) > 0) && convertToMeshMsg(mesh,mesh_msg);
+  return (pcl::io::loadPLYFile(filename,mesh) >= 0) && convertToMeshMsg(mesh,mesh_msg);
 }
 
 }

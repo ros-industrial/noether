@@ -75,11 +75,12 @@ private:
       pcl::PolygonMesh mesh_in, mesh_out;
       noether_conversions::convertToPCLMesh(goal->surface_meshes[i],mesh_in);
       std::string err_msg;
-      if(mesh_filter_group->applyFilters(goal->custom_filter_names,mesh_in,mesh_out, err_msg))
+      if(!mesh_filter_group->applyFilters(goal->custom_filter_names,mesh_in,mesh_out, err_msg))
       {
         server_.setAborted(res,err_msg);
         return;
       }
+      ROS_INFO("Filtered mesh %lu", i);
       shape_msgs::Mesh filtered_mesh_msg;
       noether_conversions::convertToMeshMsg(mesh_out,filtered_mesh_msg);
       res.filtered_meshes.push_back(std::move(filtered_mesh_msg));

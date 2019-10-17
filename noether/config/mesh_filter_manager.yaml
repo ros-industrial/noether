@@ -5,6 +5,7 @@ filter_groups:
     - type: noether_filtering/BSplineReconstruction
       name: bspline_surf_1
       config:
+        verbosity_on: True
         order: 3
         refinement: 3
         iterations: 2
