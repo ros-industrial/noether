@@ -83,7 +83,7 @@ public:
    */
   bool configure(XmlRpc::XmlRpcValue config) final;
   bool filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMesh& mesh_out) final;
-  std::string getName() final;
+  std::string getName() const final;
 
 protected:
   Parameters parameters_;

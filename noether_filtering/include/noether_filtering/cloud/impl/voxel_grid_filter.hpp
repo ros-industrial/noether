@@ -67,7 +67,7 @@ bool VoxelGridFilter<PointT>::filter(const T &input, T &output)
 }
 
 template<typename PointT>
-std::string VoxelGridFilter<PointT>::getName()
+std::string VoxelGridFilter<PointT>::getName() const
 {
   return utils::getClassName<decltype(this)>();
 }

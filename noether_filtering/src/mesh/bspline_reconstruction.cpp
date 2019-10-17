@@ -23,7 +23,7 @@ static pcl::on_nurbs::vector_vec3d createNurbData(pcl::PointCloud<pcl::PointXYZ>
     if (!std::isnan (p.x) && !std::isnan (p.y) && !std::isnan (p.z))
       data.push_back (Eigen::Vector3d (p.x, p.y, p.z));
   }
-  return std::move(data);
+  return data;
 }
 
 namespace noether_filtering
@@ -152,7 +152,7 @@ bool BSplineReconstruction::filter(const pcl::PolygonMesh& mesh_in, pcl::Polygon
     // curve fitting
     curve_fit = std::make_shared<pcl::on_nurbs::FittingCurve2dASDM>(&curve_data, curve_nurbs);
     curve_fit->setQuiet (!parameters_.verbosity_on); // enable/disable debug output
-    curve_fit->fitting (parameters_.boundary_curve_params);
+    curve_fit->fitting(parameters_.boundary_curve_params);
 
     if(!curve_fit->m_nurbs.IsValid())
     {
@@ -177,9 +177,9 @@ bool BSplineReconstruction::filter(const pcl::PolygonMesh& mesh_in, pcl::Polygon
 
 }
 
-std::string BSplineReconstruction::getName()
+std::string BSplineReconstruction::getName() const
 {
-  return std::move(utils::getClassName<decltype(*this)>());
+  return utils::getClassName<decltype(*this)>();
 }
 
 } /* namespace noether_filtering */

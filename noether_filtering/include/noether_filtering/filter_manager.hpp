@@ -76,7 +76,7 @@ bool FilterManager<T>::init(XmlRpc::XmlRpcValue config)
 }
 
 template<typename T>
-std::shared_ptr<FilterGroup<T>> FilterManager<T>::getFilterGroup(const std::string& name)
+std::shared_ptr<FilterGroup<T>> FilterManager<T>::getFilterGroup(const std::string& name) const
 {
   std::string n = name.empty() ? DEFAULT_FILTER_CHAIN_NAME : name;
   if(filter_groups_map_.find(n) == filter_groups_map_.end())
@@ -84,7 +84,7 @@ std::shared_ptr<FilterGroup<T>> FilterManager<T>::getFilterGroup(const std::stri
     CONSOLE_BRIDGE_logError("Filter chain '%s' was not found", n.c_str());
     return nullptr;
   }
-  return filter_groups_map_[n];
+  return filter_groups_map_.at(n);
 }
 
 } // namespace noether_filtering

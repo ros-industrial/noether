@@ -16,7 +16,7 @@ public:
 
   virtual bool configure(XmlRpc::XmlRpcValue config) final;
   virtual bool filter(const T &input, T &output) final;
-  virtual std::string getName() final;
+  virtual std::string getName() const final;
 
   struct Params
   {

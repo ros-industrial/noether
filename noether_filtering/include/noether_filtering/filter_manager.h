@@ -77,7 +77,7 @@ public:
    * @param name the name of the group
    * @return the requested filter group, returns a nullptr when the requested group isn't recognized
    */
-  std::shared_ptr<FilterGroup<T>> getFilterGroup(const std::string& name);
+  std::shared_ptr<FilterGroup<T>> getFilterGroup(const std::string& name) const;
 
 protected:
   std::map<std::string, std::shared_ptr<FilterGroup<T>>> filter_groups_map_;

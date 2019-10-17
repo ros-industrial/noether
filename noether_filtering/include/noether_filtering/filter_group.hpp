@@ -181,7 +181,7 @@ bool FilterGroup<F>::applyFilters(const std::vector<std::string>& filters, const
   bool success = false;
   for(const std::string& fname : selected_filters)
   {
-    bool current_filter_succeeded = filters_map_[fname]->filter(input,output);
+    bool current_filter_succeeded = filters_map_.at(fname)->filter(input,output);
     if(!current_filter_succeeded)
     {
       err_msg = boost::str(boost::format("The filter %s failed") % fname);

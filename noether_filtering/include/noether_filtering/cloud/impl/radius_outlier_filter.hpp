@@ -44,7 +44,7 @@ bool RadiusOutlierFilter<PointT>::filter(const T &input, T &output)
 }
 
 template<typename PointT>
-std::string RadiusOutlierFilter<PointT>::getName()
+std::string RadiusOutlierFilter<PointT>::getName() const
 {
   return utils::getClassName<decltype(this)>();
 }

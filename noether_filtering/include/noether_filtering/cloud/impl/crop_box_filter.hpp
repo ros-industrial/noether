@@ -105,7 +105,7 @@ bool CropBoxFilter<PointT>::filter(const T &input, T &output)
 }
 
 template<typename PointT>
-std::string CropBoxFilter<PointT>::getName()
+std::string CropBoxFilter<PointT>::getName() const
 {
   return utils::getClassName<decltype(this)>();
 }

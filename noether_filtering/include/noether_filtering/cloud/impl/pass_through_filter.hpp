@@ -67,7 +67,7 @@ bool PassThroughFilter<PointT>::filter(const T &input, T &output)
 }
 
 template<typename PointT>
-std::string PassThroughFilter<PointT>::getName()
+std::string PassThroughFilter<PointT>::getName() const
 {
   return utils::getClassName<decltype(this)>();
 }

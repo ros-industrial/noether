@@ -44,7 +44,7 @@ bool StatisticalOutlierFilter<PointT>::filter(const T &input, T &output)
 }
 
 template<typename PointT>
-std::string StatisticalOutlierFilter<PointT>::getName()
+std::string StatisticalOutlierFilter<PointT>::getName() const
 {
   return utils::getClassName<decltype(this)>();
 }

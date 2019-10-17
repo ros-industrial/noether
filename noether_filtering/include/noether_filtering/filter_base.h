@@ -32,7 +32,7 @@ public:
 
   virtual bool configure(XmlRpc::XmlRpcValue config) = 0;
   virtual bool filter(const T& input, T& output) = 0;
-  virtual std::string getName() = 0;
+  virtual std::string getName() const = 0;
 };
 
 } // namespace noether_filtering
