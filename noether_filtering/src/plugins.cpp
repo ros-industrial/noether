@@ -4,6 +4,7 @@
 #include "noether_filtering/cloud/statistical_outlier_filter.h"
 #include "noether_filtering/cloud/crop_box_filter.h"
 #include "noether_filtering/cloud/pass_through_filter.h"
+#include "noether_filtering/cloud/radius_outlier_filter.h"
 #include "noether_filtering/mesh/bspline_reconstruction.h"
 #include <pcl/point_types.h>
 
@@ -20,6 +21,7 @@ namespace noether_filtering
   CREATE_FILTER_PLUGINS(StatisticalOutlierFilter, PCL_XYZ_POINT_TYPES)
   CREATE_FILTER_PLUGINS(CropBoxFilter, PCL_XYZ_POINT_TYPES)
   CREATE_FILTER_PLUGINS(PassThroughFilter, PCL_XYZ_POINT_TYPES)
+  CREATE_FILTER_PLUGINS(RadiusOutlierFilter, PCL_XYZ_POINT_TYPES)
 
   // Mesh Filters
   CLASS_LOADER_REGISTER_CLASS(BSplineReconstruction, FilterBase<pcl::PolygonMesh>);

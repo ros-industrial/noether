@@ -90,6 +90,22 @@ XmlRpc::XmlRpcValue createPassThroughConfig(std::string pt_name)
   return f;
 }
 
+template<typename PointT>
+XmlRpc::XmlRpcValue createRadiusOutlierConfig(std::string pt_name)
+{
+  using namespace noether_filtering::config_field_names;
+  XmlRpc::XmlRpcValue f;
+  f[NAME] = "radius_outlier_filter";
+  f[TYPE_NAME] = "RadiusOutlierFilter<" + std::move(pt_name) + ">";
+
+  XmlRpc::XmlRpcValue ro;
+  ro["radius"] = 1.0;
+  ro["min_pts"] = 5;
+  f[CONFIG] = std::move(ro);
+
+  return f;
+}
+
 template<typename T>
 class FilterManagerFixture : public testing::Test
 {
@@ -111,7 +127,7 @@ TYPED_TEST(FilterManagerFixture, FilterManagerTest)
   config[CONTINUE_ON_FAILURE] = true;
 
   XmlRpc::XmlRpcValue filters;
-  filters.setSize(4);
+  filters.setSize(5);
 
   // Get the name of the current test type (i.e. the name of the PCL point type)
   auto info = ::testing::UnitTest::GetInstance()->current_test_info();
@@ -122,6 +138,7 @@ TYPED_TEST(FilterManagerFixture, FilterManagerTest)
   filters[1] = createStatisticalOutlierConfig<TypeParam>(type_param);
   filters[2] = createCropBoxConfig<TypeParam>(type_param);
   filters[3] = createPassThroughConfig<TypeParam>(type_param);
+  filters[4] = createRadiusOutlierConfig<TypeParam>(type_param);
   config[FILTERS] = filters;
 
   ASSERT_TRUE(this->manager.init(config));
