@@ -35,6 +35,61 @@ XmlRpc::XmlRpcValue createStatisticalOutlierConfig(std::string pt_name)
   return f;
 }
 
+template<typename PointT>
+XmlRpc::XmlRpcValue createCropBoxConfig(std::string pt_name)
+{
+  using namespace noether_filtering::config_field_names;
+  XmlRpc::XmlRpcValue f;
+  f[NAME] = "crop_box";
+  f[TYPE_NAME] = "CropBoxFilter<" + std::move(pt_name) + ">";
+
+  XmlRpc::XmlRpcValue min;
+  min["x"] = -1.0;
+  min["y"] = -1.0;
+  min["z"] = -1.0;
+
+  XmlRpc::XmlRpcValue max;
+  max["x"] = 1.0;
+  max["y"] = 1.0;
+  max["z"] = 1.0;
+
+  XmlRpc::XmlRpcValue t;
+  t["x"] = 0.5;
+  t["y"] = 0.5;
+  t["z"] = 0.5;
+  t["rx"] = 0.1;
+  t["ry"] = 0.1;
+  t["rz"] = 0.1;
+
+  XmlRpc::XmlRpcValue cb;
+  cb["min"] = min;
+  cb["max"] = max;
+  cb["transform"] = t;
+  cb["crop_outside"] = false;
+
+  f[CONFIG] = std::move(cb);
+
+  return f;
+}
+
+template<typename PointT>
+XmlRpc::XmlRpcValue createPassThroughConfig(std::string pt_name)
+{
+  using namespace noether_filtering::config_field_names;
+  XmlRpc::XmlRpcValue f;
+  f[NAME] = "pass_through";
+  f[TYPE_NAME] = "PassThroughFilter<" + std::move(pt_name) + ">";
+
+  XmlRpc::XmlRpcValue pt;
+  pt["filter_field_name"] = "y";
+  pt["min_limit"] = -1.0;
+  pt["max_limit"] = 1.0;
+  pt["negative"] = false;
+  f[CONFIG] = std::move(pt);
+
+  return f;
+}
+
 template<typename T>
 class FilterManagerFixture : public testing::Test
 {
@@ -56,7 +111,7 @@ TYPED_TEST(FilterManagerFixture, FilterManagerTest)
   config[CONTINUE_ON_FAILURE] = true;
 
   XmlRpc::XmlRpcValue filters;
-  filters.setSize(2);
+  filters.setSize(4);
 
   // Get the name of the current test type (i.e. the name of the PCL point type)
   auto info = ::testing::UnitTest::GetInstance()->current_test_info();
@@ -65,6 +120,8 @@ TYPED_TEST(FilterManagerFixture, FilterManagerTest)
   // Create filter config(s)
   filters[0] = createVoxelGridConfig<TypeParam>(type_param);
   filters[1] = createStatisticalOutlierConfig<TypeParam>(type_param);
+  filters[2] = createCropBoxConfig<TypeParam>(type_param);
+  filters[3] = createPassThroughConfig<TypeParam>(type_param);
   config[FILTERS] = filters;
 
   ASSERT_TRUE(this->manager.init(config));
