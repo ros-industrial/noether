@@ -12,8 +12,7 @@
 #include <boost/format.hpp>
 #include <XmlRpcException.h>
 
-static const std::string CLOUD_PLUGINS_LIBRARY = "libnoether_filtering_cloud_filter_plugins.so";
-static const std::string MESH_PLUGINS_LIBRARY = "libnoether_filtering_mesh_filter_plugins.so";
+static const std::string FILTER_PLUGINS_LIBRARY = "libnoether_filtering_filter_plugins.so";
 
 namespace noether_filtering
 {
@@ -41,29 +40,15 @@ bool loadFilterInfos(XmlRpc::XmlRpcValue mesh_filter_configs,std::vector<FilterI
 template<class F>
 FilterManager<F>::FilterManager()
   : continue_on_failure_(false)
-  , filter_loader_(true)
+  , filter_loader_(FILTER_PLUGINS_LIBRARY)
 {
-  try
+  std::vector<std::string> filters = filter_loader_.getAvailableClasses<FilterBase<F>>();
+  std::string out = "Available classes:";
+  for (const std::string &f : filters)
   {
-    filter_loader_.loadLibrary(CLOUD_PLUGINS_LIBRARY);
-    filter_loader_.loadLibrary(MESH_PLUGINS_LIBRARY);
+    out += "\n\t\t" + f;
   }
-  catch (const class_loader::LibraryLoadException &ex)
-  {
-    CONSOLE_BRIDGE_logError(ex.what());
-  }
-
-  auto print_available_filters = [](const std::vector<std::string>& filters) {
-    std::string out = "Available classes:";
-    for (const std::string &f : filters)
-    {
-      out += "\n\t\t" + f;
-    }
-    CONSOLE_BRIDGE_logInform("%s", out.c_str());
-  };
-
-  print_available_filters(filter_loader_.getAvailableClassesForLibrary<FilterBase<F>>(CLOUD_PLUGINS_LIBRARY));
-  print_available_filters(filter_loader_.getAvailableClassesForLibrary<FilterBase<F>>(MESH_PLUGINS_LIBRARY));
+  CONSOLE_BRIDGE_logInform("%s", out.c_str());
 }
 
 template<class F>

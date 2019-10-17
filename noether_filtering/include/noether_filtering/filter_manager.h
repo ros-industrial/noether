@@ -9,7 +9,7 @@
 
 #include <string>
 #include <memory>
-#include <class_loader/multi_library_class_loader.h>
+#include <class_loader/class_loader.h>
 #include <XmlRpcValue.h>
 #include "noether_filtering/filter_base.h"
 
@@ -56,7 +56,7 @@ public:
   bool applyFilters(const std::vector<std::string>& filters, const F& input, F& output, std::string& err_msg);
 
 protected:
-  class_loader::MultiLibraryClassLoader filter_loader_;
+  class_loader::ClassLoader filter_loader_;
   std::vector<std::string> filters_loaded_;
 
   typedef typename class_loader::ClassLoader::UniquePtr<FilterBase<F>> FilterBasePtr;

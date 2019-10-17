@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5.0)
 project(noether_filtering VERSION 0.1.0 LANGUAGES CXX)
 
 find_package(console_bridge REQUIRED)
-find_package(PCL 1.9 REQUIRED COMPONENTS common filters)
+find_package(PCL 1.9 REQUIRED COMPONENTS common filters io surface)
 find_package(VTK 8.2 REQUIRED NO_MODULE)
 find_package(class_loader REQUIRED)
 find_package(xmlrpcpp REQUIRED)
@@ -29,7 +29,6 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
   ${PCL_INCLUDE_DIRS}
   ${xmlrpcpp_INCLUDE_DIRS}
 )
-target_compile_definitions(${PROJECT_NAME} PUBLIC ${PCL_DEFINITIONS})
 set_target_properties(${PROJECT_NAME} PROPERTIES
   CXX_STANDARD 14
   CXX_STANDARD_REQUIRED YES
@@ -41,7 +40,9 @@ else()
 endif()
 
 # Mesh Filters library
-add_library(${PROJECT_NAME}_mesh_filters SHARED src/mesh/bspline_reconstruction.cpp)
+add_library(${PROJECT_NAME}_mesh_filters SHARED
+  src/mesh/bspline_reconstruction.cpp
+)
 target_link_libraries(${PROJECT_NAME}_mesh_filters PUBLIC ${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME}_mesh_filters PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
@@ -52,9 +53,9 @@ set_target_properties(${PROJECT_NAME}_mesh_filters PROPERTIES
   CXX_EXTENSIONS NO
 )
 if(CXX_FEATURE_FOUND EQUAL "-1")
-  target_compile_options(${PROJECT_NAME} PRIVATE -std=c++14)
+  target_compile_options(${PROJECT_NAME}_mesh_filters PRIVATE -std=c++14)
 else()
-  target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_14)
+  target_compile_features(${PROJECT_NAME}_mesh_filters PRIVATE cxx_std_14)
 endif()
 
 # Cloud Filters library
@@ -73,31 +74,33 @@ else()
   target_compile_features(${PROJECT_NAME}_cloud_filters PRIVATE cxx_std_14)
 endif()
 
-# Cloud Filter Plugins Library
-add_library(${PROJECT_NAME}_cloud_filter_plugins SHARED
-  src/cloud/plugins.cpp
-)
-target_link_libraries(${PROJECT_NAME}_cloud_filter_plugins PUBLIC
+# Filter Plugins Library
+add_library(${PROJECT_NAME}_filter_plugins SHARED src/plugins.cpp)
+target_link_libraries(${PROJECT_NAME}_filter_plugins PUBLIC
   ${PROJECT_NAME}_cloud_filters
+  ${PROJECT_NAME}_mesh_filters
 )
-set_target_properties(${PROJECT_NAME}_cloud_filter_plugins PROPERTIES
+set_target_properties(${PROJECT_NAME}_filter_plugins PROPERTIES
   CXX_STANDARD 14
   CXX_STANDARD_REQUIRED YES
   CXX_EXTENSIONS NO
 )
 if(CXX_FEATURE_FOUND EQUAL "-1")
-  target_compile_options(${PROJECT_NAME}_cloud_filter_plugins PRIVATE -std=c++14)
+  target_compile_options(${PROJECT_NAME}_filter_plugins PRIVATE -std=c++14)
 else()
-  target_compile_features(${PROJECT_NAME}_cloud_filter_plugins PRIVATE cxx_std_14)
+  target_compile_features(${PROJECT_NAME}_filter_plugins PRIVATE cxx_std_14)
 endif()
 
 #############
 ## Install ##
 #############
-install(TARGETS ${PROJECT_NAME} DESTINATION lib)
-#install(TARGETS ${PROJECT_NAME}_mesh_filters DESTINATION lib)
-install(TARGETS ${PROJECT_NAME}_cloud_filters DESTINATION lib)
-install(TARGETS ${PROJECT_NAME}_cloud_filter_plugins DESTINATION lib)
+install(
+  TARGETS
+    ${PROJECT_NAME}
+    ${PROJECT_NAME}_mesh_filters
+    ${PROJECT_NAME}_cloud_filters
+    ${PROJECT_NAME}_filter_plugins
+  DESTINATION lib)
 
 #############
 ## Testing ##
@@ -105,13 +108,13 @@ install(TARGETS ${PROJECT_NAME}_cloud_filter_plugins DESTINATION lib)
 if(${ENABLE_TESTS})
   find_package(GTest REQUIRED)
   add_executable(${PROJECT_NAME}_cloud_unit src/test/cloud_utest.cpp)
-  set_target_properties(${PROJECT_NAME}_cloud_filter_plugins PROPERTIES
+  set_target_properties(${PROJECT_NAME}_filter_plugins PROPERTIES
     CXX_STANDARD 14
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
   )
   target_link_libraries(${PROJECT_NAME}_cloud_unit PUBLIC
-    ${PROJECT_NAME}_cloud_filter_plugins
+    ${PROJECT_NAME}_filter_plugins
     GTest::GTest
     GTest::Main
   )
