@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5.0)
-project(noether_filtering VERSION 0.1.0 LANGUAGES CXX)
+project(noether_filtering VERSION 0.0.0 LANGUAGES CXX)
 
 find_package(console_bridge REQUIRED)
 find_package(PCL 1.9 REQUIRED COMPONENTS common filters io surface)

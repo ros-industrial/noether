@@ -12,6 +12,7 @@
   <depend>console_bridge</depend>
   <depend>PCL</depend>
   <depend>VTK</depend>
+  <test_depend>GTest</test_depend>
 
   <export>
     <build_type>cmake</build_type>
