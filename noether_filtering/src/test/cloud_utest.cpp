@@ -1,16 +1,24 @@
 #include <boost/make_shared.hpp>
 #include <gtest/gtest.h>
-#include "noether_filtering/filter_group.h"
+#include "noether_filtering/filter_manager.h"
+#include "noether_filtering/utils.h"
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
+#include "noether_filtering/cloud/crop_box_filter.h"
+#include "noether_filtering/cloud/pass_through_filter.h"
+#include "noether_filtering/cloud/radius_outlier_filter.h"
+#include "noether_filtering/cloud/statistical_outlier_filter.h"
+#include "noether_filtering/cloud/voxel_grid_filter.h"
+
 template<typename PointT>
-XmlRpc::XmlRpcValue createVoxelGridConfig(std::string pt_name)
+XmlRpc::XmlRpcValue createVoxelGridConfig()
 {
-  using namespace noether_filtering::config_field_names;
+  using namespace noether_filtering;
+  using namespace noether_filtering::config_fields::filter;
   XmlRpc::XmlRpcValue f;
   f[NAME] = "voxel_grid";
-  f[TYPE_NAME] = "VoxelGridFilter<" + std::move(pt_name) + ">";
+  f[TYPE_NAME] = utils::getClassName<VoxelGridFilter<PointT>>();
 
   XmlRpc::XmlRpcValue vg;
   vg["leaf_size"] = 0.1;
@@ -20,12 +28,13 @@ XmlRpc::XmlRpcValue createVoxelGridConfig(std::string pt_name)
 }
 
 template<typename PointT>
-XmlRpc::XmlRpcValue createStatisticalOutlierConfig(std::string pt_name)
+XmlRpc::XmlRpcValue createStatisticalOutlierConfig()
 {
-  using namespace noether_filtering::config_field_names;
+  using namespace noether_filtering;
+  using namespace noether_filtering::config_fields::filter;
   XmlRpc::XmlRpcValue f;
   f[NAME] = "statistical_outlier";
-  f[TYPE_NAME] = "StatisticalOutlierFilter<" + std::move(pt_name) + ">";
+  f[TYPE_NAME] = utils::getClassName<StatisticalOutlierFilter<PointT>>();
 
   XmlRpc::XmlRpcValue so;
   so["mean_k"] = 10;
@@ -36,12 +45,13 @@ XmlRpc::XmlRpcValue createStatisticalOutlierConfig(std::string pt_name)
 }
 
 template<typename PointT>
-XmlRpc::XmlRpcValue createCropBoxConfig(std::string pt_name)
+XmlRpc::XmlRpcValue createCropBoxConfig()
 {
-  using namespace noether_filtering::config_field_names;
+  using namespace noether_filtering;
+  using namespace noether_filtering::config_fields::filter;
   XmlRpc::XmlRpcValue f;
   f[NAME] = "crop_box";
-  f[TYPE_NAME] = "CropBoxFilter<" + std::move(pt_name) + ">";
+  f[TYPE_NAME] = utils::getClassName<CropBoxFilter<PointT>>();
 
   XmlRpc::XmlRpcValue min;
   min["x"] = -1.0;
@@ -73,12 +83,13 @@ XmlRpc::XmlRpcValue createCropBoxConfig(std::string pt_name)
 }
 
 template<typename PointT>
-XmlRpc::XmlRpcValue createPassThroughConfig(std::string pt_name)
+XmlRpc::XmlRpcValue createPassThroughConfig()
 {
-  using namespace noether_filtering::config_field_names;
+  using namespace noether_filtering;
+  using namespace noether_filtering::config_fields::filter;
   XmlRpc::XmlRpcValue f;
   f[NAME] = "pass_through";
-  f[TYPE_NAME] = "PassThroughFilter<" + std::move(pt_name) + ">";
+  f[TYPE_NAME] = utils::getClassName<PassThroughFilter<PointT>>();
 
   XmlRpc::XmlRpcValue pt;
   pt["filter_field_name"] = "y";
@@ -91,12 +102,13 @@ XmlRpc::XmlRpcValue createPassThroughConfig(std::string pt_name)
 }
 
 template<typename PointT>
-XmlRpc::XmlRpcValue createRadiusOutlierConfig(std::string pt_name)
+XmlRpc::XmlRpcValue createRadiusOutlierConfig()
 {
-  using namespace noether_filtering::config_field_names;
+  using namespace noether_filtering;
+  using namespace noether_filtering::config_fields::filter;
   XmlRpc::XmlRpcValue f;
   f[NAME] = "radius_outlier_filter";
-  f[TYPE_NAME] = "RadiusOutlierFilter<" + std::move(pt_name) + ">";
+  f[TYPE_NAME] = utils::getClassName<RadiusOutlierFilter<PointT>>();
 
   XmlRpc::XmlRpcValue ro;
   ro["radius"] = 1.0;
@@ -106,13 +118,45 @@ XmlRpc::XmlRpcValue createRadiusOutlierConfig(std::string pt_name)
   return f;
 }
 
+template<typename PointT>
+XmlRpc::XmlRpcValue createManagerConfig(std::string group_name)
+{
+  using namespace noether_filtering::config_fields;
+
+  // Create filter config(s)
+  XmlRpc::XmlRpcValue filters;
+  filters.setSize(5);
+  filters[0] = createVoxelGridConfig<PointT>();
+  filters[1] = createStatisticalOutlierConfig<PointT>();
+  filters[2] = createCropBoxConfig<PointT>();
+  filters[3] = createPassThroughConfig<PointT>();
+  filters[4] = createRadiusOutlierConfig<PointT>();
+
+  // Create a single filter group
+  XmlRpc::XmlRpcValue g;
+  g[group::GROUP_NAME] = std::move(group_name);
+  g[group::CONTINUE_ON_FAILURE] = false;
+  g[group::FILTERS] = std::move(filters);
+
+  // Create a collection of filter groups
+  XmlRpc::XmlRpcValue groups;
+  groups.setSize(1);
+  groups[0] = std::move(g);
+
+  // Create the manager configuration
+  XmlRpc::XmlRpcValue manager;
+  manager[manager::FILTER_GROUPS] = std::move(groups);
+
+  return manager;
+}
+
 template<typename T>
 class FilterManagerFixture : public testing::Test
 {
 public:
   using testing::Test::Test;
 
-  noether_filtering::FilterGroup<typename pcl::PointCloud<T>::Ptr> manager;
+  noether_filtering::FilterManager<typename pcl::PointCloud<T>::Ptr> manager;
 };
 
 typedef ::testing::Types<pcl::PointXYZ, pcl::PointXYZRGB, pcl::PointNormal> Implementations;
@@ -121,27 +165,17 @@ TYPED_TEST_CASE(FilterManagerFixture, Implementations);
 
 TYPED_TEST(FilterManagerFixture, FilterManagerTest)
 {
-  using namespace noether_filtering::config_field_names;
+  using namespace noether_filtering::config_fields::filter;
 
-  XmlRpc::XmlRpcValue config;
-  config[CONTINUE_ON_FAILURE] = true;
-
-  XmlRpc::XmlRpcValue filters;
-  filters.setSize(5);
-
-  // Get the name of the current test type (i.e. the name of the PCL point type)
-  auto info = ::testing::UnitTest::GetInstance()->current_test_info();
-  std::string type_param(info->type_param());
-
-  // Create filter config(s)
-  filters[0] = createVoxelGridConfig<TypeParam>(type_param);
-  filters[1] = createStatisticalOutlierConfig<TypeParam>(type_param);
-  filters[2] = createCropBoxConfig<TypeParam>(type_param);
-  filters[3] = createPassThroughConfig<TypeParam>(type_param);
-  filters[4] = createRadiusOutlierConfig<TypeParam>(type_param);
-  config[FILTERS] = filters;
-
+  const std::string group_name = "test_group";
+  XmlRpc::XmlRpcValue config = createManagerConfig<TypeParam>(group_name);
   ASSERT_TRUE(this->manager.init(config));
+
+  using Group = noether_filtering::FilterGroup<typename pcl::PointCloud<TypeParam>::Ptr>;
+  std::shared_ptr<Group> group = this->manager.getFilterGroup(
+    group_name);
+
+  ASSERT_TRUE(group != nullptr);
 
   typename pcl::PointCloud<TypeParam>::Ptr input_cloud
     = boost::make_shared<pcl::PointCloud<TypeParam>>();
@@ -149,7 +183,7 @@ TYPED_TEST(FilterManagerFixture, FilterManagerTest)
   typename pcl::PointCloud<TypeParam>::Ptr output_cloud;
   std::string error;
 
-  ASSERT_TRUE(this->manager.applyFilters(input_cloud, output_cloud, error));
+  ASSERT_TRUE(group->applyFilters(input_cloud, output_cloud, error));
 
   ASSERT_LE(output_cloud->points.size(), input_cloud->points.size());
 }
