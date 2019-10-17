@@ -13,7 +13,10 @@ find_package(xmlrpcpp REQUIRED)
 
 list(FIND CMAKE_CXX_COMPILE_FEATURES cxx_std_14 CXX_FEATURE_FOUND)
 
-add_library(${PROJECT_NAME} SHARED src/filter_group.cpp)
+add_library(${PROJECT_NAME} SHARED
+  src/filter_group.cpp
+  src/filter_manager.cpp
+)
 target_link_libraries(${PROJECT_NAME} PUBLIC
   ${Boost_LIBRARIES}
   ${class_loader_LIBRARIES}
