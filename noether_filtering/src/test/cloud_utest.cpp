@@ -1,6 +1,6 @@
 #include <boost/make_shared.hpp>
 #include <gtest/gtest.h>
-#include "noether_filtering/filter_manager.h"
+#include "noether_filtering/filter_group.h"
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
@@ -112,7 +112,7 @@ class FilterManagerFixture : public testing::Test
 public:
   using testing::Test::Test;
 
-  noether_filtering::FilterManager<typename pcl::PointCloud<T>::Ptr> manager;
+  noether_filtering::FilterGroup<typename pcl::PointCloud<T>::Ptr> manager;
 };
 
 typedef ::testing::Types<pcl::PointXYZ, pcl::PointXYZRGB, pcl::PointNormal> Implementations;

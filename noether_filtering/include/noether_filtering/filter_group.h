@@ -4,8 +4,8 @@
  *  Created on: Oct 14, 2019
  *      Author: jrgnicho
  */
-#ifndef INCLUDE_NOETHER_FILTERING_FILTER_MANAGER_H_
-#define INCLUDE_NOETHER_FILTERING_FILTER_MANAGER_H_
+#ifndef INCLUDE_NOETHER_FILTERING_FILTER_GROUP_H_
+#define INCLUDE_NOETHER_FILTERING_FILTER_GROUP_H_
 
 #include <string>
 #include <memory>
@@ -20,11 +20,11 @@ namespace noether_filtering
  * @brief The FilterManager class
  */
 template<class F>
-class FilterManager
+class FilterGroup
 {
 public:
-  FilterManager();
-  virtual ~FilterManager() = default;
+  FilterGroup();
+  virtual ~FilterGroup() = default;
 
     /**
    * @details Initializes the filter chain and loads all the filter plugins from a yaml structured parameter
@@ -67,4 +67,4 @@ protected:
 
 } /* namespace noether_filtering */
 
-#endif /* INCLUDE_NOETHER_FILTERING_FILTER_MANAGER_H_ */
+#endif /* INCLUDE_NOETHER_FILTERING_FILTER_GROUP_H_ */

@@ -4,10 +4,10 @@
  *  Created on: Oct 14, 2019
  *      Author: jrgnicho
  */
-#ifndef NOETHER_FILTERING_FILTER_MANAGER_HPP_
-#define NOETHER_FILTERING_FILTER_MANAGER_HPP_
+#ifndef NOETHER_FILTERING_FILTER_GROUP_HPP_
+#define NOETHER_FILTERING_FILTER_GROUP_HPP_
 
-#include "noether_filtering/filter_manager.h"
+#include "noether_filtering/filter_group.h"
 #include "noether_filtering/utils.h"
 #include <boost/format.hpp>
 #include <XmlRpcException.h>
@@ -38,7 +38,7 @@ bool loadFilterInfos(XmlRpc::XmlRpcValue mesh_filter_configs,std::vector<FilterI
 }
 
 template<class F>
-FilterManager<F>::FilterManager()
+FilterGroup<F>::FilterGroup()
   : continue_on_failure_(false)
   , filter_loader_(FILTER_PLUGINS_LIBRARY)
 {
@@ -52,7 +52,7 @@ FilterManager<F>::FilterManager()
 }
 
 template<class F>
-bool FilterManager<F>::init(XmlRpc::XmlRpcValue config)
+bool FilterGroup<F>::init(XmlRpc::XmlRpcValue config)
 {
   using namespace config_field_names;
 
@@ -64,7 +64,7 @@ bool FilterManager<F>::init(XmlRpc::XmlRpcValue config)
     {
       CONSOLE_BRIDGE_logError("The '%s' field was not found in the %s config",
                               f.c_str(),
-                              utils::getClassName<FilterManager<F>>().c_str());
+                              utils::getClassName<FilterGroup<F>>().c_str());
       return false;
     }
     return true;
@@ -133,20 +133,20 @@ bool FilterManager<F>::init(XmlRpc::XmlRpcValue config)
 }
 
 template<class F>
-bool FilterManager<F>::applyFilters(const F& input, F& output, std::string& err_msg)
+bool FilterGroup<F>::applyFilters(const F& input, F& output, std::string& err_msg)
 {
   // applying all loaded filters
   return applyFilters(filters_loaded_,input, output, err_msg);
 }
 
 template<class F>
-bool FilterManager<F>::applyFilters(const std::vector<std::string>& filters, const F& input, F& output,
+bool FilterGroup<F>::applyFilters(const std::vector<std::string>& filters, const F& input, F& output,
                                     std::string& err_msg)
 {
   std::vector<std::string> selected_filters = filters;
   if(selected_filters.empty())
   {
-    CONSOLE_BRIDGE_logWarn("%s received empty list of filters, using all filters loaded", utils::getClassName<FilterManager<F>>().c_str());
+    CONSOLE_BRIDGE_logWarn("%s received empty list of filters, using all filters loaded", utils::getClassName<FilterGroup<F>>().c_str());
     std::copy(filters_loaded_.begin(), filters_loaded_.end(), std::back_inserter(selected_filters));
   }
 
@@ -189,4 +189,4 @@ bool FilterManager<F>::applyFilters(const std::vector<std::string>& filters, con
 
 } /* namespace noether_filtering */
 
-#endif // NOETHER_FILTERING_FILTER_MANAGER_HPP_
+#endif // NOETHER_FILTERING_FILTER_GROUP_HPP_
