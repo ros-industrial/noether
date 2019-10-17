@@ -2,6 +2,8 @@
 #include <class_loader/register_macro.hpp>
 #include "noether_filtering/cloud/voxel_grid_filter.h"
 #include "noether_filtering/cloud/statistical_outlier_filter.h"
+#include "noether_filtering/cloud/crop_box_filter.h"
+#include "noether_filtering/cloud/pass_through_filter.h"
 #include <pcl/point_types.h>
 
 #define CREATE_FILTER_PLUGIN_IMPL(r, FILTER_TYPE, POINT_TYPE) \
@@ -14,4 +16,6 @@ namespace noether_filtering
 {
   CREATE_FILTER_PLUGINS(VoxelGridFilter, PCL_XYZ_POINT_TYPES)
   CREATE_FILTER_PLUGINS(StatisticalOutlierFilter, PCL_XYZ_POINT_TYPES)
+  CREATE_FILTER_PLUGINS(CropBoxFilter, PCL_XYZ_POINT_TYPES)
+  CREATE_FILTER_PLUGINS(PassThroughFilter, PCL_XYZ_POINT_TYPES)
 }
