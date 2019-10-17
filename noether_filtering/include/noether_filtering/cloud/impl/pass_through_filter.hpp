@@ -21,7 +21,7 @@ bool PassThroughFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
   }
   catch (const XmlRpc::XmlRpcException &ex)
   {
-    CONSOLE_BRIDGE_logError("Failed to load required parameter(s) for voxel grid filter: '%s'",
+    CONSOLE_BRIDGE_logError("Failed to load required parameter(s) for pass through filter: '%s'",
                             ex.getMessage().c_str());
     return false;
   }
@@ -33,7 +33,7 @@ bool PassThroughFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
   }
   catch (const XmlRpc::XmlRpcException &ex)
   {
-    CONSOLE_BRIDGE_logWarn("Failed to load optional parameter(s) for voxel grid filter: '%s'",
+    CONSOLE_BRIDGE_logWarn("Failed to load optional parameter(s) for pass through filter: '%s'",
                            ex.getMessage().c_str());
   }
 
