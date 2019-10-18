@@ -10,15 +10,15 @@
 #include <boost/format.hpp>
 #include <actionlib/server/simple_action_server.h>
 #include <noether_msgs/ApplyMeshFiltersAction.h>
-#include <noether_filtering/mesh_filter_manager.h>
 #include <noether_conversions/noether_conversions.h>
+#include <noether_filtering/mesh/mesh_filter_manager.h>
 
 static const std::string APPLY_MESH_FILTERS_ACTION = "apply_mesh_filters";
 static const std::string MESH_FILTER_MNGR_PARAM = "mesh_filter_manager";
 
 class MeshFilterServer
 {
-public:
+  public:
   MeshFilterServer():
     server_(nh_, APPLY_MESH_FILTERS_ACTION, boost::bind(&MeshFilterServer::executeAction, this, _1),false)
   {

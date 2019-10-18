@@ -1,8 +1,8 @@
 filter_groups:
   - group_name: DEFAULT
     continue_on_failure: False
-    mesh_filters:
-    - type: noether_filtering/BSplineReconstruction
+    filters:
+    - type: noether_filtering::BSplineReconstruction
       name: bspline_surf_1
       config:
         verbosity_on: True

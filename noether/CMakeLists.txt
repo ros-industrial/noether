@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 
-## Compile as C++14, 
+## Compile as C++14,
 add_compile_options(-std=c++14)
 
 project(noether)
@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
   cmake_modules
   mesh_segmenter
-  noether_conversions  
+  noether_conversions
   noether_msgs
   path_sequence_planner
   pcl_conversions
@@ -41,7 +41,7 @@ catkin_package(
     VTK
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS} ${noether_filtering_INCLUDE_DIRS})
+include_directories(include ${catkin_INCLUDE_DIRS})
 
 add_executable(surface_raster_planner_server
   src/surface_raster_planner_server.cpp
@@ -72,7 +72,7 @@ add_executable(mesh_filter_server
 )
 target_link_libraries(mesh_filter_server PUBLIC
   ${catkin_LIBRARIES}
-  ${noether_filtering_LIBRARIES}
+  noether_filtering::noether_filtering
 )
 
 #############
