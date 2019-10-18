@@ -16,6 +16,28 @@ public:
 
   using FilterBase<T>::FilterBase;
 
+  /**
+   * @brief configure
+   * @param config: XmlRpc value
+   * - config:
+   *     min_pt:
+   *       x: (double)
+   *       y: (double)
+   *       z: (double)
+   *     max_pt:
+   *       x: (double)
+   *       y: (double)
+   *       z: (double)
+   *     transform:
+   *       x: (double)
+   *       y: (double)
+   *       z: (double)
+   *       rx: (double)
+   *       ry: (double)
+   *       rz: (double)
+   *     crop_outside: (bool)
+   * @return
+   */
   bool configure(XmlRpc::XmlRpcValue config) override final;
   bool filter(const T &input, T &output) override final;
   std::string getName() const override final;

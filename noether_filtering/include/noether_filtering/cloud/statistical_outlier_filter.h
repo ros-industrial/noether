@@ -13,6 +13,14 @@ public:
   typedef typename pcl::PointCloud<PointT>::Ptr T;
   using FilterBase<T>::FilterBase;
 
+  /**
+   * @brief configure
+   * @param config: XmlRpc value
+   * - config:
+   *     mean_k: (int)
+   *     std_dev_mult: (double)
+   * @return
+   */
   virtual bool configure(XmlRpc::XmlRpcValue config) override final;
   virtual bool filter(const T &input, T &output) override final;
   virtual std::string getName() const override final;

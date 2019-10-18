@@ -14,6 +14,14 @@ class RadiusOutlierFilter : public FilterBase<typename pcl::PointCloud<PointT>::
 
   using FilterBase<T>::FilterBase;
 
+  /**
+   * @brief configure
+   * @param config: XmlRpc value
+   * - config:
+   *     radius: (double)
+   *     min_pts: (int)
+   * @return
+   */
   virtual bool configure(XmlRpc::XmlRpcValue config) override final;
   virtual bool filter(const T &input, T &output) override final;
   virtual std::string getName() const override final;

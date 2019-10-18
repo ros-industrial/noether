@@ -14,6 +14,16 @@ public:
 
   using FilterBase<T>::FilterBase;
 
+  /**
+   * @brief configure
+   * @param config: XmlRpc value
+   * - config:
+   *     filter_field_name: (string)
+   *     min_limit: (double)
+   *     max_limit: (double)
+   *     negative: (bool)
+   * @return
+   */
   bool configure(XmlRpc::XmlRpcValue config) override final;
   bool filter(const T &input, T &output) override final;
   std::string getName() const override final;
