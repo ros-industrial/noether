@@ -81,9 +81,9 @@ public:
    * @param config The configuration
    * @return True on success, false otherwise
    */
-  bool configure(XmlRpc::XmlRpcValue config) final;
-  bool filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMesh& mesh_out) final;
-  std::string getName() const final;
+  bool configure(XmlRpc::XmlRpcValue config) override final;
+  bool filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMesh& mesh_out) override final;
+  std::string getName() const override final;
 
 protected:
   Parameters parameters_;

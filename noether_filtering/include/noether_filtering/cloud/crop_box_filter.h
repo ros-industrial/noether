@@ -16,9 +16,9 @@ public:
 
   using FilterBase<T>::FilterBase;
 
-  virtual bool configure(XmlRpc::XmlRpcValue config) final;
-  virtual bool filter(const T &input, T &output) final;
-  virtual std::string getName() const final;
+  bool configure(XmlRpc::XmlRpcValue config) override final;
+  bool filter(const T &input, T &output) override final;
+  std::string getName() const override final;
 
   struct Params
   {
