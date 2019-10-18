@@ -97,13 +97,41 @@ endif()
 #############
 ## Install ##
 #############
-install(
-  TARGETS
-    ${PROJECT_NAME}
-    ${PROJECT_NAME}_mesh_filters
-    ${PROJECT_NAME}_cloud_filters
-    ${PROJECT_NAME}_filter_plugins
+list(APPEND PACKAGE_LIBRARIES ${PROJECT_NAME} ${PROJECT_NAME}_mesh_filters ${PROJECT_NAME}_cloud_filters ${PROJECT_NAME}_filter_plugins)
+
+# Install targets
+install(TARGETS ${PACKAGE_LIBRARIES}
+  EXPORT ${PROJECT_NAME}-targets
   DESTINATION lib)
+
+install(EXPORT ${PROJECT_NAME}-targets
+  NAMESPACE noether_filtering:: DESTINATION lib/cmake/${PROJECT_NAME})
+
+# Install headers
+install(DIRECTORY include/${PROJECT_NAME} DESTINATION include)
+
+# Install files
+install(FILES package.xml DESTINATION share/${PROJECT_NAME})
+
+# Create cmake config files
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/${PROJECT_NAME}-config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake
+    INSTALL_DESTINATION lib/cmake/${PROJECT_NAME}
+    NO_CHECK_REQUIRED_COMPONENTS_MACRO)
+
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake
+    VERSION ${PROJECT_VERSION} COMPATIBILITY ExactVersion)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config-version.cmake"
+    DESTINATION lib/cmake/${PROJECT_NAME})
+
+export(EXPORT ${PROJECT_NAME}-targets FILE
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-targets.cmake)
 
 #############
 ## Testing ##

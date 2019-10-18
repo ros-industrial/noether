@@ -10,8 +10,7 @@
 namespace noether_filtering
 {
 // Explicit template instantiation
-template<>
-class FilterGroup<pcl::PolygonMesh>;
+template class FilterGroup<pcl::PolygonMesh>;
 
 // Explicit template instantiation for all XYZ point types
 PCL_INSTANTIATE(FilterGroup, PCL_XYZ_POINT_TYPES);
