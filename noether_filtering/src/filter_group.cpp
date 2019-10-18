@@ -1,4 +1,4 @@
-#include "noether_filtering/filter_group.hpp"
+#include "noether_filtering/impl/filter_group.hpp"
 #include <pcl/impl/instantiate.hpp>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
