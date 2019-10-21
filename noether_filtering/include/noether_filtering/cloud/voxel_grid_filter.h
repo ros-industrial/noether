@@ -6,6 +6,8 @@
 
 namespace noether_filtering
 {
+namespace cloud
+{
 template<typename PointT>
 class VoxelGridFilter : public FilterBase<typename pcl::PointCloud<PointT>::Ptr>
 {
@@ -41,7 +43,7 @@ public:
   };
   Params params;
 };
-
+} // namespace cloud
 } // namespace noether_filtering
 
 #endif // NOETHER_FILTERING_CLOUD_VOXEL_GRID_FILTER_H

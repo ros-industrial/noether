@@ -18,9 +18,14 @@ class FilterGroup;
 template<typename T>
 class FilterManager;
 
+namespace mesh
+{
+
 // Provide aliases for specific types
 using MeshFilterGroup = FilterGroup<pcl::PolygonMesh>;
 using MeshFilterManager = FilterManager<pcl::PolygonMesh>;
+
+}
 
 }
 

@@ -14,13 +14,15 @@ class PointCloud;
 
 namespace noether_filtering
 {
-
+namespace cloud
+{
 template<typename PointT>
 using CloudFilterGroup = FilterManager<typename boost::shared_ptr<pcl::PointCloud<PointT>>>;
 
 template<typename PointT>
 using CloudFilterManager = FilterManager<typename boost::shared_ptr<pcl::PointCloud<PointT>>>;
 
+} // namespace cloud
 } // namespace noether_filtering
 
 #endif // NOETHER_FILTERING_CLOUD_CLOUD_FILTER_MANAGER_H

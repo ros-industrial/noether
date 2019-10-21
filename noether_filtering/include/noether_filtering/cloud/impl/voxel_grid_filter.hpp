@@ -9,6 +9,9 @@
 
 namespace noether_filtering
 {
+namespace cloud
+{
+
 template<typename PointT>
 bool VoxelGridFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
 {
@@ -72,9 +75,10 @@ std::string VoxelGridFilter<PointT>::getName() const
   return utils::getClassName<decltype(this)>();
 }
 
+} // namespace cloud
 } // namespace noether_filtering
 
 #define PCL_INSTANTIATE_VoxelGridFilter(T) \
-  template class PCL_EXPORTS noether_filtering::VoxelGridFilter<T>;
+  template class PCL_EXPORTS noether_filtering::cloud::VoxelGridFilter<T>;
 
 #endif // NOETHER_FILTERING_CLOUD_IMPL_VOXEL_GRID_FILTER_HPP

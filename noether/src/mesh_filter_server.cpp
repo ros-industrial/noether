@@ -54,7 +54,7 @@ private:
     ApplyMeshFiltersFeedback feedback;
 
     res.success = false;
-    std::shared_ptr< noether_filtering::MeshFilterGroup > mesh_filter_group = filter_manager_.getFilterGroup(goal->filter_group);
+    std::shared_ptr< noether_filtering::mesh::MeshFilterGroup > mesh_filter_group = filter_manager_.getFilterGroup(goal->filter_group);
     if(mesh_filter_group == nullptr)
     {
       std::string err_msg = boost::str(boost::format("The filter group '%s' was not found") % goal->filter_group);
@@ -91,7 +91,7 @@ private:
 
   ros::NodeHandle nh_;
   actionlib::SimpleActionServer<noether_msgs::ApplyMeshFiltersAction> server_;
-  noether_filtering::MeshFilterManager filter_manager_;
+  noether_filtering::mesh::MeshFilterManager filter_manager_;
 };
 
 int main(int argc, char** argv)

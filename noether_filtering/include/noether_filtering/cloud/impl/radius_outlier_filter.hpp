@@ -9,6 +9,9 @@
 
 namespace noether_filtering
 {
+namespace cloud
+{
+
 template<typename PointT>
 bool RadiusOutlierFilter<PointT>::configure(XmlRpc::XmlRpcValue config)
 {
@@ -49,9 +52,10 @@ std::string RadiusOutlierFilter<PointT>::getName() const
   return utils::getClassName<decltype(this)>();
 }
 
+} // namespace cloud
 } // namespace noether_filtering
 
 #define PCL_INSTANTIATE_RadiusOutlierFilter(T) \
-  template class PCL_EXPORTS noether_filtering::RadiusOutlierFilter<T>;
+  template class PCL_EXPORTS noether_filtering::cloud::RadiusOutlierFilter<T>;
 
 #endif // NOETHER_FILTERING_CLOUD_IMPL_RADIUS_OUTLIER_FILTER_HPP

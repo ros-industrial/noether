@@ -51,6 +51,8 @@ bool fromXmlRpc(XmlRpc::XmlRpcValue value, Eigen::Affine3f& out)
 
 namespace noether_filtering
 {
+namespace cloud
+{
 template<typename PointT>
 bool CropBoxFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
 {
@@ -110,9 +112,10 @@ std::string CropBoxFilter<PointT>::getName() const
   return utils::getClassName<decltype(this)>();
 }
 
+} // namespace cloud
 } // namespace noether_filtering
 
 #define PCL_INSTANTIATE_CropBoxFilter(T) \
-  template class PCL_EXPORTS noether_filtering::CropBoxFilter<T>;
+  template class PCL_EXPORTS noether_filtering::cloud::CropBoxFilter<T>;
 
 #endif // NOETHER_FILTERING_CLOUD_IMPL_CROP_BOX_FILTER_HPP

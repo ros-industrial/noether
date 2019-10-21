@@ -23,10 +23,12 @@ static pcl::on_nurbs::vector_vec3d createNurbData(pcl::PointCloud<pcl::PointXYZ>
     if (!std::isnan (p.x) && !std::isnan (p.y) && !std::isnan (p.z))
       data.push_back (Eigen::Vector3d (p.x, p.y, p.z));
   }
-  return data;
+  return std::move(data);
 }
 
 namespace noether_filtering
+{
+namespace mesh
 {
 
 bool BSplineReconstruction::configure(XmlRpc::XmlRpcValue config)
@@ -182,4 +184,5 @@ std::string BSplineReconstruction::getName() const
   return utils::getClassName<decltype(*this)>();
 }
 
+} /* namespace mesh */
 } /* namespace noether_filtering */

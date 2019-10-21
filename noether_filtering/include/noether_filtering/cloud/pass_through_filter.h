@@ -6,6 +6,8 @@
 
 namespace noether_filtering
 {
+namespace cloud
+{
 template<typename PointT>
 class PassThroughFilter : public FilterBase<typename pcl::PointCloud<PointT>::Ptr>
 {
@@ -37,7 +39,7 @@ public:
   };
   Params params;
 };
-
+} // namespace cloud
 } // namespace noether_filtering
 
 #endif // NOETHER_FILTERING_CLOUD_PASS_THROUGH_FILTER_H

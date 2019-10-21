@@ -19,11 +19,11 @@
   BOOST_PP_SEQ_FOR_EACH(CREATE_FILTER_PLUGIN_IMPL, FILTER_TYPE, POINT_TYPES)
 
 // Point Cloud Filters
-CREATE_FILTER_PLUGINS(noether_filtering::VoxelGridFilter, PCL_XYZ_POINT_TYPES)
-CREATE_FILTER_PLUGINS(noether_filtering::StatisticalOutlierFilter, PCL_XYZ_POINT_TYPES)
-CREATE_FILTER_PLUGINS(noether_filtering::CropBoxFilter, PCL_XYZ_POINT_TYPES)
-CREATE_FILTER_PLUGINS(noether_filtering::PassThroughFilter, PCL_XYZ_POINT_TYPES)
-CREATE_FILTER_PLUGINS(noether_filtering::RadiusOutlierFilter, PCL_XYZ_POINT_TYPES)
+CREATE_FILTER_PLUGINS(noether_filtering::cloud::VoxelGridFilter, PCL_XYZ_POINT_TYPES)
+CREATE_FILTER_PLUGINS(noether_filtering::cloud::StatisticalOutlierFilter, PCL_XYZ_POINT_TYPES)
+CREATE_FILTER_PLUGINS(noether_filtering::cloud::CropBoxFilter, PCL_XYZ_POINT_TYPES)
+CREATE_FILTER_PLUGINS(noether_filtering::cloud::PassThroughFilter, PCL_XYZ_POINT_TYPES)
+CREATE_FILTER_PLUGINS(noether_filtering::cloud::RadiusOutlierFilter, PCL_XYZ_POINT_TYPES)
 
 // Mesh Filters
-CLASS_LOADER_REGISTER_CLASS(noether_filtering::BSplineReconstruction, noether_filtering::FilterBase<pcl::PolygonMesh>);
+CLASS_LOADER_REGISTER_CLASS(noether_filtering::mesh::BSplineReconstruction, noether_filtering::FilterBase<pcl::PolygonMesh>);

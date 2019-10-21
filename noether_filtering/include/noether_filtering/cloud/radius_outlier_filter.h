@@ -6,6 +6,8 @@
 
 namespace noether_filtering
 {
+namespace cloud
+{
 template<typename PointT>
 class RadiusOutlierFilter : public FilterBase<typename pcl::PointCloud<PointT>::Ptr>
 {
@@ -33,7 +35,7 @@ class RadiusOutlierFilter : public FilterBase<typename pcl::PointCloud<PointT>::
   };
   Params params;
 };
-
+} // namespace cloud
 } // namespace noether_filtering
 
 #endif // NOETHER_FILTERING_CLOUD_RADIUS_OUTLIER_FILTER_H

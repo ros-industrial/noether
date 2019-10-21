@@ -9,6 +9,9 @@
 
 namespace noether_filtering
 {
+namespace cloud
+{
+
 template<typename PointT>
 bool StatisticalOutlierFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
 {
@@ -49,9 +52,10 @@ std::string StatisticalOutlierFilter<PointT>::getName() const
   return utils::getClassName<decltype(this)>();
 }
 
+} // namespace cloud
 } // namespace noether_filtering
 
 #define PCL_INSTANTIATE_StatisticalOutlierFilter(T) \
-  template class PCL_EXPORTS noether_filtering::StatisticalOutlierFilter<T>;
+  template class PCL_EXPORTS noether_filtering::cloud::StatisticalOutlierFilter<T>;
 
 #endif // STATISTICAL_OUTLIER_FILTER_HPP

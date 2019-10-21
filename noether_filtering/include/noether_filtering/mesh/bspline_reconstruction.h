@@ -15,7 +15,8 @@
 
 namespace noether_filtering
 {
-
+namespace mesh
+{
 /**
  * @class noether_filtering::filters::BSplineReconstruction
  * @details: Smoothes a mesh by fitting a bspline surface to it.  The details of this implementation'
@@ -89,6 +90,7 @@ protected:
   Parameters parameters_;
 };
 
+} /* namespace mesh */
 } /* namespace noether_filtering */
 
 #endif /* INCLUDE_NOETHER_FILTERING_MESH_FILTERS_BSPLINE_RECONSTRUCTION_H_ */

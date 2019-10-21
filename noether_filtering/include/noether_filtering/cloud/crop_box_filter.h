@@ -7,6 +7,8 @@
 
 namespace noether_filtering
 {
+namespace cloud
+{
 template<typename PointT>
 class CropBoxFilter : public FilterBase<typename pcl::PointCloud<PointT>::Ptr>
 {
@@ -52,6 +54,7 @@ public:
   Params params;
 };
 
+} // namespace cloud
 } // namespace noether_filtering
 
 #endif // NOETHER_FILTERING_CLOUD_CROP_BOX_FILTER_H

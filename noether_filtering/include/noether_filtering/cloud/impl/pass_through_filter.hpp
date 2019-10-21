@@ -9,6 +9,8 @@
 
 namespace noether_filtering
 {
+namespace cloud
+{
 template<typename PointT>
 bool PassThroughFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
 {
@@ -72,9 +74,10 @@ std::string PassThroughFilter<PointT>::getName() const
   return utils::getClassName<decltype(this)>();
 }
 
+} // namespace cloud
 } // namespace noether_filtering
 
 #define PCL_INSTANTIATE_PassThroughFilter(T) \
-  template class PCL_EXPORTS noether_filtering::PassThroughFilter<T>;
+  template class PCL_EXPORTS noether_filtering::cloud::PassThroughFilter<T>;
 
 #endif // NOETHER_FILTERING_CLOUD_IMPL_PASS_THROUGH_FILTER_HPP
