@@ -9,10 +9,6 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <depend>pluginlib</depend>
-  <depend>console_bridge</depend>
-  <depend>PCL</depend>
-  <depend>VTK</depend>
-
   <export>
     <build_type>cmake</build_type>
     <noether_filtering plugin="${prefix}/mesh_filter_plugins.xml"/>    
