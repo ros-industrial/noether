@@ -8,7 +8,7 @@
   <author email="jrgnichodevel@gmail.com">Jorge Nicho</author>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <depend>class_loader</depend>
+  <depend>pluginlib</depend>
   <depend>console_bridge</depend>
   <depend>PCL</depend>
   <depend>VTK</depend>
@@ -16,5 +16,6 @@
 
   <export>
     <build_type>cmake</build_type>
+    <noether_filtering plugin="${prefix}/mesh_filter_plugins.xml"/>    
   </export>
 </package>

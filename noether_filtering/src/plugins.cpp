@@ -1,5 +1,5 @@
 #include <boost/preprocessor/seq/for_each.hpp>
-#include <class_loader/register_macro.hpp>
+#include <pluginlib/class_list_macros.h>
 #include <pcl/point_types.h>
 
 // Cloud Filters
@@ -13,7 +13,7 @@
 #include "noether_filtering/mesh/bspline_reconstruction.h"
 
 #define CREATE_FILTER_PLUGIN_IMPL(r, FILTER_TYPE, POINT_TYPE) \
-  CLASS_LOADER_REGISTER_CLASS(FILTER_TYPE<POINT_TYPE>, noether_filtering::FilterBase<pcl::PointCloud<POINT_TYPE>::Ptr>)
+  PLUGINLIB_EXPORT_CLASS(FILTER_TYPE<POINT_TYPE>, noether_filtering::FilterBase<pcl::PointCloud<POINT_TYPE>::Ptr>)
 
 #define CREATE_FILTER_PLUGINS(FILTER_TYPE, POINT_TYPES) \
   BOOST_PP_SEQ_FOR_EACH(CREATE_FILTER_PLUGIN_IMPL, FILTER_TYPE, POINT_TYPES)
@@ -26,4 +26,4 @@ CREATE_FILTER_PLUGINS(noether_filtering::cloud::PassThroughFilter, PCL_XYZ_POINT
 CREATE_FILTER_PLUGINS(noether_filtering::cloud::RadiusOutlierFilter, PCL_XYZ_POINT_TYPES)
 
 // Mesh Filters
-CLASS_LOADER_REGISTER_CLASS(noether_filtering::mesh::BSplineReconstruction, noether_filtering::FilterBase<pcl::PolygonMesh>);
+PLUGINLIB_EXPORT_CLASS(noether_filtering::mesh::BSplineReconstruction, noether_filtering::mesh::MeshFilterBase)

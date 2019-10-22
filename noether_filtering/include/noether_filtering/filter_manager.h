@@ -11,11 +11,13 @@
 
 namespace noether_filtering
 {
+
 namespace config_fields
 {
 namespace manager
 {
-static const std::string FILTER_GROUPS = "filter_groups";
+  static const std::string FILTER_GROUPS = "filter_groups";
+  static const std::string GROUP_NAME = "group_name";
 } // namespace manager
 } // namespace config_fields
 
@@ -26,7 +28,7 @@ template<typename T>
 class FilterManager
 {
 public:
-  FilterManager() = default;
+  FilterManager(const std::string& base_class_name);
   virtual ~FilterManager() = default;
 
   /**
@@ -80,6 +82,7 @@ public:
   std::shared_ptr<FilterGroup<T>> getFilterGroup(const std::string& name) const;
 
 protected:
+  const std::string base_class_name_;
   std::map<std::string, std::shared_ptr<FilterGroup<T>>> filter_groups_map_;
 };
 

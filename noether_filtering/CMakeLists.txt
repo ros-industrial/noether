@@ -4,7 +4,7 @@ project(noether_filtering VERSION 0.0.0 LANGUAGES CXX)
 find_package(console_bridge REQUIRED)
 find_package(PCL 1.9 REQUIRED COMPONENTS common filters io surface)
 find_package(VTK 8.2 REQUIRED NO_MODULE)
-find_package(class_loader REQUIRED)
+find_package(pluginlib REQUIRED)
 find_package(xmlrpcpp REQUIRED)
 
 ###########
@@ -19,7 +19,7 @@ add_library(${PROJECT_NAME} SHARED
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC
   ${Boost_LIBRARIES}
-  ${class_loader_LIBRARIES}
+  ${pluginlib_LIBRARIES}
   ${PCL_LIBRARIES}
   ${xmlrpcpp_LIBRARIES}
 )
@@ -28,7 +28,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     "$<INSTALL_INTERFACE:include>")
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
   ${Boost_INCLUDE_DIRS}
-  ${class_loader_INCLUDE_DIRS}
+  ${pluginlib_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
   ${xmlrpcpp_INCLUDE_DIRS}
 )
@@ -137,7 +137,35 @@ export(EXPORT ${PROJECT_NAME}-targets FILE
 ## Testing ##
 #############
 if(${ENABLE_TESTS})
-  find_package(GTest REQUIRED)
+	
+  # Download and unpack googletest at configure time
+  configure_file(cmake/CMakeLists.txt.in googletest-download/CMakeLists.txt)
+  execute_process(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
+      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/googletest-download"
+  )
+  execute_process(COMMAND "${CMAKE_COMMAND}" --build .
+      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/googletest-download"
+  )
+  
+  # Prevent GoogleTest from overriding our compiler/linker options
+  # when building with Visual Studio
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  
+  # Add googletest directly to our build. This adds the following targets:
+  # gtest, gtest_main, gmock and gmock_main
+  add_subdirectory("${CMAKE_BINARY_DIR}/googletest-src"
+                   "${CMAKE_BINARY_DIR}/googletest-build"
+  )
+  
+  # The gtest/gmock targets carry header search path dependencies
+  # automatically when using CMake 2.8.11 or later. Otherwise we
+  # have to add them here ourselves.
+  if(CMAKE_VERSION VERSION_LESS 2.8.11)
+      include_directories("${gtest_SOURCE_DIR}/include"
+                          "${gmock_SOURCE_DIR}/include"
+      )
+  endif()	
+	
   add_executable(${PROJECT_NAME}_cloud_unit src/test/cloud_utest.cpp)
   set_target_properties(${PROJECT_NAME}_filter_plugins PROPERTIES
     CXX_STANDARD 14
@@ -146,18 +174,12 @@ if(${ENABLE_TESTS})
   )
   target_link_libraries(${PROJECT_NAME}_cloud_unit PUBLIC
     ${PROJECT_NAME}_filter_plugins
-    GTest::GTest
-    GTest::Main
+    gtest_main
   )
   target_compile_options(${PROJECT_NAME}_cloud_unit PRIVATE -Wsuggest-override -Wconversion -Wsign-conversion)
   if(CXX_FEATURE_FOUND EQUAL "-1")
     target_compile_options(${PROJECT_NAME}_cloud_unit PRIVATE -std=c++14)
   else()
     target_compile_features(${PROJECT_NAME}_cloud_unit PRIVATE cxx_std_14)
-  endif()
-  if(${CMAKE_VERSION} VERSION_LESS "3.10.0")
-    gtest_add_tests(${PROJECT_NAME}_cloud_unit "" AUTO)
-  else()
-    gtest_discover_tests(${PROJECT_NAME}_cloud_unit)
   endif()
 endif()

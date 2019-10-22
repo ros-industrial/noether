@@ -12,6 +12,13 @@ namespace noether_filtering
 {
 
 template<typename T>
+FilterManager<T>::FilterManager(const std::string& base_class_name):
+  base_class_name_(base_class_name)
+{
+
+}
+
+template<typename T>
 bool FilterManager<T>::init(XmlRpc::XmlRpcValue config)
 {
   using namespace config_fields;
@@ -38,11 +45,11 @@ bool FilterManager<T>::init(XmlRpc::XmlRpcValue config)
     try
     {
       // Create the filter group object
-      std::shared_ptr<FilterGroup<T>> filter_group = std::make_shared<FilterGroup<T>>();
+      std::shared_ptr<FilterGroup<T>> filter_group = std::make_shared<FilterGroup<T>>(base_class_name_);
 
       // Load the group configuration
       XmlRpc::XmlRpcValue group_config = filter_groups_config[i];
-      std::string group_name = static_cast<std::string>(group_config[group::GROUP_NAME]);
+      std::string group_name = static_cast<std::string>(group_config[manager::GROUP_NAME]);
 
       if(filter_groups_map_.find(group_name) != filter_groups_map_.end())
       {

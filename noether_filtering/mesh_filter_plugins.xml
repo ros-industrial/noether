@@ -1,0 +1,8 @@
+<library path="lib/libnoether_filtering_filter_plugins">
+  <class name="noether_filtering/BSplineReconstruction" type="noether_filtering::mesh::BSplineReconstruction" 
+    base_class_type="noether_filtering::mesh::MeshFilterBase">
+    <description>
+      Fits a nurve surface to a polygonal mesh and clips the boundaries if requested
+    </description>
+  </class>
+</library>

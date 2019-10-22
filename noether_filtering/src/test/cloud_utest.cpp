@@ -15,6 +15,7 @@ template<typename PointT>
 XmlRpc::XmlRpcValue createVoxelGridConfig()
 {
   using namespace noether_filtering;
+  using namespace noether_filtering::cloud;
   using namespace noether_filtering::config_fields::filter;
   XmlRpc::XmlRpcValue f;
   f[NAME] = "voxel_grid";
@@ -31,6 +32,7 @@ template<typename PointT>
 XmlRpc::XmlRpcValue createStatisticalOutlierConfig()
 {
   using namespace noether_filtering;
+  using namespace noether_filtering::cloud;
   using namespace noether_filtering::config_fields::filter;
   XmlRpc::XmlRpcValue f;
   f[NAME] = "statistical_outlier";
@@ -48,6 +50,7 @@ template<typename PointT>
 XmlRpc::XmlRpcValue createCropBoxConfig()
 {
   using namespace noether_filtering;
+  using namespace noether_filtering::cloud;
   using namespace noether_filtering::config_fields::filter;
   XmlRpc::XmlRpcValue f;
   f[NAME] = "crop_box";
@@ -86,6 +89,7 @@ template<typename PointT>
 XmlRpc::XmlRpcValue createPassThroughConfig()
 {
   using namespace noether_filtering;
+  using namespace noether_filtering::cloud;
   using namespace noether_filtering::config_fields::filter;
   XmlRpc::XmlRpcValue f;
   f[NAME] = "pass_through";
@@ -105,6 +109,7 @@ template<typename PointT>
 XmlRpc::XmlRpcValue createRadiusOutlierConfig()
 {
   using namespace noether_filtering;
+  using namespace noether_filtering::cloud;
   using namespace noether_filtering::config_fields::filter;
   XmlRpc::XmlRpcValue f;
   f[NAME] = "radius_outlier_filter";
@@ -155,8 +160,8 @@ class FilterManagerFixture : public testing::Test
 {
 public:
   using testing::Test::Test;
-
-  noether_filtering::FilterManager<typename pcl::PointCloud<T>::Ptr> manager;
+  using Cloud = pcl::PointCloud<T>;
+  std::shared_ptr< noether_filtering::FilterManager<typename Cloud::Ptr> > manager;
 };
 
 typedef ::testing::Types<pcl::PointXYZ, pcl::PointXYZRGB, pcl::PointNormal> Implementations;
@@ -166,14 +171,16 @@ TYPED_TEST_CASE(FilterManagerFixture, Implementations);
 TYPED_TEST(FilterManagerFixture, FilterManagerTest)
 {
   using namespace noether_filtering::config_fields::filter;
+  using FilterT = noether_filtering::FilterBase<TypeParam>;
+  using Cloud = pcl::PointCloud<TypeParam>;
 
   const std::string group_name = "test_group";
   XmlRpc::XmlRpcValue config = createManagerConfig<TypeParam>(group_name);
-  ASSERT_TRUE(this->manager.init(config));
+  this->manager = std::make_shared< typename noether_filtering::FilterManager< typename Cloud::Ptr > >(noether_filtering::utils::getClassName<FilterT>());
+  ASSERT_TRUE(this->manager->init(config));
 
   using Group = noether_filtering::FilterGroup<typename pcl::PointCloud<TypeParam>::Ptr>;
-  std::shared_ptr<Group> group = this->manager.getFilterGroup(
-    group_name);
+  std::shared_ptr<Group> group = this->manager->getFilterGroup(group_name);
 
   ASSERT_TRUE(group != nullptr);
 

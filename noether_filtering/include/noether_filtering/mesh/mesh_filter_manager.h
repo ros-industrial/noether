@@ -1,32 +1,32 @@
 #ifndef NOETHER_FILTERING_MESH_MESH_FILTER_H
 #define NOETHER_FILTERING_MESH_MESH_FILTER_H
 
+#include <pcl/PolygonMesh.h>
 #include "noether_filtering/filter_manager.h"
 
-// Forward declare PCL types
-namespace pcl
-{
-class PolygonMesh;
-}
 
 namespace noether_filtering
 {
-
-template<typename T>
-class FilterGroup;
-
-template<typename T>
-class FilterManager;
 
 namespace mesh
 {
 
 // Provide aliases for specific types
 using MeshFilterGroup = FilterGroup<pcl::PolygonMesh>;
-using MeshFilterManager = FilterManager<pcl::PolygonMesh>;
+class MeshFilterManager: public FilterManager<pcl::PolygonMesh>
+{
+public:
+  MeshFilterManager():
+    FilterManager<pcl::PolygonMesh>("noether_filtering::mesh::MeshFilterBase")
+  {
 
-}
+  }
 
-}
+  virtual ~MeshFilterManager() = default;
+};
+
+} /* namespace mesh */
+} /* namespace noether_filtering */
+
 
 #endif // NOETHER_FILTERING_MESH_MESH_FILTER_H

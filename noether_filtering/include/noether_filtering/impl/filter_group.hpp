@@ -12,7 +12,7 @@
 #include <boost/format.hpp>
 #include <XmlRpcException.h>
 
-static const std::string FILTER_PLUGINS_LIBRARY = "libnoether_filtering_filter_plugins.so";
+static const std::string PACKAGE_NAME = "noether_filtering";
 
 struct FilterInfo
 {
@@ -21,9 +21,10 @@ struct FilterInfo
   XmlRpc::XmlRpcValue config; /** @brief the filter configuration */
 };
 
-namespace
+namespace noether_filtering
 {
-bool loadFilterInfos(XmlRpc::XmlRpcValue filter_configs, std::vector<FilterInfo>& filter_infos)
+
+static bool loadFilterInfos(XmlRpc::XmlRpcValue filter_configs, std::vector<FilterInfo>& filter_infos)
 {
   if(filter_configs.getType() != XmlRpc::XmlRpcValue::TypeArray)
   {
@@ -43,17 +44,13 @@ bool loadFilterInfos(XmlRpc::XmlRpcValue filter_configs, std::vector<FilterInfo>
   }
   return !filter_infos.empty();
 }
-} // namespace anonymous
-
-namespace noether_filtering
-{
 
 template<class F>
-FilterGroup<F>::FilterGroup()
+FilterGroup<F>::FilterGroup(const std::string& base_class_name)
   : continue_on_failure_(false)
-  , filter_loader_(FILTER_PLUGINS_LIBRARY)
+  , filter_loader_(PACKAGE_NAME, base_class_name)
 {
-  std::vector<std::string> filters = filter_loader_.getAvailableClasses<FilterBase<F>>();
+  std::vector<std::string> filters = filter_loader_.getDeclaredClasses();
   std::string out = "Available classes:";
   for (const std::string &f : filters)
   {
@@ -117,10 +114,11 @@ bool FilterGroup<F>::init(XmlRpc::XmlRpcValue config)
       return false;
     }
 
-    typename class_loader::ClassLoader::UniquePtr<FilterBase<F>> plugin;
+    FilterBasePtr plugin;
     try
     {
-      plugin = filter_loader_.createUniqueInstance<FilterBase<F>>(fi.type_name);
+      //plugin = filter_loader_.createUniqueInstance<FilterBase<F>>(fi.type_name);
+      plugin.reset(filter_loader_.createUnmanagedInstance(fi.type_name));
       if(!plugin->configure(fi.config))
       {
         CONSOLE_BRIDGE_logError("%s plugin '%s' failed to load configuration",utils::getClassName<F>().c_str(),

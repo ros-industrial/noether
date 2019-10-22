@@ -13,16 +13,6 @@
 namespace noether_filtering
 {
 
-namespace config_fields
-{
-namespace filter
-{
-static const std::string TYPE_NAME = "type";
-static const std::string NAME = "name";
-static const std::string CONFIG = "config";
-} // namespace filter
-} // namespace config_fields
-
 template <typename T>
 class FilterBase
 {

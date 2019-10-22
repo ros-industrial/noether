@@ -9,8 +9,8 @@
 
 #include <string>
 #include <memory>
-#include <class_loader/class_loader.h>
 #include <XmlRpcValue.h>
+#include <pluginlib/class_loader.h>
 #include "noether_filtering/filter_base.h"
 
 namespace noether_filtering
@@ -18,11 +18,19 @@ namespace noether_filtering
 
 namespace config_fields
 {
+
+namespace filter
+{
+  static const std::string TYPE_NAME = "type";
+  static const std::string NAME = "name";
+  static const std::string CONFIG = "config";
+} // namespace filter
+
 namespace group
 {
-static const std::string GROUP_NAME = "group_name";
-static const std::string CONTINUE_ON_FAILURE = "continue_on_failure";
-static const std::string FILTERS = "filters";
+  static const std::string GROUP_NAME = "group_name";
+  static const std::string CONTINUE_ON_FAILURE = "continue_on_failure";
+  static const std::string FILTERS = "filters";
 } // namespace group
 } // namespace config_fields
 
@@ -33,7 +41,8 @@ template<class F>
 class FilterGroup
 {
 public:
-  FilterGroup();
+
+  FilterGroup(const std::string& base_class_name);
   virtual ~FilterGroup() = default;
 
     /**
@@ -66,12 +75,13 @@ public:
   bool applyFilters(const std::vector<std::string>& filters, const F& input, F& output, std::string& err_msg);
 
 protected:
-  class_loader::ClassLoader filter_loader_;
+
+  using FilterT = FilterBase< F >;
+  typedef typename std::unique_ptr< FilterT> FilterBasePtr ;
+
+  pluginlib::ClassLoader< FilterT> filter_loader_;
   std::vector<std::string> filters_loaded_;
-
-  typedef typename class_loader::ClassLoader::UniquePtr<FilterBase<F>> FilterBasePtr;
   std::map<std::string, FilterBasePtr> filters_map_;
-
   bool continue_on_failure_;
 };
 
