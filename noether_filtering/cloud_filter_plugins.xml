@@ -1,0 +1,129 @@
+<library path="lib/libnoether_filtering_filter_plugins">
+  <!-- pcl::PointXYZ -->
+  <class name="noether_filtering::cloud::VoxelGridFilter&lt;pcl::PointXYZ>" type="noether_filtering::cloud::VoxelGridFilter&lt;pcl::PointXYZ>"
+    base_class_type="noether_filtering::FilterBase&lt;boost::shared_ptr&lt;pcl::PointCloud&lt;pcl::PointXYZ> > >">
+    <description>
+      Voxel grid filter for PointXYZ type
+    </description>
+  </class>
+  <class name="noether_filtering::cloud::StatisticalOutlierFilter&lt;pcl::PointXYZ>" type="noether_filtering::cloud::StatisticalOutlierFilter&lt;pcl::PointXYZ>"
+    base_class_type="noether_filtering::FilterBase&lt;boost::shared_ptr&lt;pcl::PointCloud&lt;pcl::PointXYZ> > >">
+    <description>
+      Statistical outlier filter for PointXYZ type
+    </description>
+  </class>
+  <class name="noether_filtering::cloud::PassThroughFilter&lt;pcl::PointXYZ>" type="noether_filtering::cloud::PassThroughFilter&lt;pcl::PointXYZ>"
+    base_class_type="noether_filtering::FilterBase&lt;boost::shared_ptr&lt;pcl::PointCloud&lt;pcl::PointXYZ> > >">
+    <description>
+      Pass through filter for PointXYZ type
+    </description>
+  </class>
+  <class name="noether_filtering::cloud::RadiusOutlierFilter&lt;pcl::PointXYZ>" type="noether_filtering::cloud::RadiusOutlierFilter&lt;pcl::PointXYZ>"
+    base_class_type="noether_filtering::FilterBase&lt;boost::shared_ptr&lt;pcl::PointCloud&lt;pcl::PointXYZ> > >">
+    <description>
+      Radius outlier filter for PointXYZ type
+    </description>
+  </class>
+  <class name="noether_filtering::cloud::CropBoxFilter&lt;pcl::PointXYZ>" type="noether_filtering::cloud::CropBoxFilter&lt;pcl::PointXYZ>"
+    base_class_type="noether_filtering::FilterBase&lt;boost::shared_ptr&lt;pcl::PointCloud&lt;pcl::PointXYZ> > >">
+    <description>
+      Crop box filter for PointXYZ type
+    </description>
+  </class>
+
+  <!-- pcl::PointNormal -->
+  <class name="noether_filtering::cloud::VoxelGridFilter&lt;pcl::PointNormal>" type="noether_filtering::cloud::VoxelGridFilter&lt;pcl::PointNormal>"
+    base_class_type="noether_filtering::FilterBase&lt;boost::shared_ptr&lt;pcl::PointCloud&lt;pcl::PointNormal> > >">
+    <description>
+      Voxel grid filter for PointNormal type
+    </description>
+  </class>
+  <class name="noether_filtering::cloud::StatisticalOutlierFilter&lt;pcl::PointNormal>" type="noether_filtering::cloud::StatisticalOutlierFilter&lt;pcl::PointNormal>"
+    base_class_type="noether_filtering::FilterBase&lt;boost::shared_ptr&lt;pcl::PointCloud&lt;pcl::PointNormal> > >">
+    <description>
+      Statistical outlier filter for PointNormal type
+    </description>
+  </class>
+  <class name="noether_filtering::cloud::PassThroughFilter&lt;pcl::PointNormal>" type="noether_filtering::cloud::PassThroughFilter&lt;pcl::PointNormal>"
+    base_class_type="noether_filtering::FilterBase&lt;boost::shared_ptr&lt;pcl::PointCloud&lt;pcl::PointNormal> > >">
+    <description>
+      Pass through filter for PointNormal type
+    </description>
+  </class>
+  <class name="noether_filtering::cloud::RadiusOutlierFilter&lt;pcl::PointNormal>" type="noether_filtering::cloud::RadiusOutlierFilter&lt;pcl::PointNormal>"
+    base_class_type="noether_filtering::FilterBase&lt;boost::shared_ptr&lt;pcl::PointCloud&lt;pcl::PointNormal> > >">
+    <description>
+      Radius outlier filter for PointNormal type
+    </description>
+  </class>
+  <class name="noether_filtering::cloud::CropBoxFilter&lt;pcl::PointNormal>" type="noether_filtering::cloud::CropBoxFilter&lt;pcl::PointNormal>"
+    base_class_type="noether_filtering::FilterBase&lt;boost::shared_ptr&lt;pcl::PointCloud&lt;pcl::PointNormal> > >">
+    <description>
+      Crop box filter for PointNormal type
+    </description>
+  </class>
+
+  <!-- pcl::PointXYZRGB -->
+  <class name="noether_filtering::cloud::VoxelGridFilter&lt;pcl::PointXYZRGB>" type="noether_filtering::cloud::VoxelGridFilter&lt;pcl::PointXYZRGB>"
+    base_class_type="noether_filtering::FilterBase&lt;boost::shared_ptr&lt;pcl::PointCloud&lt;pcl::PointXYZRGB> > >">
+    <description>
+      Voxel grid filter for PointXYZRGB type
+    </description>
+  </class>
+  <class name="noether_filtering::cloud::StatisticalOutlierFilter&lt;pcl::PointXYZRGB>" type="noether_filtering::cloud::StatisticalOutlierFilter&lt;pcl::PointXYZRGB>"
+    base_class_type="noether_filtering::FilterBase&lt;boost::shared_ptr&lt;pcl::PointCloud&lt;pcl::PointXYZRGB> > >">
+    <description>
+      Statistical outlier filter for PointXYZRGB type
+    </description>
+  </class>
+  <class name="noether_filtering::cloud::PassThroughFilter&lt;pcl::PointXYZRGB>" type="noether_filtering::cloud::PassThroughFilter&lt;pcl::PointXYZRGB>"
+    base_class_type="noether_filtering::FilterBase&lt;boost::shared_ptr&lt;pcl::PointCloud&lt;pcl::PointXYZRGB> > >">
+    <description>
+      Pass through filter for PointXYZRGB type
+    </description>
+  </class>
+  <class name="noether_filtering::cloud::RadiusOutlierFilter&lt;pcl::PointXYZRGB>" type="noether_filtering::cloud::RadiusOutlierFilter&lt;pcl::PointXYZRGB>"
+    base_class_type="noether_filtering::FilterBase&lt;boost::shared_ptr&lt;pcl::PointCloud&lt;pcl::PointXYZRGB> > >">
+    <description>
+      Radius outlier filter for PointXYZRGB type
+    </description>
+  </class>
+  <class name="noether_filtering::cloud::CropBoxFilter&lt;pcl::PointXYZRGB>" type="noether_filtering::cloud::CropBoxFilter&lt;pcl::PointXYZRGB>"
+    base_class_type="noether_filtering::FilterBase&lt;boost::shared_ptr&lt;pcl::PointCloud&lt;pcl::PointXYZRGB> > >">
+    <description>
+      Crop box filter for PointXYZRGB type
+    </description>
+  </class>
+
+  <!-- pcl::PointXYZI -->
+  <class name="noether_filtering::cloud::VoxelGridFilter&lt;pcl::PointXYZI>" type="noether_filtering::cloud::VoxelGridFilter&lt;pcl::PointXYZI>"
+    base_class_type="noether_filtering::FilterBase&lt;boost::shared_ptr&lt;pcl::PointCloud&lt;pcl::PointXYZI> > >">
+    <description>
+      Voxel grid filter for PointXYZI type
+    </description>
+  </class>
+  <class name="noether_filtering::cloud::StatisticalOutlierFilter&lt;pcl::PointXYZI>" type="noether_filtering::cloud::StatisticalOutlierFilter&lt;pcl::PointXYZI>"
+    base_class_type="noether_filtering::FilterBase&lt;boost::shared_ptr&lt;pcl::PointCloud&lt;pcl::PointXYZI> > >">
+    <description>
+      Statistical outlier filter for PointXYZI type
+    </description>
+  </class>
+  <class name="noether_filtering::cloud::PassThroughFilter&lt;pcl::PointXYZI>" type="noether_filtering::cloud::PassThroughFilter&lt;pcl::PointXYZI>"
+    base_class_type="noether_filtering::FilterBase&lt;boost::shared_ptr&lt;pcl::PointCloud&lt;pcl::PointXYZI> > >">
+    <description>
+      Pass through filter for PointXYZI type
+    </description>
+  </class>
+  <class name="noether_filtering::cloud::RadiusOutlierFilter&lt;pcl::PointXYZI>" type="noether_filtering::cloud::RadiusOutlierFilter&lt;pcl::PointXYZI>"
+    base_class_type="noether_filtering::FilterBase&lt;boost::shared_ptr&lt;pcl::PointCloud&lt;pcl::PointXYZI> > >">
+    <description>
+      Radius outlier filter for PointXYZI type
+    </description>
+  </class>
+  <class name="noether_filtering::cloud::CropBoxFilter&lt;pcl::PointXYZI>" type="noether_filtering::cloud::CropBoxFilter&lt;pcl::PointXYZI>"
+    base_class_type="noether_filtering::FilterBase&lt;boost::shared_ptr&lt;pcl::PointCloud&lt;pcl::PointXYZI> > >">
+    <description>
+      Crop box filter for PointXYZI type
+    </description>
+  </class>
+</library>
