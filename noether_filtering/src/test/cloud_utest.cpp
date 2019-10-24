@@ -164,18 +164,19 @@ public:
   std::shared_ptr< noether_filtering::FilterManager<typename Cloud::Ptr> > manager;
 };
 
-typedef ::testing::Types<pcl::PointXYZ, pcl::PointXYZRGB, pcl::PointNormal> Implementations;
+typedef ::testing::Types<pcl::PointXYZ, pcl::PointXYZRGB, pcl::PointNormal, pcl::PointXYZI> Implementations;
 
-TYPED_TEST_CASE(FilterManagerFixture, Implementations);
+TYPED_TEST_SUITE(FilterManagerFixture, Implementations);
 
 TYPED_TEST(FilterManagerFixture, FilterManagerTest)
 {
   using namespace noether_filtering::config_fields::filter;
-  using FilterT = noether_filtering::FilterBase<TypeParam>;
+  using FilterT = noether_filtering::FilterBase<typename pcl::PointCloud<TypeParam>::Ptr>;
   using Cloud = pcl::PointCloud<TypeParam>;
 
   const std::string group_name = "test_group";
   XmlRpc::XmlRpcValue config = createManagerConfig<TypeParam>(group_name);
+
   this->manager = std::make_shared< typename noether_filtering::FilterManager< typename Cloud::Ptr > >(noether_filtering::utils::getClassName<FilterT>());
   ASSERT_TRUE(this->manager->init(config));
 
