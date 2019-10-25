@@ -10,7 +10,6 @@
 #include <boost/make_shared.hpp>
 #include <console_bridge/console.h>
 #include <pcl/conversions.h>
-#include <pcl/io/vtk_lib_io.h>
 #include <pcl/surface/on_nurbs/triangulation.h>
 #include <XmlRpcException.h>
 
