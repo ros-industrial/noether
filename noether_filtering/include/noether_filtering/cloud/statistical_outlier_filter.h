@@ -33,6 +33,9 @@ public:
     double std_dev_mult = 1.0;
   };
   Params params;
+
+  static const std::string MEAN_K;
+  static const std::string STD_DEV_MULT;
 };
 } // namespace cloud
 } // namespace noether_filtering

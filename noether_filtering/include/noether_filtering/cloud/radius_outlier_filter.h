@@ -34,6 +34,9 @@ class RadiusOutlierFilter : public FilterBase<typename pcl::PointCloud<PointT>::
     int min_pts = 10;
   };
   Params params;
+
+  static const std::string RADIUS;
+  static const std::string MIN_PTS;
 };
 } // namespace cloud
 } // namespace noether_filtering

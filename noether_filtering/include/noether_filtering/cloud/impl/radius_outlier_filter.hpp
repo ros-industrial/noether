@@ -11,14 +11,31 @@ namespace noether_filtering
 {
 namespace cloud
 {
+template<typename PointT>
+const std::string RadiusOutlierFilter<PointT>::RADIUS = "radius";
+
+template<typename PointT>
+const std::string RadiusOutlierFilter<PointT>::MIN_PTS = "min_pts";
 
 template<typename PointT>
 bool RadiusOutlierFilter<PointT>::configure(XmlRpc::XmlRpcValue config)
 {
+  std::string error;
+  if (!config.hasMember("radius"))
+    error += RADIUS + ", ";
+  if (!config.hasMember("min_pts"))
+    error += MIN_PTS + ", ";
+
+  if (!error.empty())
+  {
+    CONSOLE_BRIDGE_logError("Radius outlier filter configuration missing parameters: %s", error.c_str());
+    return false;
+  }
+
   try
   {
-    params.radius = static_cast<double>(config["radius"]);
-    params.min_pts = static_cast<int>(config["min_pts"]);
+    params.radius = static_cast<double>(config[RADIUS]);
+    params.min_pts = static_cast<int>(config[MIN_PTS]);
   }
   catch (const XmlRpc::XmlRpcException& ex)
   {

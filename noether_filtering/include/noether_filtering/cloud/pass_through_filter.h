@@ -38,6 +38,11 @@ public:
     bool negative = false;
   };
   Params params;
+
+  static const std::string FILTER_FIELD_NAME;
+  static const std::string MIN_LIMIT;
+  static const std::string MAX_LIMIT;
+  static const std::string NEGATIVE;
 };
 } // namespace cloud
 } // namespace noether_filtering

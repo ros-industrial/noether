@@ -12,14 +12,41 @@ namespace noether_filtering
 namespace cloud
 {
 template<typename PointT>
+const std::string PassThroughFilter<PointT>::FILTER_FIELD_NAME = "filter_field_name";
+
+template<typename PointT>
+const std::string PassThroughFilter<PointT>::MIN_LIMIT = "min_limit";
+
+template<typename PointT>
+const std::string PassThroughFilter<PointT>::MAX_LIMIT = "max_limit";
+
+template<typename PointT>
+const std::string PassThroughFilter<PointT>::NEGATIVE = "negative";
+
+template<typename PointT>
 bool PassThroughFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
 {
+  std::string error;
+  if (!value.hasMember(FILTER_FIELD_NAME))
+    error += FILTER_FIELD_NAME + ", ";
+  if (!value.hasMember(MIN_LIMIT))
+    error += MIN_LIMIT + ", ";
+  if (!value.hasMember(MAX_LIMIT))
+    error += MAX_LIMIT + ", ";
+
+  if(!error.empty())
+  {
+    CONSOLE_BRIDGE_logError("Pass through filter configuration missing required parameters: %s",
+                            error.c_str());
+    return false;
+  }
+
   // Required parameter(s)
   try
   {
-    params.filter_field_name = static_cast<std::string>(value["filter_field_name"]);
-    params.min_limit = static_cast<double>(value["min_limit"]);
-    params.max_limit = static_cast<double>(value["max_limit"]);
+    params.filter_field_name = static_cast<std::string>(value[FILTER_FIELD_NAME]);
+    params.min_limit = static_cast<double>(value[MIN_LIMIT]);
+    params.max_limit = static_cast<double>(value[MAX_LIMIT]);
   }
   catch (const XmlRpc::XmlRpcException &ex)
   {
@@ -28,15 +55,18 @@ bool PassThroughFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
     return false;
   }
 
-  // Optional parameter(s)
-  try
+  if(value.hasMember(NEGATIVE))
   {
-    params.negative = static_cast<bool>(value["negative"]);
-  }
-  catch (const XmlRpc::XmlRpcException &ex)
-  {
-    CONSOLE_BRIDGE_logWarn("Failed to load optional parameter(s) for pass through filter: '%s'",
-                           ex.getMessage().c_str());
+    // Optional parameter(s)
+    try
+    {
+      params.negative = static_cast<bool>(value[NEGATIVE]);
+    }
+    catch (const XmlRpc::XmlRpcException &ex)
+    {
+      CONSOLE_BRIDGE_logWarn("Failed to load optional parameter(s) for pass through filter: '%s'",
+                             ex.getMessage().c_str());
+    }
   }
 
   return true;

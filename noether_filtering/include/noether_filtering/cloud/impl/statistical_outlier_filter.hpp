@@ -11,14 +11,31 @@ namespace noether_filtering
 {
 namespace cloud
 {
+template<typename PointT>
+const std::string StatisticalOutlierFilter<PointT>::MEAN_K = "mean_k";
+
+template<typename PointT>
+const std::string StatisticalOutlierFilter<PointT>::STD_DEV_MULT = "std_dev_mult";
 
 template<typename PointT>
 bool StatisticalOutlierFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
 {
+  std::string error;
+  if (!value.hasMember(MEAN_K))
+    error += MEAN_K + ", ";
+  if (!value.hasMember(STD_DEV_MULT))
+    error += STD_DEV_MULT + ", ";
+
+  if (!error.empty())
+  {
+    CONSOLE_BRIDGE_logError("Statistical outlier filter missing required parameters: %s", error.c_str());
+    return false;
+  }
+
   try
   {
-    params.mean_k = static_cast<int>(value["mean_k"]);
-    params.std_dev_mult = static_cast<double>(value["std_dev_mult"]);
+    params.mean_k = static_cast<int>(value[MEAN_K]);
+    params.std_dev_mult = static_cast<double>(value[STD_DEV_MULT]);
   }
   catch (const XmlRpc::XmlRpcException &ex)
   {
