@@ -3,6 +3,7 @@
 #include "noether_filtering/cloud/impl/crop_box_filter.hpp"
 #include "noether_filtering/cloud/impl/pass_through_filter.hpp"
 #include "noether_filtering/cloud/impl/radius_outlier_filter.hpp"
+#include "noether_filtering/cloud/impl/mls_smoothing_filter.hpp"
 #include <pcl/point_types.h>
 #include <pcl/impl/instantiate.hpp>
 
@@ -14,5 +15,6 @@ PCL_INSTANTIATE(StatisticalOutlierFilter, PCL_XYZ_POINT_TYPES);
 PCL_INSTANTIATE(CropBoxFilter, PCL_XYZ_POINT_TYPES);
 PCL_INSTANTIATE(PassThroughFilter, PCL_XYZ_POINT_TYPES);
 PCL_INSTANTIATE(RadiusOutlierFilter, PCL_XYZ_POINT_TYPES);
+PCL_INSTANTIATE(MLSSmoothingFilter, PCL_XYZ_POINT_TYPES);
 
 } // namespace noether_filtering

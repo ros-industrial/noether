@@ -30,6 +30,12 @@
       Crop box filter for PointXYZ type
     </description>
   </class>
+  <class name="noether_filtering::cloud::MLSSmoothingFilter&lt;pcl::PointXYZ>" type="noether_filtering::cloud::MLSSmoothingFilter&lt;pcl::PointXYZ>"
+    base_class_type="noether_filtering::FilterBase&lt;pcl::PointCloud&lt;pcl::PointXYZ> >">
+    <description>
+      MLS smoothing filter for PointXYZ type
+    </description>
+  </class>
 
   <!-- pcl::PointNormal -->
   <class name="noether_filtering::cloud::VoxelGridFilter&lt;pcl::PointNormal>" type="noether_filtering::cloud::VoxelGridFilter&lt;pcl::PointNormal>"
@@ -60,6 +66,12 @@
     base_class_type="noether_filtering::FilterBase&lt;pcl::PointCloud&lt;pcl::PointNormal> >">
     <description>
       Crop box filter for PointNormal type
+    </description>
+  </class>
+  <class name="noether_filtering::cloud::MLSSmoothingFilter&lt;pcl::PointNormal>" type="noether_filtering::cloud::MLSSmoothingFilter&lt;pcl::PointNormal>"
+    base_class_type="noether_filtering::FilterBase&lt;pcl::PointCloud&lt;pcl::PointNormal> >">
+    <description>
+      MLS smoothing filter for PointNormal type
     </description>
   </class>
 
@@ -94,6 +106,12 @@
       Crop box filter for PointXYZRGB type
     </description>
   </class>
+  <class name="noether_filtering::cloud::MLSSmoothingFilter&lt;pcl::PointXYZRGB>" type="noether_filtering::cloud::MLSSmoothingFilter&lt;pcl::PointXYZRGB>"
+    base_class_type="noether_filtering::FilterBase&lt;pcl::PointCloud&lt;pcl::PointXYZRGB> >">
+    <description>
+      MLS smoothing filter for PointXYZRGB type
+    </description>
+  </class>
 
   <!-- pcl::PointXYZI -->
   <class name="noether_filtering::cloud::VoxelGridFilter&lt;pcl::PointXYZI>" type="noether_filtering::cloud::VoxelGridFilter&lt;pcl::PointXYZI>"
@@ -124,6 +142,12 @@
     base_class_type="noether_filtering::FilterBase&lt;pcl::PointCloud&lt;pcl::PointXYZI> >">
     <description>
       Crop box filter for PointXYZI type
+    </description>
+  </class>
+  <class name="noether_filtering::cloud::MLSSmoothingFilter&lt;pcl::PointXYZI>" type="noether_filtering::cloud::MLSSmoothingFilter&lt;pcl::PointXYZI>"
+    base_class_type="noether_filtering::FilterBase&lt;pcl::PointCloud&lt;pcl::PointXYZI> >">
+    <description>
+      MLS smoothing filter for PointXYZI type
     </description>
   </class>
 </library>

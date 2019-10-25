@@ -10,6 +10,7 @@
 #include "noether_filtering/cloud/radius_outlier_filter.h"
 #include "noether_filtering/cloud/statistical_outlier_filter.h"
 #include "noether_filtering/cloud/voxel_grid_filter.h"
+#include "noether_filtering/cloud/mls_smoothing_filter.h"
 
 template<typename PointT>
 XmlRpc::XmlRpcValue createVoxelGridConfig()
@@ -124,18 +125,37 @@ XmlRpc::XmlRpcValue createRadiusOutlierConfig()
 }
 
 template<typename PointT>
+XmlRpc::XmlRpcValue createMLSSmoothingConfig()
+{
+  using namespace noether_filtering;
+  using namespace noether_filtering::cloud;
+  using namespace noether_filtering::config_fields::filter;
+  XmlRpc::XmlRpcValue f;
+  f[NAME] = "mls_smoothing_filter";
+  f[TYPE_NAME] = utils::getClassName<MLSSmoothingFilter<PointT>>();
+
+  XmlRpc::XmlRpcValue mls;
+  mls[MLSSmoothingFilter<PointT>::SEARCH_RADIUS] = 0.1;
+  mls[MLSSmoothingFilter<PointT>::POLYNOMIAL_ORDER] = 2;
+  f[CONFIG] = std::move(mls);
+
+  return f;
+}
+
+template<typename PointT>
 XmlRpc::XmlRpcValue createManagerConfig(std::string group_name)
 {
   using namespace noether_filtering::config_fields;
 
   // Create filter config(s)
   XmlRpc::XmlRpcValue filters;
-  filters.setSize(5);
+  filters.setSize(6);
   filters[0] = createVoxelGridConfig<PointT>();
   filters[1] = createStatisticalOutlierConfig<PointT>();
   filters[2] = createCropBoxConfig<PointT>();
   filters[3] = createPassThroughConfig<PointT>();
   filters[4] = createRadiusOutlierConfig<PointT>();
+  filters[5] = createMLSSmoothingConfig<PointT>();
 
   // Create a single filter group
   XmlRpc::XmlRpcValue g;
