@@ -10,9 +10,6 @@
 #include "noether_filtering/cloud/radius_outlier_filter.h"
 #include "noether_filtering/cloud/mls_smoothing_filter.h"
 
-// Mesh filters
-#include "noether_filtering/mesh/bspline_reconstruction.h"
-
 #define CREATE_FILTER_PLUGIN_IMPL(r, FILTER_TYPE, POINT_TYPE) \
   PLUGINLIB_EXPORT_CLASS(FILTER_TYPE<POINT_TYPE>, noether_filtering::FilterBase<pcl::PointCloud<POINT_TYPE>>)
 
@@ -26,6 +23,3 @@ CREATE_FILTER_PLUGINS(noether_filtering::cloud::CropBoxFilter, PCL_XYZ_POINT_TYP
 CREATE_FILTER_PLUGINS(noether_filtering::cloud::PassThroughFilter, PCL_XYZ_POINT_TYPES)
 CREATE_FILTER_PLUGINS(noether_filtering::cloud::RadiusOutlierFilter, PCL_XYZ_POINT_TYPES)
 CREATE_FILTER_PLUGINS(noether_filtering::cloud::MLSSmoothingFilter, PCL_XYZ_POINT_TYPES)
-
-// Mesh Filters
-PLUGINLIB_EXPORT_CLASS(noether_filtering::mesh::BSplineReconstruction, noether_filtering::mesh::MeshFilterBase)
