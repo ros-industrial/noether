@@ -11,6 +11,7 @@
   <build_depend>roslib</build_depend>
 
   <depend>eigen_conversions</depend>
+  <depend>noether_conversions</depend>
   <depend>geometry_msgs</depend>
   <depend>noether_msgs</depend>
   <depend>rosconsole</depend>

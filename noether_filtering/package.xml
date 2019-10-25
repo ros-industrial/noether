@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>noether_filtering</name>
+  <version>0.0.0</version>
+  <description>The noether_filtering package</description>
+  <maintainer email="jrgnichodevel@gmail.com">Jorge Nicho</maintainer>
+  <license>Apache 2.0</license>
+  <author email="jrgnichodevel@gmail.com">Jorge Nicho</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>pluginlib</depend>
+  <export>
+    <build_type>cmake</build_type>
+    <noether_filtering plugin="${prefix}/mesh_filter_plugins.xml"/>    
+  </export>
+</package>

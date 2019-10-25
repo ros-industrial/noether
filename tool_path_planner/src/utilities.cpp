@@ -33,8 +33,6 @@
 #include <vtkCellLocator.h>
 #include <vtkGenericCell.h>
 #include <vtkTriangleFilter.h>
-
-#include <pcl/conversions.h>
 #include <tool_path_planner/utilities.h>
 
 namespace tool_path_planner
@@ -92,30 +90,63 @@ void flipPointOrder(tool_path_planner::ProcessPath& path)
   path.spline->SetPoints(points);
 }
 
-bool convertToPCLMesh(const shape_msgs::Mesh& mesh_msg, pcl::PolygonMesh& mesh)
+std::vector<geometry_msgs::PoseArray> convertVTKtoGeometryMsgs(
+    const std::vector<tool_path_planner::ProcessPath>& paths)
 {
-
-  // iterating over triangles
-  pcl::PointCloud<pcl::PointXYZ> mesh_points;
-  mesh.polygons.clear();
-  for(auto& triangle : mesh_msg.triangles)
+  std::vector<geometry_msgs::PoseArray> poseArrayVector;
+  for(int j = 0; j < paths.size(); ++j)
   {
-    pcl::Vertices vertices;
-    vertices.vertices.assign(triangle.vertex_indices.begin(),triangle.vertex_indices.end());
-    mesh.polygons.push_back(vertices);
-  }
+     geometry_msgs::PoseArray poses;
+     poses.header.seq = j;
+     poses.header.stamp = ros::Time::now();
+     poses.header.frame_id = "0";
+     for(int k = 0; k < paths[j].line->GetPoints()->GetNumberOfPoints(); ++k)
+     {
+        geometry_msgs::Pose pose;
+        double pt[3];
 
-  std::transform(mesh_msg.vertices.begin(),mesh_msg.vertices.end(),std::back_inserter(mesh_points.points),[](
-      const geometry_msgs::Point& point){
-    pcl::PointXYZ p;
-    std::tie(p.x,p.y,p.z) = std::make_tuple(point.x,point.y,point.z);
-    return p;
-  });
+        // Get the point location
+        paths[j].line->GetPoints()->GetPoint(k, pt);
+        pose.position.x = pt[0];
+        pose.position.y = pt[1];
+        pose.position.z = pt[2];
 
-  pcl::toPCLPointCloud2(mesh_points,mesh.cloud);
-  return true;
+        // Get the point normal and derivative for creating the 3x3 transform
+        double* norm =
+            paths[j].line->GetPointData()->GetNormals()->GetTuple(k);
+        double* der =
+            paths[j].derivatives->GetPointData()->GetNormals()->GetTuple(k);
+
+        // perform cross product to get the third axis direction
+        Eigen::Vector3d u(norm[0], norm[1], norm[2]);
+        Eigen::Vector3d v(der[0], der[1], der[2]);
+        Eigen::Vector3d w = u.cross(v);
+        w.normalize();
+
+        // after first cross product, u and w will be orthogonal.
+        // Perform cross product one more time to make sure that v is perfectly
+        // orthogonal to u and w
+        v = u.cross(w);
+        v.normalize();
+
+        Eigen::Affine3d epose = Eigen::Affine3d::Identity();
+        epose.matrix().col(0).head<3>() = v;
+        epose.matrix().col(1).head<3>() = -w;
+        epose.matrix().col(2).head<3>() = u;
+        epose.matrix().col(3).head<3>() = Eigen::Vector3d(pt[0], pt[1], pt[2]);
+
+        tf::poseEigenToMsg(epose, pose);
+
+        // push back new matrix (pose and orientation), this makes one long
+        // vector may need to break this up more
+        poses.poses.push_back(pose);
+
+      }
+      poseArrayVector.push_back(poses);
+    }
+
+  return poseArrayVector;
 }
-
 
 std::vector<geometry_msgs::PoseArray> toPosesMsgs(const std::vector<tool_path_planner::ProcessPath>& paths)
 {

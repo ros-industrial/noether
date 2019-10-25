@@ -19,5 +19,6 @@
   <depend>noether_msgs</depend>
   <depend>actionlib</depend>
   <depend>noether_conversions</depend>
+  <depend>noether_filtering</depend>
 
 </package>

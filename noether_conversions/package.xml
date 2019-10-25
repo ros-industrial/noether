@@ -11,6 +11,4 @@
 
   <depend>geometry_msgs</depend>
   <depend>eigen_conversions</depend>
-  <depend>tool_path_planner</depend>
-  <depend>tf</depend>
 </package>

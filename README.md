@@ -10,7 +10,7 @@ Tool path planning and surface segmenter
 ---
 ## Installation
 
-This package depends on PCL 1.8 and VTK 7.1. 
+This package depends on PCL 1.9.1 and VTK 8.2. 
 
 #### Prerequisites
 - **checkinstall**
@@ -18,7 +18,7 @@ This package depends on PCL 1.8 and VTK 7.1.
 
 #### Dependencies Installation
 ##### 1. VTK
-1. Download [VTK 7.1](https://github.com/Kitware/VTK/releases/tag/v7.1.1)
+1. Download [VTK 8.2](https://github.com/Kitware/VTK/archive/v8.2.0.tar.gz)
 2. Unzip or extract into a user accessible directory
 3. `CD` into that directory and create a new `build` directory
 4. Run cmake
@@ -33,26 +33,32 @@ This package depends on PCL 1.8 and VTK 7.1.
     _This will take a while ..._
 2. Install 
     ```
-    sudo checkinstall --pkgname=vtk-7.1
+    sudo checkinstall --pkgname=vtk-8.2
     ```
     The installation process will prompt you to accept/reject some options prior to building the debian, **just follow the recommended prompts**.
     
     NOTE: Using `checkinstall` instead of `make install` has the advantage that it builds a debian package which can be easily uninstalled with `sudo dpkg -r [packagename]`.
     
 ##### 2. PCL 
-1. Download [PCL 1.8](https://github.com/PointCloudLibrary/pcl/releases/tag/pcl-1.8.1)
+1. Download [PCL 1.9.1](https://github.com/PointCloudLibrary/pcl/archive/pcl-1.9.1.tar.gz)
 2. Unzip or extract into a user accessible directory
 3. `cd` into that directory and locate the `CMakeLists.txt` file.
-4. Locate the `find package(VTK)` line (close to line 362) and edit it to `find_package(VTK 7.1 REQUIRED)`
-5. Configure and build
+4. Locate the `find package(VTK)` line (close to line 362) and edit it to `find_package(VTK 8.2 REQUIRED)`
+5. Configure
     ```
-    cmake .
-    make
+    mkdir build
+    cd build
+    ccmake ..
+    ```
+    Then locate the `BUILD_surface_on_nurbs` flag and set it to `ON`
+6. Build
+    ```
+    make --jobs=4
     ```
     _Wait until the build finishes, it may take a couple of hours ..._
 1. Install 
     ```
-    sudo checkinstall --pkgname=pcl-1.8
+    sudo checkinstall --pkgname=pcl-1.9.1
     ```
     The installation process will prompt you to accept/reject some options prior to building the debian, **just follow the recommended prompts**
     
@@ -80,8 +86,10 @@ This package depends on PCL 1.8 and VTK 7.1.
     ```
     >> NOTE: Press 'q' to close the vtk window and proceed with the test program.
 
-## Run applications
+---
 
+## Run Applications and Demos
+### Surface Raster Planner
 The noether package has a *surface raster planner* executable which is able to take in a mesh file (.stl format), and generate raster paths on it, you can run it through the launch file with preconfigured parameters as follows:
 ```
 roslaunch noether surf_raster_planner_application.launch filename:=</absolute/path/to/my/mesh.stl>
@@ -94,4 +102,13 @@ rosrun noether surface_raster_planner_application _pt_spacing:=0.05 _line_spacin
 The `debug_on` and `console_debug_on` argurments enable visual and console debugging respectively.  During visual debugging press 'q' on the vtk window in order to step through.
 
 Work is in progress to read in point cloud (.pcd) files, but meshing results are not reliable right now.
+
+### Mesh Filtering Demo
+The mesh filtering demo applies a bspline smoothing algorithm to a noisy mesh, run the following to see it in action:
+```
+roslaunch noether_examples mesh_filtering_demo.launch
+```
+
+Currently the only plugin available is the `noether_filtering/BSplineReconstruction`, however custom mesh filter plugins can be added by inheriting from the `noether_filtering::mesh::MeshBaseFilter` class.
+
 

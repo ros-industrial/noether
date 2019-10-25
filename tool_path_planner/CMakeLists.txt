@@ -8,6 +8,7 @@ project(tool_path_planner)
 find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   eigen_conversions
+  noether_conversions
   geometry_msgs
   noether_msgs
   rosconsole
@@ -16,7 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   vtk_viewer
 )
 
-find_package(VTK 7.1 REQUIRED NO_MODULE)
+find_package(VTK 8.2 REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
 
 find_package(PCL 1.8 REQUIRED)

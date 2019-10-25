@@ -12,7 +12,8 @@
 #include <ros/assert.h>
 #include <Eigen/Dense>
 #include <eigen_conversions/eigen_msg.h>
-#include <tool_path_planner/raster_tool_path_planner.h>
+#include <noether_conversions/noether_conversions.h>
+#include "tool_path_planner/raster_tool_path_planner.h"
 #include "tool_path_planner/raster_path_generator.h"
 #include "tool_path_planner/utilities.h"
 
@@ -349,7 +350,7 @@ boost::optional< std::vector<geometry_msgs::PoseArray> > RasterPathGenerator::ge
                                                                       const shape_msgs::Mesh& mesh) const
 {
   pcl::PolygonMesh pcl_mesh;
-  if(!convertToPCLMesh(mesh,pcl_mesh))
+  if(!noether_conversions::convertToPCLMesh(mesh,pcl_mesh))
   {
     return boost::none;
   }

@@ -26,8 +26,6 @@
 #include <noether_msgs/ToolPathConfig.h>
 #include <Eigen/Dense>
 #include <eigen_stl_containers/eigen_stl_containers.h>
-#include <shape_msgs/Mesh.h>
-#include <pcl/PolygonMesh.h>
 #include <geometry_msgs/PoseArray.h>
 
 #include "tool_path_planner_base.h"
@@ -42,20 +40,16 @@ namespace tool_path_planner
    */
   void flipPointOrder(tool_path_planner::ProcessPath& path);
 
+
+  std::vector<geometry_msgs::PoseArray> convertVTKtoGeometryMsgs(
+      const std::vector<tool_path_planner::ProcessPath>& paths);
+
   /**
    * @brief Convenience conversion function
    * @param paths The tool paths
    * @return  array of PoseArray objects
    */
 	std::vector<geometry_msgs::PoseArray> toPosesMsgs(const std::vector<tool_path_planner::ProcessPath>& paths);
-
-	/**
-	 * @brief Convenience conversion function
-	 * @param mesh_msg  The input mesh
-	 * @param mesh      The output pcl mesh
-	 * @return  True on success, false otherwise.
-	 */
-	bool convertToPCLMesh(const shape_msgs::Mesh& mesh_msg, pcl::PolygonMesh& mesh);
 
 	/**
 	 * @brief Convenience conversion function.

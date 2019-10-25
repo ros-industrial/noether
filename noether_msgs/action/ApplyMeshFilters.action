@@ -1,0 +1,11 @@
+# Goal
+string filter_group					# The name of the filter group to apply
+string[] custom_filter_names		# custom list of filters to apply, leave empty to use all the filters in the group
+shape_msgs/Mesh[] surface_meshes	# The surfaces to filter
+---
+# Result
+bool success						# True on success, false otherwise
+shape_msgs/Mesh[] filtered_meshes	# The output filtered meshes
+---
+# Feedback
+int32 current_mesh_index			# index of the surface mesh currently being processed
