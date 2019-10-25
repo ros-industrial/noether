@@ -22,7 +22,7 @@ XmlRpc::XmlRpcValue createVoxelGridConfig()
   f[TYPE_NAME] = utils::getClassName<VoxelGridFilter<PointT>>();
 
   XmlRpc::XmlRpcValue vg;
-  vg["leaf_size"] = 0.1;
+  vg[VoxelGridFilter<PointT>::LEAF_SIZE] = 0.1;
   f[CONFIG] = std::move(vg);
 
   return f;
@@ -39,8 +39,8 @@ XmlRpc::XmlRpcValue createStatisticalOutlierConfig()
   f[TYPE_NAME] = utils::getClassName<StatisticalOutlierFilter<PointT>>();
 
   XmlRpc::XmlRpcValue so;
-  so["mean_k"] = 10;
-  so["std_dev_mult"] = 1.0;
+  so[StatisticalOutlierFilter<PointT>::MEAN_K] = 10;
+  so[StatisticalOutlierFilter<PointT>::STD_DEV_MULT] = 1.0;
   f[CONFIG] = std::move(so);
 
   return f;
@@ -75,10 +75,10 @@ XmlRpc::XmlRpcValue createCropBoxConfig()
   t["rz"] = 0.1;
 
   XmlRpc::XmlRpcValue cb;
-  cb["min"] = min;
-  cb["max"] = max;
-  cb["transform"] = t;
-  cb["crop_outside"] = false;
+  cb[CropBoxFilter<PointT>::MIN] = min;
+  cb[CropBoxFilter<PointT>::MAX] = max;
+  cb[CropBoxFilter<PointT>::TRANSFORM] = t;
+  cb[CropBoxFilter<PointT>::CROP_OUTSIDE] = false;
 
   f[CONFIG] = std::move(cb);
 
@@ -96,10 +96,10 @@ XmlRpc::XmlRpcValue createPassThroughConfig()
   f[TYPE_NAME] = utils::getClassName<PassThroughFilter<PointT>>();
 
   XmlRpc::XmlRpcValue pt;
-  pt["filter_field_name"] = "y";
-  pt["min_limit"] = -1.0;
-  pt["max_limit"] = 1.0;
-  pt["negative"] = false;
+  pt[PassThroughFilter<PointT>::FILTER_FIELD_NAME] = "y";
+  pt[PassThroughFilter<PointT>::MIN_LIMIT] = -1.0;
+  pt[PassThroughFilter<PointT>::MAX_LIMIT] = 1.0;
+  pt[PassThroughFilter<PointT>::NEGATIVE] = false;
   f[CONFIG] = std::move(pt);
 
   return f;
@@ -116,8 +116,8 @@ XmlRpc::XmlRpcValue createRadiusOutlierConfig()
   f[TYPE_NAME] = utils::getClassName<RadiusOutlierFilter<PointT>>();
 
   XmlRpc::XmlRpcValue ro;
-  ro["radius"] = 1.0;
-  ro["min_pts"] = 5;
+  ro[RadiusOutlierFilter<PointT>::RADIUS] = 1.0;
+  ro[RadiusOutlierFilter<PointT>::MIN_PTS] = 5;
   f[CONFIG] = std::move(ro);
 
   return f;
