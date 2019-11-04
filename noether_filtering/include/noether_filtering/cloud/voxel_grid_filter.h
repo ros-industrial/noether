@@ -9,10 +9,11 @@ namespace noether_filtering
 namespace cloud
 {
 template<typename PointT>
-class VoxelGridFilter : public FilterBase<typename pcl::PointCloud<PointT>::Ptr>
+class VoxelGridFilter : public FilterBase<pcl::PointCloud<PointT>>
 {
 public:
-  using T = typename pcl::PointCloud<PointT>::Ptr;
+  using T = pcl::PointCloud<PointT>;
+
   using FilterBase<T>::FilterBase;
 
   /**

@@ -10,11 +10,11 @@ namespace noether_filtering
 namespace cloud
 {
 template<typename PointT>
-class CropBoxFilter : public FilterBase<typename pcl::PointCloud<PointT>::Ptr>
+class CropBoxFilter : public FilterBase<pcl::PointCloud<PointT>>
 {
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  using T = typename pcl::PointCloud<PointT>::Ptr;
+  using T = typename pcl::PointCloud<PointT>;
 
   using FilterBase<T>::FilterBase;
 

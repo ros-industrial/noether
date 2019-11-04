@@ -9,10 +9,11 @@ namespace noether_filtering
 namespace cloud
 {
 template<typename PointT>
-class StatisticalOutlierFilter : public FilterBase<typename pcl::PointCloud<PointT>::Ptr>
+class StatisticalOutlierFilter : public FilterBase<pcl::PointCloud<PointT>>
 {
 public:
-  typedef typename pcl::PointCloud<PointT>::Ptr T;
+  using T = pcl::PointCloud<PointT>;
+
   using FilterBase<T>::FilterBase;
 
   /**

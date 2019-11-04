@@ -155,13 +155,12 @@ XmlRpc::XmlRpcValue createManagerConfig(std::string group_name)
   return manager;
 }
 
-template<typename T>
+template<typename PointT>
 class FilterManagerFixture : public testing::Test
 {
 public:
   using testing::Test::Test;
-  using Cloud = pcl::PointCloud<T>;
-  std::shared_ptr< noether_filtering::FilterManager<typename Cloud::Ptr> > manager;
+  std::shared_ptr<noether_filtering::FilterManager<pcl::PointCloud<PointT>>> manager;
 };
 
 typedef ::testing::Types<pcl::PointXYZ, pcl::PointXYZRGB, pcl::PointNormal, pcl::PointXYZI> Implementations;
@@ -170,30 +169,30 @@ TYPED_TEST_SUITE(FilterManagerFixture, Implementations);
 
 TYPED_TEST(FilterManagerFixture, FilterManagerTest)
 {
+  using namespace noether_filtering;
   using namespace noether_filtering::config_fields::filter;
-  using FilterT = noether_filtering::FilterBase<typename pcl::PointCloud<TypeParam>::Ptr>;
+  using FilterT = noether_filtering::FilterBase<pcl::PointCloud<TypeParam>>;
   using Cloud = pcl::PointCloud<TypeParam>;
 
   const std::string group_name = "test_group";
   XmlRpc::XmlRpcValue config = createManagerConfig<TypeParam>(group_name);
 
-  this->manager = std::make_shared< typename noether_filtering::FilterManager< typename Cloud::Ptr > >(noether_filtering::utils::getClassName<FilterT>());
+  this->manager = std::make_shared<FilterManager<Cloud>>(utils::getClassName<FilterT>());
   ASSERT_TRUE(this->manager->init(config));
 
-  using Group = noether_filtering::FilterGroup<typename pcl::PointCloud<TypeParam>::Ptr>;
+  using Group = FilterGroup<Cloud>;
   std::shared_ptr<Group> group = this->manager->getFilterGroup(group_name);
 
   ASSERT_TRUE(group != nullptr);
 
-  typename pcl::PointCloud<TypeParam>::Ptr input_cloud
-    = boost::make_shared<pcl::PointCloud<TypeParam>>();
-  input_cloud->points.resize(100);
-  typename pcl::PointCloud<TypeParam>::Ptr output_cloud;
+  pcl::PointCloud<TypeParam> input_cloud;
+  input_cloud.points.resize(100);
+  pcl::PointCloud<TypeParam> output_cloud;
   std::string error;
 
   ASSERT_TRUE(group->applyFilters(input_cloud, output_cloud, error));
 
-  ASSERT_LE(output_cloud->points.size(), input_cloud->points.size());
+  ASSERT_LE(output_cloud.points.size(), input_cloud.points.size());
 }
 
 int main(int argc, char **argv)

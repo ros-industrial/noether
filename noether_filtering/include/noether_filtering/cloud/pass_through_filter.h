@@ -9,10 +9,10 @@ namespace noether_filtering
 namespace cloud
 {
 template<typename PointT>
-class PassThroughFilter : public FilterBase<typename pcl::PointCloud<PointT>::Ptr>
+class PassThroughFilter : public FilterBase<pcl::PointCloud<PointT>>
 {
 public:
-  using T = typename pcl::PointCloud<PointT>::Ptr;
+  using T = pcl::PointCloud<PointT>;
 
   using FilterBase<T>::FilterBase;
 
