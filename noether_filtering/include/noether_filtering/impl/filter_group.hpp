@@ -51,7 +51,7 @@ FilterGroup<F>::FilterGroup(const std::string& base_class_name)
   , filter_loader_(PACKAGE_NAME, base_class_name)
 {
   std::vector<std::string> filters = filter_loader_.getDeclaredClasses();
-  std::string out = "Available classes:";
+  std::string out = "Available plugins for base class '" + base_class_name + "' :";
   for (const std::string &f : filters)
   {
     out += "\n\t\t" + f;

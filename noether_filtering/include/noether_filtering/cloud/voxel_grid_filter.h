@@ -9,10 +9,10 @@ namespace noether_filtering
 namespace cloud
 {
 template<typename PointT>
-class VoxelGridFilter : public FilterBase<typename pcl::PointCloud<PointT>::Ptr>
+class VoxelGridFilter : public FilterBase<pcl::PointCloud<PointT>>
 {
 public:
-  using T = typename pcl::PointCloud<PointT>::Ptr;
+  using T = pcl::PointCloud<PointT>;
 
   using FilterBase<T>::FilterBase;
 
@@ -42,6 +42,13 @@ public:
     std::string filter_field_name = "";
   };
   Params params;
+
+  static const std::string LEAF_SIZE;
+  static const std::string FILTER_FIELD_NAME;
+  static const std::string MIN_LIMIT;
+  static const std::string MAX_LIMIT;
+  static const std::string FILTER_LIMITS_NEGATIVE;
+  static const std::string MIN_PTS_PER_VOXEL;
 };
 } // namespace cloud
 } // namespace noether_filtering

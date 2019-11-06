@@ -22,7 +22,7 @@ XmlRpc::XmlRpcValue createVoxelGridConfig()
   f[TYPE_NAME] = utils::getClassName<VoxelGridFilter<PointT>>();
 
   XmlRpc::XmlRpcValue vg;
-  vg["leaf_size"] = 0.1;
+  vg[VoxelGridFilter<PointT>::LEAF_SIZE] = 0.1;
   f[CONFIG] = std::move(vg);
 
   return f;
@@ -39,8 +39,8 @@ XmlRpc::XmlRpcValue createStatisticalOutlierConfig()
   f[TYPE_NAME] = utils::getClassName<StatisticalOutlierFilter<PointT>>();
 
   XmlRpc::XmlRpcValue so;
-  so["mean_k"] = 10;
-  so["std_dev_mult"] = 1.0;
+  so[StatisticalOutlierFilter<PointT>::MEAN_K] = 10;
+  so[StatisticalOutlierFilter<PointT>::STD_DEV_MULT] = 1.0;
   f[CONFIG] = std::move(so);
 
   return f;
@@ -75,10 +75,10 @@ XmlRpc::XmlRpcValue createCropBoxConfig()
   t["rz"] = 0.1;
 
   XmlRpc::XmlRpcValue cb;
-  cb["min"] = min;
-  cb["max"] = max;
-  cb["transform"] = t;
-  cb["crop_outside"] = false;
+  cb[CropBoxFilter<PointT>::MIN] = min;
+  cb[CropBoxFilter<PointT>::MAX] = max;
+  cb[CropBoxFilter<PointT>::TRANSFORM] = t;
+  cb[CropBoxFilter<PointT>::CROP_OUTSIDE] = false;
 
   f[CONFIG] = std::move(cb);
 
@@ -96,10 +96,10 @@ XmlRpc::XmlRpcValue createPassThroughConfig()
   f[TYPE_NAME] = utils::getClassName<PassThroughFilter<PointT>>();
 
   XmlRpc::XmlRpcValue pt;
-  pt["filter_field_name"] = "y";
-  pt["min_limit"] = -1.0;
-  pt["max_limit"] = 1.0;
-  pt["negative"] = false;
+  pt[PassThroughFilter<PointT>::FILTER_FIELD_NAME] = "y";
+  pt[PassThroughFilter<PointT>::MIN_LIMIT] = -1.0;
+  pt[PassThroughFilter<PointT>::MAX_LIMIT] = 1.0;
+  pt[PassThroughFilter<PointT>::NEGATIVE] = false;
   f[CONFIG] = std::move(pt);
 
   return f;
@@ -116,8 +116,8 @@ XmlRpc::XmlRpcValue createRadiusOutlierConfig()
   f[TYPE_NAME] = utils::getClassName<RadiusOutlierFilter<PointT>>();
 
   XmlRpc::XmlRpcValue ro;
-  ro["radius"] = 1.0;
-  ro["min_pts"] = 5;
+  ro[RadiusOutlierFilter<PointT>::RADIUS] = 1.0;
+  ro[RadiusOutlierFilter<PointT>::MIN_PTS] = 5;
   f[CONFIG] = std::move(ro);
 
   return f;
@@ -155,44 +155,44 @@ XmlRpc::XmlRpcValue createManagerConfig(std::string group_name)
   return manager;
 }
 
-template<typename T>
+template<typename PointT>
 class FilterManagerFixture : public testing::Test
 {
 public:
   using testing::Test::Test;
-  using Cloud = pcl::PointCloud<T>;
-  std::shared_ptr< noether_filtering::FilterManager<typename Cloud::Ptr> > manager;
+  std::shared_ptr<noether_filtering::FilterManager<pcl::PointCloud<PointT>>> manager;
 };
 
-typedef ::testing::Types<pcl::PointXYZ, pcl::PointXYZRGB, pcl::PointNormal> Implementations;
+typedef ::testing::Types<pcl::PointXYZ, pcl::PointXYZRGB, pcl::PointNormal, pcl::PointXYZI> Implementations;
 
-TYPED_TEST_CASE(FilterManagerFixture, Implementations);
+TYPED_TEST_SUITE(FilterManagerFixture, Implementations);
 
 TYPED_TEST(FilterManagerFixture, FilterManagerTest)
 {
+  using namespace noether_filtering;
   using namespace noether_filtering::config_fields::filter;
-  using FilterT = noether_filtering::FilterBase<TypeParam>;
+  using FilterT = noether_filtering::FilterBase<pcl::PointCloud<TypeParam>>;
   using Cloud = pcl::PointCloud<TypeParam>;
 
   const std::string group_name = "test_group";
   XmlRpc::XmlRpcValue config = createManagerConfig<TypeParam>(group_name);
-  this->manager = std::make_shared< typename noether_filtering::FilterManager< typename Cloud::Ptr > >(noether_filtering::utils::getClassName<FilterT>());
+
+  this->manager = std::make_shared<FilterManager<Cloud>>(utils::getClassName<FilterT>());
   ASSERT_TRUE(this->manager->init(config));
 
-  using Group = noether_filtering::FilterGroup<typename pcl::PointCloud<TypeParam>::Ptr>;
+  using Group = FilterGroup<Cloud>;
   std::shared_ptr<Group> group = this->manager->getFilterGroup(group_name);
 
   ASSERT_TRUE(group != nullptr);
 
-  typename pcl::PointCloud<TypeParam>::Ptr input_cloud
-    = boost::make_shared<pcl::PointCloud<TypeParam>>();
-  input_cloud->points.resize(100);
-  typename pcl::PointCloud<TypeParam>::Ptr output_cloud;
+  pcl::PointCloud<TypeParam> input_cloud;
+  input_cloud.points.resize(100);
+  pcl::PointCloud<TypeParam> output_cloud;
   std::string error;
 
   ASSERT_TRUE(group->applyFilters(input_cloud, output_cloud, error));
 
-  ASSERT_LE(output_cloud->points.size(), input_cloud->points.size());
+  ASSERT_LE(output_cloud.points.size(), input_cloud.points.size());
 }
 
 int main(int argc, char **argv)

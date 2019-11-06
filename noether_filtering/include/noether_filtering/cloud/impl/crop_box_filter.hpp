@@ -54,15 +54,41 @@ namespace noether_filtering
 namespace cloud
 {
 template<typename PointT>
+const std::string CropBoxFilter<PointT>::MAX = "max";
+
+template<typename PointT>
+const std::string CropBoxFilter<PointT>::MIN = "min";
+
+template<typename PointT>
+const std::string CropBoxFilter<PointT>::TRANSFORM = "transform";
+
+template<typename PointT>
+const std::string CropBoxFilter<PointT>::CROP_OUTSIDE = "crop_outside";
+
+template<typename PointT>
 bool CropBoxFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
 {
+  std::string error;
+  if (!value.hasMember(MIN))
+    error += MIN + ", ";
+  if (!value.hasMember(MAX))
+    error += MAX + ", ";
+  if (!value.hasMember(TRANSFORM))
+    error += TRANSFORM + ", ";
+
+  if(!error.empty())
+  {
+    CONSOLE_BRIDGE_logError("Filter configuration missing required parameters: %s", error.c_str());
+    return false;
+  }
+
   // Required parameter(s)
   try
   {
     bool success = true;
-    success &= fromXmlRpc(value["min"], params.min_pt);
-    success &= fromXmlRpc(value["max"], params.min_pt);
-    success &= fromXmlRpc(value["transform"], params.transform);
+    success &= fromXmlRpc(value[MIN], params.min_pt);
+    success &= fromXmlRpc(value[MAX], params.max_pt);
+    success &= fromXmlRpc(value[TRANSFORM], params.transform);
     if (!success)
     {
       return false;
@@ -76,14 +102,17 @@ bool CropBoxFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
   }
 
   // Optional parameter(s)
-  try
+  if(value.hasMember(CROP_OUTSIDE))
   {
-    params.crop_outside = static_cast<bool>(value["crop_outside"]);
-  }
-  catch (const XmlRpc::XmlRpcException &ex)
-  {
-    CONSOLE_BRIDGE_logWarn("Failed to load optional parameter(s) for crop box filter: '%s'",
-                           ex.getMessage().c_str());
+    try
+    {
+      params.crop_outside = static_cast<bool>(value[CROP_OUTSIDE]);
+    }
+    catch (const XmlRpc::XmlRpcException &ex)
+    {
+      CONSOLE_BRIDGE_logWarn("Failed to load optional parameter(s) for crop box filter: '%s'",
+                             ex.getMessage().c_str());
+    }
   }
 
   return true;
@@ -92,7 +121,8 @@ bool CropBoxFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
 template<typename PointT>
 bool CropBoxFilter<PointT>::filter(const T &input, T &output)
 {
-  output.reset(new pcl::PointCloud<PointT>());
+  // Create a shared pointer to the input object with a "destructor" function that does not delete the raw pointer
+  auto cloud = boost::shared_ptr<const T>(&input, [](const T *) {});
 
   // Set the parameters
   pcl::CropBox<PointT> f(params.crop_outside);
@@ -100,8 +130,8 @@ bool CropBoxFilter<PointT>::filter(const T &input, T &output)
   f.setMax(params.max_pt);
   f.setTransform(params.transform);
 
-  f.setInputCloud(input);
-  f.filter(*output);
+  f.setInputCloud(cloud);
+  f.filter(output);
 
   return true;
 }

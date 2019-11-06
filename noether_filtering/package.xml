@@ -11,6 +11,7 @@
   <depend>pluginlib</depend>
   <export>
     <build_type>cmake</build_type>
-    <noether_filtering plugin="${prefix}/mesh_filter_plugins.xml"/>    
+    <noether_filtering plugin="${prefix}/mesh_filter_plugins.xml"/>
+    <noether_filtering plugin="${prefix}/cloud_filter_plugins.xml"/>
   </export>
 </package>

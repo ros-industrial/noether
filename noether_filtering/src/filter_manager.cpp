@@ -5,7 +5,7 @@
 #include <pcl/PolygonMesh.h>
 
 #define PCL_INSTANTIATE_FilterManager(T) \
-  template class PCL_EXPORTS noether_filtering::FilterManager<pcl::PointCloud<T>::Ptr>;
+  template class PCL_EXPORTS noether_filtering::FilterManager<pcl::PointCloud<T>>;
 
 namespace noether_filtering
 {

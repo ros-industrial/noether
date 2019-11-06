@@ -9,10 +9,10 @@ namespace noether_filtering
 namespace cloud
 {
 template<typename PointT>
-class RadiusOutlierFilter : public FilterBase<typename pcl::PointCloud<PointT>::Ptr>
+class RadiusOutlierFilter : public FilterBase<pcl::PointCloud<PointT>>
 {
-  public:
-  typedef typename pcl::PointCloud<PointT>::Ptr T;
+public:
+  using T = pcl::PointCloud<PointT>;
 
   using FilterBase<T>::FilterBase;
 
@@ -34,6 +34,9 @@ class RadiusOutlierFilter : public FilterBase<typename pcl::PointCloud<PointT>::
     int min_pts = 10;
   };
   Params params;
+
+  static const std::string RADIUS;
+  static const std::string MIN_PTS;
 };
 } // namespace cloud
 } // namespace noether_filtering

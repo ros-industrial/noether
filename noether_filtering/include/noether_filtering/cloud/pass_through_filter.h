@@ -9,10 +9,10 @@ namespace noether_filtering
 namespace cloud
 {
 template<typename PointT>
-class PassThroughFilter : public FilterBase<typename pcl::PointCloud<PointT>::Ptr>
+class PassThroughFilter : public FilterBase<pcl::PointCloud<PointT>>
 {
 public:
-  using T = typename pcl::PointCloud<PointT>::Ptr;
+  using T = pcl::PointCloud<PointT>;
 
   using FilterBase<T>::FilterBase;
 
@@ -38,6 +38,11 @@ public:
     bool negative = false;
   };
   Params params;
+
+  static const std::string FILTER_FIELD_NAME;
+  static const std::string MIN_LIMIT;
+  static const std::string MAX_LIMIT;
+  static const std::string NEGATIVE;
 };
 } // namespace cloud
 } // namespace noether_filtering
