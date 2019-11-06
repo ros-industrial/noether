@@ -17,16 +17,17 @@ filter_groups:
           boundary_smoothness: 0.5
           boundary_weight: 1.0
         clip_boundary_curve: True
-        boundary_fit_order: 2 # applicable only when clip_boundary_curve: True
+        boundary_fit_order: 3 # applicable only when clip_boundary_curve: True
         boundary_curve_parameters:
-          addCPsAccuracy: 0.05 #5e-2
-          addCPsIteration: 3
+          addCPsAccuracy: 0.0001 #5e-2
+          addCPsIteration: 2
+          startCPs: 20
           maxCPs: 200
-          accuracy: 0.001 #1e-3
-          iterations: 100
+          accuracy: 0.01 #1e-3
+          iterations: 10
           closest_point_resolution: 0.0
           closest_point_weight: 1.0
-          closest_point_sigma2: 0.1
+          closest_point_sigma2: 0.01
           interior_sigma2: 0.00001
           smooth_concavity: 1.0
           smoothness: 1.0

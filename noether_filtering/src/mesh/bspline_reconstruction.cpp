@@ -55,8 +55,9 @@ bool BSplineReconstruction::configure(XmlRpc::XmlRpcValue config)
       return true;
     }
 
-    p.boundary_fit_order = static_cast<int>(surf_conf["boundary_fit_order"]);
+    p.boundary_fit_order = static_cast<int>(config["boundary_fit_order"]);
     XmlRpc::XmlRpcValue boundary_conf = config["boundary_curve_parameters"];
+    p.boundary_startCPs = static_cast<int>(boundary_conf["startCPs"]);
     pcl::on_nurbs::FittingCurve2dAPDM::FitParameter& bp = p.boundary_curve_params;
     bp.addCPsAccuracy = static_cast<double>(boundary_conf["addCPsAccuracy"]);
     bp.addCPsIteration = static_cast<int>(boundary_conf["addCPsIteration"]);
@@ -149,7 +150,8 @@ bool BSplineReconstruction::filter(const pcl::PolygonMesh& mesh_in, pcl::Polygon
     curve_data.interior = nurbs_data.interior_param;
     curve_data.interior_weight_function.push_back (true);
     ON_NurbsCurve curve_nurbs = pcl::on_nurbs::FittingCurve2dAPDM::initNurbsCurve2D (
-        parameters_.order, curve_data.interior);
+        parameters_.boundary_fit_order, curve_data.interior,
+        parameters_.boundary_startCPs);
 
     // curve fitting
     curve_fit = std::make_shared<pcl::on_nurbs::FittingCurve2dASDM>(&curve_data, curve_nurbs);

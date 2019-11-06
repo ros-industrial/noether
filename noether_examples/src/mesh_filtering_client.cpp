@@ -104,12 +104,14 @@ public:
     goal.filter_group = filter_group;
     goal.surface_meshes.push_back(mesh_msg);
     ac_.sendGoal(goal);
+    ros::Time start_time = ros::Time::now();
     if(!ac_.waitForResult(ros::Duration(GOAL_WAIT_PERIOD)))
     {
       ROS_ERROR("Failed to filter mesh");
       return false;
     }
-    ROS_INFO("Got filtered results");
+    ros::Duration time_elapsed = ros::Time::now() - start_time;
+    ROS_INFO("Got filtered results, process took %f seconds",time_elapsed.toSec());
 
     // writing out mesh
     noether_msgs::ApplyMeshFiltersResultConstPtr res = ac_.getResult();
