@@ -99,6 +99,7 @@ int main(int argc, char** argv)
   ros::init(argc,argv,"mesh_filter_server");
   ros::AsyncSpinner spinner(2);
   spinner.start();
+  console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_INFO);
   MeshFilterServer server;
   if(!server.run())
   {

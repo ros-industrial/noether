@@ -46,6 +46,7 @@ public:
 
     bool clip_boundary_curve = true;  /** @brief whether to fit the boundary curve and clip every that extends past it*/
     int boundary_fit_order = 2;       /** @brief applicable only when clip_boundary_curve = true */
+    int boundary_startCPs = 0;
     pcl::on_nurbs::FittingCurve2dAPDM::FitParameter boundary_curve_params;
   };
 

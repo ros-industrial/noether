@@ -30,6 +30,7 @@ namespace group
 {
   static const std::string GROUP_NAME = "group_name";
   static const std::string CONTINUE_ON_FAILURE = "continue_on_failure";
+  static const std::string VERBOSITY_ON = "verbosity_on";
   static const std::string FILTERS = "filters";
 } // namespace group
 } // namespace config_fields
@@ -83,6 +84,7 @@ protected:
   std::vector<std::string> filters_loaded_;
   std::map<std::string, FilterBasePtr> filters_map_;
   bool continue_on_failure_;
+  bool verbosity_on_;
 };
 
 } /* namespace noether_filtering */
