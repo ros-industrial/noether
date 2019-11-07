@@ -1,11 +1,12 @@
 filter_groups:
   - group_name: DEFAULT
     continue_on_failure: False
+    verbosity_on: True
     filters:
     - type: noether_filtering/BSplineReconstruction
       name: bspline_surf_1
       config:
-        verbosity_on: True
+        verbosity_on: False
         order: 3
         refinement: 3
         iterations: 2

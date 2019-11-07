@@ -10,6 +10,7 @@
 #include "noether_filtering/filter_group.h"
 #include "noether_filtering/utils.h"
 #include <boost/format.hpp>
+#include <chrono>
 #include <XmlRpcException.h>
 
 static const std::string PACKAGE_NAME = "noether_filtering";
@@ -65,7 +66,7 @@ bool FilterGroup<F>::init(XmlRpc::XmlRpcValue config)
   using namespace config_fields::group;
 
   // checking config fields
-  const std::vector<std::string> REQUIRED_FIELDS = {CONTINUE_ON_FAILURE, FILTERS};
+  const std::vector<std::string> REQUIRED_FIELDS = {CONTINUE_ON_FAILURE, VERBOSITY_ON, FILTERS};
 
   auto check_fn = [&config](const std::string &f) {
     if (!config.hasMember(f))
@@ -87,6 +88,7 @@ bool FilterGroup<F>::init(XmlRpc::XmlRpcValue config)
   try
   {
     continue_on_failure_ = static_cast<bool>(config[CONTINUE_ON_FAILURE]);
+    verbosity_on_ = static_cast<bool>(config[VERBOSITY_ON]);
   }
   catch (const XmlRpc::XmlRpcException &ex)
   {
@@ -153,6 +155,7 @@ bool FilterGroup<F>::applyFilters(const std::vector<std::string>& filters, const
                                     std::string& err_msg)
 {
   std::vector<std::string> selected_filters = filters;
+  namespace chrono = std::chrono;
   if(selected_filters.empty())
   {
     CONSOLE_BRIDGE_logWarn("%s received empty list of filters, using all filters loaded", utils::getClassName<FilterGroup<F>>().c_str());
@@ -178,10 +181,21 @@ bool FilterGroup<F>::applyFilters(const std::vector<std::string>& filters, const
   // apply filters
   bool success = false;
   F temp = input;
+  chrono::time_point<chrono::system_clock>  start_time;
+  chrono::duration<double> filter_dur;
   for(const std::string& fname : selected_filters)
   {
     F temp_output;
+    start_time = chrono::system_clock::now();
     bool current_filter_succeeded = filters_map_.at(fname)->filter(temp,temp_output);
+
+    if(verbosity_on_)
+    {
+      filter_dur = chrono::system_clock::now() - start_time;
+      CONSOLE_BRIDGE_logInform("Filter '%s' took %f seconds",fname.c_str(),
+                               filter_dur.count());
+    }
+
     if(!current_filter_succeeded)
     {
       err_msg = boost::str(boost::format("The filter %s failed") % fname);
