@@ -25,6 +25,7 @@ catkin_package(
   DEPENDS
     EIGEN3
     VTK
+    PCL
 )
 
 include_directories(
