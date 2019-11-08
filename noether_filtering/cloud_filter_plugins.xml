@@ -1,4 +1,4 @@
-<library path="lib/libnoether_filtering_filter_plugins">
+<library path="lib/libnoether_filtering_cloud_filter_plugins">
   <!-- pcl::PointXYZ -->
   <class name="noether_filtering::cloud::VoxelGridFilter&lt;pcl::PointXYZ>" type="noether_filtering::cloud::VoxelGridFilter&lt;pcl::PointXYZ>"
     base_class_type="noether_filtering::FilterBase&lt;pcl::PointCloud&lt;pcl::PointXYZ> >">
