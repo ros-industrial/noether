@@ -52,12 +52,17 @@ The following plugins are currently available and are listed by filter data type
 ### `pcl::PolygonMesh`
 - `noether_filtering::BSplineReconstruction`
 
+> Note: PCL 1.9 and VTK 8.2 are required to compile the mesh filtering plugins. If these system dependencies do not exist, the mesh filtering plugins will not be built
+
 ### `pcl::PointCloud`
 - `noether_filtering::CropBoxFilter<PointT>`
 - `noether_filtering::PassThrough<PointT>`
 - `noether_filtering::RadiusOutlierFilter<PointT>`
 - `noether_filtering::StatisticalOutlierFilter<PointT>`
 - `noether_filtering::VoxelGridFilter<PointT>`
+- `noether_filtering::MLSSmoothingFilter<PointT>`
 
-***Note:*** *a valid `PointT` type must be provided in the specification of the name of the plugin
-(i.e. `pcl::PointXYZ`)*
+> Note: a valid `PointT` type must be provided in the specification of the name of the plugin
+(i.e. `pcl::PointXYZ`)
+
+
