@@ -164,7 +164,7 @@ bool BSplineReconstruction::filter(const pcl::PolygonMesh& mesh_in, pcl::Polygon
     }
   }
 
-  if(curve_fit->m_nurbs.IsValid())
+  if(parameters_.clip_boundary_curve)
   {
     pcl::on_nurbs::Triangulation::convertTrimmedSurface2PolygonMesh (fit.m_nurbs,
                                                                      curve_fit->m_nurbs,
