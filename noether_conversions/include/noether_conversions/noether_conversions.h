@@ -19,7 +19,9 @@
 
 #include <geometry_msgs/PoseArray.h>
 #include <shape_msgs/Mesh.h>
+#include <pcl/point_cloud.h>
 #include <pcl/PolygonMesh.h>
+#include <pcl/point_types.h>
 
 namespace noether_conversions {
 
@@ -54,6 +56,8 @@ namespace noether_conversions {
    * @return True on success, false otherwise.
    */
   bool loadPLYFile(const std::string& filename, shape_msgs::Mesh& mesh_msg);
+
+  void convertToPointNormals(const pcl::PolygonMesh& mesh, pcl::PointCloud<pcl::PointNormal>& cloud, bool flip = false);
 
 }
 

@@ -1,5 +1,5 @@
 #include <noether_conversions/noether_conversions.h>
-
+#include <type_traits>
 #include <Eigen/Geometry>
 #include <pcl/conversions.h>
 #include <pcl/io/ply_io.h>
@@ -90,6 +90,37 @@ bool loadPLYFile(const std::string& filename, shape_msgs::Mesh& mesh_msg)
 {
   pcl::PolygonMesh mesh;
   return (pcl::io::loadPLYFile(filename,mesh) >= 0) && convertToMeshMsg(mesh,mesh_msg);
+}
+
+void convertToPointNormals(const pcl::PolygonMesh& mesh, pcl::PointCloud<pcl::PointNormal>& cloud_normals, bool flip)
+{
+  using namespace pcl;
+  using namespace Eigen;
+  using PType = std::remove_reference<decltype(cloud_normals)>::type::PointType;
+  PointCloud<PointXYZ> points;
+  pcl::fromPCLPointCloud2<PointXYZ>(mesh.cloud, points);
+  pcl::copyPointCloud(points, cloud_normals);
+
+  // computing the normals by walking the vertices
+  Vector3d a, b, c;
+  Vector3d dir;
+  for(std::size_t i = 0; i < mesh.polygons.size(); i++)
+  {
+    std::vector<uint32_t>  vert = mesh.polygons[i].vertices;
+    a = points[vert[0]].getVector3fMap().cast<double>();
+    b = points[vert[1]].getVector3fMap().cast<double>();
+    c = points[vert[2]].getVector3fMap().cast<double>();
+    dir = (b - a).cross((c -a)).normalized();
+    dir = flip ? -1.0 * dir : dir;
+
+    // assigning to points
+    for(std::size_t v = 0; v < vert.size(); v++)
+    {
+      cloud_normals[v].normal_x = dir.x();
+      cloud_normals[v].normal_y = dir.y();
+      cloud_normals[v].normal_z = dir.z();
+    }
+  }
 }
 
 }
