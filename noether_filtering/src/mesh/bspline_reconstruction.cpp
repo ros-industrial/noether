@@ -57,6 +57,7 @@ bool BSplineReconstruction::configure(XmlRpc::XmlRpcValue config)
     p.boundary_fit_order = static_cast<int>(config["boundary_fit_order"]);
     XmlRpc::XmlRpcValue boundary_conf = config["boundary_curve_parameters"];
     p.boundary_startCPs = static_cast<int>(boundary_conf["startCPs"]);
+    p.boundary_clipping_required = static_cast<bool>(boundary_conf["clipping_required"]);
     pcl::on_nurbs::FittingCurve2dAPDM::FitParameter& bp = p.boundary_curve_params;
     bp.addCPsAccuracy = static_cast<double>(boundary_conf["addCPsAccuracy"]);
     bp.addCPsIteration = static_cast<int>(boundary_conf["addCPsIteration"]);
@@ -140,7 +141,7 @@ bool BSplineReconstruction::filter(const pcl::PolygonMesh& mesh_in, pcl::Polygon
   }
 
   // fit B-spline boundary curve
-  std::shared_ptr<pcl::on_nurbs::FittingCurve2dASDM> curve_fit;
+  std::shared_ptr<pcl::on_nurbs::FittingCurve2dASDM> curve_fit = nullptr;
   if (parameters_.clip_boundary_curve)
   {
     // initialisation (circular)
@@ -159,12 +160,19 @@ bool BSplineReconstruction::filter(const pcl::PolygonMesh& mesh_in, pcl::Polygon
 
     if(!curve_fit->m_nurbs.IsValid())
     {
-      CONSOLE_BRIDGE_logError("Failed to fit boundary curve");
-      return false;
+      if(parameters_.boundary_clipping_required)
+      {
+        CONSOLE_BRIDGE_logError("Failed to fit boundary curve");
+        return false;
+      }
+      else
+      {
+        CONSOLE_BRIDGE_logWarn("Failed to fit boundary curve but returning unclipped surface");
+      }
     }
   }
 
-  if(parameters_.clip_boundary_curve)
+  if(curve_fit && curve_fit->m_nurbs.IsValid())
   {
     pcl::on_nurbs::Triangulation::convertTrimmedSurface2PolygonMesh (fit.m_nurbs,
                                                                      curve_fit->m_nurbs,
