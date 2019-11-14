@@ -89,6 +89,13 @@ target_link_libraries(mesh_filter_server PUBLIC
   noether_filtering::noether_filtering
 )
 
+add_executable(edge_generator_server
+  src/edge_generator_server.cpp
+)
+target_link_libraries(edge_generator_server 
+  ${catkin_LIBRARIES}
+)
+
 #############
 ## Install ##
 #############

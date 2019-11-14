@@ -43,7 +43,6 @@ catkin_package(
   CATKIN_DEPENDS
     actionlib
     mesh_segmenter
-    noether_msgs
     path_sequence_planner
     pcl_conversions
     roscpp
@@ -83,6 +82,13 @@ add_executable(mesh_filtering_client
 target_link_libraries(mesh_filtering_client
   ${catkin_LIBRARIES}
   ${PCL_LIBRARIES}
+)
+
+add_executable(edge_generator_client
+  src/edge_generator_client.cpp
+)
+target_link_libraries(edge_generator_client
+  ${catkin_LIBRARIES}
 )
 
 #############
