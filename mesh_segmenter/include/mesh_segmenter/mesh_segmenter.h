@@ -22,6 +22,7 @@
 
 #include <vtkPolyData.h>
 #include <vtkTriangleFilter.h>
+#include <vtkSmartPointer.h>
 
 namespace mesh_segmenter
 {
