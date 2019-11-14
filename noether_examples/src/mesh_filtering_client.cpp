@@ -29,21 +29,6 @@ namespace mesh_colors
   static const RGBA FILTERED_MESH = std::make_tuple(0.6, 1.0, 0.4, 0.5);
 }
 
-visualization_msgs::Marker createMeshMarker(const std::string& mesh_file, const std::string& ns, const RGBA& rgba )
-{
-  visualization_msgs::Marker m;
-  m.action = m.ADD;
-  m.id = 0;
-  m.ns = ns;
-  std::tie(m.color.r, m.color.g, m.color.b, m.color.a) = rgba;
-  m.header.frame_id = DEFAULT_FRAME_ID;
-  m.lifetime = ros::Duration(0);
-  std::tie(m.scale.x , m.scale.y ,m.scale.z) = std::make_tuple(1.0,1.0,1.0);
-  m.mesh_resource = "file://" + mesh_file;
-  m.type = m.MESH_RESOURCE;
-  return std::move(m);
-}
-
 class MeshFilteringClient
 {
 public:
@@ -63,7 +48,6 @@ public:
   {
     namespace fs = boost::filesystem;
 
-    pcl::PolygonMesh mesh;
     // loading parameters
     ros::NodeHandle ph("~");
     std::string mesh_file;
@@ -77,7 +61,7 @@ public:
     }
 
     mesh_publish_timer_ = nh_.createTimer(ros::Duration(0.5),[&](const ros::TimerEvent& e){
-      for(visualization_msgs::Marker& m: mesh_markers.markers)
+      for(visualization_msgs::Marker& m: mesh_markers_.markers)
       {
         mesh_marker_pub_.publish(m);
       }
@@ -89,7 +73,8 @@ public:
       ROS_ERROR("Failed to read file %s",mesh_file.c_str());
       return false;
     }
-    mesh_markers.markers.push_back(createMeshMarker(mesh_file,RAW_MESH_NS, mesh_colors::RAW_MESH));
+    mesh_markers_.markers.push_back(noether_conversions::createMeshMarker(mesh_file,RAW_MESH_NS,
+                                                                         DEFAULT_FRAME_ID,mesh_colors::RAW_MESH));
 
 
     // waiting for server
@@ -121,7 +106,9 @@ public:
       fs::path filtered_mesh_file = fs::path(results_dir) / fs::path(boost::str(boost::format("%s%i.ply") % FILTERED_PREFIX % ++count));
       ROS_INFO("Saving filtered mesh to location %s",filtered_mesh_file.c_str());
       noether_conversions::savePLYFile(filtered_mesh_file.string(),m);
-      mesh_markers.markers.push_back(createMeshMarker(filtered_mesh_file.string(),FILTERED_MESH_NS, mesh_colors::FILTERED_MESH));
+      mesh_markers_.markers.push_back(noether_conversions::createMeshMarker(filtered_mesh_file.string(),FILTERED_MESH_NS,
+                                                                           DEFAULT_FRAME_ID,
+                                                                           mesh_colors::FILTERED_MESH));
     }
 
     return true;
@@ -133,7 +120,7 @@ private:
   ros::Timer mesh_publish_timer_;
   actionlib::SimpleActionClient<noether_msgs::ApplyMeshFiltersAction> ac_;
   ros::Publisher mesh_marker_pub_;
-  visualization_msgs::MarkerArray mesh_markers;
+  visualization_msgs::MarkerArray mesh_markers_;
 };
 
 int main(int argc, char** argv)
