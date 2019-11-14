@@ -20,6 +20,7 @@ namespace tool_path_planner
 
 struct EdgePathConfig
 {
+  // compute hsv values
   double octree_res = 0.005;
   double search_radius = 0.01;
   std::size_t num_threads = 4;
@@ -27,16 +28,14 @@ struct EdgePathConfig
   // edge filtering
   double neighbor_tol = 0.01;
 
-  // clustering
+  // edge segment clustering
   double cluster_tol = 0.02;
   int cluster_min = 3;
   int cluster_max = 1000;
 
-  // downsampling
+  // edge point reordering
   double voxel_size = 0.01;
-
-  // kdtree
-  double kdtree_radius = 0.01;
+  double kdtree_epsilon = 0.01;
 };
 
 class EdgePathGenerator
@@ -49,6 +48,11 @@ public:
   void setInput(const shape_msgs::Mesh& mesh, double octree_res = 0.01);
 
   boost::optional< std::vector<geometry_msgs::PoseArray> > generate(const tool_path_planner::EdgePathConfig& config);
+  boost::optional< std::vector<geometry_msgs::PoseArray> > generate(const shape_msgs::Mesh& mesh,
+                                                                    const tool_path_planner::EdgePathConfig& config);
+  boost::optional< std::vector<geometry_msgs::PoseArray> > generate(pcl::PolygonMesh::ConstPtr mesh,
+                                                                    const tool_path_planner::EdgePathConfig& config);
+
 
 protected:
 

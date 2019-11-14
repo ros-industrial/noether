@@ -16,8 +16,9 @@
 #include <Eigen/Geometry>
 #include <Eigen/Eigenvalues>
 #include <noether_conversions/noether_conversions.h>
-#include <tool_path_planner/edge_path_generator.h>
 #include <console_bridge/console.h>
+#include <eigen_conversions/eigen_msg.h>
+#include "tool_path_planner/edge_path_generator.h"
 
 
 bool filterEdges(pcl::PointCloud<pcl::PointXYZHSV>::ConstPtr input, pcl::PointIndices& indices, double percent_threshold = 0.05)
@@ -33,7 +34,7 @@ bool filterEdges(pcl::PointCloud<pcl::PointXYZHSV>::ConstPtr input, pcl::PointIn
   })).v;
   span = max * (percent_threshold);
   min = max - 2 * span;
-  CONSOLE_BRIDGE_logInform("Found v max: %f",max);
+  CONSOLE_BRIDGE_logInform("Found v channel min and max: (%f, %f)",min, max);
 
   // ======================= Filtering v channel ============================
 
@@ -52,6 +53,157 @@ bool filterEdges(pcl::PointCloud<pcl::PointXYZHSV>::ConstPtr input, pcl::PointIn
   cond_filter.filter(filtered_cloud);
   cond_filter.getRemovedIndices(indices);
   return indices.indices.empty();
+}
+
+bool reorder(const tool_path_planner::EdgePathConfig& config,
+             pcl::PointCloud<pcl::PointXYZ>::ConstPtr points ,const pcl::PointIndices cluster_indices,
+             std::vector<int>& rearranged_indices)
+{
+  using namespace pcl;
+  pcl::IndicesPtr active_ind_ptr = boost::make_shared<decltype(cluster_indices.indices)>(cluster_indices.indices);
+  std::vector<int>& active_indices = *active_ind_ptr;
+
+  // downsampling first
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered = boost::make_shared<PointCloud<PointXYZ>>();
+  pcl::VoxelGrid<PointXYZ> voxelgrid;
+  voxelgrid.setInputCloud(points);
+  voxelgrid.setIndices(active_ind_ptr);
+  voxelgrid.setLeafSize(config.voxel_size, config.voxel_size, config.voxel_size);
+  voxelgrid.filter(*cloud_filtered);
+  std::vector<int> removed_ind = *voxelgrid.getRemovedIndices();
+  active_indices.erase(std::remove_if(active_indices.begin(), active_indices.end(),[&](const int& v){
+    return std::find(removed_ind.begin(), removed_ind.end(),v) != removed_ind.end();
+  }));
+
+
+  // build kd tree
+  pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
+  kdtree.setEpsilon(config.kdtree_epsilon);
+
+
+  auto& cloud = *points;
+  std::vector<int> visited_indices;
+  visited_indices.reserve(active_indices.size());
+  int search_point_idx = active_indices[0];
+  visited_indices.push_back(search_point_idx); // insert first point
+
+  const int k_points = 1;
+  const int max_iters = active_indices.size();
+  PointXYZ search_point = cloud[search_point_idx];
+  PointXYZ start_point = search_point;
+  PointXYZ next_point;
+  int iter_count = 0;
+
+  while(iter_count <= max_iters)
+  {
+    iter_count++;
+
+    // remove from active
+    active_indices.erase(std::remove(active_indices.begin(), active_indices.end(),search_point_idx));
+
+    if(active_indices.empty())
+    {
+      break;
+    }
+
+    // set tree inputs;
+    kdtree.setInputCloud(points,active_ind_ptr);
+
+    // find next point
+    std::vector<int> k_indices(k_points);
+    std::vector<float> k_sqr_distances(k_points);
+    int points_found = kdtree.nearestKSearch(search_point,k_points, k_indices, k_sqr_distances);
+    if(points_found == 0)
+    {
+      break;
+    }
+
+    // insert new point if it has not been visited
+    if(std::find(visited_indices.begin(), visited_indices.end(),k_indices[0]) == visited_indices.end())
+    {
+      // there should be no more points to add
+      break;
+    }
+
+    // check if found point is further away than the start point
+    next_point = cloud[k_indices[0]];
+    start_point = cloud[visited_indices[0]];
+    Eigen::Vector3d diff = (start_point.getArray3fMap() - next_point.getArray3fMap()).cast<double>();
+    if(diff.norm() < k_sqr_distances[0])
+    {
+      // start adding points at the other end
+      std::reverse(visited_indices.begin(),visited_indices.end());
+    }
+
+    // add to visited
+    visited_indices.push_back(k_indices[0]);
+
+    // set next search point
+    search_point_idx = k_indices[0];
+    search_point = next_point;
+  }
+
+  if(visited_indices.size() < max_iters)
+  {
+    CONSOLE_BRIDGE_logError("Failed to include all points in the downsampled group");
+    return false;
+  }
+  std::copy(visited_indices.begin(), visited_indices.end(),std::back_inserter(rearranged_indices));
+  return true;
+}
+
+bool createPoseArray(const pcl::PointCloud<pcl::PointNormal>& cloud_normals, const std::vector<int>& indices, geometry_msgs::PoseArray& poses)
+{
+  using namespace pcl;
+  using namespace Eigen;
+
+  geometry_msgs::Pose pose_msg;
+  Isometry3d pose;
+  Vector3d x_dir, z_dir, y_dir;
+
+  auto point_to_vec = [](const PointNormal& p)
+  {
+    return Vector3d(p.x, p.y, p.z);
+  };
+
+  auto to_rotation_mat = [](const Vector3d& vx, const Vector3d& vy, const Vector3d& vz)
+  {
+    Matrix3d rot;
+    rot.row(0) = Vector3d(vx.x(), vy.x(), vz.x());
+    rot.row(1) = Vector3d(vx.y(), vy.y(), vz.y());
+    rot.row(2) = Vector3d(vx.z(), vy.z(), vz.z());
+    return rot;
+  };
+
+  for(std::size_t i = 0; i < indices.size() - 1; i++)
+  {
+    std::size_t idx_current = indices[i];
+    std::size_t idx_next = indices[i+1];
+    if(idx_current >= cloud_normals.size() || idx_next >= cloud_normals.size())
+    {
+      CONSOLE_BRIDGE_logError("Invalid indices (current: %lu, next: %lu) for point cloud were passed",
+                              idx_current, idx_next);
+      return false;
+    }
+    const PointNormal& p1 = cloud_normals[idx_current];
+    const PointNormal& p2 = cloud_normals[idx_next];
+    x_dir = (point_to_vec(p2) - point_to_vec(p1)).normalized().cast<double>();
+    z_dir = Vector3d(p1.normal_x, p1.normal_y, p1.normal_z).normalized();
+    y_dir = z_dir.cross(x_dir).normalized();
+
+    pose = Translation3d(point_to_vec(p1))* AngleAxisd(to_rotation_mat(x_dir, y_dir, z_dir));
+    tf::poseEigenToMsg(pose,pose_msg);
+    poses.poses.push_back(pose_msg);
+  }
+
+  // last pose
+  pose_msg = poses.poses.back();
+  pose_msg.position.x = cloud_normals.back().x;
+  pose_msg.position.y = cloud_normals.back().y;
+  pose_msg.position.z = cloud_normals.back().z;
+  poses.poses.push_back(pose_msg);
+
+  return true;
 }
 
 namespace tool_path_planner
@@ -125,7 +277,6 @@ boost::optional< std::vector<geometry_msgs::PoseArray >> EdgePathGenerator::gene
 
   CONSOLE_BRIDGE_logInform("Found %lu edge points", edge_indices.indices.size());
 
-
   // cluster into individual segments
   pcl::PointIndices::Ptr remaining_edge_indices = boost::make_shared<pcl::PointIndices>(edge_indices);
   PointCloud<PointXYZ>::Ptr cloud_points = boost::make_shared<PointCloud<PointXYZ>>();
@@ -139,113 +290,27 @@ boost::optional< std::vector<geometry_msgs::PoseArray >> EdgePathGenerator::gene
   std::vector<PointIndices> cluster_indices;
   ec.extract(cluster_indices);
 
-
-  // rearrange so that the points follow a consistent order
-
-  // use normals and direction to create poses
-
-}
-
-void reorder(const tool_path_planner::EdgePathConfig& config,
-             pcl::PointCloud<pcl::PointXYZ>::ConstPtr points ,const pcl::PointIndices cluster_indices)
-{
-  using namespace pcl;
-  pcl::IndicesPtr active_ind_ptr = boost::make_shared<decltype(cluster_indices.indices)>(cluster_indices.indices);
-  std::vector<int>& active_indices = *active_ind_ptr;
-
-  // downsampling first
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered = boost::make_shared<PointCloud<PointXYZ>>();
-  pcl::VoxelGrid<PointXYZ> voxelgrid;
-  voxelgrid.setInputCloud(points);
-  voxelgrid.setIndices(active_ind_ptr);
-  voxelgrid.setLeafSize(config.voxel_size, config.voxel_size, config.voxel_size);
-  voxelgrid.filter(*cloud_filtered);
-  std::vector<int> removed_ind = *voxelgrid.getRemovedIndices();
-  active_indices.erase(std::remove_if(active_indices.begin(), active_indices.end(),[&](const decltype(active_indices)::value_type& v){
-    return std::find(removed_ind.begin(), removed_ind.end(),v) != removed_ind.end();
-  }));
-
-
-  // build kd tree
-  pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
-  //active_ind_ptr->erase(active_ind_ptr->begin()); // removing first point
-  //kdtree.setInputCloud(points,active_ind_ptr);
-  //kdtree.setEpsilon(config.kdtree_radius);
-
-
-  auto& cloud = *points;
-  std::vector<int> visited_indices;
-  visited_indices.reserve(cloud.size());
-  int start_ind = active_indices[0];
-  visited_indices.push_back(start_ind); // insert first point
-  std::erase(active_indices.begin());
-  const int max_iters = 10;
-  int iter_count = 0;
-
-//  int points_found = kdtree.radiusSearch(cloud[active_indices[0]],config.kdtree_radius, visited_indices, k_sqr_distances, k_points);
-//  visited_indices.insert(visited_indices.begin()+1,active_indices[0]);
-//
-  while(iter_count < max_iters)
+  // generating paths from the segments
+  std::vector<geometry_msgs::PoseArray> edge_paths;
+  for(PointIndices& idx : cluster_indices)
   {
-    auto find_next_point = [&](PointXYZ search_point)
+    // rearrange so that the points follow a consistent order
+    PointIndices rearranged_cluster;
+    if(!reorder(config, cloud_points,idx, rearranged_cluster.indices))
     {
-      // remove from active
-      active_indices.erase(std::remove_if(active_indices.begin(), active_indices.end(),[&](const decltype(active_indices)::value_type& v){
-        return std::find(visited_indices.begin(), visited_indices.end(),v) != visited_indices.end();
-      }));
-
-      if(active_indices.empty())
-      {
-        return false;
-      }
-
-      // set tree inputs;
-      kdtree.setInputCloud(points,active_ind_ptr);
-
-      // find next point
-      int k_points = 1;
-      std::vector<int> k_indices(k_points);
-      std::vector<float> k_sqr_distances(k_points);
-      points_found = kdtree.radiusSearch(search_point,config.kdtree_radius, k_indices, k_sqr_distances, k_points);
-      if(points_found == 0)
-      {
-        return false;
-      }
-
-      // insert new point if it has not been visited
-      if(std::find(visited_indices.begin(), visited_indices.end(),k_indices[0]) == visited_indices.end())
-      {
-        // there should be no more points to add
-        return true;
-      }
-
-      // add to visited
-      visited_indices.push_back(k_indices[1]);
-
-      // find next
-      find_next_point(cloud(k_indices[0]));
-
-      return true;
-    };
-
-    iter_count++;
-    find_next_point(start_ind);
-    if(active_indices.empty())
-    {
-      break;
+      return boost::none;
     }
-    start_ind = active_indices[0];
-    std::reverse(visited_indices.begin(),visited_indices.end());
 
+    // converting the rearranged point segments into poses
+    geometry_msgs::PoseArray path_poses;
+    if(!createPoseArray(*input_cloud_,rearranged_cluster.indices, path_poses))
+    {
+      return boost::none;
+    }
+    edge_paths.push_back(path_poses);
   }
-
-
-
-
-
-
+  return edge_paths;
 }
-
 
 void EdgePathGenerator::setInput(pcl::PolygonMesh::ConstPtr mesh,  double octree_res)
 {
@@ -265,6 +330,20 @@ void EdgePathGenerator::setInput(const shape_msgs::Mesh& mesh, double octree_res
   pcl::PolygonMesh::Ptr pcl_mesh = boost::make_shared<pcl::PolygonMesh>();
   noether_conversions::convertToPCLMesh(mesh,*pcl_mesh);
   setInput(pcl_mesh, octree_res);
+}
+
+boost::optional<std::vector<geometry_msgs::PoseArray>>
+EdgePathGenerator::generate(const shape_msgs::Mesh& mesh, const tool_path_planner::EdgePathConfig& config)
+{
+  setInput(mesh,config.octree_res);
+  return generate(config);
+}
+
+boost::optional<std::vector<geometry_msgs::PoseArray>>
+EdgePathGenerator::generate(pcl::PolygonMesh::ConstPtr mesh, const tool_path_planner::EdgePathConfig& config)
+{
+  setInput(mesh,config.octree_res);
+  return generate(config);
 }
 
 } /* namespace tool_path_planner */
