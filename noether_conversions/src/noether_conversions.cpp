@@ -1,11 +1,14 @@
 #include <noether_conversions/noether_conversions.h>
+
 #include <Eigen/Geometry>
-#include <vtkPointData.h>
 #include <pcl/conversions.h>
-#include <pcl/point_types.h>
 #include <pcl/io/ply_io.h>
-#include <eigen_conversions/eigen_msg.h>
+#include <pcl/point_types.h>
+#include <vtkPointData.h>
+
 #include <console_bridge/console.h>
+#include <eigen_conversions/eigen_msg.h>
+#include <shape_msgs/MeshTriangle.h>
 
 namespace noether_conversions
 {
@@ -15,7 +18,7 @@ bool convertToPCLMesh(const shape_msgs::Mesh& mesh_msg, pcl::PolygonMesh& mesh)
   // iterating over triangles
   pcl::PointCloud<pcl::PointXYZ> mesh_points;
   mesh.polygons.clear();
-  for(auto& triangle : mesh_msg.triangles)
+  for (auto& triangle : mesh_msg.triangles)
   {
     pcl::Vertices vertices;
     vertices.vertices.assign(triangle.vertex_indices.begin(),triangle.vertex_indices.end());

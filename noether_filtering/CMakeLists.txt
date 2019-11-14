@@ -3,7 +3,7 @@ project(noether_filtering VERSION 0.0.0 LANGUAGES CXX)
 
 find_package(PCL 1.9 QUIET COMPONENTS common filters surface)
 if(${PCL_FOUND})
-  find_package(VTK 8.2 QUIET NO_MODULE)
+  find_package(VTK 7.1 QUIET NO_MODULE)
   if(${VTK_FOUND})
     set(BUILD_MESH_PLUGINS TRUE)
   endif()
