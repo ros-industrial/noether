@@ -1,16 +1,19 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(noether_conversions)
 
+add_compile_options(-std=c++11)
+
 find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   eigen_conversions
   geometry_msgs
+  shape_msgs
 )
 
-find_package(VTK 8.2 REQUIRED NO_MODULE)
+find_package(VTK 7.1 REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
 
-find_package(PCL 1.8 REQUIRED)
+find_package(PCL 1.9 REQUIRED)
 
 find_package(Eigen3 REQUIRED)
 
@@ -22,6 +25,7 @@ catkin_package(
   CATKIN_DEPENDS
     eigen_conversions
     geometry_msgs
+    shape_msgs
   DEPENDS
     EIGEN3
     VTK
