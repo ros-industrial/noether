@@ -7,7 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   eigen_conversions
   geometry_msgs
-  shape_msgs
+  noether_msgs
 )
 
 ## Try to get VTK 7.1.  If that fails, try to get VTK 8.2
@@ -34,7 +34,7 @@ catkin_package(
   CATKIN_DEPENDS
     eigen_conversions
     geometry_msgs
-    shape_msgs
+    noether_msgs
   DEPENDS
     EIGEN3
     VTK

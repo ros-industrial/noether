@@ -3,7 +3,7 @@
   <name>noether_conversions</name>
   <version>0.0.0</version>
   <description>The noether_conversions package</description>
-  <maintainer email="Austin.Deric@swri.org">alex</maintainer>
+  <maintainer email="jorge.nicho@swri.org">Jorge Nicho</maintainer>
   <license>Apache 2.0</license>
 
   <buildtool_depend>catkin</buildtool_depend>
@@ -11,5 +11,5 @@
 
   <depend>geometry_msgs</depend>
   <depend>eigen_conversions</depend>
-  <depend>shape_msgs</depend>
+  <depend>noether_msgs</depend>
 </package>
