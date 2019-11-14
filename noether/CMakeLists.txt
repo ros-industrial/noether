@@ -78,7 +78,7 @@ target_link_libraries(mesh_filter_server PUBLIC
 #############
 ## Install ##
 #############
-install(TARGETS segmentation_server surface_raster_planner_application surface_raster_planner_server
+install(TARGETS segmentation_server surface_raster_planner_application surface_raster_planner_server mesh_filter_server
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
