@@ -66,7 +66,7 @@ public:
    * @brief empty constructor that sets default values of min_cluster_size_ = 50, max_cluster_size_ = 1000000, and
    * curvature_threshold_ = 0.3
    */
-  MeshSegmenter() : min_cluster_size_(50), max_cluster_size_(1000000), curvature_threshold_(0.3) { /*vtkObject::GlobalWarningDisplayOff();*/ }
+  MeshSegmenter() : min_cluster_size_(50), max_cluster_size_(1000000), curvature_threshold_(0.3) { vtkObject::GlobalWarningDisplayOff(); }
 
   /**
    * @brief setInputMesh Set the input mesh to be segmented
