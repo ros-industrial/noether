@@ -135,7 +135,7 @@ void convertToPointNormals(const pcl::PolygonMesh& mesh, pcl::PointCloud<pcl::Po
   Vector3d dir;
   for(std::size_t i = 0; i < mesh.polygons.size(); i++)
   {
-    std::vector<uint32_t>  vert = mesh.polygons[i].vertices;
+    const std::vector<uint32_t>&  vert = mesh.polygons[i].vertices;
     a = points[vert[0]].getVector3fMap().cast<double>();
     b = points[vert[1]].getVector3fMap().cast<double>();
     c = points[vert[2]].getVector3fMap().cast<double>();
@@ -145,9 +145,10 @@ void convertToPointNormals(const pcl::PolygonMesh& mesh, pcl::PointCloud<pcl::Po
     // assigning to points
     for(std::size_t v = 0; v < vert.size(); v++)
     {
-      cloud_normals[v].normal_x = dir.x();
-      cloud_normals[v].normal_y = dir.y();
-      cloud_normals[v].normal_z = dir.z();
+      PointNormal& p = cloud_normals[vert[v]];
+      p.normal_x = dir.x();
+      p.normal_y = dir.y();
+      p.normal_z = dir.z();
     }
   }
 }

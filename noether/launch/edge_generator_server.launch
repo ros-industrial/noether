@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="edge_generator_server" type="edge_generator_server" pkg="noether" output="screen">
+    <rosparam command="load" ns="edge_path_config" file="$(find noether)/config/edge_path_generator.yaml"/>
+  </node>
+
+</launch>

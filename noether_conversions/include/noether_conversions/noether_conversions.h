@@ -89,7 +89,7 @@ namespace noether_conversions {
                                                       const std::size_t start_id = 1,
                                                       const std::tuple<float, float, float, float, float, float>& offset = std::make_tuple(
                                                           0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                                                      const float line_width = 0.004,
+                                                      const float line_width = 0.001,
                                                       const float point_size = 0.005);
 
   visualization_msgs::MarkerArray convertToDottedLineMarker(const std::vector<geometry_msgs::PoseArray>& path,
@@ -98,7 +98,7 @@ namespace noether_conversions {
                                                       const std::size_t start_id = 1,
                                                       const std::tuple<float, float, float, float, float, float>& offset = std::make_tuple(
                                                           0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                                                      const float line_width = 0.004,
+                                                      const float line_width = 0.001,
                                                       const float point_size = 0.005);
 
 
