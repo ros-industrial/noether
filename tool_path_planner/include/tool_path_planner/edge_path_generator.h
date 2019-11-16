@@ -36,6 +36,9 @@ struct EdgePathConfig
   // edge point reordering
   double voxel_size = 0.01;
   double kdtree_epsilon = 0.01;
+
+  // edge segment splitting
+  int max_intersecting_voxels = 4;
 };
 
 class EdgePathGenerator
@@ -55,6 +58,9 @@ public:
 
 
 protected:
+
+  bool splitEdgeSegments(const tool_path_planner::EdgePathConfig& config, pcl::PointCloud<pcl::PointXYZ>::ConstPtr points ,
+                         const pcl::PointIndices& edge_indices, std::vector<pcl::PointIndices>& segments);
 
   pcl::PointCloud<pcl::PointNormal>::Ptr input_cloud_;
   pcl::PolygonMesh::ConstPtr mesh_;

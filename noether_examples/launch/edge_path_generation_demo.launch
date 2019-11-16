@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="edge_generator_client" pkg="noether_examples" type="edge_generator_client" output="screen">
+    <param name="mesh_file" value="$(find noether_examples)/data/raw_mesh.ply"/>
+  </node>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find noether_examples)/config/edge_generation.rviz"/>  
+  <include file="$(find noether)/launch/edge_generator_server.launch"/>
+</launch>

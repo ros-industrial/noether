@@ -1,0 +1,9 @@
+octree_res: 0.01
+search_radius: 0.02
+num_threads: 4
+neighbor_tol: 0.12
+cluster_tol: 0.01
+cluster_min: 10
+cluster_max: 0
+voxel_size: 0.01
+kdtree_epsilon: 0.01
