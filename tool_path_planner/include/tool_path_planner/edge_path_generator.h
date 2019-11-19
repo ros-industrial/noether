@@ -57,7 +57,7 @@ struct EdgePathConfig
                                                  a number of voxels greater than this number*/
   /** @}*/
 
-  double merge_dist = 0.01;
+  double merge_dist = 0.01;    /** @brief any points that are too close are merged */
 };
 
 class EdgePathGenerator
