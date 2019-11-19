@@ -14,3 +14,4 @@ kdtree_epsilon: 0.04        # precision used for nearest neighbor searches
 ## edge segment splitting
 min_projection_dist: 0.01   # recommended 2 * octree_res 
 max_intersecting_voxels: 3  # Used in voxel intersection rayscasting
+merge_dist: 0.01            # any points that are too close are merged

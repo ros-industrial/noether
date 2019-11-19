@@ -17,6 +17,7 @@
 #include <noether_conversions/noether_conversions.h>
 #include <console_bridge/console.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <numeric>
 #include "tool_path_planner/edge_path_generator.h"
 
 
@@ -203,10 +204,21 @@ bool createPoseArray(const pcl::PointCloud<pcl::PointNormal>& cloud_normals, con
     return rot;
   };
 
-  for(std::size_t i = 0; i < indices.size() - 1; i++)
+  std::vector<int> cloud_indices;
+  if(indices.empty())
   {
-    std::size_t idx_current = indices[i];
-    std::size_t idx_next = indices[i+1];
+    cloud_indices.resize(cloud_normals.size());
+    std::iota(cloud_indices.begin(), cloud_indices.end(), 0);
+  }
+  else
+  {
+    cloud_indices.assign(indices.begin(), indices.end());
+  }
+
+  for(std::size_t i = 0; i < cloud_indices.size() - 1; i++)
+  {
+    std::size_t idx_current = cloud_indices[i];
+    std::size_t idx_next = cloud_indices[i+1];
     if(idx_current >= cloud_normals.size() || idx_next >= cloud_normals.size())
     {
       CONSOLE_BRIDGE_logError("Invalid indices (current: %lu, next: %lu) for point cloud were passed",
@@ -228,9 +240,9 @@ bool createPoseArray(const pcl::PointCloud<pcl::PointNormal>& cloud_normals, con
 
   // last pose
   pose_msg = poses.poses.back();
-  pose_msg.position.x = cloud_normals[indices.back()].x;
-  pose_msg.position.y = cloud_normals[indices.back()].y;
-  pose_msg.position.z = cloud_normals[indices.back()].z;
+  pose_msg.position.x = cloud_normals[cloud_indices.back()].x;
+  pose_msg.position.y = cloud_normals[cloud_indices.back()].y;
+  pose_msg.position.z = cloud_normals[cloud_indices.back()].z;
   poses.poses.push_back(pose_msg);
 
   return true;
@@ -359,9 +371,20 @@ boost::optional< std::vector<geometry_msgs::PoseArray >> EdgePathGenerator::gene
     for(std::size_t s = 0; s < segments_indices.size(); s++)
     {
       auto& segment = segments_indices[s];
+
+      // merging
+      pcl::PointCloud<pcl::PointNormal> merged_points;
+      int merged_point_count = mergePoints(config, segment,merged_points);
+      CONSOLE_BRIDGE_logInform("\tMerged %i points", merged_point_count);
+
       geometry_msgs::PoseArray path_poses;
       CONSOLE_BRIDGE_logInform("\tConverting edge segment %lu of cluster %lu to poses", s, c);
-      if(!createPoseArray(*input_cloud_,segment.indices, path_poses))
+/*      if(!createPoseArray(*input_cloud_,segment.indices, path_poses))
+      {
+        return boost::none;
+      }*/
+
+      if(!createPoseArray(merged_points, {}, path_poses))
       {
         return boost::none;
       }
@@ -406,16 +429,24 @@ int EdgePathGenerator::mergePoints(const tool_path_planner::EdgePathConfig& conf
                                     pcl::PointCloud<pcl::PointNormal>& merged_points)
 {
   using namespace Eigen;
+  using namespace pcl;
   using PType = std::remove_reference<decltype(merged_points)>::type::PointType;
   decltype(edge_segment.indices) merged_indices;
   Vector3f dir;
   PType mid_point;
 
 
+  auto compute_dist = [&](const PType& p1, const PType& p2) -> double
+  {
+    dir = p2.getVector3fMap() - p1.getVector3fMap();
+    return dir.norm();
+  };
+
+
   for(std::size_t i = 0; i < edge_segment.indices.size()-1; i++)
   {
     int idx_current = edge_segment.indices[i];
-    int idx_next = edge_segment.indices[i];
+    int idx_next = edge_segment.indices[i+1];
 
     if(std::find(merged_indices.begin(), merged_indices.end(), idx_current) != merged_indices.end() )
     {
@@ -426,19 +457,32 @@ int EdgePathGenerator::mergePoints(const tool_path_planner::EdgePathConfig& conf
     const PType& p1 = (*input_cloud_)[idx_current];
     const PType& p2 = (*input_cloud_)[idx_next];
     dir = p2.getVector3fMap() - p1.getVector3fMap();
-    if(dir.norm() > config.merge_dist)
+    if(compute_dist(p1, p2) >  config.merge_dist)
     {
       // adding current point and continue
       merged_points.push_back(p1);
       continue;
     }
+
     mid_point.getVector3fMap() = p1.getVector3fMap() + 0.5 * dir;
+
     mid_point.getNormalVector3fMap() = (p2.getNormalVector3fMap() + p1.getNormalVector3fMap()).normalized();
     merged_points.push_back(mid_point);
     merged_indices.push_back(idx_next);
   }
 
   // checking first and last point
+  const PType& p0 = (*input_cloud_)[edge_segment.indices.front()];
+  const PType& pf = (*input_cloud_)[edge_segment.indices.back()];
+  if(compute_dist(p0, merged_points.front()) > 1e-6)
+  {
+    merged_points.insert(merged_points.begin(),p0 );
+  }
+
+  if(compute_dist(pf, merged_points.back()) > 1e-6)
+  {
+    merged_points.push_back(pf);
+  }
 
   return merged_indices.size();
 }
