@@ -6,7 +6,6 @@
  */
 
 #include <boost/make_shared.hpp>
-#include <pcl/PointIndices.h>
 #include <pcl/conversions.h>
 #include <pcl/common/centroid.h>
 #include <pcl/filters/conditional_removal.h>
@@ -27,21 +26,19 @@ bool filterEdges(pcl::PointCloud<pcl::PointXYZHSV>::ConstPtr input, pcl::PointIn
   using PType = std::remove_reference<decltype(*input)>::type::PointType;
   using CondType = pcl::ConditionAnd<PType>;
 
-  double min, max, span;
+  double min, max;
   // ======================= Determine max in v channel ==========================
   max = (*std::max_element(input->begin(),input->end(),[](PType p1, PType p2){
     return p1.v < p2.v;
   })).v;
-  span = max * (percent_threshold);
-  min = max - 2 * span;
-  CONSOLE_BRIDGE_logInform("Found v channel min and max: (%f, %f)",min, max);
+  min = max  * ( 1 - percent_threshold );
+  CONSOLE_BRIDGE_logInform("\tFound v channel max: (%f), removing points with v < %f", max, min);
 
   // ======================= Filtering v channel ============================
 
   // build the range condition
   CondType::Ptr range_cond  = boost::make_shared<CondType>();
   range_cond->addComparison(boost::make_shared< FieldComparison<PType> >("v", ComparisonOps::LT,min));
-  //range_cond->addComparison(boost::make_shared< FieldComparison<PType> >("v", ComparisonOps::GT,max));
 
   // build the filter
   ConditionalRemoval<PType> cond_filter(true);
@@ -53,7 +50,7 @@ bool filterEdges(pcl::PointCloud<pcl::PointXYZHSV>::ConstPtr input, pcl::PointIn
   cond_filter.filter(filtered_cloud);
 
   cond_filter.getRemovedIndices(indices);
-  CONSOLE_BRIDGE_logInform("Retained %lu points out of %lu",indices.indices.size(),input->size());
+  CONSOLE_BRIDGE_logInform("\tRetained %lu edge points out of %lu",indices.indices.size(),input->size());
   return !indices.indices.empty();
 }
 
@@ -66,7 +63,7 @@ bool reorder(const tool_path_planner::EdgePathConfig& config,
   pcl::IndicesPtr active_indices = boost::make_shared<decltype(cluster_indices.indices)>(cluster_indices.indices);
 
   // downsampling first
-  if(cluster_indices.indices.size() > config.cluster_min)
+  if(cluster_indices.indices.size() > config.edge_cluster_min)
   {
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_downsampled = boost::make_shared<PointCloud<PointXYZ>>();
     pcl::VoxelGrid<PointXYZ> voxelgrid;
@@ -74,7 +71,7 @@ bool reorder(const tool_path_planner::EdgePathConfig& config,
     voxelgrid.setIndices(active_indices);
     voxelgrid.setLeafSize(config.voxel_size, config.voxel_size, config.voxel_size);
     voxelgrid.filter(*cloud_downsampled);
-    CONSOLE_BRIDGE_logInform("Downsampled edge cluster to %lu points from %lu", cloud_downsampled->size(), active_indices->size());
+    CONSOLE_BRIDGE_logInform("\tDownsampled edge cluster to %lu points from %lu", cloud_downsampled->size(), active_indices->size());
 
     // using kd tree to find closest points from original cloud
     std::vector<int> retained_ind;
@@ -97,7 +94,7 @@ bool reorder(const tool_path_planner::EdgePathConfig& config,
 
     // now assign to active points
     active_indices->assign(retained_ind.begin(), retained_ind.end());
-    CONSOLE_BRIDGE_logInform("Retained %lu unique edge cluster points ",active_indices->size());
+    CONSOLE_BRIDGE_logInform("\tRetained %lu unique edge cluster points ",active_indices->size());
   }
 
   // removing repeated points
@@ -151,7 +148,7 @@ bool reorder(const tool_path_planner::EdgePathConfig& config,
     if(std::find(visited_indices.begin(), visited_indices.end(),k_indices[0]) != visited_indices.end())
     {
       // there should be no more points to add
-      CONSOLE_BRIDGE_logWarn("Found repeated point during reordering stage, should not happen but proceeding");
+      CONSOLE_BRIDGE_logWarn("\tFound repeated point during reordering stage, should not happen but proceeding");
       continue;
     }
 
@@ -243,28 +240,43 @@ namespace tool_path_planner
 {
 EdgePathGenerator::EdgePathGenerator()
 {
-  // TODO Auto-generated constructor stub
+
 }
 
 EdgePathGenerator::~EdgePathGenerator()
 {
-  // TODO Auto-generated destructor stub
+
 }
 
 boost::optional< std::vector<geometry_msgs::PoseArray >> EdgePathGenerator::generate(const tool_path_planner::EdgePathConfig& config)
 {
   using namespace pcl;
 
-  edge_results_.reset (new pcl::PointCloud<pcl::PointXYZHSV>);
-  pcl::copyPointCloud(*input_cloud_, *edge_results_);
+  if(!input_points_ || !input_cloud_ || !mesh_)
+  {
+    CONSOLE_BRIDGE_logError("No input mesh data has been set");
+    return boost::none;
+  }
+
+  // initializing octree
+  octree_search_ = boost::make_shared< octree::OctreePointCloudSearch<PointXYZ> >(config.octree_res);
+  octree_search_->setInputCloud (input_points_);
+  octree_search_->addPointsFromInputCloud ();
+
+  // initializing edge points
+  PointCloud<PointXYZHSV>::Ptr edge_results = boost::make_shared<PointCloud<PointXYZHSV>>();
+  pcl::copyPointCloud(*input_points_, *edge_results);
 
   // identify high v values
   const int num_threads = config.num_threads;
   long cnt = 0;
   long percentage = 0;
-  long num_points = static_cast<long>(input_cloud_->size());
+  long num_points = static_cast<long>(input_points_->size());
+  CONSOLE_BRIDGE_logInform("Computing Eigen Values");
 #pragma omp parallel for num_threads(num_threads)
-  for (std::size_t idx = 0; idx < input_cloud_->points.size(); ++idx)
+  // TODO avoid doing this for every points and used the returned indices 'point_idx' to
+  //      remove the points that have already been visited
+  for (std::size_t idx = 0; idx < input_points_->points.size(); ++idx)
   {
     std::vector<int> point_idx;
     std::vector<float> point_squared_distance;
@@ -273,7 +285,7 @@ boost::optional< std::vector<geometry_msgs::PoseArray >> EdgePathGenerator::gene
     Eigen::Vector4d centroid;
     Eigen::Matrix3d covariance_matrix;
 
-    pcl::computeMeanAndCovarianceMatrix (*input_cloud_,
+    pcl::computeMeanAndCovarianceMatrix (*input_points_,
                                          point_idx,
                                          covariance_matrix,
                                          centroid);
@@ -284,9 +296,9 @@ boost::optional< std::vector<geometry_msgs::PoseArray >> EdgePathGenerator::gene
     double sigma1 = eigen_values(0)/(eigen_values(0) + eigen_values(1) + eigen_values(2));
     double sigma2 = eigen_values(1)/(eigen_values(0) + eigen_values(1) + eigen_values(2));
     double sigma3 = eigen_values(2)/(eigen_values(0) + eigen_values(1) + eigen_values(2));
-    edge_results_->points[idx].h = static_cast<float>(sigma1);
-    edge_results_->points[idx].s = static_cast<float>(sigma2);
-    edge_results_->points[idx].v = static_cast<float>(sigma3); // will use this value for edge detection
+    edge_results->points[idx].h = static_cast<float>(sigma1);
+    edge_results->points[idx].s = static_cast<float>(sigma2);
+    edge_results->points[idx].v = static_cast<float>(sigma3); // will use this value for edge detection
 
 #pragma omp critical
     {
@@ -295,132 +307,216 @@ boost::optional< std::vector<geometry_msgs::PoseArray >> EdgePathGenerator::gene
       {
         percentage = static_cast<long>(100.0f * static_cast<float>(cnt)/num_points);
         std::stringstream ss;
-        ss << "\rPoints Processed: " << percentage << "% of " << num_points;
-        CONSOLE_BRIDGE_logInform("%s", ss.str().c_str());
+        std::cout << "\r\tPoints Processed: " << percentage << "% of " << num_points;
       }
     }
   }
+  std::cout<<std::endl;
 
   pcl::PointIndices edge_indices;
-  if(!filterEdges(edge_results_, edge_indices, config.neighbor_tol))
+  if(!filterEdges(edge_results, edge_indices, config.neighbor_tol))
   {
     CONSOLE_BRIDGE_logError("Failed to filter edge points");
     return boost::none;
   }
-
   CONSOLE_BRIDGE_logInform("Found %lu edge points", edge_indices.indices.size());
 
-  // cluster into individual segments
-  std::vector<PointIndices> cluster_indices;
-  PointCloud<PointXYZ>::Ptr cloud_points = boost::make_shared<PointCloud<PointXYZ>>();
-  pcl::copyPointCloud(*input_cloud_,*cloud_points);
-  if(config.cluster_max > 0 && config.cluster_max > config.cluster_min)
-  {
-    pcl::PointIndices::Ptr remaining_edge_indices = boost::make_shared<pcl::PointIndices>(edge_indices);
+  // TODO: only using one cluster at the moment, reassess whether it's necessary to have more than one.  Examples
+  //        may involve running Euclidean clustering on the edge indices that could produce to multiple "edge clusters"
+  std::vector<PointIndices> clusters_indices;
+  clusters_indices.push_back(edge_indices);
 
-    pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-    ec.setInputCloud(cloud_points);
-    ec.setIndices(remaining_edge_indices);
-    ec.setClusterTolerance(config.cluster_tol);
-    ec.setMinClusterSize(config.cluster_min);
-    ec.setMaxClusterSize(config.cluster_max);
-    ec.extract(cluster_indices);
-    CONSOLE_BRIDGE_logInform("Found %lu edge clusters",cluster_indices.size());
+  // deleting edge points from octree
+  for(std::size_t c = 0; c < clusters_indices.size(); c++)
+  {
+    for(std::size_t i = 0; i < clusters_indices[c].indices.size(); i++)
+    {
+      int idx = clusters_indices[c].indices[i];
+      octree_search_->deleteVoxelAtPoint((*input_points_)[idx]);
+    }
   }
-/*  else
-  {
-    CONSOLE_BRIDGE_logInform("Skipping clustering");
-    cluster_indices.push_back(edge_indices);
-  }*/
-
-  // split into segments using octree
-  splitEdgeSegments(config,cloud_points,edge_indices,cluster_indices);
 
   // generating paths from the segments
   std::vector<geometry_msgs::PoseArray> edge_paths;
-  std::size_t cluster_idx = 0;;
-  for(PointIndices& idx : cluster_indices)
+  for(std::size_t c = 0; c < clusters_indices.size(); c++)
   {
+    PointIndices& cluster  = clusters_indices[c];
+
     // rearrange so that the points follow a consistent order
-    PointIndices rearranged_cluster;
-    CONSOLE_BRIDGE_logInform("Reordering edge cluster %lu", cluster_idx);
-    if(!reorder(config, cloud_points,idx, rearranged_cluster.indices))
+    PointIndices rearranged_cluster_indices;
+    CONSOLE_BRIDGE_logInform("Reordering edge cluster %lu", c);
+    if(!reorder(config, input_points_,cluster, rearranged_cluster_indices.indices))
     {
       return boost::none;
     }
 
+    // split into segments using octree
+    decltype(clusters_indices) segments_indices;
+    splitEdgeSegments(config, rearranged_cluster_indices, segments_indices);
+    CONSOLE_BRIDGE_logInform("Splitted edge cluster into %i segments", segments_indices.size());
+
     // converting the rearranged point segments into poses
-    geometry_msgs::PoseArray path_poses;
-    CONSOLE_BRIDGE_logInform("Converting edge cluster %lu to poses", cluster_idx);
-    if(!createPoseArray(*input_cloud_,rearranged_cluster.indices, path_poses))
+    for(std::size_t s = 0; s < segments_indices.size(); s++)
     {
-      return boost::none;
+      auto& segment = segments_indices[s];
+      geometry_msgs::PoseArray path_poses;
+      CONSOLE_BRIDGE_logInform("\tConverting edge segment %lu of cluster %lu to poses", s, c);
+      if(!createPoseArray(*input_cloud_,segment.indices, path_poses))
+      {
+        return boost::none;
+      }
+      edge_paths.push_back(path_poses);
     }
-    edge_paths.push_back(path_poses);
-    cluster_idx++;
   }
   return edge_paths;
 }
 
-void EdgePathGenerator::setInput(pcl::PolygonMesh::ConstPtr mesh,  double octree_res)
+void EdgePathGenerator::setInput(pcl::PolygonMesh::ConstPtr mesh)
 {
   using namespace pcl;
   mesh_ = mesh;
   input_cloud_ = boost::make_shared<PointCloud<PointNormal>>();
+  input_points_ = boost::make_shared<PointCloud<PointXYZ>>();
   noether_conversions::convertToPointNormals(*mesh, *input_cloud_);
-  PointCloud<PointXYZ>::Ptr input_points = boost::make_shared< PointCloud<PointXYZ> >();
-  pcl::copyPointCloud(*input_cloud_, *input_points );
-  octree_search_.reset(new pcl::octree::OctreePointCloudSearch<pcl::PointXYZ>(octree_res));
-  octree_search_->setInputCloud (input_points);
-  octree_search_->addPointsFromInputCloud ();
+  pcl::copyPointCloud(*input_cloud_, *input_points_ );
 }
 
-void EdgePathGenerator::setInput(const shape_msgs::Mesh& mesh, double octree_res)
+void EdgePathGenerator::setInput(const shape_msgs::Mesh& mesh)
 {
   pcl::PolygonMesh::Ptr pcl_mesh = boost::make_shared<pcl::PolygonMesh>();
   noether_conversions::convertToPCLMesh(mesh,*pcl_mesh);
-  setInput(pcl_mesh, octree_res);
+  setInput(pcl_mesh);
 }
 
 boost::optional<std::vector<geometry_msgs::PoseArray>>
 EdgePathGenerator::generate(const shape_msgs::Mesh& mesh, const tool_path_planner::EdgePathConfig& config)
 {
-  setInput(mesh,config.octree_res);
+  setInput(mesh);
   return generate(config);
 }
 
 boost::optional<std::vector<geometry_msgs::PoseArray>>
 EdgePathGenerator::generate(pcl::PolygonMesh::ConstPtr mesh, const tool_path_planner::EdgePathConfig& config)
 {
-  setInput(mesh,config.octree_res);
+  setInput(mesh);
   return generate(config);
 }
 
+int EdgePathGenerator::mergePoints(const tool_path_planner::EdgePathConfig& config,const pcl::PointIndices& edge_segment,
+                                    pcl::PointCloud<pcl::PointNormal>& merged_points)
+{
+  using namespace Eigen;
+  using PType = std::remove_reference<decltype(merged_points)>::type::PointType;
+  decltype(edge_segment.indices) merged_indices;
+  Vector3f dir;
+  PType mid_point;
+
+
+  for(std::size_t i = 0; i < edge_segment.indices.size()-1; i++)
+  {
+    int idx_current = edge_segment.indices[i];
+    int idx_next = edge_segment.indices[i];
+
+    if(std::find(merged_indices.begin(), merged_indices.end(), idx_current) != merged_indices.end() )
+    {
+      // already merged so continue
+      continue;
+    }
+
+    const PType& p1 = (*input_cloud_)[idx_current];
+    const PType& p2 = (*input_cloud_)[idx_next];
+    dir = p2.getVector3fMap() - p1.getVector3fMap();
+    if(dir.norm() > config.merge_dist)
+    {
+      // adding current point and continue
+      merged_points.push_back(p1);
+      continue;
+    }
+    mid_point.getVector3fMap() = p1.getVector3fMap() + 0.5 * dir;
+    mid_point.getNormalVector3fMap() = (p2.getNormalVector3fMap() + p1.getNormalVector3fMap()).normalized();
+    merged_points.push_back(mid_point);
+    merged_indices.push_back(idx_next);
+  }
+
+  // checking first and last point
+
+  return merged_indices.size();
+}
+
 bool EdgePathGenerator::splitEdgeSegments(const tool_path_planner::EdgePathConfig& config,
-                                          pcl::PointCloud<pcl::PointXYZ>::ConstPtr points,
                                           const pcl::PointIndices& edge_indices,
                                           std::vector<pcl::PointIndices>& segments)
 {
   using namespace Eigen;
-  using PType = std::remove_reference<decltype(*points)>::type::PointType;
+  using namespace pcl;
+  using AlignedPointTVector = std::remove_reference<decltype(*this->octree_search_)>::type::AlignedPointTVector;
+  using PType = std::remove_reference<decltype(*this->input_cloud_)>::type::PointType;
+  struct Ray
+  {
+    PType p;
+    Vector3f d;
+  };
+
+  // checks for surfaces between the points and returns > 0 (num of voxels_encountered) when there's one
+  auto check_surface_intersection = [&](const PType& p1, const PType& p2) -> int
+  {
+    // create the projection vectors and points
+    PType p1_proj, p2_proj;
+    Vector3d v1 = (p2.getVector3fMap() - p1.getVector3fMap()).cast<double>();
+
+    Vector3d n_mid = (p2.getNormalVector3fMap() + p1.getNormalVector3fMap()).cast<double>();
+    n_mid.normalize();
+
+    Vector3f v1_proj = v1.dot(n_mid) * n_mid.cast<float>();
+    if(v1_proj.norm() <  config.min_projection_dist)
+    {
+      v1_proj = config.min_projection_dist * v1_proj.normalized();
+    }
+
+    p1_proj.getVector3fMap() = v1_proj + Vector3f(p1.getVector3fMap());
+    p2_proj.getVector3fMap() = (-1.0 * v1_proj) + Vector3f(p2.getVector3fMap());
+
+    // creating the Rays
+    std::vector<Ray> rays;
+    rays.push_back(Ray{.p = p1_proj, .d = p2_proj.getVector3fMap() - p1_proj.getVector3fMap()}); // from p1_proj to p2_proj
+
+    int voxels_encountered = 0;
+    for(std::size_t i =0; i < rays.size(); i++)
+    {
+      const Ray& r = rays[i];
+      AlignedPointTVector voxels;
+      octree_search_->getIntersectedVoxelCenters(r.p.getVector3fMap(),r.d, voxels, 0);
+      // comparing distances from origin point
+      for(auto& p : voxels)
+      {
+        Vector3f dv = p.getVector3fMap() - r.p.getVector3fMap();
+        voxels_encountered += (dv.norm() <= r.d.norm() ? 1 : 0);
+      }
+
+      if(voxels_encountered > config.max_intersecting_voxels)
+      {
+        return voxels_encountered;
+      }
+    }
+    return 0;
+  };
+
   pcl::PointIndices current_segment_indices= edge_indices;
-  std::vector< int > k_indices;
   bool split = false;
   int split_idx = -1;
   for(std::size_t i =0 ; i < current_segment_indices.indices.size() -1; i++)
   {
-    const PType& p1 = (*points)[current_segment_indices.indices[i]];
-    const PType& p2 = (*points)[current_segment_indices.indices[i+1]];
-    Vector3f dir = (p2.getVector3fMap() - p1.getVector3fMap());
-    k_indices.clear();
-    int voxels_encountered = octree_search_->getIntersectedVoxelIndices(p1.getVector3fMap(),
-                                                                        dir,k_indices, config.max_intersecting_voxels + 1);
-    if(voxels_encountered > config.max_intersecting_voxels)
+    const PType& p1 = (*input_cloud_)[current_segment_indices.indices[i]];
+    const PType& p2 = (*input_cloud_)[current_segment_indices.indices[i+1]];
+
+    int voxels_encountered = check_surface_intersection(p1,p2);
+    if(voxels_encountered > 0 && i > 0)
     {
       // splitting current segment into two
       split = true;
       split_idx = i;
-      CONSOLE_BRIDGE_logInform("Splitting at index %i, encountered %i voxels", split_idx, voxels_encountered);
+      CONSOLE_BRIDGE_logInform("Splitting at index %i, encountered %i voxels > %i ",
+                               current_segment_indices.indices[split_idx], voxels_encountered, config.max_intersecting_voxels);
       break;
     }
   }
@@ -439,7 +535,7 @@ bool EdgePathGenerator::splitEdgeSegments(const tool_path_planner::EdgePathConfi
       return true;
     }
 
-    return splitEdgeSegments(config, points,next_segment_indices, segments);
+    return splitEdgeSegments(config, next_segment_indices, segments);
   }
 
   segments.push_back(current_segment_indices);

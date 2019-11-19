@@ -1,9 +1,16 @@
-octree_res: 0.01
-search_radius: 0.02
-num_threads: 4
-neighbor_tol: 0.12
-cluster_tol: 0.01
-cluster_min: 10
-cluster_max: 0
-voxel_size: 0.01
-kdtree_epsilon: 0.01
+## hsv values computation using the covariance matrix
+octree_res: 0.02            # resolution for the octree
+search_radius: 0.02         # radious used for grouping
+num_threads: 4              # desired omp thread count 
+
+## edge filtering
+neighbor_tol: 0.24          # points with "v > max_v * (1 - neighbor_tol)" are considered edge points 
+
+##  edge point reordering
+voxel_size: 0.01            # used in downsampling edge points 
+edge_cluster_min: 3         # resolution for the octree
+kdtree_epsilon: 0.04        # precision used for nearest neighbor searches
+
+## edge segment splitting
+min_projection_dist: 0.01   # recommended 2 * octree_res 
+max_intersecting_voxels: 3  # Used in voxel intersection rayscasting

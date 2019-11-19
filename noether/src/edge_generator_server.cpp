@@ -65,12 +65,13 @@ protected:
 
       edge_gen_config_.neighbor_tol = static_cast<double>(config["neighbor_tol"]);
 
-      edge_gen_config_.cluster_tol = static_cast<double>(config["cluster_tol"]);
-      edge_gen_config_.cluster_min = static_cast<int>(config["cluster_min"]);
-      edge_gen_config_.cluster_max = static_cast<int>(config["cluster_max"]);
-
+      edge_gen_config_.edge_cluster_min = static_cast<int>(config["edge_cluster_min"]);
       edge_gen_config_.voxel_size = static_cast<double>(config["voxel_size"]);
       edge_gen_config_.kdtree_epsilon = static_cast<double>(config["kdtree_epsilon"]);
+
+      edge_gen_config_.max_intersecting_voxels = static_cast<int>(config["max_intersecting_voxels"]);
+      edge_gen_config_.min_projection_dist = static_cast<double>(config["min_projection_dist"]);
+
     }
     catch(XmlRpcException& e)
     {
