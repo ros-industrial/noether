@@ -47,7 +47,9 @@ public:
   virtual ~FilterGroup() = default;
 
     /**
-   * @details Initializes the filter chain and loads all the filter plugins from a yaml structured parameter
+   * @details Initializes the filter chain and loads all the filter plugins from a yaml structured parameter.
+   * When 'continue_on_failure = true' then it only takes one filter to succeed for the whole pass through the group to succeed.
+   * When 'continue_on_failure = false' then the algorithm returns false as soon as one filter fails.
    * The parameter must conform to the following syntax:
    *
    * continue_on_failure: True
