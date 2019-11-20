@@ -5,8 +5,17 @@ add_compile_options(-std=c++14)
 
 project(path_sequence_planner)
 
-find_package(VTK 7.1 REQUIRED NO_MODULE)
-include(${VTK_USE_FILE})
+## Try to get VTK 7.1.  If that fails, try to get VTK 8.2
+find_package(VTK 7.1 QUIET NO_MODULE)
+if(${VTK_FOUND})
+  include(${VTK_USE_FILE})
+else()
+  message("Could not find preferred VTK version (7.1).  Looking for other compatible version (8.2)")
+  find_package(VTK 8.2 REQUIRED NO_MODULE)
+  if(${VTK_FOUND})
+    include(${VTK_USE_FILE})
+  endif()
+endif()
 
 find_package(catkin REQUIRED COMPONENTS
     tool_path_planner
