@@ -1,12 +1,25 @@
 cmake_minimum_required(VERSION 3.5.0)
 project(noether_filtering VERSION 0.0.0 LANGUAGES CXX)
 
+## Try to get PCL 1.9, which has new features required by this package
 find_package(PCL 1.9 QUIET COMPONENTS common filters surface)
 if(${PCL_FOUND})
+
+  ## Try to get VTK 7.1.  If that fails, try to get VTK 8.2
   find_package(VTK 7.1 QUIET NO_MODULE)
   if(${VTK_FOUND})
+    include(${VTK_USE_FILE})
     set(BUILD_MESH_PLUGINS TRUE)
+  else()
+    message("Could not find preferred VTK version (7.1).  Looking for other compatible version (8.2)")
+    find_package(VTK 8.2 REQUIRED NO_MODULE)
+    if(${VTK_FOUND})
+      include(${VTK_USE_FILE})
+      set(BUILD_MESH_PLUGINS TRUE)
+    endif()
   endif()
+
+## Otherwise, just find any available version of pcl
 else()
   find_package(PCL REQUIRED COMPONENTS common filters surface)
   set(BUILD_MESH_PLUGINS FALSE)
