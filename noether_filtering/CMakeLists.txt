@@ -141,7 +141,8 @@ install(EXPORT ${PROJECT_NAME}-targets
 install(DIRECTORY include/${PROJECT_NAME} DESTINATION include)
 
 # Install files
-install(FILES package.xml DESTINATION share/${PROJECT_NAME})
+install(FILES package.xml cloud_filter_plugins.xml mesh_filter_plugins.xml
+  DESTINATION share/${PROJECT_NAME})
 
 # Create cmake config files
 include(CMakePackageConfigHelpers)

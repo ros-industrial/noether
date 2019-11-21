@@ -20,6 +20,7 @@ filter_groups:
         clip_boundary_curve: True
         boundary_fit_order: 3 # applicable only when clip_boundary_curve: True
         boundary_curve_parameters:
+          clipping_required: True
           addCPsAccuracy: 0.0001 #5e-2
           addCPsIteration: 2
           startCPs: 20

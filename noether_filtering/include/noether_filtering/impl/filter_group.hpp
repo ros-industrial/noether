@@ -200,13 +200,19 @@ bool FilterGroup<F>::applyFilters(const std::vector<std::string>& filters, const
     {
       err_msg = boost::str(boost::format("The filter %s failed") % fname);
       CONSOLE_BRIDGE_logError("%s", err_msg.c_str());
+
+      if(!continue_on_failure_)
+      {
+        return false;
+      }
+
+    }
+    else
+    {
+      // save output onto the input for the next filter
+      temp = std::move(temp_output);
     }
 
-    if(!current_filter_succeeded && !continue_on_failure_)
-    {
-      return false;
-    }
-    temp = std::move(temp_output);
     success |= current_filter_succeeded;
   }
   output = std::move(temp);

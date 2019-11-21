@@ -77,7 +77,9 @@ private:
       std::string err_msg;
       if(!mesh_filter_group->applyFilters(goal->custom_filter_names,mesh_in,mesh_out, err_msg))
       {
+        std::string name = goal->label + "[" + std::to_string(i) + "]" ;
         server_.setAborted(res,err_msg);
+        ROS_ERROR("Failed to filter %s mesh", name.c_str());
         return;
       }
       ROS_INFO("Filtered mesh %lu", i);
