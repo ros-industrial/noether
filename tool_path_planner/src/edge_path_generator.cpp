@@ -190,11 +190,6 @@ bool createPoseArray(const pcl::PointCloud<pcl::PointNormal>& cloud_normals, con
   Isometry3d pose;
   Vector3d x_dir, z_dir, y_dir;
 
-  auto point_to_vec = [](const PointNormal& p) -> Vector3d
-  {
-    return Vector3d(p.x, p.y, p.z);
-  };
-
   auto to_rotation_mat = [](const Vector3d& vx, const Vector3d& vy, const Vector3d& vz) -> Matrix3d
   {
     Matrix3d rot;
@@ -227,11 +222,11 @@ bool createPoseArray(const pcl::PointCloud<pcl::PointNormal>& cloud_normals, con
     }
     const PointNormal& p1 = cloud_normals[idx_current];
     const PointNormal& p2 = cloud_normals[idx_next];
-    x_dir = (point_to_vec(p2) - point_to_vec(p1)).normalized().cast<double>();
+    x_dir = (p2.getVector3fMap() - p1.getVector3fMap()).normalized().cast<double>();
     z_dir = Vector3d(p1.normal_x, p1.normal_y, p1.normal_z).normalized();
     y_dir = z_dir.cross(x_dir).normalized();
 
-    pose = Translation3d(point_to_vec(p1));
+    pose = Translation3d(p1.getVector3fMap().cast<double>());
     pose.matrix().block<3,3>(0,0) = to_rotation_mat(x_dir, y_dir, z_dir);
     tf::poseEigenToMsg(pose,pose_msg);
 
@@ -286,9 +281,9 @@ boost::optional< std::vector<geometry_msgs::PoseArray >> EdgePathGenerator::gene
   long num_points = static_cast<long>(input_points_->size());
   CONSOLE_BRIDGE_logInform("Computing Eigen Values");
 #pragma omp parallel for num_threads(num_threads)
-  // TODO avoid doing this for every points and used the returned indices 'point_idx' to
-  //      remove the points that have already been visited
-  for (std::size_t idx = 0; idx < input_points_->points.size(); ++idx)
+  // TODO Consider not doing the following operations for every points and used the returned indices 'point_idx' to
+  //      avoid operating on the points that have already been visited
+  for (int idx = 0; idx < input_points_->points.size(); ++idx)
   {
     std::vector<int> point_idx;
     std::vector<float> point_squared_distance;
@@ -334,7 +329,7 @@ boost::optional< std::vector<geometry_msgs::PoseArray >> EdgePathGenerator::gene
   CONSOLE_BRIDGE_logInform("Found %lu edge points", edge_indices.indices.size());
 
   // TODO: only using one cluster at the moment, reassess whether it's necessary to have more than one.  Examples
-  //        may involve running Euclidean clustering on the edge indices that could produce to multiple "edge clusters"
+  //        may involve running Euclidean clustering on the edge indices that could produce multiple "edge clusters"
   std::vector<PointIndices> clusters_indices;
   clusters_indices.push_back(edge_indices);
 
@@ -379,10 +374,6 @@ boost::optional< std::vector<geometry_msgs::PoseArray >> EdgePathGenerator::gene
 
       geometry_msgs::PoseArray path_poses;
       CONSOLE_BRIDGE_logInform("\tConverting edge segment %lu of cluster %lu to poses", s, c);
-/*      if(!createPoseArray(*input_cloud_,segment.indices, path_poses))
-      {
-        return boost::none;
-      }*/
 
       if(!createPoseArray(merged_points, {}, path_poses))
       {
@@ -501,50 +492,6 @@ bool EdgePathGenerator::splitEdgeSegments(const tool_path_planner::EdgePathConfi
     Vector3f d;
   };
 
-  // checks for surfaces between the points and returns > 0 (num of voxels_encountered) when there's one
-  auto check_surface_intersection = [&](const PType& p1, const PType& p2) -> int
-  {
-    // create the projection vectors and points
-    PType p1_proj, p2_proj;
-    Vector3d v1 = (p2.getVector3fMap() - p1.getVector3fMap()).cast<double>();
-
-    Vector3d n_mid = (p2.getNormalVector3fMap() + p1.getNormalVector3fMap()).cast<double>();
-    n_mid.normalize();
-
-    Vector3f v1_proj = v1.dot(n_mid) * n_mid.cast<float>();
-    if(v1_proj.norm() <  config.min_projection_dist)
-    {
-      v1_proj = config.min_projection_dist * v1_proj.normalized();
-    }
-
-    p1_proj.getVector3fMap() = v1_proj + Vector3f(p1.getVector3fMap());
-    p2_proj.getVector3fMap() = (-1.0 * v1_proj) + Vector3f(p2.getVector3fMap());
-
-    // creating the Rays
-    std::vector<Ray> rays;
-    rays.push_back(Ray{.p = p1_proj, .d = p2_proj.getVector3fMap() - p1_proj.getVector3fMap()}); // from p1_proj to p2_proj
-
-    int voxels_encountered = 0;
-    for(std::size_t i =0; i < rays.size(); i++)
-    {
-      const Ray& r = rays[i];
-      AlignedPointTVector voxels;
-      octree_search_->getIntersectedVoxelCenters(r.p.getVector3fMap(),r.d, voxels, 0);
-      // comparing distances from origin point
-      for(auto& p : voxels)
-      {
-        Vector3f dv = p.getVector3fMap() - r.p.getVector3fMap();
-        voxels_encountered += (dv.norm() <= r.d.norm() ? 1 : 0);
-      }
-
-      if(voxels_encountered > config.max_intersecting_voxels)
-      {
-        return voxels_encountered;
-      }
-    }
-    return 0;
-  };
-
   pcl::PointIndices current_segment_indices= edge_indices;
   bool split = false;
   int split_idx = -1;
@@ -553,7 +500,7 @@ bool EdgePathGenerator::splitEdgeSegments(const tool_path_planner::EdgePathConfi
     const PType& p1 = (*input_cloud_)[current_segment_indices.indices[i]];
     const PType& p2 = (*input_cloud_)[current_segment_indices.indices[i+1]];
 
-    int voxels_encountered = check_surface_intersection(p1,p2);
+    int voxels_encountered = checkSurfaceIntersection(config, p1,p2);
     if(voxels_encountered > 0 && i > 0)
     {
       // splitting current segment into two
@@ -585,5 +532,61 @@ bool EdgePathGenerator::splitEdgeSegments(const tool_path_planner::EdgePathConfi
   segments.push_back(current_segment_indices);
   return true;
 }
+
+int EdgePathGenerator::checkSurfaceIntersection(const tool_path_planner::EdgePathConfig& config,
+                                                const pcl::PointNormal& p1, const pcl::PointNormal& p2)
+{
+  using namespace Eigen;
+  using namespace pcl;
+  using PType = std::remove_const_t< std::remove_reference<decltype(p1)>::type >;
+  using AlignedPointTVector = std::remove_reference<decltype(*this->octree_search_)>::type::AlignedPointTVector;
+
+  struct Ray
+  {
+    PType p;
+    Vector3f d;
+  };
+
+  // create the projection vectors and points
+  PType p1_proj, p2_proj;
+  Vector3d v1 = (p2.getVector3fMap() - p1.getVector3fMap()).cast<double>();
+
+  Vector3d n_mid = (p2.getNormalVector3fMap() + p1.getNormalVector3fMap()).cast<double>();
+  n_mid.normalize();
+
+  Vector3f v1_proj = v1.dot(n_mid) * n_mid.cast<float>();
+  if(v1_proj.norm() <  config.min_projection_dist)
+  {
+    v1_proj = config.min_projection_dist * v1_proj.normalized();
+  }
+
+  p1_proj.getVector3fMap() = v1_proj + Vector3f(p1.getVector3fMap());
+  p2_proj.getVector3fMap() = (-1.0 * v1_proj) + Vector3f(p2.getVector3fMap());
+
+  // creating the Rays
+  std::vector<Ray> rays;
+  rays.push_back(Ray{.p = p1_proj, .d = p2_proj.getVector3fMap() - p1_proj.getVector3fMap()}); // from p1_proj to p2_proj
+
+  int voxels_encountered = 0;
+  for(std::size_t i =0; i < rays.size(); i++)
+  {
+    const Ray& r = rays[i];
+    AlignedPointTVector voxels;
+    octree_search_->getIntersectedVoxelCenters(r.p.getVector3fMap(),r.d, voxels, 0);
+    // comparing distances from origin point
+    for(auto& p : voxels)
+    {
+      Vector3f dv = p.getVector3fMap() - r.p.getVector3fMap();
+      voxels_encountered += (dv.norm() <= r.d.norm() ? 1 : 0);
+    }
+
+    if(voxels_encountered > config.max_intersecting_voxels)
+    {
+      return voxels_encountered;
+    }
+  }
+  return 0;
+}
+
 } /* namespace tool_path_planner */
 

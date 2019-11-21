@@ -94,7 +94,7 @@ target_link_libraries(edge_generator_client
 #############
 ## Install ##
 #############
-install(TARGETS mesh_segmenter_client_node mesh_segmenter_node
+install(TARGETS mesh_segmenter_client_node mesh_segmenter_node edge_generator_client
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

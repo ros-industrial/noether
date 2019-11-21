@@ -57,7 +57,7 @@ struct EdgePathConfig
                                                  a number of voxels greater than this number*/
   /** @}*/
 
-  double merge_dist = 0.01;    /** @brief any points that are too close are merged */
+  double merge_dist = 0.01;    /** @brief any two consecutive points with a shortest distance smaller than this value are merged */
 };
 
 class EdgePathGenerator
@@ -117,8 +117,25 @@ protected:
                          std::vector<pcl::PointIndices>& segments);
 
 
+  /**
+   * @brief merge points that are very close to one another
+   * @param config          Contains the threshold value used to decide whether two consecutive points should be merged
+   * @param edge_segment    The point indices of an edge
+   * @param merged_points   The merged points
+   * @return  Number of points that were merged.
+   */
   int mergePoints(const tool_path_planner::EdgePathConfig& config,const pcl::PointIndices& edge_segment,
                                       pcl::PointCloud<pcl::PointNormal>& merged_points);
+
+  /**
+   * @brief Checks if the there's a surface that separates two points
+   * @param config  The configuration
+   * @param p1      The start point
+   * @param p2      The end point
+   * @return  The number of surface voxels that were encountered
+   */
+  int checkSurfaceIntersection(const tool_path_planner::EdgePathConfig& config,
+                               const pcl::PointNormal& p1, const pcl::PointNormal& p2);
 
   pcl::PointCloud<pcl::PointNormal>::Ptr input_cloud_;
   pcl::PointCloud<pcl::PointXYZ>::Ptr input_points_;
