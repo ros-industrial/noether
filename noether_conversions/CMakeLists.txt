@@ -14,6 +14,7 @@ find_package(VTK 7.1 REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
 
 find_package(PCL 1.9 REQUIRED)
+add_definitions(${PCL_DEFINITIONS})
 
 find_package(Eigen3 REQUIRED)
 
