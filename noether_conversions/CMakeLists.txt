@@ -10,8 +10,13 @@ find_package(catkin REQUIRED COMPONENTS
   shape_msgs
 )
 
-find_package(VTK 7.1 REQUIRED NO_MODULE)
-include(${VTK_USE_FILE})
+find_package(VTK REQUIRED NO_MODULE)
+if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 7.1))
+  message(FATAL_ERROR "The minimum required version of VTK is 7.1, but found ${VTK_VERSION}")
+  set(VTK_FOUND FALSE)
+else()
+  include(${VTK_USE_FILE})
+endif()
 
 find_package(PCL 1.9 REQUIRED)
 add_definitions(${PCL_DEFINITIONS})
