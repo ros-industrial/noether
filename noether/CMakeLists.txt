@@ -8,6 +8,9 @@ project(noether)
 find_package(VTK 7.1 REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
 
+find_package(PCL 1.9 REQUIRED)
+add_definitions(${PCL_DEFINITIONS})
+
 find_package(catkin REQUIRED COMPONENTS
   actionlib
   cmake_modules
@@ -39,6 +42,7 @@ catkin_package(
     vtk_viewer
   DEPENDS
     VTK
+    PCL
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS})
