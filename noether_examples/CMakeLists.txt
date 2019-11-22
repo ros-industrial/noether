@@ -13,8 +13,13 @@ else()
   include(${VTK_USE_FILE})
 endif()
 
-find_package(PCL 1.9 REQUIRED)
-add_definitions(${PCL_DEFINITIONS})
+find_package(PCL REQUIRED)
+if(PCL_FOUND AND ("${PCL_VERSION}" VERSION_LESS 1.9))
+  message(FATAL_ERROR "The minimum required version of PCL is 1.9, but found ${PCL_VERSION}")
+  set(PCL_FOUND FALSE)
+else()
+  add_definitions(${PCL_DEFINITIONS})
+endif()
 
 find_package(catkin REQUIRED COMPONENTS
   actionlib
