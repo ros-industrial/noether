@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.5.0)
 project(noether_filtering VERSION 0.0.0 LANGUAGES CXX)
 
-<<<<<<< cabca71d86ed567578386c39f1d00bdd58ac100b
 find_package(VTK REQUIRED NO_MODULE)
 if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 7.1))
   message(FATAL_ERROR "The minimum required version of VTK is 7.1, but found ${VTK_VERSION}")
