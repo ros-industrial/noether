@@ -64,7 +64,7 @@ if(${BUILD_MESH_PLUGINS})
     src/mesh/bspline_reconstruction.cpp
     src/mesh/euclidean_clustering.cpp
   )
-  target_link_libraries(${PROJECT_NAME}_mesh_filters PUBLIC ${PROJECT_NAME} ${PCL_LIBRARIES})
+  target_link_libraries(${PROJECT_NAME}_mesh_filters PUBLIC ${PROJECT_NAME})
   target_include_directories(${PROJECT_NAME}_mesh_filters PUBLIC
       "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
       "$<INSTALL_INTERFACE:include>")

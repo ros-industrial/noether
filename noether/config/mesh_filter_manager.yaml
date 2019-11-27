@@ -6,8 +6,8 @@ filter_groups:
     - type: noether_filtering/EuclideanClustering
       name: clustering_1
       config:
-        tolerance: 0.02
-        min_cluster_size: 100
+        tolerance: 0.008
+        min_cluster_size: 3000
         max_cluster_size: -1   # will use input point cloud size when negative    
   - group_name: DEFAULT
     continue_on_failure: False

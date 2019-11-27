@@ -68,12 +68,19 @@ bool EuclideanClustering::filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMe
   tree->setInputCloud(mesh_points);
   std::vector<pcl::PointIndices> cluster_indices;
   EuclideanClusterExtraction<pcl::PointXYZ> ec;
-  ec.setSearchMethod (tree);
-  ec.setClusterTolerance (parameters_.tolerance); // 2cm
+  ec.setClusterTolerance (parameters_.tolerance);
   ec.setMinClusterSize (parameters_.min_cluster_size);
-  ec.setMaxClusterSize (parameters_.max_cluster_size < 0 ? mesh_points->size() : parameters_.max_cluster_size);
+  ec.setMaxClusterSize (parameters_.max_cluster_size <= 0 ? mesh_points->size() : parameters_.max_cluster_size);
+  ec.setSearchMethod (tree);
   ec.setInputCloud (mesh_points);
   ec.extract (cluster_indices);
+
+  if(cluster_indices.empty())
+  {
+    CONSOLE_BRIDGE_logError("%s found no clusters", getName().c_str());
+    return false;
+  }
+  CONSOLE_BRIDGE_logInform("%s found %lu clusters",getName().c_str(),cluster_indices.size());
 
   // accumulate all cluster indices into one
   std::vector<int> combined_indices;
@@ -84,6 +91,11 @@ bool EuclideanClustering::filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMe
 
   // sorting
   std::sort(combined_indices.begin(), combined_indices.end(),std::less<int>());
+  decltype(combined_indices)::iterator last = std::unique(combined_indices.begin(), combined_indices.end());
+  combined_indices.erase(last,combined_indices.end());
+  CONSOLE_BRIDGE_logInform("%s clusters contains %lu unique points from the original %lu", getName().c_str(),
+                           combined_indices.size(),
+                           mesh_points->size());
 
   // iterating over the polygons and keeping those in the clusters
   decltype(mesh_in.polygons) remaining_polygons;
@@ -93,14 +105,20 @@ bool EuclideanClustering::filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMe
     decltype(combined_indices)::iterator pos;
     for(std::size_t v = 0; v < polygon.vertices.size(); v++)
     {
-      pos = std::find(combined_indices.begin(),combined_indices.end(), v);
+      pos = std::find(combined_indices.begin(),combined_indices.end(), polygon.vertices[v]);
       if(pos != combined_indices.end())
       {
-        // store the polygon and break out of loop
+        // add the polygon and exit
         remaining_polygons.push_back(polygon);
         break;
       }
     }
+  }
+
+  if(remaining_polygons.empty())
+  {
+    CONSOLE_BRIDGE_logError("%s found no remaining polygons", getName().c_str());
+    return false;
   }
 
   CONSOLE_BRIDGE_logInform("New mesh contains %lu polygons from %lu in the original one",remaining_polygons.size(),
@@ -108,6 +126,8 @@ bool EuclideanClustering::filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMe
 
   // creating new polygon mesh
   pcl::PolygonMesh reduced_mesh;
+  reduced_mesh.cloud = mesh_in.cloud;
+  reduced_mesh.polygons = std::move(remaining_polygons);
   surface::SimplificationRemoveUnusedVertices mesh_simplification;
   mesh_simplification.simplify(reduced_mesh,mesh_out);
   return true;

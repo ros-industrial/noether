@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
         - /Marker1
+        - /Marker1/Namespaces1
       Splitter Ratio: 0.5
     Tree Height: 751
   - Class: rviz/Selection
@@ -56,6 +57,7 @@ Visualization Manager:
       Marker Topic: /mesh_filtering
       Name: Marker
       Namespaces:
+        filtered_mesh: true
         raw_mesh: true
       Queue Size: 100
       Value: true
@@ -84,25 +86,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.515871047973633
+      Distance: 5.7753071784973145
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.7779231667518616
-        Y: 0.44086241722106934
-        Z: 0.7015736699104309
+        X: 1.2701817750930786
+        Y: -0.7247262001037598
+        Z: -0.558086097240448
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.41539788246154785
+      Pitch: 0.4003978967666626
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.8153979778289795
+      Yaw: 1.000397801399231
     Saved: ~
 Window Geometry:
   Displays:
