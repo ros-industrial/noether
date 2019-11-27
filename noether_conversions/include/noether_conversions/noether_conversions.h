@@ -63,7 +63,7 @@ namespace noether_conversions {
                                               const std::string& frame_id,
                                               const std::tuple<double,double,double,double>& rgba);
 
-  void convertToPointNormals(const pcl::PolygonMesh& mesh, pcl::PointCloud<pcl::PointNormal>& cloud, bool flip = false);
+  void convertToPointNormals(const pcl::PolygonMesh& mesh, pcl::PointCloud<pcl::PointNormal>& cloud, bool flip = false, bool silent = true);
 
   visualization_msgs::MarkerArray convertToAxisMarkers(const noether_msgs::ToolRasterPath& toolpath,
                                                        const std::string& frame_id,

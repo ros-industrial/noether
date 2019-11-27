@@ -121,7 +121,7 @@ visualization_msgs::Marker createMeshMarker(const std::string& mesh_file, const 
   return std::move(m);
 }
 
-void convertToPointNormals(const pcl::PolygonMesh& mesh, pcl::PointCloud<pcl::PointNormal>& cloud_normals, bool flip)
+void convertToPointNormals(const pcl::PolygonMesh& mesh, pcl::PointCloud<pcl::PointNormal>& cloud_normals, bool flip, bool silent )
 {
   using namespace pcl;
   using namespace Eigen;
@@ -131,16 +131,31 @@ void convertToPointNormals(const pcl::PolygonMesh& mesh, pcl::PointCloud<pcl::Po
   pcl::copyPointCloud(points, cloud_normals);
 
   // computing the normals by walking the vertices
-  Vector3d a, b, c;
-  Vector3d dir;
+  Vector3f a, b, c;
+  Vector3f dir;
+  std::size_t ill_formed = 0;
   for(std::size_t i = 0; i < mesh.polygons.size(); i++)
   {
     const std::vector<uint32_t>&  vert = mesh.polygons[i].vertices;
-    a = points[vert[0]].getVector3fMap().cast<double>();
-    b = points[vert[1]].getVector3fMap().cast<double>();
-    c = points[vert[2]].getVector3fMap().cast<double>();
-    dir = (b - a).cross((c -a)).normalized();
-    dir = flip ? -1.0 * dir : dir;
+    a = points[vert[0]].getVector3fMap();
+    b = points[vert[1]].getVector3fMap();
+    c = points[vert[2]].getVector3fMap();
+    dir = ((b - a).cross((c -a))).normalized();
+    dir = flip ? (-1.0 * dir) : dir;
+
+    if( std::isnan(dir.norm()) || std::isinf(dir.norm()))
+    {
+      if(!silent)
+      {
+        CONSOLE_BRIDGE_logWarn("The normal for polygon %lu (%lu, %lu, %lu) is ill formed",i,
+                                vert[0], vert[1], vert[2]);
+        std::cout<< std::setprecision(6) << "p1: "<< points[vert[0]].getVector3fMap().transpose()<<std::endl;
+        std::cout<< std::setprecision(6) << "p2: "<< points[vert[1]].getVector3fMap().transpose()<<std::endl;
+        std::cout<< std::setprecision(6) << "p3: "<< points[vert[2]].getVector3fMap().transpose()<<std::endl;
+      }
+      ill_formed++;
+      continue;
+    }
 
     // assigning to points
     for(std::size_t v = 0; v < vert.size(); v++)
@@ -151,6 +166,13 @@ void convertToPointNormals(const pcl::PolygonMesh& mesh, pcl::PointCloud<pcl::Po
       p.normal_z = dir.z();
     }
   }
+
+  if(ill_formed > 0)
+  {
+    CONSOLE_BRIDGE_logWarn("Found %lu ill formed polygons while converting to point normals", ill_formed);
+  }
+
+  return;
 }
 
 visualization_msgs::MarkerArray convertToAxisMarkers(const noether_msgs::ToolRasterPath& toolpath,
