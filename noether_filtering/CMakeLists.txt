@@ -10,7 +10,7 @@ else()
   set(BUILD_MESH_PLUGINS TRUE)
 endif()
 
-find_package(PCL REQUIRED COMPONENTS common filters surface)
+find_package(PCL REQUIRED COMPONENTS common filters surface segmentation)
 if(PCL_FOUND AND ("${PCL_VERSION}" VERSION_LESS 1.9))
   message(FATAL_ERROR "The minimum required version of PCL is 1.9, but found ${PCL_VERSION}")
   set(PCL_FOUND FALSE)
@@ -59,10 +59,12 @@ endif()
 
 if(${BUILD_MESH_PLUGINS})
   # Mesh Filters library
+  message("Building mesh plugins")
   add_library(${PROJECT_NAME}_mesh_filters SHARED
     src/mesh/bspline_reconstruction.cpp
+    src/mesh/euclidean_clustering.cpp
   )
-  target_link_libraries(${PROJECT_NAME}_mesh_filters PUBLIC ${PROJECT_NAME})
+  target_link_libraries(${PROJECT_NAME}_mesh_filters PUBLIC ${PROJECT_NAME} ${PCL_LIBRARIES})
   target_include_directories(${PROJECT_NAME}_mesh_filters PUBLIC
       "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
       "$<INSTALL_INTERFACE:include>")

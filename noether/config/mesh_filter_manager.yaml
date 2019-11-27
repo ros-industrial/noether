@@ -1,4 +1,14 @@
 filter_groups:
+  - group_name: Simplification
+    continue_on_failure: False
+    verbosity_on: True
+    filters:
+    - type: noether_filtering/EuclideanClustering
+      name: clustering_1
+      config:
+        tolerance: 0.02
+        min_cluster_size: 100
+        max_cluster_size: -1   # will use input point cloud size when negative    
   - group_name: DEFAULT
     continue_on_failure: False
     verbosity_on: True

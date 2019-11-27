@@ -5,4 +5,10 @@
       Fits a nurve surface to a polygonal mesh and clips the boundaries if requested
     </description>
   </class>
+  <class name="noether_filtering/EuclideanClustering" type="noether_filtering::mesh::EuclideanClustering"
+    base_class_type="noether_filtering::mesh::MeshFilterBase">
+    <description>
+      Runs euclidean clustering and removes all the points that don't fit the constraints
+    </description>
+  </class>
 </library>
