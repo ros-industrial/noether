@@ -53,8 +53,7 @@ struct EdgePathConfig
    */
   double min_projection_dist = 0.01;  /** @brief minimum distance by which to project an edge point along the normal,
                                                  recommended 2 * octree_res */
-  int max_intersecting_voxels = 4;    /** @brief A surface is considered to be between two waypoints when the ray intersects
-                                                 a number of voxels greater than this number*/
+  int max_intersecting_voxels = 4;    /** @brief will split when distance exceeds octree_res * max_intersecting_voxels */
   /** @}*/
 
   double merge_dist = 0.01;    /** @brief any two consecutive points with a shortest distance smaller than this value are merged */

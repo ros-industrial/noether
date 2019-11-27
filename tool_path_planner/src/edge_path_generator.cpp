@@ -367,6 +367,11 @@ boost::optional< std::vector<geometry_msgs::PoseArray >> EdgePathGenerator::gene
     {
       auto& segment = segments_indices[s];
 
+      if(segment.indices.size() < 2)
+      {
+        continue;
+      }
+
       // merging
       pcl::PointCloud<pcl::PointNormal> merged_points;
       int merged_point_count = mergePoints(config, segment,merged_points);
@@ -499,6 +504,18 @@ bool EdgePathGenerator::splitEdgeSegments(const tool_path_planner::EdgePathConfi
   {
     const PType& p1 = (*input_cloud_)[current_segment_indices.indices[i]];
     const PType& p2 = (*input_cloud_)[current_segment_indices.indices[i+1]];
+
+    // check distance
+    Vector3f dir = (p2.getVector3fMap() - p1.getVector3fMap());
+    if(dir.norm() > config.octree_res * config.max_intersecting_voxels)
+    {
+      // splitting current segment into two
+      split = true;
+      split_idx = i;
+      CONSOLE_BRIDGE_logInform("Splitting at index %i, due to max dist exceeded %f",
+                               current_segment_indices.indices[split_idx],dir.norm());
+      break;
+    }
 
     int voxels_encountered = checkSurfaceIntersection(config, p1,p2);
     if(voxels_encountered > 0 && i > 0)
