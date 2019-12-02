@@ -126,24 +126,22 @@ bool EuclideanClustering::filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMe
 
   // iterating over the polygons and keeping those in the clusters
   decltype(mesh_in.polygons) remaining_polygons;
-  for(std::size_t i = 0; i < mesh_in.polygons.size(); i++)
+  for(const auto& plgn : mesh_in.polygons)
   {
-    const Vertices& polygon = mesh_in.polygons[i];
-
-    if(!is_valid_polygon(polygon))
+    if(!is_valid_polygon(plgn))
     {
       continue;
     }
 
     decltype(combined_indices)::iterator pos;
-    for(std::size_t v = 0; v < polygon.vertices.size(); v++)
+    for(const auto& v : plgn.vertices)
     {
 
-      pos = std::find(combined_indices.begin(),combined_indices.end(), polygon.vertices[v]);
+      pos = std::find(combined_indices.begin(),combined_indices.end(), v);
       if(pos != combined_indices.end())
       {
         // add the polygon and exit
-        remaining_polygons.push_back(polygon);
+        remaining_polygons.push_back(plgn);
         break;
       }
     }

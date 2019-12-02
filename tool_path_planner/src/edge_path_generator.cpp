@@ -32,6 +32,7 @@
 #include <console_bridge/console.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <numeric>
+#include "tool_path_planner/utilities.h"
 #include "tool_path_planner/edge_path_generator.h"
 
 
@@ -93,12 +94,11 @@ bool reorder(const tool_path_planner::EdgePathConfig& config,
     pcl::KdTreeFLANN<pcl::PointXYZ> recover_indices_kdtree;
     recover_indices_kdtree.setEpsilon(config.voxel_size);
     recover_indices_kdtree.setInputCloud(points,active_indices);
-    for(std::size_t i = 0; i < cloud_downsampled->size(); i++)
+    for(const PointXYZ& query_point :  *cloud_downsampled)
     {
       // find closest
       std::vector<int> k_indices(k_points);
       std::vector<float> k_sqr_distances(k_points);
-      PointXYZ query_point = (*cloud_downsampled)[i];
       if(recover_indices_kdtree.nearestKSearch(query_point,k_points, k_indices, k_sqr_distances) < k_points)
       {
         CONSOLE_BRIDGE_logError("Nearest K Search failed to find a point during indices recovery stage");
@@ -203,16 +203,6 @@ bool createPoseArray(const pcl::PointCloud<pcl::PointNormal>& cloud_normals, con
   geometry_msgs::Pose pose_msg;
   Isometry3d pose;
   Vector3d x_dir, z_dir, y_dir;
-
-  auto to_rotation_mat = [](const Vector3d& vx, const Vector3d& vy, const Vector3d& vz) -> Matrix3d
-  {
-    Matrix3d rot;
-    rot.block(0,0,1,3) = Vector3d(vx.x(), vy.x(), vz.x()).array().transpose();
-    rot.block(1,0,1,3) = Vector3d(vx.y(), vy.y(), vz.y()).array().transpose();
-    rot.block(2,0,1,3) = Vector3d(vx.z(), vy.z(), vz.z()).array().transpose();
-    return rot;
-  };
-
   std::vector<int> cloud_indices;
   if(indices.empty())
   {
@@ -241,7 +231,7 @@ bool createPoseArray(const pcl::PointCloud<pcl::PointNormal>& cloud_normals, con
     y_dir = z_dir.cross(x_dir).normalized();
 
     pose = Translation3d(p1.getVector3fMap().cast<double>());
-    pose.matrix().block<3,3>(0,0) = to_rotation_mat(x_dir, y_dir, z_dir);
+    pose.matrix().block<3,3>(0,0) = tool_path_planner::toRotationMatrix(x_dir, y_dir, z_dir);
     tf::poseEigenToMsg(pose,pose_msg);
 
     poses.poses.push_back(pose_msg);
@@ -348,11 +338,10 @@ boost::optional< std::vector<geometry_msgs::PoseArray >> EdgePathGenerator::gene
   clusters_indices.push_back(edge_indices);
 
   // deleting edge points from octree
-  for(std::size_t c = 0; c < clusters_indices.size(); c++)
+  for(const PointIndices& cluster : clusters_indices)
   {
-    for(std::size_t i = 0; i < clusters_indices[c].indices.size(); i++)
+    for(const int& idx : cluster.indices)
     {
-      int idx = clusters_indices[c].indices[i];
       octree_search_->deleteVoxelAtPoint((*input_points_)[idx]);
     }
   }
@@ -445,11 +434,10 @@ int EdgePathGenerator::mergePoints(const tool_path_planner::EdgePathConfig& conf
   Vector3f dir;
   PType mid_point;
 
-
-  auto compute_dist = [&](const PType& p1, const PType& p2) -> double
+  auto compute_dist = [](const PType& p1, const PType& p2) -> double
   {
-    dir = p2.getVector3fMap() - p1.getVector3fMap();
-    return dir.norm();
+    Vector3f v = p2.getVector3fMap() - p1.getVector3fMap();
+    return v.norm();
   };
 
 
@@ -467,7 +455,7 @@ int EdgePathGenerator::mergePoints(const tool_path_planner::EdgePathConfig& conf
     const PType& p1 = (*input_cloud_)[idx_current];
     const PType& p2 = (*input_cloud_)[idx_next];
     dir = p2.getVector3fMap() - p1.getVector3fMap();
-    if(compute_dist(p1, p2) >  config.merge_dist)
+    if( dir.norm() > config.merge_dist )
     {
       // adding current point and continue
       merged_points.push_back(p1);
@@ -599,16 +587,15 @@ int EdgePathGenerator::checkSurfaceIntersection(const tool_path_planner::EdgePat
   rays.push_back(Ray{.p = p1_proj, .d = p2_proj.getVector3fMap() - p1_proj.getVector3fMap()}); // from p1_proj to p2_proj
 
   int voxels_encountered = 0;
-  for(std::size_t i =0; i < rays.size(); i++)
+  for(const Ray& ray : rays)
   {
-    const Ray& r = rays[i];
     AlignedPointTVector voxels;
-    octree_search_->getIntersectedVoxelCenters(r.p.getVector3fMap(),r.d, voxels, 0);
+    octree_search_->getIntersectedVoxelCenters(ray.p.getVector3fMap(),ray.d, voxels, 0);
     // comparing distances from origin point
     for(auto& p : voxels)
     {
-      Vector3f dv = p.getVector3fMap() - r.p.getVector3fMap();
-      voxels_encountered += (dv.norm() <= r.d.norm() ? 1 : 0);
+      Vector3f dv = p.getVector3fMap() - ray.p.getVector3fMap();
+      voxels_encountered += (dv.norm() <= ray.d.norm() ? 1 : 0);
     }
 
     if(voxels_encountered > config.max_intersecting_voxels)
