@@ -4,7 +4,7 @@ project(mesh_segmenter)
 ## Compile as C++14,
 add_compile_options(-std=c++14)
 
-find_package(VTK 7.1 REQUIRED NO_MODULE)
+find_package(VTK 8.2 REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
 
 find_package(catkin REQUIRED)
