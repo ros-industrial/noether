@@ -68,29 +68,29 @@ namespace noether_conversions {
   visualization_msgs::MarkerArray convertToAxisMarkers(const noether_msgs::ToolRasterPath& toolpath,
                                                        const std::string& frame_id,
                                                        const std::string& ns,
-                                                       const std::size_t start_id = 1,
-                                                       const double axis_scale = 0.001,
-                                                       const double axis_length = 0.03,
+                                                       const std::size_t& start_id = 1,
+                                                       const double& axis_scale = 0.001,
+                                                       const double& axis_length = 0.03,
                                                        const std::tuple<float,float,float,float,float,float>& offset = std::make_tuple(
                                                            0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
 
   visualization_msgs::MarkerArray convertToAxisMarkers(const std::vector<geometry_msgs::PoseArray>& path,
                                                        const std::string& frame_id,
                                                        const std::string& ns,
-                                                       const std::size_t start_id = 1,
-                                                       const double axis_scale = 0.001,
-                                                       const double axis_length = 0.03,
+                                                       const std::size_t& start_id = 1,
+                                                       const double& axis_scale = 0.001,
+                                                       const double& axis_length = 0.03,
                                                        const std::tuple<float,float,float,float,float,float>& offset = std::make_tuple(
                                                            0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
 
   visualization_msgs::MarkerArray convertToDottedLineMarker(const noether_msgs::ToolRasterPath& toolpath,
                                                       const std::string& frame_id,
                                                       const std::string& ns,
-                                                      const std::size_t start_id = 1,
+                                                      const std::size_t& start_id = 1,
                                                       const std::tuple<float, float, float, float, float, float>& offset = std::make_tuple(
                                                           0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                                                      const float line_width = 0.001,
-                                                      const float point_size = 0.005);
+                                                      const float& line_width = 0.001,
+                                                      const float& point_size = 0.005);
 
   visualization_msgs::MarkerArray convertToDottedLineMarker(const std::vector<geometry_msgs::PoseArray>& path,
                                                       const std::string& frame_id,
@@ -98,8 +98,8 @@ namespace noether_conversions {
                                                       const std::size_t start_id = 1,
                                                       const std::tuple<float, float, float, float, float, float>& offset = std::make_tuple(
                                                           0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                                                      const float line_width = 0.001,
-                                                      const float point_size = 0.005);
+                                                      const float& line_width = 0.001,
+                                                      const float& point_size = 0.005);
 
 
 }

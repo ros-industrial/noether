@@ -158,9 +158,9 @@ void convertToPointNormals(const pcl::PolygonMesh& mesh, pcl::PointCloud<pcl::Po
     }
 
     // assigning to points
-    for(std::size_t v = 0; v < vert.size(); v++)
+    for(const uint32_t& v : vert)
     {
-      PointNormal& p = cloud_normals[vert[v]];
+      PointNormal& p = cloud_normals[v];
       p.normal_x = dir.x();
       p.normal_y = dir.y();
       p.normal_z = dir.z();
@@ -177,8 +177,8 @@ void convertToPointNormals(const pcl::PolygonMesh& mesh, pcl::PointCloud<pcl::Po
 
 visualization_msgs::MarkerArray convertToAxisMarkers(const noether_msgs::ToolRasterPath& toolpath,
                                                      const std::string& frame_id, const std::string& ns,
-                                                     const std::size_t start_id, const double axis_scale,
-                                                     const double axis_length,
+                                                     const std::size_t& start_id, const double& axis_scale,
+                                                     const double& axis_length,
                                                      const std::tuple<float, float, float, float, float, float>& offset)
 {
   return convertToAxisMarkers(toolpath.paths, frame_id, ns, start_id, axis_scale, axis_length, offset);
@@ -186,8 +186,8 @@ visualization_msgs::MarkerArray convertToAxisMarkers(const noether_msgs::ToolRas
 
 visualization_msgs::MarkerArray convertToAxisMarkers(const std::vector<geometry_msgs::PoseArray>& path,
                                                      const std::string& frame_id, const std::string& ns,
-                                                     const std::size_t start_id, const double axis_scale,
-                                                     const double axis_length,
+                                                     const std::size_t& start_id, const double& axis_scale,
+                                                     const double& axis_length,
                                                      const std::tuple<float, float, float, float, float, float>& offset)
 {
   using namespace Eigen;
@@ -256,10 +256,10 @@ visualization_msgs::MarkerArray convertToAxisMarkers(const std::vector<geometry_
 visualization_msgs::MarkerArray convertToDottedLineMarker(const noether_msgs::ToolRasterPath& toolpath,
                                                     const std::string& frame_id,
                                                     const std::string& ns,
-                                                    const std::size_t start_id,
+                                                    const std::size_t& start_id,
                                                     const std::tuple<float, float, float, float, float, float>& offset,
-                                                    const float line_width,
-                                                    const float point_size)
+                                                    const float& line_width,
+                                                    const float& point_size)
 {
   return convertToDottedLineMarker(toolpath.paths,frame_id, ns, start_id, offset, line_width, point_size);
 }
@@ -267,10 +267,10 @@ visualization_msgs::MarkerArray convertToDottedLineMarker(const noether_msgs::To
 visualization_msgs::MarkerArray convertToDottedLineMarker(const std::vector<geometry_msgs::PoseArray>& path,
                                                     const std::string& frame_id,
                                                     const std::string& ns,
-                                                    const std::size_t start_id,
+                                                    const std::size_t& start_id,
                                                     const std::tuple<float, float, float, float, float, float>& offset,
-                                                    const float line_width,
-                                                    const float point_size)
+                                                    const float& line_width,
+                                                    const float& point_size)
 {
   visualization_msgs::MarkerArray markers_msgs;
   visualization_msgs::Marker line_marker, points_marker;
