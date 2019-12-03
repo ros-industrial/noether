@@ -92,10 +92,10 @@ bool convertToMeshMsg(const pcl::PolygonMesh& mesh, shape_msgs::Mesh& mesh_msg)
   return true;
 }
 
-bool savePLYFile(const std::string& filename, const shape_msgs::Mesh& mesh_msg)
+bool savePLYFile(const std::string& filename, const shape_msgs::Mesh& mesh_msg, unsigned precision)
 {
   pcl::PolygonMesh mesh;
-  return convertToPCLMesh(mesh_msg, mesh) && pcl::io::savePLYFile(filename,mesh) >= 0;
+  return convertToPCLMesh(mesh_msg, mesh) && pcl::io::savePLYFile(filename,mesh, precision) >= 0;
 }
 
 bool loadPLYFile(const std::string& filename, shape_msgs::Mesh& mesh_msg)
@@ -127,12 +127,12 @@ void convertToPointNormals(const pcl::PolygonMesh& mesh, pcl::PointCloud<pcl::Po
   using namespace Eigen;
   using PType = std::remove_reference<decltype(cloud_normals)>::type::PointType;
   PointCloud<PointXYZ> points;
-  pcl::fromPCLPointCloud2<PointXYZ>(mesh.cloud, points);
+  pcl::fromPCLPointCloud2(mesh.cloud, points);
   pcl::copyPointCloud(points, cloud_normals);
 
   // computing the normals by walking the vertices
   Vector3f a, b, c;
-  Vector3f dir;
+  Vector3f dir, v1, v2;
   std::size_t ill_formed = 0;
   for(std::size_t i = 0; i < mesh.polygons.size(); i++)
   {
@@ -140,7 +140,10 @@ void convertToPointNormals(const pcl::PolygonMesh& mesh, pcl::PointCloud<pcl::Po
     a = points[vert[0]].getVector3fMap();
     b = points[vert[1]].getVector3fMap();
     c = points[vert[2]].getVector3fMap();
-    dir = ((b - a).cross((c -a))).normalized();
+
+    v1 = (b - a).normalized();
+    v2 = (c - a).normalized();
+    dir = (v1.cross(v2)).normalized();
     dir = flip ? (-1.0 * dir) : dir;
 
     if( std::isnan(dir.norm()) || std::isinf(dir.norm()))
