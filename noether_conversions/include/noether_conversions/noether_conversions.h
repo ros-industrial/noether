@@ -45,12 +45,13 @@ namespace noether_conversions {
 
   /**
    * @brief saves to a PLY file
-   * @param filename
-   * @param mesh_msg
-   * @param precision
+   * @param filename    The path where to save the file
+   * @param mesh_msg    The mesh
+   * @param precision   The numerical precision
+   * @param binary      Set to true to save in binary format
    * @return True on success, false otherwise.
    */
-  bool savePLYFile(const std::string& filename, const shape_msgs::Mesh& mesh_msg, unsigned precision = 10);
+  bool savePLYFile(const std::string& filename, const shape_msgs::Mesh& mesh_msg, unsigned precision = 10, bool binary = true);
 
   /**
    * @brief loads from a PLY file

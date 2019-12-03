@@ -3,6 +3,7 @@
 #include <Eigen/Geometry>
 #include <pcl/conversions.h>
 #include <pcl/io/ply_io.h>
+#include <pcl/io/vtk_lib_io.h>
 #include <pcl/point_types.h>
 #include <vtkPointData.h>
 
@@ -92,10 +93,25 @@ bool convertToMeshMsg(const pcl::PolygonMesh& mesh, shape_msgs::Mesh& mesh_msg)
   return true;
 }
 
-bool savePLYFile(const std::string& filename, const shape_msgs::Mesh& mesh_msg, unsigned precision)
+bool savePLYFile(const std::string& filename, const shape_msgs::Mesh& mesh_msg, unsigned precision, bool binary)
 {
   pcl::PolygonMesh mesh;
-  return convertToPCLMesh(mesh_msg, mesh) && pcl::io::savePLYFile(filename,mesh, precision) >= 0;
+  if(!convertToPCLMesh(mesh_msg, mesh) )
+  {
+    return false;
+  }
+
+  bool success = false;
+  if(binary)
+  {
+    success = pcl::io::savePolygonFile(filename, mesh, binary);
+  }
+  else
+  {
+    success = ( pcl::io::savePLYFile(filename,mesh, precision) >= 0 );
+  }
+
+  return success;
 }
 
 bool loadPLYFile(const std::string& filename, shape_msgs::Mesh& mesh_msg)
