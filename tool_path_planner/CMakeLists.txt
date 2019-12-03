@@ -62,6 +62,7 @@ include_directories(
 add_library(${PROJECT_NAME}
   src/raster_path_generator.cpp
   src/raster_tool_path_planner.cpp
+  src/edge_path_generator.cpp
   src/utilities.cpp
 )
 target_link_libraries(${PROJECT_NAME}

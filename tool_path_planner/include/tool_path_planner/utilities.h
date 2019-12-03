@@ -65,6 +65,17 @@ namespace tool_path_planner
 	 */
 	noether_msgs::ToolPathConfig toTppMsg(const tool_path_planner::ProcessTool& tool_config);
 
+	/**
+	 * @details creates a rotation matrix from the column vectors; it can then be assigned to a Isometry3d pose
+	 * as follows:
+	 * pose.matrix().block<3,3>(0,0) = toRotationMatrix(vx, vy, vz);
+	 * @param vx Column vector x
+	 * @param vy Column vector y
+	 * @param vz Column vector z
+	 * @return The rotation matrix
+	 */
+	Eigen::Matrix3d toRotationMatrix(const Eigen::Vector3d& vx, const Eigen::Vector3d& vy, const Eigen::Vector3d& vz);
+
 }
 
 

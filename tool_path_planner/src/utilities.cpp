@@ -235,4 +235,16 @@ noether_msgs::ToolPathConfig toTppMsg(const tool_path_planner::ProcessTool& tool
   return std::move(tpp_config_msg);
 }
 
+Eigen::Matrix3d toRotationMatrix(const Eigen::Vector3d& vx, const Eigen::Vector3d& vy,
+                                                    const Eigen::Vector3d& vz)
+{
+  using namespace Eigen;
+  Matrix3d rot;
+  rot.block(0,0,1,3) = Vector3d(vx.x(), vy.x(), vz.x()).array().transpose();
+  rot.block(1,0,1,3) = Vector3d(vx.y(), vy.y(), vz.y()).array().transpose();
+  rot.block(2,0,1,3) = Vector3d(vx.z(), vy.z(), vz.z()).array().transpose();
+  return rot;
 }
+
+}
+

@@ -7,7 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   eigen_conversions
   geometry_msgs
-  shape_msgs
+  noether_msgs
 )
 
 find_package(VTK REQUIRED NO_MODULE)
@@ -36,7 +36,7 @@ catkin_package(
   CATKIN_DEPENDS
     eigen_conversions
     geometry_msgs
-    shape_msgs
+    noether_msgs
   DEPENDS
     EIGEN3
     VTK

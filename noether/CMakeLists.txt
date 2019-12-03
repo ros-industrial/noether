@@ -89,10 +89,17 @@ target_link_libraries(mesh_filter_server PUBLIC
   noether_filtering::noether_filtering
 )
 
+add_executable(edge_generator_server
+  src/edge_generator_server.cpp
+)
+target_link_libraries(edge_generator_server 
+  ${catkin_LIBRARIES}
+)
+
 #############
 ## Install ##
 #############
-install(TARGETS segmentation_server surface_raster_planner_application surface_raster_planner_server mesh_filter_server
+install(TARGETS segmentation_server surface_raster_planner_application surface_raster_planner_server mesh_filter_server edge_generator_server
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

@@ -43,7 +43,6 @@ catkin_package(
   CATKIN_DEPENDS
     actionlib
     mesh_segmenter
-    noether_msgs
     path_sequence_planner
     pcl_conversions
     roscpp
@@ -85,10 +84,17 @@ target_link_libraries(mesh_filtering_client
   ${PCL_LIBRARIES}
 )
 
+add_executable(edge_generator_client
+  src/edge_generator_client.cpp
+)
+target_link_libraries(edge_generator_client
+  ${catkin_LIBRARIES}
+)
+
 #############
 ## Install ##
 #############
-install(TARGETS mesh_segmenter_client_node mesh_segmenter_node
+install(TARGETS mesh_segmenter_client_node mesh_segmenter_node edge_generator_client
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
