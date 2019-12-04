@@ -46,14 +46,11 @@ class MeshFilterServer
 
   bool run()
   {
-    ros::NodeHandle ph("~");
-    XmlRpc::XmlRpcValue config = ph.param<XmlRpc::XmlRpcValue>(MESH_FILTER_MNGR_PARAM,
-                                                               XmlRpc::XmlRpcValue());
-    if(!filter_manager_.init(config))
+    if(!loadConfig())
     {
-      ROS_ERROR("Mesh Filter Server failed to initialize");
       return false;
     }
+
     server_.start();
     ROS_INFO("Mesh Filter Server is ready ...");
     return true;
@@ -61,11 +58,39 @@ class MeshFilterServer
 
 private:
 
+  bool loadConfig()
+  {
+    ros::NodeHandle ph("~");
+    XmlRpc::XmlRpcValue config;
+    if(!ph.getParam(MESH_FILTER_MNGR_PARAM,config))
+    {
+      ROS_ERROR("Mesh Filter Server did not find the '%s' parameter",
+                ph.resolveName(MESH_FILTER_MNGR_PARAM, true).c_str());
+      return false;
+    }
+
+    if(!filter_manager_.init(config))
+    {
+      ROS_ERROR("Mesh Filter Server failed to initialize the filter manager");
+      return false;
+    }
+    ROS_INFO("Mesh Filter Server loaded parameters");
+    return true;
+  }
+
   void executeAction(const noether_msgs::ApplyMeshFiltersGoalConstPtr& goal)
   {
     using namespace noether_msgs;
     ApplyMeshFiltersResult res;
     ApplyMeshFiltersFeedback feedback;
+
+    if(!loadConfig())
+    {
+      std::string err_msg = boost::str(boost::format("Mesh Filter Server failed to load parameters") );
+      ROS_ERROR_STREAM(err_msg);
+      server_.setAborted(res,err_msg);
+      return;
+    }
 
     res.success = false;
     std::shared_ptr< noether_filtering::mesh::MeshFilterGroup > mesh_filter_group = filter_manager_.getFilterGroup(goal->filter_group);

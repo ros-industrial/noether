@@ -22,7 +22,7 @@ template<typename T>
 bool FilterManager<T>::init(XmlRpc::XmlRpcValue config)
 {
   using namespace config_fields;
-
+  filter_groups_map_.clear();
   if(!config.hasMember(manager::FILTER_GROUPS))
   {
     CONSOLE_BRIDGE_logError("The '%s' field was not found, %s failed to load configuration",

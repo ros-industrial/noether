@@ -96,6 +96,7 @@ bool EuclideanClustering::filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMe
   }
   CONSOLE_BRIDGE_logInform("%s found %lu clusters",getName().c_str(),cluster_indices.size());
 
+
   // accumulate all cluster indices into one
   std::vector<int> combined_indices;
   std::for_each(cluster_indices.begin(), cluster_indices.end(),[&combined_indices](
@@ -110,6 +111,22 @@ bool EuclideanClustering::filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMe
   CONSOLE_BRIDGE_logInform("%s clusters contains %lu unique points from the original %lu", getName().c_str(),
                            combined_indices.size(),
                            mesh_points->size());
+
+  // obtaining ignored indices
+  std::vector<int> removed_indices;
+  removed_indices.reserve(mesh_points->size() - combined_indices.size());
+  for(std::size_t i = 1; i < combined_indices.size(); i++)
+  {
+    const int& v1 = combined_indices[i-1];
+    const int& v2 = combined_indices[i];
+    int diff = v2 - v1;
+    if(std::abs(diff) > 1)
+    {
+      std::vector<int> vals(diff-1);
+      std::iota(vals.begin(), vals.end(),v1+1);
+      removed_indices.insert(removed_indices.end(),vals.begin(),vals.end());
+    }
+  }
 
   auto is_valid_polygon = [&points = *mesh_points](const Vertices& polygon, double tol = 1e-6 ) -> bool
   {
@@ -133,17 +150,23 @@ bool EuclideanClustering::filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMe
       continue;
     }
 
-    decltype(combined_indices)::iterator pos;
+    decltype(removed_indices)::iterator pos;
+    bool add_poly = true;
     for(const auto& v : plgn.vertices)
     {
 
-      pos = std::find(combined_indices.begin(),combined_indices.end(), v);
-      if(pos != combined_indices.end())
+      pos = std::find(removed_indices.begin(),removed_indices.end(), v);
+      if(pos != removed_indices.end())
       {
         // add the polygon and exit
-        remaining_polygons.push_back(plgn);
+        add_poly = false;
         break;
       }
+    }
+
+    if(add_poly)
+    {
+      remaining_polygons.push_back(plgn);
     }
 
   }
@@ -159,7 +182,7 @@ bool EuclideanClustering::filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMe
 
   // creating new polygon mesh
   pcl::PolygonMesh reduced_mesh;
-  reduced_mesh.cloud = mesh_in.cloud;
+  reduced_mesh = mesh_in;
   reduced_mesh.polygons = remaining_polygons;
   surface::SimplificationRemoveUnusedVertices mesh_simplification;
   mesh_simplification.simplify(reduced_mesh,mesh_out);
