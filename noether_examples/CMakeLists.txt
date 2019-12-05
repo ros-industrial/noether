@@ -91,6 +91,13 @@ target_link_libraries(edge_generator_client
   ${catkin_LIBRARIES}
 )
 
+add_executable(halfedge_finder_node
+  src/halfedge_finder_node.cpp
+)
+target_link_libraries(halfedge_finder_node
+  ${catkin_LIBRARIES}
+)
+
 #############
 ## Install ##
 #############
