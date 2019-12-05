@@ -27,7 +27,8 @@
 #include <Eigen/Dense>
 #include <eigen_stl_containers/eigen_stl_containers.h>
 #include <geometry_msgs/PoseArray.h>
-
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
 #include "tool_path_planner_base.h"
 
 
@@ -75,6 +76,9 @@ namespace tool_path_planner
 	 * @return The rotation matrix
 	 */
 	Eigen::Matrix3d toRotationMatrix(const Eigen::Vector3d& vx, const Eigen::Vector3d& vy, const Eigen::Vector3d& vz);
+
+	bool createPoseArray(const pcl::PointCloud<pcl::PointNormal>& cloud_normals, const std::vector<int>& indices,
+	                     geometry_msgs::PoseArray& poses);
 
 }
 
