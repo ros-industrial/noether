@@ -3,12 +3,29 @@ filter_groups:
     continue_on_failure: False
     verbosity_on: True
     filters:
+    - type: noether_filtering/CleanData
+      name: clean_data_1
+      config: {}
     - type: noether_filtering/EuclideanClustering
-      name: clustering_1
+      name: clustering_filter_1
       config:
         tolerance: 0.006
         min_cluster_size: 3000
-        max_cluster_size: -1   # will use input point cloud size when negative    
+        max_cluster_size: -1   # will use input point cloud size when negative  
+    - type: noether_filtering/WindowedSincSmoothing
+      name: smoothing_1
+      config: 
+        num_iter: 100
+        enable_boundary_smoothing: true
+        enable_feature_edge_smoothing: false
+        enable_non_manifold_smoothing: true
+        enable_normalize_coordinates: true
+        feature_angle: 10.0
+        edge_angle: 150.0
+        pass_band: 0.01 
+    - type: noether_filtering/CleanData
+      name: clean_data_2
+      config: {}
   - group_name: DEFAULT
     continue_on_failure: False
     verbosity_on: True
