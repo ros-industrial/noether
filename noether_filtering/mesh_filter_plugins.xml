@@ -16,7 +16,17 @@
   <class name="noether_filtering/CleanData" type="noether_filtering::mesh::CleanData"
     base_class_type="noether_filtering::mesh::MeshFilterBase">
     <description>
-      Merges duplicate points, and/or remove unused points and/or remove degenerate cells
+      Merges duplicate points, and/or remove unused points and/or remove degenerate cells using VTK,
+      see https://vtk.org/doc/nightly/html/classvtkCleanPolyData.html#details for more details
+    </description>
+  </class>
+  
+    <class name="noether_filtering/WindowedSincSmoothing" type="noether_filtering::mesh::WindowedSincSmoothing"
+    base_class_type="noether_filtering::mesh::MeshFilterBase">
+    <description>
+      Adjust point positions using a windowed sinc function interpolation kernel using VTK see 
+      https://vtk.org/doc/nightly/html/classvtkWindowedSincPolyDataFilter.html#details for 
+      more details
     </description>
   </class>
 </library>
