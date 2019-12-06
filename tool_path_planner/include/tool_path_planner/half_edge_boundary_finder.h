@@ -31,14 +31,18 @@ namespace tool_path_planner
 {
 
 
+/**
+ * @class tool_path_planner::HalfEdgeBoundaryFinder
+ * @details Computes the edges of a mesh by extracting the mesh half edges, needs a mesh that does not have duplicate points
+ */
 class HalfEdgeBoundaryFinder
 {
 public:
 
   struct Config
   {
-    std::size_t min_num_points = 200;
-    double min_point_dist = 0.01;
+    std::size_t min_num_points = 200;   /**@brief only edge segments with more than this many points will be returned*/
+    double min_point_dist = 0.01;       /**@brief minimum distance for adjacent points, set to < 0 to turn off this constraint */
   };
 
   HalfEdgeBoundaryFinder();

@@ -96,6 +96,13 @@ target_link_libraries(edge_generator_server
   ${catkin_LIBRARIES}
 )
 
+add_executable(halfedge_boundary_finder_server
+  src/halfedge_boundary_finder_server.cpp
+)
+target_link_libraries(halfedge_boundary_finder_server 
+  ${catkin_LIBRARIES}
+)
+
 #############
 ## Install ##
 #############

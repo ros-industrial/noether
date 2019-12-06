@@ -1,12 +1,9 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="min_num_points" default="10"/>
-  <arg name="min_point_dist" default="0.02"/>
   <arg name="mesh_file" default="$(find noether_examples)/data/raw_mesh.ply"/>
   <node name="halfedge_finder_node" pkg="noether_examples" type="halfedge_finder_node" output="screen">
     <param name="mesh_file" value="$(arg mesh_file)"/>
-    <param name="min_num_points" value="$(arg min_num_points)"/>
-    <param name="min_point_dist" value="$(arg min_point_dist)"/>
   </node>
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find noether_examples)/config/halfedge_finder.rviz"/>  
+  <include file="$(find noether)/launch/halfedge_boundary_finder_server.launch"/>
 </launch>

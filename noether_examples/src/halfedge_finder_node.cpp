@@ -1,8 +1,22 @@
-/*
- * halfedge_finder_node.cpp
+/**
+ * @author Jorge Nicho <jrgnichodevel@gmail.com>
+ * @file halfedge_finder_node.cpp
+ * @date Dec 5, 2019
+ * @copyright Copyright (c) 2019, Southwest Research Institute
  *
- *  Created on: Dec 5, 2019
- *      Author: jrgnicho
+ * @par License
+ * Software License Agreement (Apache License)
+ * @par
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * @par
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #include <ros/ros.h>
@@ -10,25 +24,40 @@
 #include <boost/filesystem.hpp>
 #include <noether_conversions/noether_conversions.h>
 #include <visualization_msgs/MarkerArray.h>
-#include <tool_path_planner/half_edge_boundary_finder.h>
+#include <noether_msgs/GenerateEdgePathsAction.h>
+#include <actionlib/client/simple_action_client.h>
 #include <console_bridge/console.h>
 
 using RGBA = std::tuple<double,double,double,double>;
 
+static const double GOAL_WAIT_PERIOD = 300.0; //sec
+static const std::string GENERATE_EDGE_PATHS_ACTION = "generate_edge_paths";
 static const std::string DEFAULT_FRAME_ID = "world";
 static const std::string BOUNDARY_LINES_MARKERS_TOPIC ="boundary_lines";
 static const std::string BOUNDARY_POSES_MARKERS_TOPIC ="boundary_poses";
 static const std::string EDGE_PATH_NS = "edge_";
-static const std::string EDGE_PATH_LINE_NS = "edge_path_lines";
 static const std::string INPUT_MESH_NS = "input_mesh";
 static const RGBA RAW_MESH_RGBA = std::make_tuple(0.6, 0.6, 1.0, 1.0);
+
+std::size_t countPathPoints(const noether_msgs::ToolRasterPath& rasters)
+{
+  std::size_t point_count = 0;
+
+  for(const auto& p : rasters.paths)
+  {
+    point_count += p.poses.size();
+  }
+
+  return point_count;
+}
 
 class HalfEdgeFinder
 {
 public:
 
   HalfEdgeFinder(ros::NodeHandle nh):
-    nh_(nh)
+    nh_(nh),
+    ac_(GENERATE_EDGE_PATHS_ACTION)
   {
     boundary_lines_markers_pub_ = nh_.advertise<visualization_msgs::MarkerArray>(BOUNDARY_LINES_MARKERS_TOPIC,1);
     boundary_poses_markers_pub_ = nh_.advertise<visualization_msgs::MarkerArray>(BOUNDARY_POSES_MARKERS_TOPIC,1);
@@ -46,19 +75,10 @@ public:
     // loading parameters
     ros::NodeHandle ph("~");
     std::string mesh_file;
-    int min_num_points = 50;
-    double min_point_dist = 0.02;
     if(!ph.getParam("mesh_file",mesh_file))
     {
       ROS_ERROR("Failed to load one or more parameters");
       return false;
-    }
-
-    bool loaded_params = ph.param<int>("min_num_points",min_num_points,min_num_points) &&
-        ph.param<double>("min_point_dist",min_point_dist,min_point_dist);
-    if(!loaded_params)
-    {
-      ROS_WARN("One or more non-critical parameters were not loaded, using defaults");
     }
 
     markers_publish_timer_ = nh_.createTimer(ros::Duration(0.5),[&](const ros::TimerEvent& e){
@@ -81,26 +101,47 @@ public:
     }
     line_markers_.markers.push_back(createMeshMarker(mesh_file,INPUT_MESH_NS,DEFAULT_FRAME_ID,RAW_MESH_RGBA));
 
-    tool_path_planner::HalfEdgeBoundaryFinder edge_finder;
-    decltype(edge_finder)::Config config = {.min_num_points = min_num_points,
-                                            .min_point_dist = min_point_dist};
-    edge_finder.setInput(mesh_msg);
-    ROS_INFO("Computing edges");
-    boost::optional<std::vector<geometry_msgs::PoseArray>> res = edge_finder.generate(config);
-    const std::vector<geometry_msgs::PoseArray>& boundary_poses = res.get();
+    // waiting for server
+    if(!ac_.waitForServer(ros::Duration(5.0)))
+    {
+      ROS_ERROR("Action server %s was not found", GENERATE_EDGE_PATHS_ACTION.c_str());
+      return false;
+    }
+
+    // sending request
+    noether_msgs::GenerateEdgePathsGoal goal;
+    goal.proceed_on_failure = true;
+    goal.surface_meshes.push_back(mesh_msg);
+    ac_.sendGoal(goal);
+    ros::Time start_time = ros::Time::now();
+    if(!ac_.waitForResult(ros::Duration(GOAL_WAIT_PERIOD)))
+    {
+      ROS_ERROR("Failed to generate edges from mesh");
+      return false;
+    }
+
+    noether_msgs::GenerateEdgePathsResultConstPtr res = ac_.getResult();
+    if(!res->success)
+    {
+      ROS_ERROR("Failed to generate edges from mesh");
+      return false;
+    }
+
+    const auto& boundary_poses = res->edge_paths;
 
     ROS_INFO("Found %lu edges",boundary_poses.size());
 
     for(std::size_t i = 0; i < boundary_poses.size(); i++)
     {
-      ROS_INFO("Edge %lu contains %lu points",i, boundary_poses[i].poses.size());
+      ROS_INFO("Edge %lu contains %lu points",i, countPathPoints(boundary_poses[i]));
+
 
       std::string ns = EDGE_PATH_NS + std::to_string(i);
-      visualization_msgs::MarkerArray edge_path_axis_markers = convertToAxisMarkers({boundary_poses[i]},
+      visualization_msgs::MarkerArray edge_path_axis_markers = convertToAxisMarkers(boundary_poses[i],
                                                                                DEFAULT_FRAME_ID,
                                                                                ns);
 
-      visualization_msgs::MarkerArray edge_path_line_markers = convertToDottedLineMarker({boundary_poses[i]},
+      visualization_msgs::MarkerArray edge_path_line_markers = convertToDottedLineMarker(boundary_poses[i],
                                                                                DEFAULT_FRAME_ID,
                                                                                ns);
 
@@ -129,6 +170,7 @@ private:
   ros::Publisher boundary_poses_markers_pub_;
   visualization_msgs::MarkerArray line_markers_;
   visualization_msgs::MarkerArray poses_markers_;
+  actionlib::SimpleActionClient<noether_msgs::GenerateEdgePathsAction> ac_;
 
 
 
