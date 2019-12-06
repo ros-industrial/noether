@@ -41,8 +41,12 @@ public:
 
   struct Config
   {
-    std::size_t min_num_points = 200;   /**@brief only edge segments with more than this many points will be returned*/
-    double min_point_dist = 0.01;       /**@brief minimum distance for adjacent points, set to < 0 to turn off this constraint */
+    std::size_t min_num_points = 200;     /**@brief only edge segments with more than this many points will be returned*/
+    double min_point_dist = 0.01;         /**@brief minimum distance for adjacent points, set to < 0 to turn off this constraint */
+    bool normal_averaging = true;         /**@brief True in order set the normal of each point as the average of the normal vectors
+                                                  of the points within a specified radius*/
+    double normal_search_radius = 0.02;   /**@brief The search radius used for normal averaging */
+    double normal_influence_weight = 0.5; /**@brief A value [0, 1] that influences the normal averaged based on its distance, set to 0 to disable */
   };
 
   HalfEdgeBoundaryFinder();

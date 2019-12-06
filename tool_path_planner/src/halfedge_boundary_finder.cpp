@@ -132,6 +132,58 @@ bool decimate(const pcl::PointCloud<pcl::PointNormal>& in, pcl::PointCloud<pcl::
    return out.size() > 2;
 }
 
+void averageNormals(pcl::PointCloud<pcl::PointNormal>::ConstPtr src, pcl::PointCloud<pcl::PointXYZ>::ConstPtr src_xyz,
+                    pcl::PointCloud<pcl::PointNormal>& subset, double radius, double weight)
+{
+  using namespace pcl;
+  pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
+  kdtree.setInputCloud(src_xyz);
+  kdtree.setEpsilon(1e-3);
+  weight = std::abs(weight) > 1.0 ? 1.0 : std::abs(weight);
+  double r_2 = pow(radius, 2);
+  for(auto& p : subset)
+  {
+    std::vector<int> nearest_idx;
+    std::vector<float> nearest_dist_sqr;
+    PointXYZ pxyz;
+    pxyz.getVector3fMap() = p.getVector3fMap();
+    kdtree.radiusSearch(pxyz,radius,nearest_idx, nearest_dist_sqr);
+
+    // adding normals
+    std::size_t i = 0;
+    Eigen::Vector3f average_normal = std::accumulate(nearest_idx.begin(), nearest_idx.end(),p.getNormalVector3fMap(),
+                                                     [&i,
+                                                      &src,
+                                                      &nearest_dist_sqr,
+                                                      &weight,
+                                                      &r = radius,
+                                                      &r_2 ](Eigen::Vector3f n, int idx) -> Eigen::Vector3f{
+
+      if(idx > src->size())
+      {
+        return n;
+      }
+
+      double d_2 = nearest_dist_sqr[i++];
+      double f;
+      if(d_2 < 0.0 || d_2 > r_2)
+      {
+        f = 0.0;
+      }
+      else
+      {
+        f = (r - weight * std::sqrt( d_2 ))/ r;
+      }
+
+      Eigen::Vector3f v = (*src)[idx].getNormalVector3fMap();
+      v *= (f > 0 ? f : 0);
+
+      return n +  v;
+    });
+    p.getNormalVector3fMap() = average_normal.normalized();
+  }
+}
+
 namespace tool_path_planner
 {
 HalfEdgeBoundaryFinder::HalfEdgeBoundaryFinder()
@@ -217,6 +269,7 @@ HalfEdgeBoundaryFinder::generate(const tool_path_planner::HalfEdgeBoundaryFinder
       bound_segment_points.push_back((*input_cloud)[source_idx]);
     }
 
+    // decimating
     if(config.min_point_dist >  1e-6 )
     {
 
@@ -227,6 +280,17 @@ HalfEdgeBoundaryFinder::generate(const tool_path_planner::HalfEdgeBoundaryFinder
         continue;
       }
       bound_segment_points = std::move(decimated_points);
+    }
+
+    if(bound_segment_points.size() < config.min_num_points)
+    {
+      continue;
+    }
+
+    // average normals
+    if(config.normal_averaging)
+    {
+      averageNormals(input_cloud, input_points, bound_segment_points,config.normal_search_radius, config.normal_influence_weight);
     }
 
     if(!createPoseArray(bound_segment_points,{},bound_segment_poses))

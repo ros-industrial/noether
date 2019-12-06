@@ -1,2 +1,5 @@
 min_num_points: 50
 min_point_dist: 0.02
+normal_averaging: True
+normal_search_radius: 0.1
+normal_influence_weight: 1.0

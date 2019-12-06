@@ -76,6 +76,9 @@ protected:
     {
       config_.min_num_points = static_cast<int>(config["min_num_points"]);
       config_.min_point_dist = static_cast<double>(config["min_point_dist"]);
+      config_.normal_averaging = static_cast<bool>(config["normal_averaging"]);
+      config_.normal_search_radius = static_cast<double>(config["normal_search_radius"]);
+      config_.normal_influence_weight = static_cast<double>(config["normal_influence_weight"]);
     }
     catch(XmlRpcException& e)
     {
