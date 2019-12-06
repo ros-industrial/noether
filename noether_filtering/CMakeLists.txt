@@ -63,6 +63,7 @@ if(${BUILD_MESH_PLUGINS})
   add_library(${PROJECT_NAME}_mesh_filters SHARED
     src/mesh/bspline_reconstruction.cpp
     src/mesh/euclidean_clustering.cpp
+    src/mesh/clean_data.cpp
   )
   target_link_libraries(${PROJECT_NAME}_mesh_filters PUBLIC ${PROJECT_NAME})
   target_include_directories(${PROJECT_NAME}_mesh_filters PUBLIC
