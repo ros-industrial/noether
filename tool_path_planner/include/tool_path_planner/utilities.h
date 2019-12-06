@@ -77,6 +77,16 @@ namespace tool_path_planner
 	 */
 	Eigen::Matrix3d toRotationMatrix(const Eigen::Vector3d& vx, const Eigen::Vector3d& vy, const Eigen::Vector3d& vz);
 
+	/**
+	 * @details Creates an array of poses from the point cloud with normals
+	 * It treats the point cloud as a set of consecutive points and so the x direction is along the line that
+	 * connects the current point to the next in the sequence .  The y vector is obtained from the cross product
+	 *  of the point normal and the x direction.
+	 * @param cloud_normals The points with normals
+	 * @param indices       Selects only these points, if left empty all points are used.
+	 * @poses               The output pose array
+	 * @return  True on success, false otherwise.
+	 */
 	bool createPoseArray(const pcl::PointCloud<pcl::PointNormal>& cloud_normals, const std::vector<int>& indices,
 	                     geometry_msgs::PoseArray& poses);
 

@@ -72,6 +72,24 @@ public:
    */
   boost::optional< std::vector<geometry_msgs::PoseArray> > generate(const HalfEdgeBoundaryFinder::Config& config);
 
+  /**
+   * @brief Generate the edge poses that follow the contour of the mesh
+   * @param mesh  The input mesh from which edges will be generated
+   * @param config The configuration
+   * @return  An array of edge poses or boost::none when it fails.
+   */
+  boost::optional< std::vector<geometry_msgs::PoseArray> > generate(const shape_msgs::Mesh& mesh,
+                                                                    const HalfEdgeBoundaryFinder::Config& config);
+
+  /**
+   * @brief Generate the edge poses that follow the contour of the mesh
+   * @param mesh  The input mesh from which edges will be generated
+   * @param config The configuration
+   * @return  An array of edge poses or boost::none when it fails.
+   */
+  boost::optional< std::vector<geometry_msgs::PoseArray> > generate(pcl::PolygonMesh::ConstPtr mesh,
+                                                                    const HalfEdgeBoundaryFinder::Config& config);
+
 protected:
   pcl::PolygonMesh::ConstPtr mesh_;
 };

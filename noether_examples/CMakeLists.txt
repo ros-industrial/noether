@@ -101,7 +101,7 @@ target_link_libraries(halfedge_finder_node
 #############
 ## Install ##
 #############
-install(TARGETS mesh_segmenter_client_node mesh_segmenter_node edge_generator_client
+install(TARGETS mesh_segmenter_client_node mesh_segmenter_node edge_generator_client halfedge_finder_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

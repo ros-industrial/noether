@@ -31,6 +31,7 @@
 #include <tool_path_planner/half_edge_boundary_finder.h>
 #include <tool_path_planner/utilities.h>
 
+static const double MIN_POINT_DIST_ALLOWED = 1e-8;
 
 using MeshTraits = pcl::geometry::DefaultMeshTraits<std::size_t>;
 typedef pcl::geometry::TriangleMesh< MeshTraits > TraingleMesh;
@@ -41,9 +42,9 @@ boost::optional<TraingleMesh> createTriangleMesh(const pcl::PolygonMesh& input_m
   TraingleMesh mesh;
   typedef boost::bimap<uint32_t, TraingleMesh::VertexIndex> MeshIndexMap;
   MeshIndexMap mesh_index_map;
-  for (size_t ii = 0; ii < input_mesh.polygons.size(); ++ii)
+  for(const pcl::Vertices& plg : input_mesh.polygons)
   {
-    const std::vector<uint32_t>& vertices = input_mesh.polygons.at(ii).vertices;
+    const std::vector<uint32_t>& vertices = plg.vertices;
     if (vertices.size() != 3)
     {
       ss.str("");
@@ -113,6 +114,13 @@ void getBoundBoundaryHalfEdges(const MeshT& mesh,
   }
 }
 
+/**
+ * @brief decimates the point cloud by enforcing a minimum distance between adjacent points
+ * @param in              The imput cloud
+ * @param out             The decimated cloud
+ * @param min_point_dist  The minimum distance between adjacent points
+ * @return  True on succes, False when resulting cloud has less than 2 points.
+ */
 bool decimate(const pcl::PointCloud<pcl::PointNormal>& in, pcl::PointCloud<pcl::PointNormal>& out, double min_point_dist)
 {
    out.clear();
@@ -132,6 +140,14 @@ bool decimate(const pcl::PointCloud<pcl::PointNormal>& in, pcl::PointCloud<pcl::
    return out.size() > 2;
 }
 
+/**
+ * @brief improves the normals by computing the average of the normals of the neighboring points
+ * @param src     The source point cloud with point normals
+ * @param src_xyz The same point cloud with just the points, passing it this way avoids making unnecessary copies
+ * @param subset  The point cloud with normals that are to be improved
+ * @param radius  The neighborhood search radius used by kdtree
+ * @param weight  More distant points will have less influence on the final average value, set to 0 in order to disable weighting
+ */
 void averageNormals(pcl::PointCloud<pcl::PointNormal>::ConstPtr src, pcl::PointCloud<pcl::PointXYZ>::ConstPtr src_xyz,
                     pcl::PointCloud<pcl::PointNormal>& subset, double radius, double weight)
 {
@@ -235,13 +251,11 @@ HalfEdgeBoundaryFinder::generate(const tool_path_planner::HalfEdgeBoundaryFinder
   noether_conversions::convertToPointNormals(*mesh_, *input_cloud);
   pcl::copyPointCloud(*input_cloud, *input_points );
 
-
   pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
   kdtree.setInputCloud (input_points);
 
   // traversing half edges list
   std::vector<geometry_msgs::PoseArray> boundary_poses;
-
 
   for (std::vector<TraingleMesh::HalfEdgeIndices>::const_iterator boundary = boundary_he_indices.begin(),
                                                                   b_end = boundary_he_indices.end();
@@ -270,9 +284,8 @@ HalfEdgeBoundaryFinder::generate(const tool_path_planner::HalfEdgeBoundaryFinder
     }
 
     // decimating
-    if(config.min_point_dist >  1e-6 )
+    if( config.min_point_dist > MIN_POINT_DIST_ALLOWED )
     {
-
       decltype(bound_segment_points) decimated_points;
       if(!decimate(bound_segment_points, decimated_points, config.min_point_dist))
       {
@@ -324,4 +337,19 @@ HalfEdgeBoundaryFinder::generate(const tool_path_planner::HalfEdgeBoundaryFinder
   return boundary_poses;
 }
 
+boost::optional<std::vector<geometry_msgs::PoseArray>>
+HalfEdgeBoundaryFinder::generate(const shape_msgs::Mesh& mesh, const HalfEdgeBoundaryFinder::Config& config)
+{
+  setInput(mesh);
+  return generate(config);
+}
+
+boost::optional<std::vector<geometry_msgs::PoseArray>>
+HalfEdgeBoundaryFinder::generate(pcl::PolygonMesh::ConstPtr mesh, const HalfEdgeBoundaryFinder::Config& config)
+{
+  setInput(mesh);
+  return generate(config);
+}
+
 } /* namespace tool_path_planner */
+

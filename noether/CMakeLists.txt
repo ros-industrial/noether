@@ -106,7 +106,9 @@ target_link_libraries(halfedge_boundary_finder_server
 #############
 ## Install ##
 #############
-install(TARGETS segmentation_server surface_raster_planner_application surface_raster_planner_server mesh_filter_server edge_generator_server
+install(TARGETS segmentation_server surface_raster_planner_application 
+  surface_raster_planner_server mesh_filter_server edge_generator_server
+  halfedge_boundary_finder_server
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

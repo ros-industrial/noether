@@ -38,6 +38,7 @@ static const std::string BOUNDARY_POSES_MARKERS_TOPIC ="boundary_poses";
 static const std::string EDGE_PATH_NS = "edge_";
 static const std::string INPUT_MESH_NS = "input_mesh";
 static const RGBA RAW_MESH_RGBA = std::make_tuple(0.6, 0.6, 1.0, 1.0);
+static const std::size_t MAX_MARKERS_ON_DISPLAY = 500;
 
 std::size_t countPathPoints(const noether_msgs::ToolRasterPath& rasters)
 {
@@ -135,7 +136,6 @@ public:
     {
       ROS_INFO("Edge %lu contains %lu points",i, countPathPoints(boundary_poses[i]));
 
-
       std::string ns = EDGE_PATH_NS + std::to_string(i);
       visualization_msgs::MarkerArray edge_path_axis_markers = convertToAxisMarkers(boundary_poses[i],
                                                                                DEFAULT_FRAME_ID,
@@ -145,13 +145,15 @@ public:
                                                                                DEFAULT_FRAME_ID,
                                                                                ns);
 
-      if(poses_markers_.markers.size() > 500)
+      if(poses_markers_.markers.size() > MAX_MARKERS_ON_DISPLAY)
       {
+        // prevents buffer overruns
         poses_markers_.markers.clear();
       }
 
-      if(line_markers_.markers.size() > 500)
+      if(line_markers_.markers.size() > MAX_MARKERS_ON_DISPLAY) // prevents buffer overruns
       {
+        // prevents buffer overruns
         line_markers_.markers.clear();
       }
 
