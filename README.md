@@ -16,6 +16,12 @@ This package depends on PCL 1.9.1 and VTK 7.1.
 - **checkinstall**
     - `sudo apt install checkinstall`
 
+#### Useful Information
+- **number of available threads / CPU cores**
+    - This is useful for accelerating building of the required libraries, but is not required.  If you know this number, great!  If not, you can use one of these commands:
+    - `htop` - You can count the number of threads displayed at the top.
+    - `lscpu` - Outputs a number of CPUs, or you can multiply `Thread(s) per core:` * `Core(s) per socket:` * `Socket(s)` to get the available threads
+
 #### Dependencies Installation
 ##### 1. VTK
 1. Download [VTK 7.1](https://github.com/Kitware/VTK/archive/v7.1.1.tar.gz)
@@ -31,6 +37,11 @@ This package depends on PCL 1.9.1 and VTK 7.1.
     make
     ```
     _This will take a while ..._
+
+    If you know the number of threads available, you can specify to use more of them.  Leaving one or two open should allow you to continue using your computer.  For example, if you have 8 threads available, you could do the following to speed up build time:
+    ```
+    make --jobs=6
+    ```
 2. Install 
     ```
     sudo checkinstall --pkgname=vtk-7.1
@@ -44,7 +55,7 @@ This package depends on PCL 1.9.1 and VTK 7.1.
 2. Unzip or extract into a user accessible directory
 3. `cd` into that directory and locate the `CMakeLists.txt` file.
 4. Locate the `find package(VTK)` line (close to line 362) and edit it to `find_package(VTK 7.1 REQUIRED)`
-5. Configure
+5. Configure the build using the ccmake gui
     ```
     mkdir build
     cd build
@@ -53,9 +64,14 @@ This package depends on PCL 1.9.1 and VTK 7.1.
     Then locate the `BUILD_surface_on_nurbs` flag and set it to `ON`
 6. Build
     ```
-    make --jobs=4
+    make
     ```
     _Wait until the build finishes, it may take a couple of hours ..._
+
+    If you know the number of threads available, you can specify to use more of them.  Leaving one or two open should allow you to continue using your computer.  For example, if you have 8 threads available, you could do the following to speed up build time:
+    ```
+    make --jobs=6
+    ```
 1. Install 
     ```
     sudo checkinstall --pkgname=pcl-1.9.1
@@ -72,7 +88,7 @@ This package depends on PCL 1.9.1 and VTK 7.1.
   catkin build noether
   ```
   
-  _Note: You can just run catkin build in order to build everything in your workspace including the noether packages_
+  _Note: You can just run `catkin build` in order to build everything in your workspace, including the noether packages_
 
 ## Run Unit Tests
 - Run the unit tests for a package:
