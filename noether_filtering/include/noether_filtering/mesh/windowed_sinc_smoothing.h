@@ -31,7 +31,7 @@ public:
     bool enable_normalize_coordinates = true;    /**@brief Set to true to enable */
     double feature_angle = 10.0;          /**@brief degrees, only applicable when feature_edge_smoothing = true */
     double edge_angle = 150.0;            /**@brief degrees, only applicable when feature_edge_smoothing = true */
-    double pass_band = 0.01;
+    double pass_band = 0.01;              /**@brief PassBand for the windowed sinc filter, see explanation in reference link */
 
   };
 
@@ -55,8 +55,18 @@ public:
    */
   bool configure(XmlRpc::XmlRpcValue config) override final;
 
+  /**
+   * @brief applies the filtering method
+   * @param mesh_in   Input mesh
+   * @param mesh_out  Output mesh
+   * @return True on success, false otherwise
+   */
   bool filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMesh& mesh_out) override final;
 
+  /**
+   * @brief returns the type name of the filter
+   * @return  A string containing the filter type name
+   */
   std::string getName() const override final;
 
 private:

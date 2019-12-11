@@ -95,7 +95,6 @@ bool WindowedSincSmoothing::filter(const pcl::PolygonMesh& mesh_in, pcl::Polygon
   smoother->SetNonManifoldSmoothing(config_.enable_non_manifold_smoothing);
   smoother->SetNormalizeCoordinates(config_.enable_normalize_coordinates);
   smoother->Update();
-  smoother->PrintSelf(std::cout,vtkIndent(1));
 
   mesh_data = smoother->GetOutput();
   VTKUtils::vtk2mesh(mesh_data,mesh_out);
