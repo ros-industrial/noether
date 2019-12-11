@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="halfedge_boundary_finder_server" type="halfedge_boundary_finder_server" pkg="noether" output="screen">
+    <rosparam command="load" ns="halfedge_boundary_config" file="$(find noether)/config/halfedge_boundary_finder.yaml"/>
+  </node>
+
+</launch>

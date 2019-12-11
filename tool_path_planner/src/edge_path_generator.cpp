@@ -195,58 +195,6 @@ bool reorder(const tool_path_planner::EdgePathConfig& config,
   return true;
 }
 
-bool createPoseArray(const pcl::PointCloud<pcl::PointNormal>& cloud_normals, const std::vector<int>& indices, geometry_msgs::PoseArray& poses)
-{
-  using namespace pcl;
-  using namespace Eigen;
-
-  geometry_msgs::Pose pose_msg;
-  Isometry3d pose;
-  Vector3d x_dir, z_dir, y_dir;
-  std::vector<int> cloud_indices;
-  if(indices.empty())
-  {
-    cloud_indices.resize(cloud_normals.size());
-    std::iota(cloud_indices.begin(), cloud_indices.end(), 0);
-  }
-  else
-  {
-    cloud_indices.assign(indices.begin(), indices.end());
-  }
-
-  for(std::size_t i = 0; i < cloud_indices.size() - 1; i++)
-  {
-    std::size_t idx_current = cloud_indices[i];
-    std::size_t idx_next = cloud_indices[i+1];
-    if(idx_current >= cloud_normals.size() || idx_next >= cloud_normals.size())
-    {
-      CONSOLE_BRIDGE_logError("Invalid indices (current: %lu, next: %lu) for point cloud were passed",
-                              idx_current, idx_next);
-      return false;
-    }
-    const PointNormal& p1 = cloud_normals[idx_current];
-    const PointNormal& p2 = cloud_normals[idx_next];
-    x_dir = (p2.getVector3fMap() - p1.getVector3fMap()).normalized().cast<double>();
-    z_dir = Vector3d(p1.normal_x, p1.normal_y, p1.normal_z).normalized();
-    y_dir = z_dir.cross(x_dir).normalized();
-
-    pose = Translation3d(p1.getVector3fMap().cast<double>());
-    pose.matrix().block<3,3>(0,0) = tool_path_planner::toRotationMatrix(x_dir, y_dir, z_dir);
-    tf::poseEigenToMsg(pose,pose_msg);
-
-    poses.poses.push_back(pose_msg);
-  }
-
-  // last pose
-  pose_msg = poses.poses.back();
-  pose_msg.position.x = cloud_normals[cloud_indices.back()].x;
-  pose_msg.position.y = cloud_normals[cloud_indices.back()].y;
-  pose_msg.position.z = cloud_normals[cloud_indices.back()].z;
-  poses.poses.push_back(pose_msg);
-
-  return true;
-}
-
 namespace tool_path_planner
 {
 EdgePathGenerator::EdgePathGenerator()

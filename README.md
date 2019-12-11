@@ -109,6 +109,24 @@ The mesh filtering demo applies a bspline smoothing algorithm to a noisy mesh, r
 roslaunch noether_examples mesh_filtering_demo.launch
 ```
 
-Currently the only plugin available is the `noether_filtering/BSplineReconstruction`, however custom mesh filter plugins can be added by inheriting from the `noether_filtering::mesh::MeshBaseFilter` class.
+- Filter your own *ply* mesh file
+```
+roslaunch noether_examples mesh_filtering_demo.launch mesh_file:=/path/to/my/mesh.ply
+```
+
+Currently the only plugins available are `noether_filtering/BSplineReconstruction` and `noether_filtering/EuclideanClustering`,  
+ however custom mesh filter plugins can be added by inheriting from the `noether_filtering::mesh::MeshBaseFilter` class.
+
+### Generate Edge Paths Demo
+Runs an algorithm that identifies all the half edges that constiture the boundary
+- On a dummy *ply* mesh file
+```
+roslaunch noether_examples halfedge_finder_demo.launch
+```
+
+- On your own *ply* mesh file
+```
+roslaunch noether_examples halfedge_finder_demo.launch mesh_file:=/path/to/my/mesh.ply
+```
 
 
