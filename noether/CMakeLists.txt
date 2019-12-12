@@ -40,6 +40,7 @@ catkin_package(
   INCLUDE_DIRS
     include
   LIBRARIES
+    mesh_segmenter
   CATKIN_DEPENDS
     actionlib
     mesh_segmenter
@@ -60,6 +61,7 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 add_executable(surface_raster_planner_server
   src/surface_raster_planner_server.cpp
 )
+
 target_link_libraries(surface_raster_planner_server
   ${catkin_LIBRARIES}
   ${VTK_LIBRARIES}
@@ -77,6 +79,16 @@ add_executable(segmentation_server
   src/segmentation_server.cpp
 )
 target_link_libraries(segmentation_server
+  ${catkin_LIBRARIES}
+  ${VTK_LIBRARIES}
+)
+#There needs to be a better pathing to the library
+add_executable(convex_hull_node
+              src/convex_hull_node.cpp
+              ../mesh_segmenter/src/convex_hull.cpp
+)
+
+target_link_libraries(convex_hull_node  
   ${catkin_LIBRARIES}
   ${VTK_LIBRARIES}
 )
@@ -108,7 +120,7 @@ target_link_libraries(halfedge_boundary_finder_server
 #############
 install(TARGETS segmentation_server surface_raster_planner_application 
   surface_raster_planner_server mesh_filter_server edge_generator_server
-  halfedge_boundary_finder_server
+  halfedge_boundary_finder_server convex_hull_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
