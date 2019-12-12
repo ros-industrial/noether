@@ -2,16 +2,16 @@
 
 ConvexHullGenerator::ConvexHullGenerator(){}  
 
-void ConvexHullGenerator::makeMesh(const std::string& input, pcl::PointCloud<pcl::PointXYZ>& inMesh)
+void ConvexHullGenerator::MakeMesh(const std::string& input, pcl::PointCloud<pcl::PointXYZ>& inMesh)
 {
   //expects a .ply file
-  pcl::PLYReader Reader;
-  Reader.read(input, inMesh); //populate inMesh
+  pcl::PLYReader reader_;
+  reader_.read(input, inMesh); //populate inMesh
   return;
 }
 
 
-void ConvexHullGenerator::cleanMesh(const pcl::PointCloud<pcl::PointXYZ>& outMesh, pcl::PolygonMesh& outMeshPoly)
+void ConvexHullGenerator::CleanMesh(const pcl::PointCloud<pcl::PointXYZ>& outMesh, pcl::PolygonMesh& outMeshPoly)
 {
   //find centroid coords by finding average x, y, z 
 
@@ -20,7 +20,7 @@ void ConvexHullGenerator::cleanMesh(const pcl::PointCloud<pcl::PointXYZ>& outMes
   Eigen::Vector3d midVec= {mid[0], mid[1], mid[2]};
 
   //invert bad polygons --------------------------------
-  for (int t=0; t < (outMeshPoly.polygons.size()); t++)
+  for (int t=0; t < outMeshPoly.polygons.size(); t++)
   {
     pcl::Vertices verts;
     verts = outMeshPoly.polygons[t];
@@ -37,9 +37,9 @@ void ConvexHullGenerator::cleanMesh(const pcl::PointCloud<pcl::PointXYZ>& outMes
     Eigen::Vector3d v2 = p2 - p0;
     Eigen::Vector3d d = p0 - midVec;
     Eigen::Vector3d normal = v1.cross(v2);
-    float works = d.dot(normal);
+    float angle_threshold = d.dot(normal);
 
-    if (works < 0)
+    if (angle_threshold < 0)
     {
       int temp;
       temp = verts.vertices[1];
@@ -52,14 +52,14 @@ void ConvexHullGenerator::cleanMesh(const pcl::PointCloud<pcl::PointXYZ>& outMes
   return;
 }
 
-bool ConvexHullGenerator::saveMesh(const pcl::PointCloud<pcl::PointXYZ>& outMesh, pcl::PolygonMesh& outMeshPoly, const std::string& outfile)
+bool ConvexHullGenerator::SaveMesh(const pcl::PointCloud<pcl::PointXYZ>& outMesh, pcl::PolygonMesh& outMeshPoly, const std::string& outfile)
 {
   pcl::toPCLPointCloud2(outMesh, outMeshPoly.cloud);
   pcl::io::savePolygonFile("/tmp/mesh.stl", outMeshPoly, false);
   return true;
 }
 
-bool ConvexHullGenerator::generateCH(const std::string& infile, const std::string& outfile)
+bool ConvexHullGenerator::GenerateCH(const std::string& infile, const std::string& outfile)
 {
 
     pcl::PointCloud<pcl::PointXYZ> inMesh;
@@ -67,13 +67,13 @@ bool ConvexHullGenerator::generateCH(const std::string& infile, const std::strin
     pcl::PolygonMesh outMeshPoly;
     pcl::ConvexHull<pcl::PointXYZ> chull;
 
-    ConvexHullGenerator::makeMesh(infile, inMesh);
+    ConvexHullGenerator::MakeMesh(infile, inMesh);
 
     chull.setInputCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr (new pcl::PointCloud<pcl::PointXYZ> (inMesh))); //generate hull
     chull.reconstruct(outMesh, outMeshPoly.polygons); //save to outMesh
 
-    ConvexHullGenerator::cleanMesh(outMesh, outMeshPoly);
-    bool success = ConvexHullGenerator::saveMesh(outMesh, outMeshPoly, outfile);
+    ConvexHullGenerator::CleanMesh(outMesh, outMeshPoly);
+    bool success = ConvexHullGenerator::SaveMesh(outMesh, outMeshPoly, outfile);
 
   return success;
 }
