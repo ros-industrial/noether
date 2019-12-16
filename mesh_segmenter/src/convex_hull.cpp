@@ -2,12 +2,16 @@
 
 ConvexHullGenerator::ConvexHullGenerator(){}  
 
-void ConvexHullGenerator::MakeMesh(const std::string& input, pcl::PointCloud<pcl::PointXYZ>& inMesh)
+bool ConvexHullGenerator::MakeMesh(const std::string& input, pcl::PointCloud<pcl::PointXYZ>& inMesh)
 {
   //expects a .ply file
   pcl::PLYReader reader_;
-  reader_.read(input, inMesh); //populate inMesh
-  return;
+  if !(reader_.read(input, inMesh)) //populate inMesh
+  {
+    fprintf("failed to read file");
+    return false;
+  }
+  return true;
 }
 
 
@@ -17,6 +21,12 @@ void ConvexHullGenerator::CleanMesh(const pcl::PointCloud<pcl::PointXYZ>& outMes
 
   Eigen::Matrix< float, 4, 1 > mid;
   int centroid_success = pcl::compute3DCentroid(outMesh, mid);
+  if (centroid_success == 0)
+  {
+    fprintf('Input cloud invalid');
+    return;
+  }
+
   Eigen::Vector3d midVec= {mid[0], mid[1], mid[2]};
 
   //invert bad polygons --------------------------------
@@ -55,11 +65,12 @@ void ConvexHullGenerator::CleanMesh(const pcl::PointCloud<pcl::PointXYZ>& outMes
 bool ConvexHullGenerator::SaveMesh(const pcl::PointCloud<pcl::PointXYZ>& outMesh, pcl::PolygonMesh& outMeshPoly, const std::string& outfile)
 {
   pcl::toPCLPointCloud2(outMesh, outMeshPoly.cloud);
-  pcl::io::savePolygonFile("/tmp/mesh.stl", outMeshPoly, false);
+  pcl::io::savePolygonFile(outfile, outMeshPoly, false);
+  fprintf("Convex hill written to %s", outfile);
   return true;
 }
 
-bool ConvexHullGenerator::GenerateCH(const std::string& infile, const std::string& outfile)
+bool ConvexHullGenerator::Generate(const std::string& infile, const std::string& outfile)
 {
 
     pcl::PointCloud<pcl::PointXYZ> inMesh;
@@ -67,7 +78,11 @@ bool ConvexHullGenerator::GenerateCH(const std::string& infile, const std::strin
     pcl::PolygonMesh outMeshPoly;
     pcl::ConvexHull<pcl::PointXYZ> chull;
 
-    ConvexHullGenerator::MakeMesh(infile, inMesh);
+    if (ConvexHullGenerator::MakeMesh(infile, inMesh) == false)
+    {
+      fprinf("File read failed. Aborting");
+      return false;
+    }
 
     chull.setInputCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr (new pcl::PointCloud<pcl::PointXYZ> (inMesh))); //generate hull
     chull.reconstruct(outMesh, outMeshPoly.polygons); //save to outMesh

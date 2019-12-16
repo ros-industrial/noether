@@ -8,14 +8,14 @@ bool executeCB(noether_msgs::GenerateConvexHull::Request& req, noether_msgs::Gen
 
      //step 1: Read in file
      std::string inMeshFileName = req.file_in; //expects a path to file
-     std::string modifier = "_chullt.ply";
+     std::string modifier = "_chull.ply";
      std::string outMeshFileName = inMeshFileName.substr(0, inMeshFileName.size()-4);
      outMeshFileName.append(modifier);
 
      //step 2: Call library
      bool success = ch_gen.generateCH(inMeshFileName,outMeshFileName);
 
-  	 return true;
+     return true;
   }
 
 int main(int argc, char **argv)
