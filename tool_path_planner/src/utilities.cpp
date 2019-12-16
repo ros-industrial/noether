@@ -10,6 +10,7 @@
 
 #include <limits>
 #include <cmath>
+#include <numeric>
 
 #include <Eigen/Core>
 #include <eigen_conversions/eigen_msg.h>
