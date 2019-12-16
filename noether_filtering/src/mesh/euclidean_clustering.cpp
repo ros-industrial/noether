@@ -94,7 +94,11 @@ bool EuclideanClustering::filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMe
     CONSOLE_BRIDGE_logError("%s found no clusters", getName().c_str());
     return false;
   }
+
   CONSOLE_BRIDGE_logInform("%s found %lu clusters",getName().c_str(),cluster_indices.size());
+  std::for_each(cluster_indices.begin(),cluster_indices.end(),[idx = 0](decltype(cluster_indices)::value_type& c) mutable{
+    CONSOLE_BRIDGE_logInform("\t cluster[%i] -> %lu points ",idx++,c.indices.size());
+  });
 
 
   // accumulate all cluster indices into one
