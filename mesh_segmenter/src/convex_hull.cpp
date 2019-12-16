@@ -8,7 +8,7 @@ bool ConvexHullGenerator::MakeMesh(const std::string& input, pcl::PointCloud<pcl
   pcl::PLYReader reader_;
   if !(reader_.read(input, inMesh)) //populate inMesh
   {
-    fprintf("failed to read file");
+    printf("failed to read file");
     return false;
   }
   return true;
@@ -23,7 +23,7 @@ void ConvexHullGenerator::CleanMesh(const pcl::PointCloud<pcl::PointXYZ>& outMes
   int centroid_success = pcl::compute3DCentroid(outMesh, mid);
   if (centroid_success == 0)
   {
-    fprintf('Input cloud invalid');
+    printf('Input cloud invalid');
     return;
   }
 
@@ -66,7 +66,7 @@ bool ConvexHullGenerator::SaveMesh(const pcl::PointCloud<pcl::PointXYZ>& outMesh
 {
   pcl::toPCLPointCloud2(outMesh, outMeshPoly.cloud);
   pcl::io::savePolygonFile(outfile, outMeshPoly, false);
-  fprintf("Convex hill written to %s", outfile);
+  printf("Convex hill written to %s", outfile);
   return true;
 }
 
@@ -80,7 +80,7 @@ bool ConvexHullGenerator::Generate(const std::string& infile, const std::string&
 
     if (ConvexHullGenerator::MakeMesh(infile, inMesh) == false)
     {
-      fprinf("File read failed. Aborting");
+      printf("File read failed. Aborting");
       return false;
     }
 
