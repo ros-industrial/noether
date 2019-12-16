@@ -10,7 +10,7 @@ filter_groups:
       name: clustering_filter_1
       config:
         tolerance: 0.006
-        min_cluster_size: 200
+        min_cluster_size: 1000
         max_cluster_size: -1   # will use input point cloud size when negative 
     - type: noether_filtering/FillHoles
       name: fill_holes

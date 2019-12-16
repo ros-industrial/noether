@@ -1,5 +1,5 @@
 <launch>
-  <arg name="filename"/>
+  <arg name="filename" default="$(find noether_examples)/data/raw_mesh.ply"/>
   <arg name="tool" default="$(find noether)/config/tool.yaml"/>
 
   <node name="surface_raster_planner_demo" type="surface_raster_planner_application" pkg="noether" output="screen" required="true">
