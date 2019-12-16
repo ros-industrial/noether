@@ -182,7 +182,7 @@ bool applyEqualDistance(const pcl::PointCloud<pcl::PointNormal>& in, pcl::PointC
     v_2 = p_end.getVector3fMap() - p_mid.getVector3fMap();
     if(dist < (v_1 + v_2).norm())
     {
-      // solve for x such that " x^2 + 2 * x * dot(v_1, unitv_2) + norm(v_1)^2 - d^2 "
+      // solve for x such that " x^2 + 2 * x * dot(v_1, unitv_2) + norm(v_1)^2 - d^2 = 0"
       unitv_2 = v_2.normalized();
       double b = 2 * v_1.dot(unitv_2);
       double c = std::pow(v_1.norm(),2) - std::pow(dist,2);
@@ -518,7 +518,6 @@ HalfEdgeBoundaryFinder::generate(const tool_path_planner::HalfEdgeBoundaryFinder
                                bound_segment_points.size(), decimated_points.size());
       bound_segment_points = std::move(decimated_points);
     }
-
 
     if(bound_segment_points.size() < config.min_num_points)
     {
