@@ -1,5 +1,5 @@
 filter_groups:
-  - group_name: Simplification
+  - group_name: DEFAULT
     continue_on_failure: False
     verbosity_on: True
     filters:
@@ -10,8 +10,12 @@ filter_groups:
       name: clustering_filter_1
       config:
         tolerance: 0.006
-        min_cluster_size: 50000
-        max_cluster_size: -1   # will use input point cloud size when negative  
+        min_cluster_size: 200
+        max_cluster_size: -1   # will use input point cloud size when negative 
+    - type: noether_filtering/FillHoles
+      name: fill_holes
+      config: 
+        hole_size: 0.02
     - type: noether_filtering/WindowedSincSmoothing
       name: smoothing_1
       config: 
@@ -26,7 +30,7 @@ filter_groups:
     - type: noether_filtering/CleanData
       name: clean_data_2
       config: {}
-  - group_name: DEFAULT
+  - group_name: Group1
     continue_on_failure: False
     verbosity_on: True
     filters:
