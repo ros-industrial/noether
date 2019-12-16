@@ -31,6 +31,7 @@
 #include <noether_conversions/noether_conversions.h>
 #include <tool_path_planner/half_edge_boundary_finder.h>
 #include <tool_path_planner/utilities.h>
+#include <numeric>
 
 static const double EPSILON = 1e-3;
 static const double MIN_POINT_DIST_ALLOWED = 1e-8;
