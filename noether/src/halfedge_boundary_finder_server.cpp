@@ -72,10 +72,31 @@ protected:
       return false;
     }
 
+    std::vector<std::string> fields = {"min_num_points",
+                                       "point_dist",
+                                       "point_spacing_method",
+                                       "normal_averaging",
+                                       "normal_search_radius",
+                                       "normal_influence_weight"};
+
+    if(!std::all_of(fields.begin(), fields.end(),[&config](const std::string& f){
+      if(!config.hasMember(f))
+      {
+        ROS_ERROR("The '%s' configuration field was not found", f.c_str());
+        return false;
+      }
+      return true;
+    }))
+    {
+      return false;
+    }
+
     try
     {
+      using PSMethod = tool_path_planner::HalfEdgeBoundaryFinder::PointSpacingMethod;
       config_.min_num_points = static_cast<int>(config["min_num_points"]);
-      config_.min_point_dist = static_cast<double>(config["min_point_dist"]);
+      config_.point_dist = static_cast<double>(config["point_dist"]);
+      config_.point_spacing_method = static_cast<PSMethod>(static_cast<int>(config["point_spacing_method"]));
       config_.normal_averaging = static_cast<bool>(config["normal_averaging"]);
       config_.normal_search_radius = static_cast<double>(config["normal_search_radius"]);
       config_.normal_influence_weight = static_cast<double>(config["normal_influence_weight"]);
@@ -123,10 +144,12 @@ protected:
       }
       else
       {
-        ToolRasterPath edge_path;
-        edge_path.paths = edge_path_poses.get();
-        res.edge_paths.push_back(std::move(edge_path));
-        res.validities.push_back(true);
+        std::for_each(edge_path_poses.get().begin(), edge_path_poses.get().end(),[&res](geometry_msgs::PoseArray& p){
+          ToolRasterPath edge_path;
+          edge_path.paths = {p};
+          res.edge_paths.push_back(std::move(edge_path));
+          res.validities.push_back(true);
+        });
       }
     }
 
