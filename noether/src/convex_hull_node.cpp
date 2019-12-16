@@ -13,7 +13,7 @@ bool executeCB(noether_msgs::GenerateConvexHull::Request& req, noether_msgs::Gen
      outMeshFileName.append(modifier);
 
      //step 2: Call library
-     bool success = ch_gen.generate(inMeshFileName,outMeshFileName);
+     bool success = ch_gen.Generate(inMeshFileName,outMeshFileName);
 
      return true;
   }
