@@ -34,7 +34,10 @@ find_package(catkin REQUIRED COMPONENTS
   vtk_viewer
 )
 
-find_package(noether_filtering REQUIRED)
+find_package(noether_filtering)
+if(NOT noether_filtering_FOUND)
+  message(WARNING "noether_filtering not found. mesh_filter_server will not be compiled")
+endif()
 
 catkin_package(
   INCLUDE_DIRS
@@ -81,13 +84,15 @@ target_link_libraries(segmentation_server
   ${VTK_LIBRARIES}
 )
 
-add_executable(mesh_filter_server
-  src/mesh_filter_server.cpp
-)
-target_link_libraries(mesh_filter_server PUBLIC
-  ${catkin_LIBRARIES}
-  noether_filtering::noether_filtering
-)
+if(noether_filtering_FOUND)
+  add_executable(mesh_filter_server
+    src/mesh_filter_server.cpp
+  )
+  target_link_libraries(mesh_filter_server PUBLIC
+    ${catkin_LIBRARIES}
+    noether_filtering::noether_filtering
+  )
+endif()
 
 add_executable(edge_generator_server
   src/edge_generator_server.cpp
@@ -107,12 +112,20 @@ target_link_libraries(halfedge_boundary_finder_server
 ## Install ##
 #############
 install(TARGETS segmentation_server surface_raster_planner_application 
-  surface_raster_planner_server mesh_filter_server edge_generator_server
+  surface_raster_planner_server edge_generator_server
   halfedge_boundary_finder_server
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+if(noether_filtering_FOUND)
+  install(TARGETS mesh_filter_server
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  )
+endif()
 
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
