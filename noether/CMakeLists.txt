@@ -15,8 +15,8 @@ endif()
 
 find_package(PCL REQUIRED)
 if(PCL_FOUND AND ("${PCL_VERSION}" VERSION_LESS 1.9))
-  message(FATAL_ERROR "The minimum required version of PCL is 1.9, but found ${PCL_VERSION}")
-  set(PCL_FOUND FALSE)
+  message(WARNING "The minimum required version of PCL is 1.9, but found ${PCL_VERSION} in path first. Checking for exactly 1.9")
+  find_package(PCL REQUIRED 1.9)
 else()
   add_definitions(${PCL_DEFINITIONS})
 endif()
@@ -34,7 +34,10 @@ find_package(catkin REQUIRED COMPONENTS
   vtk_viewer
 )
 
-find_package(noether_filtering REQUIRED)
+find_package(noether_filtering)
+if(NOT noether_filtering_FOUND)
+  message(WARNING "noether_filtering not found. mesh_filter_server will not be compiled")
+endif()
 
 catkin_package(
   INCLUDE_DIRS
@@ -93,13 +96,15 @@ target_link_libraries(convex_hull_node
   ${VTK_LIBRARIES}
 )
 
-add_executable(mesh_filter_server
-  src/mesh_filter_server.cpp
-)
-target_link_libraries(mesh_filter_server PUBLIC
-  ${catkin_LIBRARIES}
-  noether_filtering::noether_filtering
-)
+if(noether_filtering_FOUND)
+  add_executable(mesh_filter_server
+    src/mesh_filter_server.cpp
+  )
+  target_link_libraries(mesh_filter_server PUBLIC
+    ${catkin_LIBRARIES}
+    noether_filtering::noether_filtering
+  )
+endif()
 
 add_executable(edge_generator_server
   src/edge_generator_server.cpp
@@ -125,6 +130,14 @@ install(TARGETS segmentation_server surface_raster_planner_application
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+if(noether_filtering_FOUND)
+  install(TARGETS mesh_filter_server
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  )
+endif()
 
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
