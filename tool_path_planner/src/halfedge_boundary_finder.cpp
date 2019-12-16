@@ -26,11 +26,13 @@
 #include <pcl/point_types.h>
 #include <pcl/PointIndices.h>
 #include <pcl/kdtree/kdtree_flann.h>
+#include <vtkParametricSpline.h>
 #include <console_bridge/console.h>
 #include <noether_conversions/noether_conversions.h>
 #include <tool_path_planner/half_edge_boundary_finder.h>
 #include <tool_path_planner/utilities.h>
 
+static const double EPSILON = 1e-3;
 static const double MIN_POINT_DIST_ALLOWED = 1e-8;
 
 using MeshTraits = pcl::geometry::DefaultMeshTraits<std::size_t>;
@@ -115,13 +117,13 @@ void getBoundBoundaryHalfEdges(const MeshT& mesh,
 }
 
 /**
- * @brief decimates the point cloud by enforcing a minimum distance between adjacent points
- * @param in              The imput cloud
- * @param out             The decimated cloud
+ * @brief Enforces a minimum distance between adjacent points
+ * @param in              The input cloud
+ * @param out             The output cloud
  * @param min_point_dist  The minimum distance between adjacent points
- * @return  True on succes, False when resulting cloud has less than 2 points.
+ * @return  True on success, False when resulting cloud has less than 2 points.
  */
-bool decimate(const pcl::PointCloud<pcl::PointNormal>& in, pcl::PointCloud<pcl::PointNormal>& out, double min_point_dist)
+bool applyMinPointDistance(const pcl::PointCloud<pcl::PointNormal>& in, pcl::PointCloud<pcl::PointNormal>& out, double min_point_dist)
 {
    out.clear();
    out.push_back(in[0]);
@@ -141,6 +143,191 @@ bool decimate(const pcl::PointCloud<pcl::PointNormal>& in, pcl::PointCloud<pcl::
 }
 
 /**
+ * @brief forces the required point spacing by computing new points along the curve
+ * @param in    The input cloud
+ * @param out   The output cloud
+ * @param dist  The required point spacing distance
+ * @return True on success, False otherwise
+ */
+bool applyEqualDistance(const pcl::PointCloud<pcl::PointNormal>& in, pcl::PointCloud<pcl::PointNormal>& out,double dist)
+{
+  using namespace pcl;
+  using namespace Eigen;
+
+  // kd tree will be used to recover the normals
+  PointCloud<PointXYZ>::Ptr in_points = boost::make_shared< PointCloud<PointXYZ> >();
+  copyPointCloud(in, *in_points);
+  pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
+  kdtree.setInputCloud(in_points);
+  kdtree.setEpsilon(EPSILON);
+
+  std::remove_reference< decltype(in) >::type::PointType new_pn;
+  PointXYZ p_start, p_mid, p_end;
+  Vector3f v_1 ,v_2, unitv_2, v_next;
+  p_start = (*in_points)[0];
+  p_mid = (*in_points)[1];
+  v_1 = p_mid.getVector3fMap() - p_start.getVector3fMap();
+  out.push_back(in[0]); // adding first points
+  for(std::size_t i = 2; i < in_points->size(); i++)
+  {
+    p_end = (*in_points)[i];
+    while(dist < v_1.norm())
+    {
+      p_start.getVector3fMap() = p_start.getVector3fMap() + dist * v_1.normalized();
+      std::tie(new_pn.x, new_pn.y, new_pn.z) = std::make_tuple(p_start.x, p_start.y, p_start.z);
+      out.push_back(new_pn);
+      v_1 = p_mid.getVector3fMap() - p_start.getVector3fMap();
+    }
+
+    v_2 = p_end.getVector3fMap() - p_mid.getVector3fMap();
+    if(dist < (v_1 + v_2).norm())
+    {
+      // solve for x such that " x^2 + 2 * x * dot(v_1, unitv_2) + norm(v_1)^2 - d^2 "
+      unitv_2 = v_2.normalized();
+      double b = 2 * v_1.dot(unitv_2);
+      double c = std::pow(v_1.norm(),2) - std::pow(dist,2);
+      double sqrt_term = std::sqrt(std::pow(b,2) - 4 * c);
+      double x = 0.5 * (-b + sqrt_term);
+      x = (x > 0.0 && x < dist) ? x : 0.5 * (-b - sqrt_term);
+      if(x > dist)
+      {
+        return false;
+      }
+      v_next = v_1 + x * unitv_2;
+
+      // computing next point at distance "dist" from previous that lies on the curve
+      p_start.getVector3fMap() = p_start.getVector3fMap() + v_next;
+      std::tie(new_pn.x, new_pn.y, new_pn.z) = std::make_tuple(p_start.x, p_start.y, p_start.z);
+      out.push_back(new_pn);
+    }
+
+    // computing values for next iter
+    p_mid = p_end;
+    v_1 = p_mid.getVector3fMap() - p_start.getVector3fMap();
+  }
+
+  if(out.size() < 2)
+  {
+    CONSOLE_BRIDGE_logError("Failed to add points");
+    return false;
+  }
+
+  // add last point if not already there
+  if((out.back().getVector3fMap() - in.back().getNormalVector3fMap()).norm() > MIN_POINT_DIST_ALLOWED)
+  {
+    out.push_back(in.back());
+  }
+
+  // recovering normals now
+  std::vector<int> k_indices;
+  std::vector<float> k_sqr_distances;
+  PointXYZ query_point;
+  for(auto& p : out)
+  {
+    k_indices.resize(1);
+    k_sqr_distances.resize(1);
+    std::tie(query_point.x, query_point.y, query_point.z) = std::make_tuple(p.x, p.y, p.z);
+    if(kdtree.nearestKSearch(query_point,1,k_indices, k_sqr_distances) < 1)
+    {
+      CONSOLE_BRIDGE_logError("No nearest points found");
+      return false;
+    }
+
+    const auto& pnormal = in[k_indices.front()];
+    std::tie(p.normal_x, p.normal_y, p.normal_z) = std::make_tuple(
+        pnormal.normal_x, pnormal.normal_y, pnormal.normal_z);
+  }
+  return true;
+}
+
+/**
+ * @brief uses a parametric spline to compute new points along the curve
+ * @param in    The input cloud
+ * @param out   The output cloud
+ * @param dist  The desired distance between adjacent points
+ * @return True on success, False otherwise
+ */
+bool applyParametricSpline(const pcl::PointCloud<pcl::PointNormal>& in, pcl::PointCloud<pcl::PointNormal>& out,double dist)
+{
+  using namespace pcl;
+
+  // kd tree will be used to recover the normals
+  PointCloud<PointXYZ>::Ptr in_points = boost::make_shared< PointCloud<PointXYZ> >();
+  copyPointCloud(in, *in_points);
+  pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
+  kdtree.setInputCloud(in_points);
+  kdtree.setEpsilon(EPSILON);
+
+  // create vtk points array and computing total length
+  vtkSmartPointer<vtkPoints> vtk_points = vtkSmartPointer<vtkPoints>::New();
+  auto prev_point = in.front();
+  double total_length = 0;
+  for(const auto& p : in)
+  {
+    double d = (p.getVector3fMap() - prev_point.getVector3fMap()).norm();
+    total_length += d;
+    vtk_points->InsertNextPoint(p.x, p.y, p.z);
+    prev_point = p;
+  }
+
+  CONSOLE_BRIDGE_logDebug("Total boundary length = %f", total_length);
+
+  // create spline
+  vtkSmartPointer<vtkParametricSpline> spline =
+    vtkSmartPointer<vtkParametricSpline>::New();
+  spline->SetPoints(vtk_points);
+  spline->ParameterizeByLengthOff();
+  spline->ClosedOff();
+
+  // interpolating
+  double u[3], pt[3], du[9];
+
+  double incr = dist/total_length;
+  std::size_t num_points = std::ceil(total_length/dist) + 1;
+  std::remove_reference<decltype(out)>::type::PointType new_point;
+  PointXYZ query_point;
+  std::vector<int> k_indices;
+  std::vector<float> k_sqr_distances;
+  out.reserve(num_points);
+  out.push_back(in.front());
+  prev_point = out.front();
+  for(std::size_t i = 1; i < num_points; i++)
+  {
+    double interv = incr * i;
+    interv = interv > 1.0 ? 1.0 : interv ;
+    std::tie(u[0], u[1], u[2]) = std::make_tuple(interv, interv, interv);
+    spline->Evaluate(u, pt, du);
+    std::tie(new_point.x, new_point.y, new_point.z) = std::make_tuple(pt[0], pt[1], pt[2]);
+    std::tie(query_point.x, query_point.y, query_point.z) = std::make_tuple(pt[0], pt[1], pt[2]);
+
+    double d = (new_point.getVector3fMap() - prev_point.getVector3fMap()).norm();
+    if(d < MIN_POINT_DIST_ALLOWED)
+    {
+      // it's likely the same point, only expect this to occur at the last point
+      continue;
+    }
+
+    // recovering normal now
+    k_indices.resize(1);
+    k_sqr_distances.resize(1);
+    if(kdtree.nearestKSearch(query_point,1,k_indices, k_sqr_distances) < 1)
+    {
+      CONSOLE_BRIDGE_logError("No nearest points found");
+      return false;
+    }
+
+    const auto& pnormal = in[k_indices.front()];
+    std::tie(new_point.normal_x, new_point.normal_y, new_point.normal_z) = std::make_tuple(
+        pnormal.normal_x, pnormal.normal_y, pnormal.normal_z);
+    std::cout<<"New point is "<< d << " from the previous one" <<std::endl;
+    out.push_back(new_point);
+    prev_point = out.back();
+  }
+  CONSOLE_BRIDGE_logDebug("Parametric spline computed %lu  points", out.size());
+  return true;
+}
+
+/**
  * @brief improves the normals by computing the average of the normals of the neighboring points
  * @param src     The source point cloud with point normals
  * @param src_xyz The same point cloud with just the points, passing it this way avoids making unnecessary copies
@@ -154,7 +341,7 @@ void averageNormals(pcl::PointCloud<pcl::PointNormal>::ConstPtr src, pcl::PointC
   using namespace pcl;
   pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
   kdtree.setInputCloud(src_xyz);
-  kdtree.setEpsilon(1e-3);
+  kdtree.setEpsilon(EPSILON);
   weight = std::abs(weight) > 1.0 ? 1.0 : std::abs(weight);
   double r_2 = pow(radius, 2);
   for(auto& p : subset)
@@ -251,9 +438,6 @@ HalfEdgeBoundaryFinder::generate(const tool_path_planner::HalfEdgeBoundaryFinder
   noether_conversions::convertToPointNormals(*mesh_, *input_cloud);
   pcl::copyPointCloud(*input_cloud, *input_points );
 
-  pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
-  kdtree.setInputCloud (input_points);
-
   // traversing half edges list
   std::vector<geometry_msgs::PoseArray> boundary_poses;
 
@@ -283,17 +467,58 @@ HalfEdgeBoundaryFinder::generate(const tool_path_planner::HalfEdgeBoundaryFinder
       bound_segment_points.push_back((*input_cloud)[source_idx]);
     }
 
+    if(bound_segment_points.size() < config.min_num_points)
+    {
+      continue;
+    }
+
     // decimating
-    if( config.min_point_dist > MIN_POINT_DIST_ALLOWED )
+    CONSOLE_BRIDGE_logInform("Found boundary with %lu points",bound_segment_points.size());
+    if( config.point_dist > MIN_POINT_DIST_ALLOWED )
     {
       decltype(bound_segment_points) decimated_points;
-      if(!decimate(bound_segment_points, decimated_points, config.min_point_dist))
+
+      switch(config.point_spacing_method)
       {
-        CONSOLE_BRIDGE_logDebug("Decimation failed, ignoring segment");
-        continue;
+        case PointSpacingMethod::NONE:
+          decimated_points = bound_segment_points;
+          break;
+
+        case PointSpacingMethod::EQUAL_SPACING:
+          if(!applyEqualDistance(bound_segment_points, decimated_points, config.point_dist))
+          {
+            CONSOLE_BRIDGE_logError("applyEqualDistance point spacing method failed");
+            return boost::none;
+
+          }
+          break;
+
+        case PointSpacingMethod::MIN_DISTANCE:
+          if(!applyMinPointDistance(bound_segment_points, decimated_points, config.point_dist))
+          {
+            CONSOLE_BRIDGE_logError("applyMinPointDistance point spacing method failed");
+            return boost::none;
+          }
+          break;
+
+        case PointSpacingMethod::PARAMETRIC_SPLINE:
+          if(!applyParametricSpline(bound_segment_points, decimated_points, config.point_dist))
+          {
+            CONSOLE_BRIDGE_logError("applyParametricSpline point spacing method failed");
+            return boost::none;
+          }
+          break;
+
+        default:
+          CONSOLE_BRIDGE_logError("The point spacing method %i is not valid", static_cast<int>(config.point_spacing_method));
+          return boost::none;
       }
+
+      CONSOLE_BRIDGE_logInform("Found boundary with %lu points was regularized to %lu points",
+                               bound_segment_points.size(), decimated_points.size());
       bound_segment_points = std::move(decimated_points);
     }
+
 
     if(bound_segment_points.size() < config.min_num_points)
     {
@@ -312,10 +537,10 @@ HalfEdgeBoundaryFinder::generate(const tool_path_planner::HalfEdgeBoundaryFinder
     }
 
     boundary_poses.push_back(bound_segment_poses);
+    CONSOLE_BRIDGE_logInform("Added boundary with %lu points", boundary_poses.back().poses.size());
   }
 
   // sorting
-  CONSOLE_BRIDGE_logInform("Found %lu boundary segments, removing invalid ones", boundary_poses.size());
   std::sort(boundary_poses.begin(), boundary_poses.end(),[](decltype(boundary_poses)::value_type& p1,
       decltype(boundary_poses)::value_type& p2){
     return p1.poses.size() >  p2.poses.size();
