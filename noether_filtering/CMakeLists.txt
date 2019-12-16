@@ -63,6 +63,7 @@ if(${BUILD_MESH_PLUGINS})
     src/mesh/bspline_reconstruction.cpp
     src/mesh/euclidean_clustering.cpp
     src/mesh/clean_data.cpp
+    src/mesh/fill_holes.cpp
     src/mesh/windowed_sinc_smoothing.cpp
   )
   target_link_libraries(${PROJECT_NAME}_mesh_filters PUBLIC ${PROJECT_NAME})

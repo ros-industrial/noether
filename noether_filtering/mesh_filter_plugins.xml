@@ -21,12 +21,22 @@
     </description>
   </class>
   
-    <class name="noether_filtering/WindowedSincSmoothing" type="noether_filtering::mesh::WindowedSincSmoothing"
+  <class name="noether_filtering/WindowedSincSmoothing" type="noether_filtering::mesh::WindowedSincSmoothing"
     base_class_type="noether_filtering::mesh::MeshFilterBase">
     <description>
       Adjust point positions using a windowed sinc function interpolation kernel using VTK see 
       https://vtk.org/doc/nightly/html/classvtkWindowedSincPolyDataFilter.html#details for 
       more details
+    </description>
+  </class>
+  <class name="noether_filtering/FillHoles" type="noether_filtering::mesh::FillHoles"
+    base_class_type="noether_filtering::mesh::MeshFilterBase">
+    <description>
+      Filter that identifies and fills holes in input meshes. 
+      Holes are identified by locating boundary edges, linking them together into loops,
+       and then triangulating the resulting loops. 
+      Note that you can specify an approximate limit to the size of the hole that can be filled.
+      See https://vtk.org/doc/nightly/html/classvtkFillHolesFilter.html#details
     </description>
   </class>
 </library>

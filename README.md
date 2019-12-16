@@ -108,12 +108,17 @@ This package depends on PCL 1.9.1 and VTK 7.1.
 ### Surface Raster Planner
 The noether package has a *surface raster planner* executable which is able to take in a mesh file (.stl format), and generate raster paths on it, you can run it through the launch file with preconfigured parameters as follows:
 ```
-roslaunch noether surf_raster_planner_application.launch filename:=</absolute/path/to/my/mesh.stl>
+roslaunch noether_examples surf_raster_planner_demo.launch
 ```
 
-or you can run it with your own custom parameters as well by calling the node directly:
+or with your own mesh file
 ```
-rosrun noether surface_raster_planner_application _pt_spacing:=0.05 _line_spacing:=0.15 _intersecting_plane_height:=0.05 _min_hole_size:=0.01 _min_segment_size:=0.01 _debug_on:=False _console_debug_on:=False _file_path:=</path/to/mesh/file.stl> 
+roslaunch noether_examples surf_raster_planner_demo.launch filename:=</absolute/path/to/my/mesh.stl>
+```
+
+Also, the node can be called directly with custom parameters directly:
+```
+rosrun noether surface_raster_planner_application _pt_spacing:=0.05 _line_spacing:=0.15 _intersecting_plane_height:=0.05 _min_hole_size:=0.01 _min_segment_size:=0.01 _debug_on:=False _console_debug_on:=False _file_path:=</absolute/path/to/my/mesh.stl>
 ```
 The `debug_on` and `console_debug_on` argurments enable visual and console debugging respectively.  During visual debugging press 'q' on the vtk window in order to step through.
 
@@ -130,8 +135,8 @@ roslaunch noether_examples mesh_filtering_demo.launch
 roslaunch noether_examples mesh_filtering_demo.launch mesh_file:=/path/to/my/mesh.ply
 ```
 
-Currently the only plugins available are `noether_filtering/BSplineReconstruction` and `noether_filtering/EuclideanClustering`,  
- however custom mesh filter plugins can be added by inheriting from the `noether_filtering::mesh::MeshBaseFilter` class.
+See [here](noether_filtering/README.md) for more on the filter types available,  
+Custom mesh filter plugins can be added by inheriting from the `noether_filtering::mesh::MeshBaseFilter` class.
 
 ### Generate Edge Paths Demo
 Runs an algorithm that identifies all the half edges that constiture the boundary
@@ -142,7 +147,7 @@ roslaunch noether_examples halfedge_finder_demo.launch
 
 - On your own *ply* mesh file
 ```
-roslaunch noether_examples halfedge_finder_demo.launch mesh_file:=/path/to/my/mesh.ply
+roslaunch noether_examples halfedge_finder_demo.launch mesh_file:=</absolute/path/to/my/mesh.stl>
 ```
 
 
