@@ -32,7 +32,11 @@ add_action_files(
     ApplyMeshFilters.action
     Segment.action
 )
-
+##Generate service files in the 'srv' folder
+add_service_files(
+ FILES
+    GenerateConvexHull.srv
+)
 generate_messages(
   DEPENDENCIES
     actionlib_msgs
