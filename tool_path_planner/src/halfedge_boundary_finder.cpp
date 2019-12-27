@@ -150,7 +150,7 @@ bool applyMinPointDistance(const pcl::PointCloud<pcl::PointNormal>& in, pcl::Poi
  * @param dist  The required point spacing distance
  * @return True on success, False otherwise
  */
-bool applyEqualDistance(const pcl::PointCloud<pcl::PointNormal>& in, pcl::PointCloud<pcl::PointNormal>& out,double dist)
+bool applyEqualDistance_original(const pcl::PointCloud<pcl::PointNormal>& in, pcl::PointCloud<pcl::PointNormal>& out,double dist)
 {
   using namespace pcl;
   using namespace Eigen;
@@ -218,6 +218,90 @@ bool applyEqualDistance(const pcl::PointCloud<pcl::PointNormal>& in, pcl::PointC
   {
     out.push_back(in.back());
   }
+
+  // recovering normals now
+  std::vector<int> k_indices;
+  std::vector<float> k_sqr_distances;
+  PointXYZ query_point;
+  for(auto& p : out)
+  {
+    k_indices.resize(1);
+    k_sqr_distances.resize(1);
+    std::tie(query_point.x, query_point.y, query_point.z) = std::make_tuple(p.x, p.y, p.z);
+    if(kdtree.nearestKSearch(query_point,1,k_indices, k_sqr_distances) < 1)
+    {
+      CONSOLE_BRIDGE_logError("No nearest points found");
+      return false;
+    }
+
+    const auto& pnormal = in[k_indices.front()];
+    std::tie(p.normal_x, p.normal_y, p.normal_z) = std::make_tuple(
+        pnormal.normal_x, pnormal.normal_y, pnormal.normal_z);
+  }
+  return true;
+}
+
+/**
+ * @brief forces the required point spacing by computing new points along the curve
+ * @param in    The input cloud
+ * @param out   The output cloud
+ * @param dist  The required point spacing distance
+ * @return True on success, False otherwise
+ */
+bool applyEqualDistance(const pcl::PointCloud<pcl::PointNormal>& in, pcl::PointCloud<pcl::PointNormal>& out,double dist)
+{
+  using namespace pcl;
+  using namespace Eigen;
+
+  // kd tree will be used to recover the normals
+  PointCloud<PointXYZ>::Ptr in_points = boost::make_shared< PointCloud<PointXYZ> >();
+  copyPointCloud(in, *in_points);
+  pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
+  kdtree.setInputCloud(in_points);
+  kdtree.setEpsilon(EPSILON);
+
+  std::size_t num_points =  in_points->size();
+  std::vector<Vector3f> Vj; // normalized vector from one point toward the next
+  std::vector<double>   Dj; // distance from point i to i+1
+  
+  // compute normalized vectors and distances from point to point over all the trajectory
+  for(std::size_t j=0; j< num_points -1; j++)
+    {
+      Vector3f tmp = (*in_points)[j+1].getVector3fMap() - (*in_points)[j].getVector3fMap();
+      Vj.push_back(tmp.normalized());
+      Dj.push_back(tmp.norm());
+    }
+
+  std::size_t j=0;
+  double total = 0;
+  while(j < num_points)// keep adding points until all are used
+    {
+      while( ( (total+Dj[j]) < dist) && (j != num_points)) // find location where next point gets inserted
+        {
+	  total += Dj[j];
+	  j++;
+	}
+
+      // insert point between in_points[j] and in_points[j+1]
+      Vector3f p = (*in_points)[j].getVector3fMap() + (dist-total)*Vj[j];
+      pcl::PointNormal new_pn;
+      new_pn.x = p(0);
+      new_pn.y = p(1);
+      new_pn.z = p(2);
+      out.push_back(new_pn);
+
+      if(j<num_points)// update Dj[j] to be the remainder of distance to in_point[j+1]
+	{
+	  Dj[j] = Dj[j] - (dist-total); 
+	  total = 0; // reset total
+	}
+    }
+
+  // add last point if not already there
+  if((out.back().getVector3fMap() - in.back().getNormalVector3fMap()).norm() > MIN_POINT_DIST_ALLOWED)
+    {
+      out.push_back(in.back());
+    }
 
   // recovering normals now
   std::vector<int> k_indices;
