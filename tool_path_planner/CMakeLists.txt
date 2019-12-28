@@ -64,6 +64,7 @@ include_directories(
 add_library(${PROJECT_NAME}
   src/raster_path_generator.cpp
   src/raster_tool_path_planner.cpp
+  src/plane_slicer_raster_generator.cpp
   src/edge_path_generator.cpp
   src/halfedge_boundary_finder.cpp
   src/utilities.cpp

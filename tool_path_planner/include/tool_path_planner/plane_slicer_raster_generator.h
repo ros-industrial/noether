@@ -1,8 +1,22 @@
-/*
- * plane_slicer_raster_generator.h
+/**
+ * @author Jorge Nicho <jrgnichodevel@gmail.com>
+ * @file plane_slicer_raster_generator.h
+ * @date Dec 26, 2019
+ * @copyright Copyright (c) 2019, Southwest Research Institute
  *
- *  Created on: Dec 26, 2019
- *      Author: jrgnicho
+ * @par License
+ * Software License Agreement (Apache License)
+ * @par
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * @par
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #ifndef INCLUDE_PLANE_SLICER_RASTER_GENERATOR_H_
@@ -15,6 +29,8 @@
 #include <pcl/PolygonMesh.h>
 #include <shape_msgs/Mesh.h>
 #include <geometry_msgs/PoseArray.h>
+#include <vtkCellLocator.h>
+#include <vtkKdTreePointLocator.h>
 
 namespace tool_path_planner
 {
@@ -27,6 +43,9 @@ public:
     double raster_spacing = 0.04;
     double point_spacing = 0.01;
     double raster_rot_offset = 0.0;
+    double min_hole_size = 0.01;
+    double min_segment_size = 0.01;
+    double search_radius = 0.01;
   };
 
   PlaneSlicerRasterGenerator();
@@ -69,12 +88,19 @@ public:
    */
   boost::optional< std::vector<geometry_msgs::PoseArray> > generate(pcl::PolygonMesh::ConstPtr mesh,
                                                                     const PlaneSlicerRasterGenerator::Config& config);
-
+  /**
+   * @brief the class name
+   * @return a string
+   */
   std::string getName();
 
 private:
 
+  bool insertNormals(const double search_radius, vtkSmartPointer<vtkPolyData>& data);
+
   vtkSmartPointer<vtkPolyData> mesh_data_;
+  vtkSmartPointer<vtkKdTreePointLocator> kd_tree_;
+  vtkSmartPointer<vtkCellLocator> cell_locator_;
 };
 
 } /* namespace tool_path_planner */
