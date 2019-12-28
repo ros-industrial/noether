@@ -81,6 +81,13 @@ add_executable(halfedge_finder_node  src/halfedge_finder_node.cpp)
 target_link_libraries(halfedge_finder_node ${catkin_LIBRARIES} noether::vtk_viewer)
 list (APPEND PACKAGE_TARGETS halfedge_finder_node)
 
+add_executable(rastering_demo_node
+  src/rastering_demo_node.cpp
+)
+target_link_libraries(rastering_demo_node
+  ${catkin_LIBRARIES}
+)
+
 #############
 ## Install ##
 #############
