@@ -80,7 +80,6 @@ public:
     std::vector<std::string> field_names = {"raster_spacing",
       "point_spacing",
       "raster_rot_offset",
-      "min_hole_size",
       "min_segment_size",
       "search_radius"};
     if(!std::all_of(field_names.begin(), field_names.end(), [&cfg](const std::string& f){
@@ -96,7 +95,6 @@ public:
       config.raster_spacing = static_cast<double>(cfg[field_names[idx++]]);
       config.point_spacing = static_cast<double>(cfg[field_names[idx++]]);
       config.raster_rot_offset = static_cast<double>(cfg[field_names[idx++]]);
-      config.min_hole_size = static_cast<double>(cfg[field_names[idx++]]);
       config.min_segment_size = static_cast<double>(cfg[field_names[idx++]]);
       config.search_radius = static_cast<double>(cfg[field_names[idx++]]);
     }

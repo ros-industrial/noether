@@ -44,7 +44,6 @@ public:
     double raster_spacing = 0.04;
     double point_spacing = 0.01;
     double raster_rot_offset = 0.0;
-    double min_hole_size = 0.01;
     double min_segment_size = 0.01;
     double search_radius = 0.01;
   };
