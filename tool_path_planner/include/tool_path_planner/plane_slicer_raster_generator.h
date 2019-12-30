@@ -31,6 +31,7 @@
 #include <geometry_msgs/PoseArray.h>
 #include <vtkCellLocator.h>
 #include <vtkKdTreePointLocator.h>
+#include <noether_msgs/ToolRasterPath.h>
 
 namespace tool_path_planner
 {
@@ -69,7 +70,7 @@ public:
    * @param config The configuration
    * @return  An array of raster paths or boost::none when it fails.
    */
-  boost::optional< std::vector<geometry_msgs::PoseArray> > generate(const PlaneSlicerRasterGenerator::Config& config);
+  boost::optional< std::vector<noether_msgs::ToolRasterPath> > generate(const PlaneSlicerRasterGenerator::Config& config);
 
   /**
    * @brief Generate the raster paths that follow the contour of the mesh
@@ -77,7 +78,7 @@ public:
    * @param config The configuration
    * @return  An array of raster paths or boost::none when it fails.
    */
-  boost::optional< std::vector<geometry_msgs::PoseArray> > generate(const shape_msgs::Mesh& mesh,
+  boost::optional< std::vector<noether_msgs::ToolRasterPath> > generate(const shape_msgs::Mesh& mesh,
                                                                     const PlaneSlicerRasterGenerator::Config& config);
 
   /**
@@ -86,7 +87,7 @@ public:
    * @param config The configuration
    * @return  An array of raster paths or boost::none when it fails.
    */
-  boost::optional< std::vector<geometry_msgs::PoseArray> > generate(pcl::PolygonMesh::ConstPtr mesh,
+  boost::optional< std::vector<noether_msgs::ToolRasterPath> > generate(pcl::PolygonMesh::ConstPtr mesh,
                                                                     const PlaneSlicerRasterGenerator::Config& config);
   /**
    * @brief the class name

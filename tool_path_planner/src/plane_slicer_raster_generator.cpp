@@ -33,11 +33,13 @@
 #include <vtkTransform.h>
 #include <vtkTransformFilter.h>
 #include <vtkCutter.h>
+#include <vtkStripper.h>
 #include <vtkPlane.h>
 #include <vtkAppendPolyData.h>
 #include <vtkSmartPointer.h>
 #include <vtkCenterOfMass.h>
 #include <vtkParametricSpline.h>
+#include <vtkPolyDataNormals.h>
 #include <vtkErrorCode.h>
 
 #include <boost/make_shared.hpp>
@@ -79,6 +81,7 @@ static  vtkSmartPointer<vtkTransform> toVtkMatrix(const Eigen::Affine3d& t)
   vtk_t->RotateX(vtkMath::DegreesFromRadians(rpy(0)));
   vtk_t->RotateY(vtkMath::DegreesFromRadians(rpy(1)));
   vtk_t->RotateZ(vtkMath::DegreesFromRadians(rpy(2)));
+  vtk_t->Scale(1.0,1.0,1.0);
   return vtk_t;
 }
 
@@ -110,7 +113,7 @@ static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vt
   // create spline
   vtkSmartPointer<vtkParametricSpline> spline = vtkSmartPointer<vtkParametricSpline>::New();
   spline->SetPoints(points);
-  spline->ParameterizeByLengthOn();
+  spline->SetParameterizeByLength(true);
   spline->ClosedOff();
 
   // adding first point
@@ -125,7 +128,8 @@ static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vt
   Eigen::Vector3d u, pt;
   for(std::size_t i = 1; i < num_points; i++)
   {
-    double interv = incr * i;
+    //double interv = incr * i;
+    double interv = static_cast<double>(i)/static_cast<double>(num_points);
     interv = interv > 1.0 ? 1.0 : interv ;
     if(std::abs(interv - 1.0) < EPSILON)
     {
@@ -151,12 +155,13 @@ static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vt
   return new_points;
 }
 
-static std::vector<geometry_msgs::PoseArray> convertToPoses(const std::vector<RasterConstructData>& rasters_data)
+static std::vector<noether_msgs::ToolRasterPath> convertToPoses(const std::vector<RasterConstructData>& rasters_data)
 {
   using namespace Eigen;
-  std::vector<geometry_msgs::PoseArray> rasters_poses_msg;
+  std::vector<noether_msgs::ToolRasterPath> rasters_array;
   for(const RasterConstructData& rd : rasters_data)
   {
+    noether_msgs::ToolRasterPath raster_path_msg;
     std::vector<PolyDataPtr> raster_segments;
     raster_segments.assign(rd.raster_segments.begin(), rd.raster_segments.end());
     if(rd.reverse_direction)
@@ -202,12 +207,13 @@ static std::vector<geometry_msgs::PoseArray> convertToPoses(const std::vector<Ra
         tf::poseEigenToMsg(p,pose_msg);
         return pose_msg;
       });
+      raster_path_msg.paths.push_back(raster_poses_msg);
 
-      rasters_poses_msg.push_back(raster_poses_msg);
     }
+    rasters_array.push_back(raster_path_msg);
   }
 
-  return rasters_poses_msg;
+  return rasters_array;
 }
 
 namespace tool_path_planner
@@ -226,6 +232,38 @@ void PlaneSlicerRasterGenerator::setInput(pcl::PolygonMesh::ConstPtr mesh)
 {
   mesh_data_ = vtkSmartPointer<vtkPolyData>::New();
   pcl::VTKUtils::mesh2vtk(*mesh, mesh_data_);
+  mesh_data_->BuildLinks();
+  mesh_data_->BuildCells();
+
+  if(mesh_data_->GetPointData()->GetNormals() && mesh_data_->GetCellData()->GetNormals() )
+  {
+    return; // normal data is available
+  }
+
+  CONSOLE_BRIDGE_logWarn("%s generating normal data", getName().c_str());
+  vtkSmartPointer<vtkPolyDataNormals> normal_generator = vtkSmartPointer<vtkPolyDataNormals>::New();
+  normal_generator->SetInputData(mesh_data_);
+  normal_generator->ComputePointNormalsOn();
+  normal_generator->SetComputeCellNormals(!mesh_data_->GetCellData()->GetNormals());
+  normal_generator->SetFeatureAngle(vtkMath::DegreesFromRadians(M_PI_2));
+  normal_generator->SetSplitting(false);
+  normal_generator->SetConsistency(true);
+  normal_generator->SetAutoOrientNormals(false);
+  normal_generator->SetFlipNormals(false);
+  normal_generator->SetNonManifoldTraversal(true);
+  normal_generator->Update();
+
+
+  if ( !mesh_data_->GetPointData()->GetNormals())
+  {
+    mesh_data_->GetPointData()->SetNormals(normal_generator->GetOutput()->GetPointData()->GetNormals());
+  }
+
+  if ( !mesh_data_->GetCellData()->GetNormals() )
+  {
+    mesh_data_->GetCellData()->SetNormals(normal_generator->GetOutput()->GetCellData()->GetNormals());
+  }
+
 }
 
 void PlaneSlicerRasterGenerator::setInput(const shape_msgs::Mesh& mesh)
@@ -235,11 +273,13 @@ void PlaneSlicerRasterGenerator::setInput(const shape_msgs::Mesh& mesh)
   setInput(pcl_mesh);
 }
 
-boost::optional<std::vector<geometry_msgs::PoseArray> >
+boost::optional<std::vector<noether_msgs::ToolRasterPath> >
 PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& config)
 {
   using namespace Eigen;
-  boost::optional<std::vector<geometry_msgs::PoseArray> > rasters = boost::none;
+  using PointList = std::vector<vtkIdType>;
+
+  boost::optional<std::vector<noether_msgs::ToolRasterPath> > rasters = boost::none;
   if(!mesh_data_)
   {
     CONSOLE_BRIDGE_logInform("%s No mesh data has been provided",getName().c_str());
@@ -292,6 +332,7 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
   {
     vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
     vtkSmartPointer<vtkCutter> cutter = vtkSmartPointer<vtkCutter>::New();
+    vtkSmartPointer<vtkStripper> stripper = vtkSmartPointer<vtkStripper>::New();
 
     Vector3d current_loc = start_loc + i * config.raster_spacing * raster_dir;
     plane->SetOrigin(current_loc.x(), current_loc.y(), current_loc.z());
@@ -301,12 +342,21 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
     cutter->SetInputData(transformed_mesh_data);
     cutter->Update();
 
-    if(cutter->GetErrorCode() != vtkErrorCode::NoError)
+    stripper->SetInputConnection(cutter->GetOutputPort());
+    stripper->JoinContiguousSegmentsOff();
+    stripper->SetMaximumLength(mesh_data_->GetNumberOfPoints());
+    stripper->Update();
+
+    if(stripper->GetErrorCode() != vtkErrorCode::NoError)
     {
       continue;
     }
 
-    raster_data->AddInputData(cutter->GetOutput());
+    for(int r = 0; r < stripper->GetNumberOfOutputPorts(); r++)
+    {
+      raster_data->AddInputData(stripper->GetOutput(r));
+    }
+
   }
 
   // build cell locator and kd_tree to recover normals later on
@@ -332,87 +382,85 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
 
     // collecting raster segments based on min hole size
     vtkSmartPointer<vtkPolyData> raster_lines = raster_data->GetInput(i);
-    double line_gap = -1.0;
-    std::vector<vtkIdType> point_ids;
-    for(std::size_t l = 0; l < raster_lines->GetNumberOfLines(); l++)
+    vtkIdType* indices;
+    vtkIdType num_points;
+    vtkIdType num_lines = raster_lines->GetNumberOfLines();
+    vtkPoints* points = raster_lines->GetPoints();
+    vtkCellArray* cells = raster_lines->GetLines();
+
+    std::vector<PointList> raster_points;
+    CONSOLE_BRIDGE_logInform("%s raster %i has %i lines and %i points",getName().c_str(), i,
+                             raster_lines->GetNumberOfLines(), raster_lines->GetNumberOfPoints());
+
+    if(num_lines ==0)
     {
-      // check current line
-      vtkSmartPointer<vtkIdList> id_list = vtkSmartPointer<vtkIdList>::New();
-      raster_lines->GetLines()->GetCell(l,id_list);
-      std::size_t num_points = id_list->GetNumberOfIds();
-      if(num_points == 0)
-      {
-        line_gap = 0.0;
-        continue; // do nothing
-      }
+      continue;
+    }
 
-      // computing line gap
-      if(!point_ids.empty())
+    unsigned int lineCount = 0;
+    for (cells->InitTraversal(); cells->GetNextCell(num_points, indices);
+         lineCount++)
+    {
+      PointList point_ids;
+      for (vtkIdType i = 0; i < num_points; i++)
       {
-        Eigen::Vector3d prev_point, first_point;
-        raster_lines->GetPoint(point_ids.back(), prev_point.data());
-        raster_lines->GetPoint(id_list->GetId(0), first_point.data());
-        line_gap = (first_point - prev_point).norm();
-      }
-
-      // create new segment if line breaks due to hole
-      if(line_gap > config.min_hole_size)
-      {
-        // Populating with points
-        vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-        std::for_each(point_ids.begin(), point_ids.end(),[&points, &raster_lines](decltype(point_ids)::value_type& id){
-          std::array<double,3> p;
-          raster_lines->GetPoint(id, p.data());
-          points->InsertNextPoint(p.data());
-        });
-
-        // compute length and add points if segment length is greater than threshold
-        double l = computeLength(points);
-        if(l > config.min_segment_size)
+        if(std::find(point_ids.begin(), point_ids.end(), indices[i]) != point_ids.end())
         {
-          // enforce point spacing
-          decltype(points) new_points = applyParametricSpline(points,l,config.point_spacing);
+          continue;
+        }
+        point_ids.push_back(indices[i]);
+      }
+      if(point_ids.empty())
+      {
+        continue;
+      }
+      raster_points.push_back(point_ids);
+    }
 
-          // add points to segment now
-          PolyDataPtr segment_data = PolyDataPtr::New();
-          segment_data->SetPoints(new_points);
+    for(auto& rpoint_ids: raster_points)
+    {
+      // Populating with points
+      vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+      std::for_each(rpoint_ids.begin(), rpoint_ids.end(),[&points, &raster_lines](vtkIdType& id){
+        std::array<double,3> p;
+        raster_lines->GetPoint(id, p.data());
+        points->InsertNextPoint(p.data());
+      });
 
-          // transforming to original coordinate system
-          transform_filter = vtkSmartPointer<vtkTransformFilter>::New();
-          transform_filter->SetInputData(segment_data);
-          transform_filter->SetTransform(toVtkMatrix(t));
-          transform_filter->TransformAllInputVectorsOn();
-          transform_filter->Update();
-          segment_data = transform_filter->GetPolyDataOutput();
+      // compute length and add points if segment length is greater than threshold
+      double line_length = computeLength(points);
+      if(line_length > config.min_segment_size && points->GetNumberOfPoints()> 1)
+      {
+        // enforce point spacing
+        decltype(points) new_points = applyParametricSpline(points,line_length,config.point_spacing);
 
-          // inserting normals
-          if(!insertNormals(config.search_radius,segment_data))
-          {
-            CONSOLE_BRIDGE_logError("%s failed to insert normals to segment %lu of raster %lu",
-                                    getName().c_str(), r.raster_segments.size(),
-                                    i);
-            return boost::none;
-          }
+        // add points to segment now
+        PolyDataPtr segment_data = PolyDataPtr::New();
+        segment_data->SetPoints(new_points);
 
-          // saving into raster
-          r.raster_segments.push_back(segment_data);
-          r.segment_lengths.push_back(l);
+        // transforming to original coordinate system
+        transform_filter = vtkSmartPointer<vtkTransformFilter>::New();
+        transform_filter->SetInputData(segment_data);
+        transform_filter->SetTransform(toVtkMatrix(t));
+        transform_filter->TransformAllInputVectorsOn();
+        transform_filter->Update();
+        segment_data = transform_filter->GetPolyDataOutput();
+
+        // inserting normals
+        if(!insertNormals(config.search_radius,segment_data))
+        {
+          CONSOLE_BRIDGE_logError("%s failed to insert normals to segment %lu of raster %lu",
+                                  getName().c_str(), r.raster_segments.size(),
+                                  i);
+          return boost::none;
         }
 
-        // clear data
-        point_ids.clear();
-      }
-
-      // adding points ids in current line to segment
-      for(std::size_t c = 0; c < num_points; c++)
-      {
-        vtkIdType point_id = id_list->GetId(c);
-        if(std::find(point_ids.begin(), point_ids.end(), point_id) == point_ids.end())
-        {
-          point_ids.push_back(point_id);
-        }
+        // saving into raster
+        r.raster_segments.push_back(segment_data);
+        r.segment_lengths.push_back(line_length);
       }
     }
+
     rasters_data_vec.push_back(r);
   }
 
@@ -421,14 +469,14 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
   return rasters;
 }
 
-boost::optional<std::vector<geometry_msgs::PoseArray> >
+boost::optional<std::vector<noether_msgs::ToolRasterPath> >
 PlaneSlicerRasterGenerator::generate(const shape_msgs::Mesh& mesh, const PlaneSlicerRasterGenerator::Config& config)
 {
   setInput(mesh);
   return generate(config);
 }
 
-boost::optional<std::vector<geometry_msgs::PoseArray> >
+boost::optional<std::vector<noether_msgs::ToolRasterPath> >
 PlaneSlicerRasterGenerator::generate(pcl::PolygonMesh::ConstPtr mesh, const PlaneSlicerRasterGenerator::Config& config)
 {
   setInput(mesh);
@@ -439,25 +487,35 @@ bool PlaneSlicerRasterGenerator::insertNormals(const double search_radius,
                    vtkSmartPointer<vtkPolyData>& data)
 {
   // Find closest cell to each point and uses its normal vector
-  vtkSmartPointer<vtkDoubleArray> new_norm = vtkSmartPointer<vtkDoubleArray>::New();
-  new_norm->SetNumberOfComponents(3);
-  new_norm->SetNumberOfTuples(data->GetPoints()->GetNumberOfPoints());
+  vtkSmartPointer<vtkDoubleArray> new_normals = vtkSmartPointer<vtkDoubleArray>::New();
+  new_normals->SetNumberOfComponents(3);
+  new_normals->SetNumberOfTuples(data->GetPoints()->GetNumberOfPoints());
+
+  // get normal data
+  vtkSmartPointer<vtkDataArray> normal_data = mesh_data_->GetPointData()->GetNormals();
+
+  if(!normal_data)
+  {
+    CONSOLE_BRIDGE_logError("%s Normal data is not available", getName().c_str());
+    return false;
+  }
 
   for(int i = 0; i < data->GetPoints()->GetNumberOfPoints(); ++i)
   {
     // locate closest cell
-    std::array<double,3> query_point;
+    Eigen::Vector3d query_point;
     vtkSmartPointer<vtkIdList> id_list = vtkSmartPointer<vtkIdList>::New();
     data->GetPoints()->GetPoint(i, query_point.data());
     kd_tree_->FindPointsWithinRadius(search_radius,query_point.data(),id_list);
     if(id_list->GetNumberOfIds() < 1)
     {
-      CONSOLE_BRIDGE_logError("FindPointsWithinRadius returned no closest points");
-      return false;
+      new_normals->SetTuple3(i,0,0,1);
+      continue;
     }
 
     // compute normal average
     Eigen::Vector3d normal_vect = Eigen::Vector3d::Zero();
+    std::size_t num_normals = 0;
     for(std::size_t p = 0; p < id_list->GetNumberOfIds(); p++)
     {
       Eigen::Vector3d temp_normal, query_point, closest_point;
@@ -466,22 +524,25 @@ bool PlaneSlicerRasterGenerator::insertNormals(const double search_radius,
       int sub_index;
       double dist;
 
-      // find closes point cell id first
-      mesh_data_->GetPoints()->GetPoint(p_id, query_point.data());
-      cell_locator_->FindClosestPoint(query_point.data(),closest_point.data(),cell_id,sub_index,dist);
+      if(p_id < 0)
+      {
+        CONSOLE_BRIDGE_logError("%s point id is invalid",getName().c_str());
+        continue;
+      }
 
       // get normal and add it to average
-      mesh_data_->GetCellData()->GetNormals()->GetTuple(cell_id,temp_normal.data());
+      normal_data->GetTuple(p_id,temp_normal.data());
       normal_vect += temp_normal.normalized();
+      num_normals++;
     }
 
-    normal_vect /= id_list->GetNumberOfIds();
+    normal_vect /= num_normals;
     normal_vect.normalize();
 
-    // get normal
-    new_norm->SetTuple3(i,normal_vect(0),normal_vect(1),normal_vect(2));
+    // save normal
+    new_normals->SetTuple3(i,normal_vect(0),normal_vect(1),normal_vect(2));
   }
-  data->GetPointData()->SetNormals(new_norm);
+  data->GetPointData()->SetNormals(new_normals);
   return true;
 }
 
