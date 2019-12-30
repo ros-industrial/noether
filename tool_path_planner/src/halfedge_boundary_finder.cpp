@@ -271,19 +271,30 @@ bool applyEqualDistance(const pcl::PointCloud<pcl::PointNormal>& in, pcl::PointC
       Vj.push_back(tmp.normalized());
       Dj.push_back(tmp.norm());
     }
+  // Note, there is one more in_points than either Vj and Dj
+  std::size_t num_VDj = num_points-1;
 
   std::size_t j=0;
   double total = 0;
-  while(j < num_points)// keep adding points until all are used
+  while(j < num_VDj)// keep adding points until all are used
     {
-      while( ( (total+Dj[j]) < dist) && (j != num_points)) // find location where next point gets inserted
+      while( ( (total+Dj[j]) < dist) && (j < num_VDj)) // find location where next point gets inserted
         {
 	  total += Dj[j];
-	  j++;
+	  j++; // Warning, after last Dj[num_VDj-1] is added, j= num_VDj = num_points-1 = max index into in_points
 	}
 
       // insert point between in_points[j] and in_points[j+1]
-      Vector3f p = (*in_points)[j].getVector3fMap() + (dist-total)*Vj[j];
+      Vector3f p;
+      if(j>=num_VDj) // we added the last distance, so use the last point
+	{
+	  p = (*in_points)[num_points-1].getVector3fMap();
+	}
+      else // add current point plus some of the distance to the next point
+	{
+	  p = (*in_points)[j].getVector3fMap() + (dist-total)*Vj[j];
+	}
+
       pcl::PointNormal new_pn;
       new_pn.x = p(0);
       new_pn.y = p(1);
