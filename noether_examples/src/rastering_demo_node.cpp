@@ -153,26 +153,25 @@ public:
 
     // rastering
     tool_path_planner::PlaneSlicerRasterGenerator raster_gen;
-    boost::optional< std::vector<geometry_msgs::PoseArray> > temp = raster_gen.generate(mesh_msg,config);
+    boost::optional< std::vector<noether_msgs::ToolRasterPath> > temp = raster_gen.generate(mesh_msg,config);
     if(!temp)
     {
       ROS_ERROR("Failed to generate rasters");
       return false;
     }
-    std::vector<geometry_msgs::PoseArray> raster_poses = *temp;
+    std::vector<noether_msgs::ToolRasterPath> raster_paths = *temp;
 
-    ROS_INFO("Found %lu rasters",raster_poses.size());
+    ROS_INFO("Found %lu rasters",raster_paths.size());
 
-    for(std::size_t i = 0; i < raster_poses.size(); i++)
+    for(std::size_t i = 0; i < raster_paths.size(); i++)
     {
-      ROS_INFO("Raster %lu contains %lu points",i, raster_poses[i].poses.size());
-
+      ROS_INFO("Raster %lu contains %lu segments",i, raster_paths[i].paths.size());
       std::string ns = RASTER_PATH_NS + std::to_string(i);
-      visualization_msgs::MarkerArray edge_path_axis_markers = convertToAxisMarkers({raster_poses[i]},
+      visualization_msgs::MarkerArray edge_path_axis_markers = convertToAxisMarkers({raster_paths[i]},
                                                                                DEFAULT_FRAME_ID,
                                                                                ns);
 
-      visualization_msgs::MarkerArray edge_path_line_markers = convertToDottedLineMarker({raster_poses[i]},
+      visualization_msgs::MarkerArray edge_path_line_markers = convertToDottedLineMarker({raster_paths[i]},
                                                                                DEFAULT_FRAME_ID,
                                                                                ns);
 
@@ -186,6 +185,7 @@ public:
       {
         // prevents buffer overruns
         line_markers_.markers.clear();
+        line_markers_.markers.push_back(createMeshMarker(mesh_file,INPUT_MESH_NS,DEFAULT_FRAME_ID,RAW_MESH_RGBA));
       }
 
       poses_markers_.markers.insert( poses_markers_.markers.end(),
@@ -211,6 +211,7 @@ private:
 int main(int argc, char** argv)
 {
   ros::init(argc,argv,"halfedge_finder");
+  console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_INFO);
   ros::NodeHandle nh;
   ros::AsyncSpinner spinner(2);
   spinner.start();
