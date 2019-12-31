@@ -266,53 +266,40 @@ bool applyEqualDistance(const pcl::PointCloud<pcl::PointNormal>& in, pcl::PointC
   
   // compute normalized vectors and distances from point to point over all the trajectory
   for(std::size_t j=0; j< num_points -1; j++)
-    {
-      Vector3f tmp = (*in_points)[j+1].getVector3fMap() - (*in_points)[j].getVector3fMap();
-      Vj.push_back(tmp.normalized());
-      Dj.push_back(tmp.norm());
-    }
+  {
+    Vector3f tmp = (*in_points)[j+1].getVector3fMap() - (*in_points)[j].getVector3fMap();
+    Vj.push_back(tmp.normalized());
+    Dj.push_back(tmp.norm());
+  }
   // Note, there is one more in_points than either Vj and Dj
   std::size_t num_VDj = num_points-1;
 
   std::size_t j=0;
   double total = 0;
   while(j < num_VDj)// keep adding points until all are used
+  {
+    while( ( (total+Dj[j]) < dist) && (j < num_VDj)) // find location where next point gets inserted
     {
-      while( ( (total+Dj[j]) < dist) && (j < num_VDj)) // find location where next point gets inserted
-        {
-	  total += Dj[j];
-	  j++; // Warning, after last Dj[num_VDj-1] is added, j= num_VDj = num_points-1 = max index into in_points
-	}
+      total += Dj[j];
+      j++; // Warning, after last Dj[num_VDj-1] is added, j= num_VDj = num_points-1 = max index into in_points
+    }
 
-      // insert point between in_points[j] and in_points[j+1]
-      Vector3f p;
-      if(j>=num_VDj) // we added the last distance, so use the last point
-	{
-	  p = (*in_points)[num_points-1].getVector3fMap();
-	}
-      else // add current point plus some of the distance to the next point
-	{
-	  p = (*in_points)[j].getVector3fMap() + (dist-total)*Vj[j];
-	}
-
+    // insert point between in_points[j] and in_points[j+1]
+    if(j<num_VDj)
+    {
+      Vector3f p = (*in_points)[j].getVector3fMap() + (dist-total)*Vj[j];
       pcl::PointNormal new_pn;
       new_pn.x = p(0);
       new_pn.y = p(1);
       new_pn.z = p(2);
       out.push_back(new_pn);
-
-      if(j<num_points)// update Dj[j] to be the remainder of distance to in_point[j+1]
-	{
-	  Dj[j] = Dj[j] - (dist-total); 
-	  total = 0; // reset total
-	}
     }
-
-  // add last point if not already there
-  if((out.back().getVector3fMap() - in.back().getNormalVector3fMap()).norm() > MIN_POINT_DIST_ALLOWED)
+    if(j<num_points)// update Dj[j] to be the remainder of distance to in_point[j+1]
     {
-      out.push_back(in.back());
+      Dj[j] = Dj[j] - (dist-total);
+      total = 0; // reset total
     }
+  }
 
   // recovering normals now
   std::vector<int> k_indices;
@@ -331,7 +318,7 @@ bool applyEqualDistance(const pcl::PointCloud<pcl::PointNormal>& in, pcl::PointC
 
     const auto& pnormal = in[k_indices.front()];
     std::tie(p.normal_x, p.normal_y, p.normal_z) = std::make_tuple(
-        pnormal.normal_x, pnormal.normal_y, pnormal.normal_z);
+          pnormal.normal_x, pnormal.normal_y, pnormal.normal_z);
   }
   return true;
 }
@@ -370,7 +357,7 @@ bool applyParametricSpline(const pcl::PointCloud<pcl::PointNormal>& in, pcl::Poi
 
   // create spline
   vtkSmartPointer<vtkParametricSpline> spline =
-    vtkSmartPointer<vtkParametricSpline>::New();
+      vtkSmartPointer<vtkParametricSpline>::New();
   spline->SetPoints(vtk_points);
   spline->ParameterizeByLengthOff();
   spline->ClosedOff();
