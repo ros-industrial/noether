@@ -126,14 +126,16 @@ static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vt
   std::size_t num_points = std::ceil(total_length/point_spacing) + 1;
   double du[9];
   Eigen::Vector3d u, pt;
+  bool stop_adding = false;
   for(std::size_t i = 1; i < num_points; i++)
   {
-    //double interv = incr * i;
-    double interv = static_cast<double>(i)/static_cast<double>(num_points);
+    double interv = incr * i;
+    //double interv = static_cast<double>(i)/static_cast<double>(num_points);
     interv = interv > 1.0 ? 1.0 : interv ;
     if(std::abs(interv - 1.0) < EPSILON)
     {
-      break; // reach end
+      //break; // reach end
+      stop_adding = true;
     }
 
     u = interv * Eigen::Vector3d::Ones();
@@ -145,6 +147,11 @@ static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vt
     {
       new_points->InsertNextPoint(pt.data());
       pt_prev = pt;
+    }
+
+    if(stop_adding)
+    {
+      break;
     }
   }
 
@@ -245,12 +252,12 @@ void PlaneSlicerRasterGenerator::setInput(pcl::PolygonMesh::ConstPtr mesh)
   normal_generator->SetInputData(mesh_data_);
   normal_generator->ComputePointNormalsOn();
   normal_generator->SetComputeCellNormals(!mesh_data_->GetCellData()->GetNormals());
-  normal_generator->SetFeatureAngle(vtkMath::DegreesFromRadians(M_PI_2));
-  normal_generator->SetSplitting(false);
+  normal_generator->SetFeatureAngle(M_PI_2);
+  normal_generator->SetSplitting(true);
   normal_generator->SetConsistency(true);
   normal_generator->SetAutoOrientNormals(false);
   normal_generator->SetFlipNormals(false);
-  normal_generator->SetNonManifoldTraversal(true);
+  normal_generator->SetNonManifoldTraversal(false);
   normal_generator->Update();
 
 
@@ -500,6 +507,7 @@ bool PlaneSlicerRasterGenerator::insertNormals(const double search_radius,
     return false;
   }
 
+  Eigen::Vector3d normal_vect = Eigen::Vector3d::UnitZ();
   for(int i = 0; i < data->GetPoints()->GetNumberOfPoints(); ++i)
   {
     // locate closest cell
@@ -509,12 +517,14 @@ bool PlaneSlicerRasterGenerator::insertNormals(const double search_radius,
     kd_tree_->FindPointsWithinRadius(search_radius,query_point.data(),id_list);
     if(id_list->GetNumberOfIds() < 1)
     {
-      new_normals->SetTuple3(i,0,0,1);
+      CONSOLE_BRIDGE_logWarn("%s FindPointsWithinRadius found no points for normal averaging, using previous",
+                             getName().c_str());
+      new_normals->SetTuple3(i,normal_vect(0),normal_vect(1),normal_vect(2));
       continue;
     }
 
     // compute normal average
-    Eigen::Vector3d normal_vect = Eigen::Vector3d::Zero();
+    normal_vect = Eigen::Vector3d::Zero();
     std::size_t num_normals = 0;
     for(std::size_t p = 0; p < id_list->GetNumberOfIds(); p++)
     {

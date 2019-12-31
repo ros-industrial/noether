@@ -24,6 +24,7 @@
 #define INCLUDE_TOOL_PATH_PLANNER_UTILITIES_H_
 
 #include <noether_msgs/ToolPathConfig.h>
+#include <noether_msgs/ToolRasterPath.h>
 #include <Eigen/Dense>
 #include <eigen_stl_containers/eigen_stl_containers.h>
 #include <geometry_msgs/PoseArray.h>
@@ -44,6 +45,13 @@ namespace tool_path_planner
 
   std::vector<geometry_msgs::PoseArray> convertVTKtoGeometryMsgs(
       const std::vector<tool_path_planner::ProcessPath>& paths);
+
+  /**
+   * @brief conversion function. Not well tested yet
+   * @param paths The toolpaths within a raster
+   * @return a vector to process paths
+   */
+  std::vector<tool_path_planner::ProcessPath> toNoetherToolpaths(const noether_msgs::ToolRasterPath& paths);
 
   /**
    * @brief Convenience conversion function

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="mesh_file" />
+  <node name="rastering_demo_node" pkg="noether_examples" type="rastering_demo_node" output="screen"> 
+    <param name="mesh_file" value="$(arg mesh_file)"/>
+    <rosparam ns="plane_slicer_rastering">
+      raster_spacing: 0.05
+      point_spacing: 0.05
+      raster_rot_offset: 0.0
+      min_segment_size: 0.01
+      search_radius: 0.02
+    </rosparam>
+  </node>
+</launch>

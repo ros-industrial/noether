@@ -46,6 +46,17 @@ public:
     double raster_rot_offset = 0.0;
     double min_segment_size = 0.01;
     double search_radius = 0.01;
+
+    std::string str()
+    {
+      std::stringstream ss;
+      ss<<"raster_spacing: "<< raster_spacing<<std::endl;
+      ss<<"point_spacing: "<< point_spacing<<std::endl;
+      ss<<"raster_rot_offset: "<< raster_rot_offset<<std::endl;
+      ss<<"min_segment_size: "<< min_segment_size<<std::endl;
+      ss<<"search_radius: "<< search_radius<<std::endl;
+      return ss.str();
+    }
   };
 
   PlaneSlicerRasterGenerator();

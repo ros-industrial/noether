@@ -27,6 +27,9 @@
 #include <vtkPointData.h>
 #include <vtkCellData.h>
 #include <vtkTriangle.h>
+#include <vtkDoubleArray.h>
+#include <vtkSmartPointer.h>
+#include <vtkPolyData.h>
 #include <vtk_viewer/vtk_utils.h>
 #include <vtkReverseSense.h>
 #include <vtkImplicitDataSet.h>
@@ -148,6 +151,52 @@ std::vector<geometry_msgs::PoseArray> convertVTKtoGeometryMsgs(
     }
 
   return poseArrayVector;
+}
+
+std::vector<tool_path_planner::ProcessPath> toNoetherToolpaths(const noether_msgs::ToolRasterPath& paths)
+{
+  using namespace Eigen;
+  std::vector<tool_path_planner::ProcessPath> noether_tp;
+
+  for(auto& s : paths.paths)
+  {
+    tool_path_planner::ProcessPath tpp;
+    tpp.line = vtkSmartPointer<vtkPolyData>::New();
+    tpp.derivatives = vtkSmartPointer<vtkPolyData>::New();
+
+    //set vertex (cell) normals
+    vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+    vtkSmartPointer<vtkDoubleArray> line_normals = vtkSmartPointer<vtkDoubleArray>::New();
+    line_normals->SetNumberOfComponents(3); //3d normals (ie x,y,z)
+    line_normals->SetNumberOfTuples(s.poses.size());
+    vtkSmartPointer<vtkDoubleArray> der_normals = vtkSmartPointer<vtkDoubleArray>::New();;
+    der_normals->SetNumberOfComponents(3); //3d normals (ie x,y,z)
+    der_normals->SetNumberOfTuples(s.poses.size());
+
+    int idx = 0;
+    for(auto& pose : s.poses)
+    {
+      Isometry3d pose_eigen;
+      Vector3d point, vx, vy, vz;
+      tf::poseMsgToEigen(pose, pose_eigen);
+      point = pose_eigen.translation();
+      vx = pose_eigen.linear().col(0);
+      vy = pose_eigen.linear().col(1);
+      vz = pose_eigen.linear().col(2);
+      points->InsertNextPoint(point.data());
+      line_normals->SetTuple(idx,vz.data());
+      der_normals->SetTuple(idx,vx.data());
+
+      idx++;
+    }
+    tpp.line->SetPoints(points);
+    tpp.line->GetPointData()->SetNormals(line_normals);
+    tpp.derivatives->GetPointData()->SetNormals(der_normals);
+    tpp.derivatives->SetPoints(points);
+
+    noether_tp.push_back(tpp);
+  }
+  return noether_tp;
 }
 
 std::vector<geometry_msgs::PoseArray> toPosesMsgs(const std::vector<tool_path_planner::ProcessPath>& paths)
