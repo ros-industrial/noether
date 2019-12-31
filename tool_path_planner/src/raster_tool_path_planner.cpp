@@ -285,6 +285,51 @@ namespace tool_path_planner
       paths_.erase(paths_.begin() + delete_paths[i]);
     }
 
+    // flip any errant normals that tend to happen at edge of the mesh
+    for(int i = 0; i < new_paths.size(); i++)
+    {
+      // find the average normal along each new_path
+      Eigen::Vector3d sum_of_normal = Eigen::Vector3d::Zero();
+      for(int j = 0; j<new_paths[i].line->GetPoints()->GetNumberOfPoints(); j++)
+      {
+        Eigen::Vector3d current_normal = Eigen::Vector3d::Zero();
+        new_paths[i].line->GetPointData()->GetNormals()->GetTuple(j,current_normal.data());
+        sum_of_normal += current_normal;
+      }
+      sum_of_normal.normalize(); // this is now the average normal
+      LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER,"Line Normal = \n" << sum_of_normal);
+      vtkDataArray* normals = new_paths[i].line->GetPointData()->GetNormals();
+
+      // flip normal directions if it is in a different direction from the average of normal for the line
+      vtkDataArray* line_normals = new_paths[i].line->GetPointData()->GetNormals();
+      vtkSmartPointer<vtkDoubleArray> new_line_normals = vtkSmartPointer<vtkDoubleArray>::New();
+      new_line_normals->SetNumberOfComponents(3);
+      for(int j = line_normals ->GetNumberOfTuples() -1; j >= 0; --j)
+      {
+        Eigen::Vector3d current_normal = Eigen::Vector3d::Zero();
+        new_paths[i].line->GetPointData()->GetNormals()->GetTuple(j,current_normal.data());
+        double dp = current_normal.dot(sum_of_normal);
+        LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER,"Line " << i <<" waypoint "<< j << " dot product: " << dp);
+        if(dp < 0)
+        {
+          LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER,"Flipping line " << i <<" waypoint "<< j);
+          double* pt = line_normals ->GetTuple(i);
+          pt[0] *= -1;
+          pt[1] *= -1;
+          pt[2] *= -1;
+          new_line_normals->InsertNextTuple(pt);
+        }
+        else
+        {
+          double* pt = line_normals ->GetTuple(i);
+          new_line_normals->InsertNextTuple(pt);
+        }
+      }
+      new_paths[i].line->GetPointData()->SetNormals(new_line_normals);
+
+    }
+
+    // Insert new meshes
     for(int i = 0; i < new_paths.size(); ++i)
     {
       paths_.push_back(new_paths[i]);
