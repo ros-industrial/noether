@@ -37,7 +37,7 @@ static const std::string RASTER_POSES_MARKERS_TOPIC ="raster_poses";
 static const std::string RASTER_PATH_NS = "raster_";
 static const std::string INPUT_MESH_NS = "input_mesh";
 static const RGBA RAW_MESH_RGBA = std::make_tuple(0.6, 0.6, 1.0, 1.0);
-static const std::size_t MAX_MARKERS_ON_DISPLAY = 500;
+static const std::size_t MAX_MARKERS_ON_DISPLAY = 1000;
 
 class Rasterer
 {
@@ -164,32 +164,38 @@ public:
     for(std::size_t i = 0; i < raster_paths.size(); i++)
     {
       ROS_INFO("Raster %lu contains %lu segments",i, raster_paths[i].paths.size());
-      std::string ns = RASTER_PATH_NS + std::to_string(i);
-      visualization_msgs::MarkerArray edge_path_axis_markers = convertToAxisMarkers({raster_paths[i]},
-                                                                               DEFAULT_FRAME_ID,
-                                                                               ns);
-
-      visualization_msgs::MarkerArray edge_path_line_markers = convertToDottedLineMarker({raster_paths[i]},
-                                                                               DEFAULT_FRAME_ID,
-                                                                               ns);
-
-      if(poses_markers_.markers.size() > MAX_MARKERS_ON_DISPLAY)
+      for(std::size_t j = 0; j < raster_paths[i].paths.size(); j++)
       {
-        // prevents buffer overruns
-        poses_markers_.markers.clear();
-      }
+        std::cout<<"\tSegment "<< j << " contains "<< raster_paths[i].paths[j].poses.size() << " points"<<std::endl;
 
-      if(line_markers_.markers.size() > MAX_MARKERS_ON_DISPLAY) // prevents buffer overruns
-      {
-        // prevents buffer overruns
-        line_markers_.markers.clear();
-        line_markers_.markers.push_back(createMeshMarker(mesh_file,INPUT_MESH_NS,DEFAULT_FRAME_ID,RAW_MESH_RGBA));
-      }
 
-      poses_markers_.markers.insert( poses_markers_.markers.end(),
-                               edge_path_axis_markers.markers.begin(), edge_path_axis_markers.markers.end());
-      line_markers_.markers.insert( line_markers_.markers.end(),
-                               edge_path_line_markers.markers.begin(), edge_path_line_markers.markers.end());
+        std::string ns = RASTER_PATH_NS + std::to_string(i) + std::string("_s[") + std::to_string(j) + std::string("]") ;
+        visualization_msgs::MarkerArray edge_path_axis_markers = convertToAxisMarkers({raster_paths[i].paths[j]},
+                                                                                 DEFAULT_FRAME_ID,
+                                                                                 ns);
+
+        visualization_msgs::MarkerArray edge_path_line_markers = convertToDottedLineMarker({raster_paths[i].paths[j]},
+                                                                                 DEFAULT_FRAME_ID,
+                                                                                 ns);
+
+        if(poses_markers_.markers.size() > MAX_MARKERS_ON_DISPLAY)
+        {
+          // prevents buffer overruns
+          poses_markers_.markers.clear();
+        }
+
+        if(line_markers_.markers.size() > MAX_MARKERS_ON_DISPLAY) // prevents buffer overruns
+        {
+          // prevents buffer overruns
+          line_markers_.markers.clear();
+          line_markers_.markers.push_back(createMeshMarker(mesh_file,INPUT_MESH_NS,DEFAULT_FRAME_ID,RAW_MESH_RGBA));
+        }
+
+        poses_markers_.markers.insert( poses_markers_.markers.end(),
+                                 edge_path_axis_markers.markers.begin(), edge_path_axis_markers.markers.end());
+        line_markers_.markers.insert( line_markers_.markers.end(),
+                                 edge_path_line_markers.markers.begin(), edge_path_line_markers.markers.end());
+      }
     }
     return true;
   }
