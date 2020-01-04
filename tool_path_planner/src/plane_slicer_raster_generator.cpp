@@ -110,8 +110,6 @@ static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vt
                                                  double point_spacing)
 {
   vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
-/*  new_points->DeepCopy(points);
-  return new_points;*/
 
   // create spline
   vtkSmartPointer<vtkParametricSpline> spline = vtkSmartPointer<vtkParametricSpline>::New();
@@ -129,16 +127,13 @@ static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vt
   std::size_t num_points = std::ceil(total_length/point_spacing) + 1;
   double du[9];
   Eigen::Vector3d u, pt;
-  bool stop_adding = false;
   for(std::size_t i = 1; i < num_points; i++)
   {
-    double interv = incr * i;
-    //double interv = static_cast<double>(i)/static_cast<double>(num_points);
+    double interv = static_cast<double>(i)/static_cast<double>(num_points-1);
     interv = interv > 1.0 ? 1.0 : interv ;
     if(std::abs(interv - 1.0) < EPSILON)
     {
-      //break; // reach end
-      stop_adding = true;
+      break; // reach end
     }
 
     u = interv * Eigen::Vector3d::Ones();
@@ -151,11 +146,6 @@ static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vt
       new_points->InsertNextPoint(pt.data());
       pt_prev = pt;
     }
-
-    if(stop_adding)
-    {
-      break;
-    }
   }
 
   // add last point
@@ -165,6 +155,11 @@ static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vt
   return new_points;
 }
 
+/**
+ * @brief removes points that appear in multiple lists such that only one instance of that point
+ *        index remains
+ * @param points_lists
+ */
 static void removeRedundant(std::vector< std::vector<vtkIdType> >& points_lists)
 {
   using IdList = std::vector<vtkIdType>;
@@ -202,7 +197,7 @@ static void removeRedundant(std::vector< std::vector<vtkIdType> >& points_lists)
     }
 
     // add if it has enough points
-    if(new_list.size() > 1)
+    if(new_list.size() > 0)
     {
       new_points_lists.push_back(new_list);
     }
@@ -212,107 +207,7 @@ static void removeRedundant(std::vector< std::vector<vtkIdType> >& points_lists)
   points_lists.assign(new_points_lists.begin(), new_points_lists.end());
 }
 
-static void mergeSegments(const vtkSmartPointer<vtkPoints>& points, double merge_dist,
-                          std::vector< std::vector<vtkIdType> >& points_lists)
-{
-  using namespace Eigen;
-  using IdList = std::vector<vtkIdType>;
-  if(points_lists.size() < 2)
-  {
-    return;
-  }
-
-  // new list of merged points
-  std::vector< std::vector<vtkIdType> > new_points_lists;
-
-  auto create_point_subset = [](const vtkSmartPointer<vtkPoints>& points,const std::vector<vtkIdType>& indices)
-  {
-    vtkSmartPointer<vtkPoints> points_subset = vtkSmartPointer<vtkPoints>::New();
-    points_subset->DeepCopy(points);
-    Vector3d p = std::numeric_limits<double>::infinity() * Vector3d::Ones();
-    for(int i = 0; i < points_subset->GetNumberOfPoints(); i++)
-    {
-      if(std::find(indices.begin(), indices.end(), i) == indices.end())
-      {
-        points_subset->SetPoint(i, p.data());
-      }
-    }
-    return points_subset;
-  };
-
-  int num_ids = std::accumulate(points_lists.begin(), points_lists.end(),0,[](int v,const IdList& l){
-    return v+ l.size();
-  });
-
-  auto id_list_to_str = [](const IdList& l){
-    std::stringstream ss;
-    for(auto& id : l)
-    {
-      ss<<id <<", ";
-    }
-    return ss.str();
-  };
-  Vector3d query_point, closest_point;
-  IdList merged_lists;
-  IdList hide_ids;
-  IdList moved_ids;
-  for(std::size_t i = 0; i < points_lists.size() ; i++)
-  {
-    if(std::find(merged_lists.begin(), merged_lists.end(),i) != merged_lists.end())
-    {
-      // already merged
-      continue;
-    }
-
-    IdList current_list = points_lists[i];
-    if(i == points_lists.size() -1)
-    {
-      new_points_lists.push_back(current_list);
-      break;
-    }
-
-    for(std::size_t j = i+1; j <  points_lists.size() ; j++)
-    {
-      vtkSmartPointer<vtkKdTree> kd_tree = vtkSmartPointer<vtkKdTree>::New();
-      kd_tree->BuildLocatorFromPoints(create_point_subset(points, points_lists[j]));
-
-      bool merge =false;
-      for(auto& id : current_list)
-      {
-        vtkSmartPointer<vtkIdList> id_list = vtkSmartPointer<vtkIdList>::New();
-        points->GetPoint(id, query_point.data());
-        kd_tree->FindClosestNPoints(1,query_point.data(), id_list);
-        if(id_list->GetNumberOfIds() ==0)
-        {
-          continue;
-        }
-        vtkIdType closest_id = id_list->GetId(0);
-
-        points->GetPoint(closest_id, closest_point.data());
-        double d = (query_point - closest_point).norm();
-        if(merge_dist > d)
-        {
-          merge = true;
-          break;
-        }
-      }
-
-      if(merge)
-      {
-        current_list.insert(current_list.end(), points_lists[j].begin(), points_lists[j].end());
-        merged_lists.push_back(j);
-      }
-    }
-    new_points_lists.push_back(current_list);
-  }
-
-  points_lists.clear();
-  std::copy_if(new_points_lists.begin(), new_points_lists.end(),std::back_inserter(points_lists),[](const IdList& l){
-    return l.size() > 1;
-  });
-}
-
-static void mergeSegmentsNew(const vtkSmartPointer<vtkPoints>& points, double merge_dist,
+static void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points, double merge_dist,
                              std::vector< std::vector<vtkIdType> >& points_lists)
 {
   using namespace Eigen;
@@ -323,54 +218,81 @@ static void mergeSegmentsNew(const vtkSmartPointer<vtkPoints>& points, double me
   }
 
   std::vector<IdList> new_points_lists;
-  Vector3d query_point, closest_point;
   IdList merged_list_ids;
-  IdList new_list;
-  IdList moved_ids;
+  IdList merged_list;
+
+  auto do_merge = [&points](const IdList& current_list, const IdList& next_list, double merge_dist,
+      IdList& merged_list ){
+    Vector3d cl_point, nl_point;
+
+    // checking front and back end points respectively
+    points->GetPoint(current_list.front(),cl_point.data());
+    points->GetPoint(next_list.back(),nl_point.data());
+    double d = (cl_point - nl_point).norm();
+    if(d < merge_dist)
+    {
+      merged_list.assign(next_list.begin(), next_list.end());
+      merged_list.insert(merged_list.end(),current_list.begin(), current_list.end());
+      return true;
+    }
+
+    // checking back and front end points respectively
+    points->GetPoint(current_list.back(),cl_point.data());
+    points->GetPoint(next_list.front(),nl_point.data());
+    d = (cl_point - nl_point).norm();
+    if(d < merge_dist)
+    {
+      merged_list.assign(current_list.begin(), current_list.end());
+      merged_list.insert(merged_list.end(),next_list.begin(), next_list.end());
+      return true;
+    }
+    return false;
+  };
+
   for(std::size_t i = 0; i < points_lists.size() ; i++)
   {
     if(std::find(merged_list_ids.begin(), merged_list_ids.end(),i) != merged_list_ids.end())
     {
       // already merged
+      CONSOLE_BRIDGE_logDebug("Segment %i has already been merged, skipping", i);
       continue;
     }
 
     IdList current_list = points_lists[i];
-
-    for(std::size_t j = i+1; j <  points_lists.size() ; j++)
+    Vector3d cl_point, nl_point;
+    bool seek_adjacent = true;
+    while(seek_adjacent)
     {
-      IdList next_list = points_lists[j];
-      Vector3d front_current_p, back_next_p;
-      points->GetPoint(current_list.front(),front_current_p.data());
-      points->GetPoint(next_list.back(),back_next_p.data());
-
-      double d = (front_current_p - back_next_p).norm();
-      if(d < merge_dist)
+      seek_adjacent = false;
+      for(std::size_t j = i+1; j <  points_lists.size() ; j++)
       {
-        new_list.assign(next_list.begin(), next_list.end());
-        new_list.insert(new_list.end(),current_list.begin(), current_list.end());
-        //merged_list_ids.push_back(i);
-        merged_list_ids.push_back(j);
-        CONSOLE_BRIDGE_logInform("Merged segment %lu onto %lu at front with distance %f",j, i, d);
+        if(std::find(merged_list_ids.begin(), merged_list_ids.end(),j) != merged_list_ids.end())
+        {
+          // already merged
+          CONSOLE_BRIDGE_logDebug("Segment %i has already been merged, skipping", j);
+          continue;
+        }
 
-        current_list = new_list;
-        continue;
-      }
+        merged_list.clear();
+        IdList next_list = points_lists[j];
+        if(do_merge(current_list,next_list,merge_dist,merged_list))
+        {
+          CONSOLE_BRIDGE_logDebug("Merged segment %lu onto segment %lu",j, i);
+          current_list = merged_list;
+          merged_list_ids.push_back(j);
+          seek_adjacent = true;
+          continue;
+        }
 
-      Vector3d back_current_p, front_next_p;
-      points->GetPoint(current_list.back(),back_current_p.data());
-      points->GetPoint(next_list.front(),front_next_p.data());
-      d = (back_current_p - front_next_p).norm();
-      if(d < merge_dist)
-      {
-        new_list.assign(current_list.begin(), current_list.end());
-        new_list.insert(next_list.end(),next_list.begin(), next_list.end());
-        //merged_list_ids.push_back(i);
-        merged_list_ids.push_back(j);
-        CONSOLE_BRIDGE_logInform("Merged segment %lu onto %lu at front from back",j, i);
-
-        current_list = new_list;
-        continue;
+        std::reverse(next_list.begin(), next_list.end());
+        if(do_merge(current_list,next_list,merge_dist,merged_list))
+        {
+          CONSOLE_BRIDGE_logDebug("Merged segment %lu onto segment %lu",j, i);
+          current_list = merged_list;
+          merged_list_ids.push_back(j);
+          seek_adjacent = true;
+          continue;
+        }
       }
     }
     new_points_lists.push_back(current_list);
@@ -379,118 +301,8 @@ static void mergeSegmentsNew(const vtkSmartPointer<vtkPoints>& points, double me
   std::copy_if(new_points_lists.begin(), new_points_lists.end(),std::back_inserter(points_lists),[](const IdList& l){
     return l.size() > 1;
   });
+  CONSOLE_BRIDGE_logDebug("Final raster contains %lu segments", points_lists.size());
 
-}
-
-static vtkSmartPointer<vtkPoints> reorder(const vtkSmartPointer<vtkPoints>& points)
-{
-  using namespace Eigen;
-  std::size_t num_points = points->GetNumberOfPoints();
-  vtkSmartPointer<vtkPoints> ordered_points = vtkSmartPointer<vtkPoints>::New();
-  if(num_points < 3)
-  {
-    ordered_points->DeepCopy(points);
-    return ordered_points;
-  }
-
-  vtkSmartPointer<vtkKdTreePointLocator> kd_tree = vtkSmartPointer<vtkKdTreePointLocator>::New();
-  vtkSmartPointer<vtkPolyData> poly_data = vtkSmartPointer<vtkPolyData>::New();
-
-  std::vector<vtkIdType> visited_indices, active_indices(num_points);
-  std::iota(active_indices.begin(), active_indices.end(), 0);
-
-  auto hide_points = [](const vtkSmartPointer<vtkPoints>& points,const std::vector<vtkIdType>& indices)
-  {
-    vtkSmartPointer<vtkPoints> points_subset = vtkSmartPointer<vtkPoints>::New();
-    points_subset->DeepCopy(points);
-    Vector3d p = std::numeric_limits<double>::infinity() * Vector3d::Ones();
-    for(const auto& idx : indices)
-    {
-      points_subset->SetPoint(idx,p.data());
-    }
-    return points_subset;
-  };
-
-  vtkIdType search_point_id = active_indices.front();
-  Vector3d search_point, closest_point, start_point;
-  points->GetPoint(search_point_id,search_point.data());
-  visited_indices.push_back(search_point_id);
-  const int max_iter = num_points;
-  int current_iter = 0;
-  while(current_iter <= max_iter)
-  {
-    current_iter++;
-
-    //std::cout<<"removing index "<<search_point_id <<", num points left: "<< active_indices.size() << std::endl;
-    auto iter_pos = std::find(active_indices.begin(), active_indices.end(),search_point_id);
-    if(iter_pos != active_indices.end())
-    {
-      active_indices.erase(std::remove(active_indices.begin(), active_indices.end(),search_point_id));
-    }
-
-    if(active_indices.empty())
-    {
-      break;
-    }
-
-    // set search points
-    vtkSmartPointer<vtkKdTreePointLocator> kd_tree = vtkSmartPointer<vtkKdTreePointLocator>::New();
-    vtkSmartPointer<vtkPolyData> poly_data = vtkSmartPointer<vtkPolyData>::New();
-    poly_data->SetPoints(hide_points(points,visited_indices));
-    kd_tree->SetDataSet(poly_data);
-    kd_tree->BuildLocator();
-
-    // find closest
-    vtkIdType closest_point_id = kd_tree->FindClosestPoint(search_point.data());
-    points->GetPoint(closest_point_id,closest_point.data());
-    double closest_dist = (closest_point - search_point).norm();
-
-    if(std::isinf(closest_dist))
-    {
-      CONSOLE_BRIDGE_logInform("infinity found");
-      break;
-    }
-
-    // assigning search point for next iter
-    search_point_id = closest_point_id;
-    search_point = closest_point;
-
-    if(closest_dist < EPSILON)
-    {
-      // numerically same point, ignore
-      search_point_id = active_indices.front();
-      active_indices.erase (active_indices.begin());
-      points->GetPoint(search_point_id,search_point.data());
-      CONSOLE_BRIDGE_logInform("Too close, skipping");
-      continue;
-    }
-
-    // check if closest to start point
-    points->GetPoint(visited_indices.front(),start_point.data());
-    double dist_to_start = (closest_point - start_point).norm();
-    if(dist_to_start < closest_dist)
-    {
-      // closer to start so insert at the front
-      std::reverse(visited_indices.begin(), visited_indices.end());
-      visited_indices.push_back(closest_point_id);
-      CONSOLE_BRIDGE_logInform("Added point %i to front", closest_point_id);
-    }
-    else
-    {
-      visited_indices.push_back(closest_point_id);
-      //CONSOLE_BRIDGE_logInform("Added point %i to back", closest_point_id);
-    }
-  }
-
-  // copying points now
-  Vector3d p;
-  for(auto& id : visited_indices)
-  {
-    points->GetPoint(id,p.data());
-    ordered_points->InsertNextPoint(p.data());
-  }
-
-  return ordered_points;
 }
 
 static std::vector<noether_msgs::ToolRasterPath> convertToPoses(const std::vector<RasterConstructData>& rasters_data)
@@ -620,7 +432,7 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
   boost::optional<std::vector<noether_msgs::ToolRasterPath> > rasters = boost::none;
   if(!mesh_data_)
   {
-    CONSOLE_BRIDGE_logInform("%s No mesh data has been provided",getName().c_str());
+    CONSOLE_BRIDGE_logDebug("%s No mesh data has been provided",getName().c_str());
   }
   // computing mayor axis using oob
   vtkSmartPointer<vtkOBBTree> oob = vtkSmartPointer<vtkOBBTree>::New();
@@ -678,10 +490,12 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
 
     cutter->SetCutFunction(plane);
     cutter->SetInputData(transformed_mesh_data);
+    cutter->SetSortBy(1);
+    cutter->SetGenerateTriangles(false);
     cutter->Update();
 
     stripper->SetInputConnection(cutter->GetOutputPort());
-    stripper->JoinContiguousSegmentsOff();
+    stripper->JoinContiguousSegmentsOn();
     stripper->SetMaximumLength(mesh_data_->GetNumberOfPoints());
     stripper->Update();
 
@@ -705,6 +519,28 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
   cell_locator_->SetDataSet(mesh_data_);
   cell_locator_->BuildLocator();
 
+  // TODO: Using the first two points to determine the relative direction of the line isn't a very robust
+  //       way to make sure that the entire line is oriented in the desired direction when the meshes aren't
+  //       mostly flat
+  auto enforce_direction = [](const vtkSmartPointer<vtkPoints>& points, const Vector3d& ref_dir, IDVec& input_list)
+  {
+    Vector3d current_dir;
+    Vector3d p0, pf;
+
+    points->GetPoint(input_list[0],p0.data());
+    points->GetPoint(input_list[1],pf.data());
+    current_dir = (pf - p0);
+
+    double angle = std::acos( ref_dir.dot(current_dir)/(ref_dir.norm() * current_dir.norm()));
+    if(angle > M_PI_2)
+    {
+      // reversing
+      std::reverse(input_list.begin(), input_list.end());
+      return true;
+    }
+    return false;
+  };
+
   // collect rasters and set direction
   raster_data->Update();
   std::size_t num_slices = raster_data->GetTotalNumberOfInputConnections();
@@ -725,7 +561,7 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
     vtkCellArray* cells = raster_lines->GetLines();
 
     std::vector<IDVec> raster_ids;
-    CONSOLE_BRIDGE_logInform("%s raster %i has %i lines and %i points",getName().c_str(), i,
+    CONSOLE_BRIDGE_logDebug("%s raster %i has %i lines and %i points",getName().c_str(), i,
                              raster_lines->GetNumberOfLines(), raster_lines->GetNumberOfPoints());
 
     if(num_lines ==0)
@@ -755,6 +591,12 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
       auto iter = std::unique(point_ids.begin(), point_ids.end());
       point_ids.erase(iter,point_ids.end());
 
+      // enforcing direction
+      if(point_ids.size() > 1)
+      {
+        enforce_direction(raster_lines->GetPoints(), rotation_offset * Vector3d::UnitX(),point_ids);
+      }
+
       // adding
       raster_ids.push_back(point_ids);
     }
@@ -763,7 +605,7 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
     removeRedundant(raster_ids);
 
     // merging segments
-    mergeSegmentsNew(raster_lines->GetPoints(),config.merge_threshold,raster_ids);
+    mergeRasterSegments(raster_lines->GetPoints(),config.min_hole_size,raster_ids);
 
     for(auto& rpoint_ids: raster_ids)
     {
@@ -779,11 +621,7 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
       double line_length = computeLength(points);
       if(line_length > config.min_segment_size && points->GetNumberOfPoints()> 1)
       {
-        // order points
-        //decltype(points) new_points = reorder(points);
-
         // enforce point spacing
-        //new_points = applyParametricSpline(points,line_length,config.point_spacing);
         decltype(points) new_points = applyParametricSpline(points,line_length,config.point_spacing);
 
         // add points to segment now

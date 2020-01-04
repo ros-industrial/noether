@@ -46,7 +46,7 @@ public:
     double raster_rot_offset = 0.0;
     double min_segment_size = 0.01;
     double search_radius = 0.01;
-    double merge_threshold = 1e-2;
+    double min_hole_size = 1e-2;
 
     std::string str()
     {
