@@ -5,8 +5,9 @@
     <param name="mesh_file" value="$(arg mesh_file)"/>
     <rosparam ns="plane_slicer_rastering">
       raster_spacing: 0.05
-      point_spacing: 0.05
+      point_spacing: 0.02
       raster_rot_offset: 0.0
+      min_hole_size: 0.02
       min_segment_size: 0.01
       search_radius: 0.02
     </rosparam>

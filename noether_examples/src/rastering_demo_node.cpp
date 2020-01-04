@@ -37,7 +37,6 @@ static const std::string RASTER_POSES_MARKERS_TOPIC ="raster_poses";
 static const std::string RASTER_PATH_NS = "raster_";
 static const std::string INPUT_MESH_NS = "input_mesh";
 static const RGBA RAW_MESH_RGBA = std::make_tuple(0.6, 0.6, 1.0, 1.0);
-static const std::size_t MAX_MARKERS_ON_DISPLAY = 1000;
 
 class Rasterer
 {
@@ -80,6 +79,7 @@ public:
     std::vector<std::string> field_names = {"raster_spacing",
       "point_spacing",
       "raster_rot_offset",
+      "min_hole_size",
       "min_segment_size",
       "search_radius"};
     if(!std::all_of(field_names.begin(), field_names.end(), [&cfg](const std::string& f){
@@ -95,6 +95,7 @@ public:
       config.raster_spacing = static_cast<double>(cfg[field_names[idx++]]);
       config.point_spacing = static_cast<double>(cfg[field_names[idx++]]);
       config.raster_rot_offset = static_cast<double>(cfg[field_names[idx++]]);
+      config.min_hole_size = static_cast<double>(cfg[field_names[idx++]]);
       config.min_segment_size = static_cast<double>(cfg[field_names[idx++]]);
       config.search_radius = static_cast<double>(cfg[field_names[idx++]]);
     }
@@ -174,22 +175,9 @@ public:
                                                                                  DEFAULT_FRAME_ID,
                                                                                  ns);
 
-        visualization_msgs::MarkerArray edge_path_line_markers = convertToDottedLineMarker({raster_paths[i].paths[j]},
+        visualization_msgs::MarkerArray edge_path_line_markers = convertToArrowMarkers({raster_paths[i].paths[j]},
                                                                                  DEFAULT_FRAME_ID,
                                                                                  ns);
-
-        if(poses_markers_.markers.size() > MAX_MARKERS_ON_DISPLAY)
-        {
-          // prevents buffer overruns
-          poses_markers_.markers.clear();
-        }
-
-        if(line_markers_.markers.size() > MAX_MARKERS_ON_DISPLAY) // prevents buffer overruns
-        {
-          // prevents buffer overruns
-          line_markers_.markers.clear();
-          line_markers_.markers.push_back(createMeshMarker(mesh_file,INPUT_MESH_NS,DEFAULT_FRAME_ID,RAW_MESH_RGBA));
-        }
 
         poses_markers_.markers.insert( poses_markers_.markers.end(),
                                  edge_path_axis_markers.markers.begin(), edge_path_axis_markers.markers.end());
@@ -208,18 +196,15 @@ private:
   visualization_msgs::MarkerArray line_markers_;
   visualization_msgs::MarkerArray poses_markers_;
 
-
-
 };
 
 int main(int argc, char** argv)
 {
   ros::init(argc,argv,"halfedge_finder");
-  console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_INFO);
+  console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_DEBUG);
   ros::NodeHandle nh;
   ros::AsyncSpinner spinner(2);
   spinner.start();
-  console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_INFO);
   Rasterer edge_finder(nh);
   if(!edge_finder.run())
   {
