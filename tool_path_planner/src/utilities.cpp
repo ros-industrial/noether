@@ -181,6 +181,7 @@ std::vector<tool_path_planner::ProcessPath> toNoetherToolpaths(const noether_msg
       tf::poseMsgToEigen(pose, pose_eigen);
       point = pose_eigen.translation();
       vx = pose_eigen.linear().col(0);
+      vx *= -1.0;
       vy = pose_eigen.linear().col(1);
       vz = pose_eigen.linear().col(2);
       points->InsertNextPoint(point.data());

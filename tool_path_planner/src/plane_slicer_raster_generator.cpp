@@ -59,7 +59,6 @@ struct RasterConstructData
 {
   std::vector<PolyDataPtr> raster_segments;
   std::vector<double> segment_lengths;
-  bool reverse_direction = false;
 };
 
 static Eigen::Matrix3d computeRotation(const Eigen::Vector3d& vx, const Eigen::Vector3d& vy, const Eigen::Vector3d& vz)
@@ -167,11 +166,6 @@ static void removeRedundant(std::vector< std::vector<vtkIdType> >& points_lists)
   {
     return;
   }
-
-  // sorting by count
-  std::sort(points_lists.begin(), points_lists.end(),[](const IdList& l1, const IdList& l2){
-    return l1.size() > l2.size();
-  });
 
   std::vector< std::vector<vtkIdType> > new_points_lists;
   new_points_lists.push_back(points_lists.front());
@@ -305,16 +299,43 @@ static void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points, double
 
 }
 
+static void rectifyDirection(const vtkSmartPointer<vtkPoints>& points, const Eigen::Vector3d& ref_point,
+                             std::vector< std::vector<vtkIdType> >& points_lists )
+{
+  using namespace Eigen;
+  Vector3d p0, pf;
+  if(points_lists.empty())
+  {
+    return;
+  }
+
+  // getting first and last points
+  points->GetPoint( points_lists.front().front(),p0.data());
+  points->GetPoint( points_lists.back().back(),pf.data());
+
+  bool reverse = (ref_point - p0).norm() > (ref_point - pf).norm();
+  if(reverse)
+  {
+    for(auto& s: points_lists)
+    {
+      std::reverse(s.begin(),s.end());
+    }
+    std::reverse(points_lists.begin(), points_lists.end());
+  }
+}
+
 static std::vector<noether_msgs::ToolRasterPath> convertToPoses(const std::vector<RasterConstructData>& rasters_data)
 {
   using namespace Eigen;
   std::vector<noether_msgs::ToolRasterPath> rasters_array;
+  bool reverse = true;
   for(const RasterConstructData& rd : rasters_data)
   {
+    reverse = !reverse;
     noether_msgs::ToolRasterPath raster_path_msg;
     std::vector<PolyDataPtr> raster_segments;
     raster_segments.assign(rd.raster_segments.begin(), rd.raster_segments.end());
-    if(rd.reverse_direction)
+    if(reverse)
     {
       std::reverse(raster_segments.begin(), raster_segments.end());
     }
@@ -325,11 +346,19 @@ static std::vector<noether_msgs::ToolRasterPath> convertToPoses(const std::vecto
       std::size_t num_points = polydata->GetNumberOfPoints();
       Vector3d p, p_next, vx, vy, vz;
       Isometry3d pose;
-      for(std::size_t i = 0; i < num_points - 1; i++)
+      std::vector<int> indices(num_points);
+      std::iota(indices.begin(), indices.end(),0);
+      if(reverse)
       {
-        polydata->GetPoint(i,p.data());
-        polydata->GetPoint(i+1,p_next.data());
-        polydata->GetPointData()->GetNormals()->GetTuple(i,vz.data());
+        std::reverse(indices.begin(), indices.end());
+      }
+      for(std::size_t i = 0; i < indices.size() - 1; i++)
+      {
+        int idx = indices[i];
+        int idx_next = indices[i+1];
+        polydata->GetPoint(idx,p.data());
+        polydata->GetPoint(idx_next,p_next.data());
+        polydata->GetPointData()->GetNormals()->GetTuple(idx,vz.data());
         vx = (p_next - p).normalized();
         vy = vz.cross(vx).normalized();
         vz = vx.cross(vy).normalized();
@@ -340,14 +369,6 @@ static std::vector<noether_msgs::ToolRasterPath> convertToPoses(const std::vecto
       // adding last pose
       pose.translation() = p_next; // orientation stays the same as previous
       raster_poses.push_back(pose);
-
-      if(rd.reverse_direction)
-      {
-        std::reverse(raster_poses.begin(), raster_poses.end());
-        std::for_each(raster_poses.begin(), raster_poses.end(), [](Isometry3d& p){
-          p = p * AngleAxisd(M_PI,Vector3d::UnitZ()); // rotate by 180
-        });
-      }
 
       // convert to poses msg
       geometry_msgs::PoseArray raster_poses_msg;
@@ -519,38 +540,15 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
   cell_locator_->SetDataSet(mesh_data_);
   cell_locator_->BuildLocator();
 
-  // TODO: Using the first two points to determine the relative direction of the line isn't a very robust
-  //       way to make sure that the entire line is oriented in the desired direction when the meshes aren't
-  //       mostly flat
-  auto enforce_direction = [](const vtkSmartPointer<vtkPoints>& points, const Vector3d& ref_dir, IDVec& input_list)
-  {
-    Vector3d current_dir;
-    Vector3d p0, pf;
-
-    points->GetPoint(input_list[0],p0.data());
-    points->GetPoint(input_list[1],pf.data());
-    current_dir = (pf - p0);
-
-    double angle = std::acos( ref_dir.dot(current_dir)/(ref_dir.norm() * current_dir.norm()));
-    if(angle > M_PI_2)
-    {
-      // reversing
-      std::reverse(input_list.begin(), input_list.end());
-      return true;
-    }
-    return false;
-  };
-
   // collect rasters and set direction
   raster_data->Update();
   std::size_t num_slices = raster_data->GetTotalNumberOfInputConnections();
   std::vector<RasterConstructData> rasters_data_vec;
-  bool reverse = true;
+  std::vector<IDVec> raster_ids;
+  boost::optional<Vector3d> ref_dir;
   for(std::size_t i = 0; i < num_slices; i++)
   {
     RasterConstructData r;
-    reverse = !reverse;
-    r.reverse_direction = reverse;
 
     // collecting raster segments based on min hole size
     vtkSmartPointer<vtkPolyData> raster_lines = raster_data->GetInput(i);
@@ -560,7 +558,6 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
     vtkPoints* points = raster_lines->GetPoints();
     vtkCellArray* cells = raster_lines->GetLines();
 
-    std::vector<IDVec> raster_ids;
     CONSOLE_BRIDGE_logDebug("%s raster %i has %i lines and %i points",getName().c_str(), i,
                              raster_lines->GetNumberOfLines(), raster_lines->GetNumberOfPoints());
 
@@ -568,6 +565,8 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
     {
       continue;
     }
+
+    raster_ids.clear();
 
     unsigned int lineCount = 0;
     for (cells->InitTraversal(); cells->GetNextCell(num_points, indices);
@@ -591,14 +590,13 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
       auto iter = std::unique(point_ids.begin(), point_ids.end());
       point_ids.erase(iter,point_ids.end());
 
-      // enforcing direction
-      if(point_ids.size() > 1)
-      {
-        enforce_direction(raster_lines->GetPoints(), rotation_offset * Vector3d::UnitX(),point_ids);
-      }
-
       // adding
       raster_ids.push_back(point_ids);
+    }
+
+    if(raster_ids.empty())
+    {
+      continue;
     }
 
     // remove redundant indices
@@ -606,6 +604,14 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
 
     // merging segments
     mergeRasterSegments(raster_lines->GetPoints(),config.min_hole_size,raster_ids);
+
+    // rectifying
+    if(!rasters_data_vec.empty())
+    {
+      Vector3d ref_point;
+      rasters_data_vec.back().raster_segments.front()->GetPoint(0,ref_point.data()); // first point in previous raster
+      rectifyDirection(raster_lines->GetPoints(), t_inv * ref_point, raster_ids);
+    }
 
     for(auto& rpoint_ids: raster_ids)
     {
