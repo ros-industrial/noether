@@ -4,8 +4,8 @@ project(vtk_viewer VERSION 0.1.0)
 find_package(cmake_common_scripts REQUIRED)
 
 find_package(VTK REQUIRED NO_MODULE)
-if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 7.1))
-  message(FATAL_ERROR "The minimum required version of VTK is 7.1, but found ${VTK_VERSION}")
+if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 8.2))
+  message(FATAL_ERROR "The minimum required version of VTK is 8.2, but found ${VTK_VERSION}")
   set(VTK_FOUND FALSE)
 endif()
 

@@ -44,7 +44,7 @@
 #include <vtkErrorCode.h>
 
 #include <boost/make_shared.hpp>
-#include <eigen_stl_containers/eigen_stl_vector_container.h>
+#include<Eigen/StdVector>
 #include <eigen_conversions/eigen_msg.h>
 #include <pcl/surface/vtk_smoothing/vtk_utils.h>
 #include <console_bridge/console.h>
@@ -342,7 +342,7 @@ static std::vector<noether_msgs::ToolRasterPath> convertToPoses(const std::vecto
 
     for(const PolyDataPtr& polydata : raster_segments)
     {
-      EigenSTL::vector_Isometry3d raster_poses;
+      std::vector<Eigen::Isometry3d, Eigen::aligned_allocator<Eigen::Isometry3d> > raster_poses;
       std::size_t num_points = polydata->GetNumberOfPoints();
       Vector3d p, p_next, vx, vy, vz;
       Isometry3d pose;
