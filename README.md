@@ -61,7 +61,8 @@ This package depends on PCL 1.9.1 and VTK 7.1.
     cd build
     ccmake ..
     ```
-    Then locate the `BUILD_surface_on_nurbs` flag and set it to `ON`
+    - Then locate the `BUILD_surface_on_nurbs` flag and set it to `ON`
+    - Locate the `PCL_ENABLE_SSE` flag and set it to `OFF` or `FALSE`, this alters the alignment of class members when enabled, see [here](https://github.com/PointCloudLibrary/pcl/issues/1725)
 6. Build
     ```
     make
