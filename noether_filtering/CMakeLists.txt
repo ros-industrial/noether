@@ -21,6 +21,22 @@ find_package(console_bridge REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(xmlrpcpp REQUIRED)
 
+# Check if PCL was compiled with OpenNURBS
+if(NOT DEFINED NURBS_FOUND)
+    try_compile(
+        NURBS_FOUND
+        ${CMAKE_CURRENT_BINARY_DIR}/pcl_nurbs_try_compile
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/test_scripts/check_pcl_nurbs.cpp
+        CMAKE_FLAGS ${CMAKE_FLAGS} -DINCLUDE_DIRECTORIES=${PCL_INCLUDE_DIRS}
+        LINK_LIBRARIES ${PCL_LIBRARIES}
+        )
+    if (NOT ${NURBS_FOUND})
+        message("PCL NURBS NOT FOUND")
+    else()
+        message("PCL NURBS FOUND")
+    endif()
+endif()
+
 ###########
 ## Build ##
 ###########
@@ -59,13 +75,23 @@ endif()
 if(${BUILD_MESH_PLUGINS})
   # Mesh Filters library
   message("Building mesh plugins")
-  add_library(${PROJECT_NAME}_mesh_filters SHARED
-    src/mesh/bspline_reconstruction.cpp
-    src/mesh/euclidean_clustering.cpp
-    src/mesh/clean_data.cpp
-    src/mesh/fill_holes.cpp
-    src/mesh/windowed_sinc_smoothing.cpp
-  )
+  set(MESH_FILTERS_SRC
+      src/mesh/euclidean_clustering.cpp
+      src/mesh/clean_data.cpp
+      src/mesh/fill_holes.cpp
+      src/mesh/windowed_sinc_smoothing.cpp
+      )
+  set(MESH_FILTERS_COMPILE_DEFINITIONS "")
+
+if (${NURBS_FOUND})
+    list(APPEND MESH_FILTERS_SRC src/mesh/bspline_reconstruction.cpp)
+    list(APPEND MESH_FILTERS_COMPILE_DEFINITIONS ENABLE_NURBS)
+endif()
+
+  add_library(${PROJECT_NAME}_mesh_filters SHARED ${MESH_FILTERS_SRC})
+  target_compile_definitions(${PROJECT_NAME}_mesh_filters PUBLIC ${MESH_FILTERS_COMPILE_DEFINITIONS})
+
+
   target_link_libraries(${PROJECT_NAME}_mesh_filters PUBLIC ${PROJECT_NAME})
   target_include_directories(${PROJECT_NAME}_mesh_filters PUBLIC
       "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
