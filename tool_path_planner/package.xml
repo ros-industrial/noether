@@ -11,12 +11,14 @@
   <build_depend>roslib</build_depend>
 
   <depend>eigen_conversions</depend>
+  <depend>eigen_stl_containers</depend>
   <depend>noether_conversions</depend>
   <depend>geometry_msgs</depend>
   <depend>noether_msgs</depend>
   <depend>rosconsole</depend>
   <depend>shape_msgs</depend>
   <depend>vtk_viewer</depend>
+  <depend>libpcl-all-dev</depend>
 
   <test_depend>rosunit</test_depend>
 

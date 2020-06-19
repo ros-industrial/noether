@@ -8,6 +8,8 @@ find_package(catkin REQUIRED COMPONENTS
   eigen_conversions
   geometry_msgs
   noether_msgs
+  shape_msgs
+  visualization_msgs
 )
 
 find_package(VTK REQUIRED NO_MODULE)

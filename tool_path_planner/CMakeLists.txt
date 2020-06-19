@@ -8,6 +8,7 @@ project(tool_path_planner)
 find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   eigen_conversions
+  eigen_stl_containers
   noether_conversions
   geometry_msgs
   noether_msgs
@@ -41,6 +42,7 @@ catkin_package(
     ${PROJECT_NAME}
   CATKIN_DEPENDS
     eigen_conversions
+    eigen_stl_containers
     geometry_msgs
     noether_msgs
     rosconsole
