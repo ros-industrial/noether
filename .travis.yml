@@ -9,11 +9,14 @@ notifications:
 
 env:
   global:
-    - ROS_DISTRO=kinetic
-    - DOCKER_IMAGE=rosindustrial/noether:kinetic
     - NOT_TEST_BUILD=true
-    - BEFORE_INIT="apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654"
-
+    
+matrix:
+  include:
+    - env: ROS_DISTRO=kinetic DOCKER_IMAGE=rosindustrial/noether:kinetic
+    - env: ROS_DISTRO=melodic DOCKER_IMAGE=rosindustrial/noether:melodic
+    - env: ROS_DISTRO=noetic DOCKER_IMAGE=rosindustrial/noether:noetic
+    
 install:
   - git clone --quiet --depth 1 https://github.com/ros-industrial/industrial_ci.git .industrial_ci -b master
 script:
