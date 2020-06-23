@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5.0)
-project(noether_filtering VERSION 0.0.0 LANGUAGES CXX)
+project(noether_filtering VERSION 0.1.0)
 
 find_package(VTK REQUIRED NO_MODULE)
 if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 7.1))
@@ -62,15 +62,12 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
   ${PCL_INCLUDE_DIRS}
   ${xmlrpcpp_INCLUDE_DIRS}
 )
-set_target_properties(${PROJECT_NAME} PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-  CXX_EXTENSIONS NO)
 if(CXX_FEATURE_FOUND EQUAL "-1")
   target_compile_options(${PROJECT_NAME} PRIVATE -std=c++14)
 else()
   target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_14)
 endif()
+set_target_properties(${PROJECT_NAME} PROPERTIES NO_SYSTEM_FROM_IMPORTED 1)
 
 if(${BUILD_MESH_PLUGINS})
   # Mesh Filters library
@@ -96,32 +93,24 @@ endif()
   target_include_directories(${PROJECT_NAME}_mesh_filters PUBLIC
       "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
       "$<INSTALL_INTERFACE:include>")
-  set_target_properties(${PROJECT_NAME}_mesh_filters PROPERTIES
-    CXX_STANDARD 14
-    CXX_STANDARD_REQUIRED YES
-    CXX_EXTENSIONS NO
-  )
   if(CXX_FEATURE_FOUND EQUAL "-1")
     target_compile_options(${PROJECT_NAME}_mesh_filters PRIVATE -std=c++14)
   else()
     target_compile_features(${PROJECT_NAME}_mesh_filters PRIVATE cxx_std_14)
   endif()
+  set_target_properties(${PROJECT_NAME}_mesh_filters PROPERTIES NO_SYSTEM_FROM_IMPORTED 1)
 
   # Mesh Filter Plugins Library
   add_library(${PROJECT_NAME}_mesh_filter_plugins SHARED src/mesh/plugins.cpp)
   target_link_libraries(${PROJECT_NAME}_mesh_filter_plugins PUBLIC
     ${PROJECT_NAME}_mesh_filters
   )
-  set_target_properties(${PROJECT_NAME}_mesh_filter_plugins PROPERTIES
-    CXX_STANDARD 14
-    CXX_STANDARD_REQUIRED YES
-    CXX_EXTENSIONS NO
-  )
   if(CXX_FEATURE_FOUND EQUAL "-1")
     target_compile_options(${PROJECT_NAME}_mesh_filter_plugins PRIVATE -std=c++14)
   else()
     target_compile_features(${PROJECT_NAME}_mesh_filter_plugins PRIVATE cxx_std_14)
   endif()
+  set_target_properties(${PROJECT_NAME}_mesh_filter_plugins PROPERTIES NO_SYSTEM_FROM_IMPORTED 1)
 endif()
 
 # Cloud Filters library
@@ -130,31 +119,24 @@ target_link_libraries(${PROJECT_NAME}_cloud_filters PUBLIC ${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME}_cloud_filters PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include>")
-set_target_properties(${PROJECT_NAME}_cloud_filters PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-  CXX_EXTENSIONS NO)
 if(CXX_FEATURE_FOUND EQUAL "-1")
   target_compile_options(${PROJECT_NAME}_cloud_filters PRIVATE -std=c++14)
 else()
   target_compile_features(${PROJECT_NAME}_cloud_filters PRIVATE cxx_std_14)
 endif()
+set_target_properties(${PROJECT_NAME}_cloud_filters PROPERTIES NO_SYSTEM_FROM_IMPORTED 1)
 
 # Cloud Filter Plugins Library
 add_library(${PROJECT_NAME}_cloud_filter_plugins SHARED src/cloud/plugins.cpp)
 target_link_libraries(${PROJECT_NAME}_cloud_filter_plugins PUBLIC
   ${PROJECT_NAME}_cloud_filters
 )
-set_target_properties(${PROJECT_NAME}_cloud_filter_plugins PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-  CXX_EXTENSIONS NO
-)
 if(CXX_FEATURE_FOUND EQUAL "-1")
   target_compile_options(${PROJECT_NAME}_cloud_filter_plugins PRIVATE -std=c++14)
 else()
   target_compile_features(${PROJECT_NAME}_cloud_filter_plugins PRIVATE cxx_std_14)
 endif()
+set_target_properties(${PROJECT_NAME}_cloud_filter_plugins PROPERTIES NO_SYSTEM_FROM_IMPORTED 1)
 
 #############
 ## Install ##
@@ -234,11 +216,6 @@ if(${ENABLE_TESTS})
   endif()
 
   add_executable(${PROJECT_NAME}_cloud_unit src/test/cloud_utest.cpp)
-  set_target_properties(${PROJECT_NAME}_cloud_unit PROPERTIES
-    CXX_STANDARD 14
-    CXX_STANDARD_REQUIRED YES
-    CXX_EXTENSIONS NO
-  )
   target_link_libraries(${PROJECT_NAME}_cloud_unit PUBLIC
     ${PROJECT_NAME}_cloud_filter_plugins
     gtest_main
@@ -249,4 +226,5 @@ if(${ENABLE_TESTS})
   else()
     target_compile_features(${PROJECT_NAME}_cloud_unit PRIVATE cxx_std_14)
   endif()
+set_target_properties(${PROJECT_NAME}_cloud_unit PROPERTIES NO_SYSTEM_FROM_IMPORTED 1)
 endif()
