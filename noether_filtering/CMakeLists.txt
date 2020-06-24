@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5.0)
-project(noether_filtering VERSION 0.0.0 LANGUAGES CXX)
+project(noether_filtering VERSION 0.1.0)
 
 find_package(VTK REQUIRED NO_MODULE)
 if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 7.1))
@@ -20,6 +20,22 @@ endif()
 find_package(console_bridge REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(xmlrpcpp REQUIRED)
+
+# Check if PCL was compiled with OpenNURBS
+if(NOT DEFINED NURBS_FOUND)
+    try_compile(
+        NURBS_FOUND
+        ${CMAKE_CURRENT_BINARY_DIR}/pcl_nurbs_try_compile
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/test_scripts/check_pcl_nurbs.cpp
+        CMAKE_FLAGS ${CMAKE_FLAGS} -DINCLUDE_DIRECTORIES=${PCL_INCLUDE_DIRS}
+        LINK_LIBRARIES ${PCL_LIBRARIES}
+        )
+    if (NOT ${NURBS_FOUND})
+        message("PCL NURBS NOT FOUND")
+    else()
+        message("PCL NURBS FOUND")
+    endif()
+endif()
 
 ###########
 ## Build ##
@@ -46,56 +62,55 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
   ${PCL_INCLUDE_DIRS}
   ${xmlrpcpp_INCLUDE_DIRS}
 )
-set_target_properties(${PROJECT_NAME} PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-  CXX_EXTENSIONS NO)
 if(CXX_FEATURE_FOUND EQUAL "-1")
   target_compile_options(${PROJECT_NAME} PRIVATE -std=c++14)
 else()
   target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_14)
 endif()
+set_target_properties(${PROJECT_NAME} PROPERTIES NO_SYSTEM_FROM_IMPORTED 1)
 
 if(${BUILD_MESH_PLUGINS})
   # Mesh Filters library
   message("Building mesh plugins")
-  add_library(${PROJECT_NAME}_mesh_filters SHARED
-    src/mesh/bspline_reconstruction.cpp
-    src/mesh/euclidean_clustering.cpp
-    src/mesh/clean_data.cpp
-    src/mesh/fill_holes.cpp
-    src/mesh/windowed_sinc_smoothing.cpp
-  )
+  set(MESH_FILTERS_SRC
+      src/mesh/euclidean_clustering.cpp
+      src/mesh/clean_data.cpp
+      src/mesh/fill_holes.cpp
+      src/mesh/windowed_sinc_smoothing.cpp
+      )
+  set(MESH_FILTERS_COMPILE_DEFINITIONS "")
+
+if (${NURBS_FOUND})
+    list(APPEND MESH_FILTERS_SRC src/mesh/bspline_reconstruction.cpp)
+    list(APPEND MESH_FILTERS_COMPILE_DEFINITIONS ENABLE_NURBS)
+endif()
+
+  add_library(${PROJECT_NAME}_mesh_filters SHARED ${MESH_FILTERS_SRC})
+  target_compile_definitions(${PROJECT_NAME}_mesh_filters PUBLIC ${MESH_FILTERS_COMPILE_DEFINITIONS})
+
+
   target_link_libraries(${PROJECT_NAME}_mesh_filters PUBLIC ${PROJECT_NAME})
   target_include_directories(${PROJECT_NAME}_mesh_filters PUBLIC
       "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
       "$<INSTALL_INTERFACE:include>")
-  set_target_properties(${PROJECT_NAME}_mesh_filters PROPERTIES
-    CXX_STANDARD 14
-    CXX_STANDARD_REQUIRED YES
-    CXX_EXTENSIONS NO
-  )
   if(CXX_FEATURE_FOUND EQUAL "-1")
     target_compile_options(${PROJECT_NAME}_mesh_filters PRIVATE -std=c++14)
   else()
     target_compile_features(${PROJECT_NAME}_mesh_filters PRIVATE cxx_std_14)
   endif()
+  set_target_properties(${PROJECT_NAME}_mesh_filters PROPERTIES NO_SYSTEM_FROM_IMPORTED 1)
 
   # Mesh Filter Plugins Library
   add_library(${PROJECT_NAME}_mesh_filter_plugins SHARED src/mesh/plugins.cpp)
   target_link_libraries(${PROJECT_NAME}_mesh_filter_plugins PUBLIC
     ${PROJECT_NAME}_mesh_filters
   )
-  set_target_properties(${PROJECT_NAME}_mesh_filter_plugins PROPERTIES
-    CXX_STANDARD 14
-    CXX_STANDARD_REQUIRED YES
-    CXX_EXTENSIONS NO
-  )
   if(CXX_FEATURE_FOUND EQUAL "-1")
     target_compile_options(${PROJECT_NAME}_mesh_filter_plugins PRIVATE -std=c++14)
   else()
     target_compile_features(${PROJECT_NAME}_mesh_filter_plugins PRIVATE cxx_std_14)
   endif()
+  set_target_properties(${PROJECT_NAME}_mesh_filter_plugins PROPERTIES NO_SYSTEM_FROM_IMPORTED 1)
 endif()
 
 # Cloud Filters library
@@ -104,31 +119,24 @@ target_link_libraries(${PROJECT_NAME}_cloud_filters PUBLIC ${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME}_cloud_filters PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include>")
-set_target_properties(${PROJECT_NAME}_cloud_filters PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-  CXX_EXTENSIONS NO)
 if(CXX_FEATURE_FOUND EQUAL "-1")
   target_compile_options(${PROJECT_NAME}_cloud_filters PRIVATE -std=c++14)
 else()
   target_compile_features(${PROJECT_NAME}_cloud_filters PRIVATE cxx_std_14)
 endif()
+set_target_properties(${PROJECT_NAME}_cloud_filters PROPERTIES NO_SYSTEM_FROM_IMPORTED 1)
 
 # Cloud Filter Plugins Library
 add_library(${PROJECT_NAME}_cloud_filter_plugins SHARED src/cloud/plugins.cpp)
 target_link_libraries(${PROJECT_NAME}_cloud_filter_plugins PUBLIC
   ${PROJECT_NAME}_cloud_filters
 )
-set_target_properties(${PROJECT_NAME}_cloud_filter_plugins PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED YES
-  CXX_EXTENSIONS NO
-)
 if(CXX_FEATURE_FOUND EQUAL "-1")
   target_compile_options(${PROJECT_NAME}_cloud_filter_plugins PRIVATE -std=c++14)
 else()
   target_compile_features(${PROJECT_NAME}_cloud_filter_plugins PRIVATE cxx_std_14)
 endif()
+set_target_properties(${PROJECT_NAME}_cloud_filter_plugins PROPERTIES NO_SYSTEM_FROM_IMPORTED 1)
 
 #############
 ## Install ##
@@ -174,6 +182,14 @@ install(FILES
 export(EXPORT ${PROJECT_NAME}-targets FILE
     ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-targets.cmake)
 
+# Allows Colcon to find non-Ament packages when using workspace underlays
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/share/ament_index/resource_index/packages/${PROJECT_NAME} "")
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/share/ament_index/resource_index/packages/${PROJECT_NAME} DESTINATION share/ament_index/resource_index/packages)
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/share/${PROJECT_NAME}/hook/ament_prefix_path.dsv "prepend-non-duplicate;AMENT_PREFIX_PATH;")
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/share/${PROJECT_NAME}/hook/ament_prefix_path.dsv DESTINATION share/${PROJECT_NAME}/hook)
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/share/${PROJECT_NAME}/hook/ros_package_path.dsv "prepend-non-duplicate;ROS_PACKAGE_PATH;")
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/share/${PROJECT_NAME}/hook/ros_package_path.dsv DESTINATION share/${PROJECT_NAME}/hook)
+
 #############
 ## Testing ##
 #############
@@ -208,11 +224,6 @@ if(${ENABLE_TESTS})
   endif()
 
   add_executable(${PROJECT_NAME}_cloud_unit src/test/cloud_utest.cpp)
-  set_target_properties(${PROJECT_NAME}_cloud_unit PROPERTIES
-    CXX_STANDARD 14
-    CXX_STANDARD_REQUIRED YES
-    CXX_EXTENSIONS NO
-  )
   target_link_libraries(${PROJECT_NAME}_cloud_unit PUBLIC
     ${PROJECT_NAME}_cloud_filter_plugins
     gtest_main
@@ -223,4 +234,5 @@ if(${ENABLE_TESTS})
   else()
     target_compile_features(${PROJECT_NAME}_cloud_unit PRIVATE cxx_std_14)
   endif()
+set_target_properties(${PROJECT_NAME}_cloud_unit PROPERTIES NO_SYSTEM_FROM_IMPORTED 1)
 endif()

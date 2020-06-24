@@ -11,6 +11,7 @@
 #include <typeinfo>
 #include <memory>
 #include <string>
+#include <cxxabi.h>
 
 namespace noether_filtering
 {

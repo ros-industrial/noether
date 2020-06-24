@@ -1,0 +1,66 @@
+filter_groups:
+  - group_name: DEFAULT
+    continue_on_failure: False
+    verbosity_on: True
+    filters:
+    - type: noether_filtering/CleanData
+      name: clean_data_1
+      config: {}
+    - type: noether_filtering/EuclideanClustering
+      name: clustering_filter_1
+      config:
+        tolerance: 0.006
+        min_cluster_size: 1000
+        max_cluster_size: -1   # will use input point cloud size when negative 
+    - type: noether_filtering/FillHoles
+      name: fill_holes
+      config: 
+        hole_size: 0.02
+    - type: noether_filtering/WindowedSincSmoothing
+      name: smoothing_1
+      config: 
+        num_iter: 100
+        enable_boundary_smoothing: true
+        enable_feature_edge_smoothing: false
+        enable_non_manifold_smoothing: true
+        enable_normalize_coordinates: true
+        feature_angle: 10.0
+        edge_angle: 150.0
+        pass_band: 0.01 
+    - type: noether_filtering/CleanData
+      name: clean_data_2
+      config: {}
+  - group_name: Group1
+    continue_on_failure: False
+    verbosity_on: True
+    filters:
+    - type: noether_filtering/BSplineReconstruction
+      name: bspline_surf_1
+      config:
+        verbosity_on: False
+        order: 3
+        refinement: 3
+        iterations: 2
+        mesh_resolution: 20
+        surf_init_method: 2
+        fit_surface_parameters:
+          interior_smoothness: 0.5
+          interior_weight: 1.0
+          boundary_smoothness: 0.5
+          boundary_weight: 1.0
+        clip_boundary_curve: True
+        boundary_fit_order: 3 # applicable only when clip_boundary_curve: True
+        boundary_curve_parameters:
+          clipping_required: True
+          addCPsAccuracy: 0.0001 #5e-2
+          addCPsIteration: 2
+          startCPs: 20
+          maxCPs: 200
+          accuracy: 0.01 #1e-3
+          iterations: 10
+          closest_point_resolution: 0.0
+          closest_point_weight: 1.0
+          closest_point_sigma2: 0.01
+          interior_sigma2: 0.00001
+          smooth_concavity: 1.0
+          smoothness: 1.0

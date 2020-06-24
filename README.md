@@ -10,7 +10,7 @@ Tool path planning and surface segmenter
 ---
 ## Installation
 
-This package depends on PCL 1.9.1 and VTK 7.1.
+This package depends on PCL 1.9.1+ and VTK 7.1+. If you are using a Ubuntu system version 20.04+ (ROS Noetic/Foxy), you should already have these and can skip to the build instructions. Otherwise proceed with installing the custom PCL and VTK versions.
 
 #### Prerequisites
 - **checkinstall**

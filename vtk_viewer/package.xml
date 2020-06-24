@@ -9,6 +9,7 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>cmake_modules</build_depend>
   <depend>rosconsole</depend>
+  <depend>libpcl-all-dev</depend>
 
   <test_depend>rosunit</test_depend>
 

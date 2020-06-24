@@ -60,48 +60,30 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
 )
 
-add_executable(mesh_segmenter_client_node
-  src/mesh_segmenter_client.cpp
-)
-target_link_libraries(mesh_segmenter_client_node
-  ${catkin_LIBRARIES}
-  ${VTK_LIBRARIES}
-)
+add_executable(mesh_segmenter_client_node src/mesh_segmenter_client.cpp)
+target_link_libraries(mesh_segmenter_client_node ${catkin_LIBRARIES} ${VTK_LIBRARIES})
+list (APPEND PACKAGE_TARGETS mesh_segmenter_client_node)
 
-add_executable(mesh_segmenter_node
-  src/mesh_segmenter_node.cpp
-)
-target_link_libraries(mesh_segmenter_node
-  ${catkin_LIBRARIES}
-  ${VTK_LIBRARIES}
-)
+add_executable(mesh_segmenter_node src/mesh_segmenter_node.cpp)
+target_link_libraries(mesh_segmenter_node ${catkin_LIBRARIES} ${VTK_LIBRARIES})
+list (APPEND PACKAGE_TARGETS mesh_segmenter_node)
 
-add_executable(mesh_filtering_client
-  src/mesh_filtering_client.cpp
-)
-target_link_libraries(mesh_filtering_client
-  ${catkin_LIBRARIES}
-  ${PCL_LIBRARIES}
-)
+add_executable(mesh_filtering_client src/mesh_filtering_client.cpp)
+target_link_libraries(mesh_filtering_client ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+list (APPEND PACKAGE_TARGETS mesh_filtering_client)
 
-add_executable(edge_generator_client
-  src/edge_generator_client.cpp
-)
-target_link_libraries(edge_generator_client
-  ${catkin_LIBRARIES}
-)
+add_executable(edge_generator_client src/edge_generator_client.cpp)
+target_link_libraries(edge_generator_client ${catkin_LIBRARIES})
+list (APPEND PACKAGE_TARGETS edge_generator_client)
 
-add_executable(halfedge_finder_node
-  src/halfedge_finder_node.cpp
-)
-target_link_libraries(halfedge_finder_node
-  ${catkin_LIBRARIES}
-)
+add_executable(halfedge_finder_node  src/halfedge_finder_node.cpp)
+target_link_libraries(halfedge_finder_node ${catkin_LIBRARIES})
+list (APPEND PACKAGE_TARGETS halfedge_finder_node)
 
 #############
 ## Install ##
 #############
-install(TARGETS mesh_segmenter_client_node mesh_segmenter_node edge_generator_client halfedge_finder_node
+install(TARGETS ${PACKAGE_TARGETS}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -111,3 +93,9 @@ install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
   PATTERN ".svn" EXCLUDE
 )
+
+install(
+  DIRECTORY config launch data results
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+

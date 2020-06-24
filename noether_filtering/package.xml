@@ -9,6 +9,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <depend>pluginlib</depend>
+  <depend>libpcl-all-dev</depend>
   <export>
     <build_type>cmake</build_type>
     <noether_filtering plugin="${prefix}/mesh_filter_plugins.xml"/>

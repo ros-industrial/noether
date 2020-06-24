@@ -1,13 +1,15 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(noether_conversions)
 
-add_compile_options(-std=c++11)
+set(CMAKE_CXX_STANDARD 14)
 
 find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   eigen_conversions
   geometry_msgs
   noether_msgs
+  shape_msgs
+  visualization_msgs
 )
 
 find_package(VTK REQUIRED NO_MODULE)
@@ -18,7 +20,7 @@ else()
   include(${VTK_USE_FILE})
 endif()
 
-find_package(PCL REQUIRED)
+find_package(PCL REQUIRED COMPONENTS IO)
 if(PCL_FOUND AND ("${PCL_VERSION}" VERSION_LESS 1.9))
   message(WARNING "The minimum required version of PCL is 1.9, but found ${PCL_VERSION} in path first. Checking for exactly 1.9")
   find_package(PCL REQUIRED 1.9)
