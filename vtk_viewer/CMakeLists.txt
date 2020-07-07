@@ -1,23 +1,13 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5.0)
+project(vtk_viewer VERSION 0.1.0)
 
-## Compile as C++14, 
-add_compile_options(-std=c++14)
-
-project(vtk_viewer)
-
-find_package(catkin REQUIRED COMPONENTS
-  cmake_modules
-  rosconsole
-)
+find_package(cmake_common_scripts REQUIRED 0.1)
 
 find_package(VTK REQUIRED NO_MODULE)
 if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 7.1))
   message(FATAL_ERROR "The minimum required version of VTK is 7.1, but found ${VTK_VERSION}")
   set(VTK_FOUND FALSE)
 endif()
-#else()
-#  include(${VTK_USE_FILE})
-#endif()
 
 find_package(PCL REQUIRED)
 if(PCL_FOUND AND ("${PCL_VERSION}" VERSION_LESS 1.9))
@@ -29,53 +19,31 @@ endif()
 
 find_package(Eigen3 REQUIRED)
 
-catkin_package(
-  INCLUDE_DIRS
-    include
-  LIBRARIES
-    ${PROJECT_NAME}
-  DEPENDS
-    EIGEN3
-    PCL
-    VTK
-)
+add_code_coverage()
 
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-  ${EIGEN3_INCLUDE_DIRS}
-  ${PCL_INCLUDE_DIRS}
-)
+add_library(${PROJECT_NAME} SHARED src/mouse_interactor.cpp src/vtk_utils.cpp src/${PROJECT_NAME}.cpp)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${PCL_LIBRARIES} ${VTK_LIBRARIES})
+target_include_directories(${PROJECT_NAME} PUBLIC
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:include>")
+target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
+    ${EIGEN3_INCLUDE_DIRS}
+    ${PCL_INCLUDE_DIRS})
+target_clang_tidy(${PACKAGE_NAME} ${DEFAULT_CLANG_TIDY_ERROR_ARGS})
+target_include_what_you_use(${PACKAGE_NAME} ${DEFAULT_IWYU_ARGS})
+target_cppcheck(${PACKAGE_NAME} ${DEFAULT_CPPCHECK_ARGS})
 
-add_library(${PROJECT_NAME}
-  src/mouse_interactor.cpp
-  src/vtk_utils.cpp
-  src/${PROJECT_NAME}.cpp
-)
-target_link_libraries(${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-  ${PCL_LIBRARIES}
-  ${VTK_LIBRARIES}
-)
+configure_package(NAMESPACE noether TARGETS ${PROJECT_NAME})
 
-install(TARGETS ${PROJECT_NAME}
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+# Mark header files for installation
+install(DIRECTORY include/${PROJECT_NAME}
+  DESTINATION include
+  FILES_MATCHING PATTERN "*.h"
   PATTERN ".svn" EXCLUDE
 )
 
-if (CATKIN_ENABLE_TESTING)
-  catkin_add_gtest(${PROJECT_NAME}-test
-    test/utest.cpp
-  )
-  if(TARGET ${PROJECT_NAME}-test)
-    target_link_libraries(${PROJECT_NAME}-test
-      ${PROJECT_NAME}
-    )
-  endif()
+if (NOETHER_ENABLE_TESTING)
+  enable_testing()
+  add_run_tests_target()
+  add_subdirectory(test)
 endif()

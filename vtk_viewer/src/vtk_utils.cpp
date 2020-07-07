@@ -56,7 +56,7 @@
 log4cxx::LoggerPtr createConsoleLogger(const std::string& logger_name)
 {
   using namespace log4cxx;
-  PatternLayoutPtr pattern_layout(new PatternLayout("[\%-5p] [\%c](L:\%L): \%m\%n"));
+  PatternLayoutPtr pattern_layout(new PatternLayout("[\%-5p] [\%c](L:\%L): \%m\%n"));  // NOLINT
   ConsoleAppenderPtr console_appender(new ConsoleAppender(pattern_layout));
   log4cxx::LoggerPtr logger(Logger::getLogger(logger_name));
   logger->addAppender(console_appender);
@@ -102,7 +102,7 @@ vtkSmartPointer<vtkPoints> createPlane(unsigned int grid_size_x, unsigned int gr
 
 vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points,
                                         double sample_spacing,
-                                        double neigborhood_size)
+                                        int neigborhood_size)
 {
   if (!points)
   {
@@ -148,7 +148,8 @@ void cleanMesh(const vtkSmartPointer<vtkPoints>& points, vtkSmartPointer<vtkPoly
   kd_tree->BuildLocator();
 
   vtkSmartPointer<vtkCellArray> cells = mesh->GetPolys();
-  int size = cells->GetNumberOfCells();
+  assert(cells->GetNumberOfCells() < std::numeric_limits<int>::max());
+  int size = static_cast<int>(cells->GetNumberOfCells());
   // loop through all cells, mark cells for deletion if they do not have enough points nearby
   for (int i = 0; i < size; ++i)
   {
@@ -234,7 +235,7 @@ vtkSmartPointer<vtkPolyData> readSTLFile(std::string file)
   return reader->GetOutput();
 }
 
-bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata, std::string background, bool return_mesh)
+bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata, std::string background, bool /*return_mesh*/)
 {
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
 
@@ -277,7 +278,7 @@ void vtkSurfaceReconstructionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr clou
   // Set parameters (TODO: Make these parameters configurable)
   mls.setComputeNormals(false);
   mls.setInputCloud(cloud);
-  mls.setPolynomialFit(true);
+  mls.setPolynomialOrder(2);
   mls.setSearchMethod(tree);
   mls.setSearchRadius(0.01);
 
@@ -304,10 +305,10 @@ void removeBackground(pcl::PointCloud<pcl::PointXYZ>& cloud, const pcl::PointClo
     return;
   }
 
-  for (int i = 0; i < cloud.points.size(); ++i)
+  for (std::size_t i = 0; i < cloud.points.size(); ++i)
   {
-    if (fabs(cloud.points[i].z - background.points[i].z) < 0.05 || std::isnan(background.points[i].z) ||
-        cloud.points[i].y > 0.75)
+    if (fabs(cloud.points[i].z - background.points[i].z) < 0.05f || std::isnan(background.points[i].z) ||
+        cloud.points[i].y > 0.75f)
     {
       cloud.points[i].x = NAN;
       cloud.points[i].y = NAN;
@@ -317,7 +318,7 @@ void removeBackground(pcl::PointCloud<pcl::PointXYZ>& cloud, const pcl::PointClo
 
   // create new point cloud with NaN's removed
   pcl::PointCloud<pcl::PointXYZ> cloud2;
-  for (int i = 0; i < cloud.points.size(); ++i)
+  for (std::size_t i = 0; i < cloud.points.size(); ++i)
   {
     if (!std::isnan(cloud.points[i].x))
     {
@@ -334,7 +335,7 @@ void removeBackground(pcl::PointCloud<pcl::PointXYZ>& cloud, const pcl::PointClo
 void PCLtoVTK(const pcl::PointCloud<pcl::PointXYZ>& cloud, vtkPolyData* const pdata)
 {
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-  for (int i = 0; i < cloud.points.size(); ++i)
+  for (std::size_t i = 0; i < cloud.points.size(); ++i)
   {
     if (std::isnan(cloud.points[i].x) || std::isnan(cloud.points[i].y) || std::isnan(cloud.points[i].z))
     {
@@ -353,18 +354,18 @@ void PCLtoVTK(const pcl::PointCloud<pcl::PointXYZ>& cloud, vtkPolyData* const pd
 
 void VTKtoPCL(vtkPolyData* const pdata, pcl::PointCloud<pcl::PointNormal>& cloud)
 {
-  for (int i = 0; i < pdata->GetPoints()->GetNumberOfPoints(); ++i)
+  for (long i = 0; i < pdata->GetPoints()->GetNumberOfPoints(); ++i)
   {
     pcl::PointNormal pt;
     double* ptr = pdata->GetPoints()->GetPoint(i);
-    pt.x = ptr[0];
-    pt.y = ptr[1];
-    pt.z = ptr[2];
+    pt.x = static_cast<float>(ptr[0]);
+    pt.y = static_cast<float>(ptr[1]);
+    pt.z = static_cast<float>(ptr[2]);
 
     double* norm = pdata->GetPointData()->GetNormals()->GetTuple(i);
-    pt.normal_x = norm[0];
-    pt.normal_y = norm[1];
-    pt.normal_z = norm[2];
+    pt.normal_x = static_cast<float>(norm[0]);
+    pt.normal_y = static_cast<float>(norm[1]);
+    pt.normal_z = static_cast<float>(norm[2]);
 
     cloud.push_back(pt);
   }
@@ -398,7 +399,7 @@ bool embedRightHandRuleNormals(vtkSmartPointer<vtkPolyData>& data)
 {
   bool success = true;
   LOG4CXX_DEBUG(VTK_LOGGER, "Embedding mesh normals from right hand rule");
-  int size = data->GetNumberOfCells();
+  int size = static_cast<int>(data->GetNumberOfCells());
   vtkDoubleArray* cell_normals = vtkDoubleArray::New();
 
   cell_normals->SetNumberOfComponents(3);
@@ -488,7 +489,7 @@ void generateNormals(vtkSmartPointer<vtkPolyData>& data, int flip_normals)
   if (data->GetPointData()->GetNormals() && !data->GetCellData()->GetNormals())
   {
     LOG4CXX_DEBUG(VTK_LOGGER, "Generating Mesh Normals manually");
-    int size = data->GetNumberOfCells();
+    int size = static_cast<int>(data->GetNumberOfCells());
     vtkDoubleArray* cell_normals = vtkDoubleArray::New();
 
     cell_normals->SetNumberOfComponents(3);

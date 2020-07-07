@@ -3,7 +3,7 @@
  * All rights reserved.
  *
  */
-
+//#include <vtk_viewer/vtk_viewer.h>
 #include "vtk_viewer/vtk_viewer.h"
 #include <vtkProperty.h>
 #include <vtkVertexGlyphFilter.h>
@@ -73,7 +73,7 @@ namespace vtk_viewer
     vtkSmartPointer<vtkActor> points_actor = vtkSmartPointer<vtkActor>::New();
     points_actor->SetMapper(poly_mappers_.back());
     points_actor->GetProperty()->SetPointSize(20);
-    points_actor->GetProperty()->SetColor(color[0],color[1],color[2]);
+    points_actor->GetProperty()->SetColor(static_cast<double>(color[0]), static_cast<double>(color[1]), static_cast<double>(color[2]));
 
     this->actors_.push_back(points_actor);
 
@@ -92,7 +92,7 @@ namespace vtk_viewer
     // create actor and add to list
     vtkSmartPointer<vtkActor> triangulated_actor = vtkSmartPointer<vtkActor>::New();
     triangulated_actor->SetMapper(poly_mappers_.back());
-    triangulated_actor->GetProperty()->SetColor(color[0],color[1],color[2]);
+    triangulated_actor->GetProperty()->SetColor(static_cast<double>(color[0]), static_cast<double>(color[1]), static_cast<double>(color[2]));
 
     this->actors_.push_back(triangulated_actor);
 
@@ -159,7 +159,7 @@ namespace vtk_viewer
     // create actor and add to list
     vtkSmartPointer<vtkActor> triangulated_actor = vtkSmartPointer<vtkActor>::New();
     triangulated_actor->SetMapper(poly_mappers_.back());
-    triangulated_actor->GetProperty()->SetColor(color[0],color[1],color[2]);
+    triangulated_actor->GetProperty()->SetColor(static_cast<double>(color[0]), static_cast<double>(color[1]), static_cast<double>(color[2]));
 
     this->actors_.push_back(triangulated_actor);
 
@@ -203,7 +203,7 @@ namespace vtk_viewer
     addPolyNormalsDisplay(centroid_polydata, color, scale);
   }
 
-  bool VTKViewer::removeObjectDisplay(int index)
+  bool VTKViewer::removeObjectDisplay(std::size_t index)
   {
     if(index >= actors_.size())
     {
@@ -214,8 +214,9 @@ namespace vtk_viewer
     renderer_->RemoveActor(actors_[index]);
 
     // Delete the actor then the mapper associated with the data
-    actors_.erase(actors_.begin() + index);
-    poly_mappers_.erase(poly_mappers_.begin() + index);
+    actors_.erase(actors_.begin() + static_cast<long>(index));
+    poly_mappers_.erase(poly_mappers_.begin() + static_cast<long>(index));
+    return true;
   }
 
   void VTKViewer::removeAllDisplays()

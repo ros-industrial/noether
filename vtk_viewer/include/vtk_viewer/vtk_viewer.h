@@ -94,7 +94,7 @@ namespace vtk_viewer
      * @return True if the index of the item to remove exists and was removed,
      * false if the index exceeds the list of items available
      */
-    bool removeObjectDisplay(int index);
+    bool removeObjectDisplay(std::size_t index);
 
     /**
      * @brief removeAllDisplays Removes all displays from the renderer

@@ -73,7 +73,7 @@ namespace vtk_viewer
    * @param neighborhood_size The number of points to consider for determining cell size and orientation
    * @return The mesh object after triangulation
    */
-  vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points, double sample_spacing, double neigborhood_size);
+  vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points, double sample_spacing, int neigborhood_size);
 
   /**
    * @brief cleanMesh Given a mesh, removes cells that do not have enough point data nearby (called after createMesh)
@@ -126,7 +126,7 @@ namespace vtk_viewer
    * @param file The input file to load
    * @param polydata [output] The VTK object to return
    * @param background Optional point cloud to be used to perform background subtraction
-   * @param return_mesh If true, computes and returns a mesh, if false, will only return the point data
+   * @param return_mesh [currently unused] If true, computes and returns a mesh, if false, will only return the point data
    * @return True if the file exists and was loaded, False if there was an error
    */
   bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata, std::string background = "", bool return_mesh = true);
