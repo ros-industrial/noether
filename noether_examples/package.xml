@@ -3,7 +3,7 @@
   <name>noether_examples</name>
   <version>0.0.0</version>
   <description>The noether package</description>
-  <maintainer email="alex.goins@swri.org">alex</maintainer>
+ <maintainer email="jrgnichodevel@gmail.com">Jorge Nicho</maintainer>
   <license>Apache 2.0</license>
 
   <buildtool_depend>catkin</buildtool_depend>
