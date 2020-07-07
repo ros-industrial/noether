@@ -32,8 +32,6 @@
 
 namespace vtk_viewer
 {
-
-
   class VTKViewer
   {
   public:

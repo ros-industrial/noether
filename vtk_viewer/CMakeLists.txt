@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5.0)
 project(vtk_viewer VERSION 0.1.0)
 
-find_package(cmake_common_scripts REQUIRED 0.1)
+find_package(cmake_common_scripts REQUIRED)
 
 find_package(VTK REQUIRED NO_MODULE)
 if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 7.1))
@@ -18,11 +18,12 @@ else()
 endif()
 
 find_package(Eigen3 REQUIRED)
+find_package(console_bridge REQUIRED)
 
 add_code_coverage()
 
 add_library(${PROJECT_NAME} SHARED src/mouse_interactor.cpp src/vtk_utils.cpp src/${PROJECT_NAME}.cpp)
-target_link_libraries(${PROJECT_NAME} PUBLIC ${PCL_LIBRARIES} ${VTK_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${PCL_LIBRARIES} ${VTK_LIBRARIES} console_bridge)
 target_include_directories(${PROJECT_NAME} PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include>")

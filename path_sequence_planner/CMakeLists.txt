@@ -15,8 +15,9 @@ endif()
 
 find_package(catkin REQUIRED COMPONENTS
     tool_path_planner
-    vtk_viewer
 )
+
+find_package(vtk_viewer REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS
@@ -25,6 +26,7 @@ catkin_package(
     simple_path_sequence_planner
   CATKIN_DEPENDS
     tool_path_planner
+  DEPENDS
     vtk_viewer
 )
 
@@ -39,6 +41,7 @@ add_library(simple_path_sequence_planner
 target_link_libraries(simple_path_sequence_planner
   ${catkin_LIBRARIES}
   ${VTK_LIBRARIES}
+  noether::vtk_viewer
 )
 
 #############

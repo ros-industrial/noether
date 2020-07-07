@@ -12,24 +12,10 @@
 
 #include <mesh_segmenter/mesh_segmenter.h>
 
-#include <log4cxx/basicconfigurator.h>
-#include <log4cxx/patternlayout.h>
-#include <log4cxx/consoleappender.h>
-
-log4cxx::LoggerPtr createConsoleLogger(const std::string& logger_name)
-{
-  using namespace log4cxx;
-  PatternLayoutPtr pattern_layout(new PatternLayout("[\%-5p] [\%c](L:\%L): \%m\%n"));
-  ConsoleAppenderPtr console_appender(new ConsoleAppender(pattern_layout));
-  log4cxx::LoggerPtr logger(Logger::getLogger(logger_name));
-  logger->addAppender(console_appender);
-  logger->setLevel(Level::getInfo());
-  return logger;
-}
+#include <console_bridge/console.h>
 
 namespace mesh_segmenter
 {
-static log4cxx::LoggerPtr SEGMENTATION_LOGGER = createConsoleLogger("SegmentationLogger");
 
 void MeshSegmenter::setInputMesh(vtkSmartPointer<vtkPolyData> mesh)
 {
@@ -48,9 +34,9 @@ std::vector<vtkSmartPointer<vtkPolyData> > MeshSegmenter::getMeshSegments()
   vtkSmartPointer<vtkPolyData> input_copy = vtkSmartPointer<vtkPolyData>::New();
   input_copy->DeepCopy(input_mesh_);
   std::vector<vtkSmartPointer<vtkPolyData> > meshes;
-  for (int i = 0; i < included_indices_.size(); ++i)
+  for (std::size_t i = 0; i < included_indices_.size(); ++i)
   {
-    LOG4CXX_INFO(SEGMENTATION_LOGGER, "Segment " << i << " size: " << included_indices_.at(i)->GetNumberOfIds());
+    CONSOLE_BRIDGE_logInform(("Segment " + std::to_string(i) + " size: " + std::to_string(included_indices_.at(i)->GetNumberOfIds())).c_str());
 
     vtkSmartPointer<vtkPolyData> mesh = vtkSmartPointer<vtkPolyData>::New();
     // Create new pointer to a new copy of input_mesh_
@@ -72,7 +58,7 @@ std::vector<vtkSmartPointer<vtkPolyData> > MeshSegmenter::getMeshSegments()
 
     if (mesh->GetNumberOfCells() <= 1)
     {
-      LOG4CXX_WARN(SEGMENTATION_LOGGER, "NOT ENOUGH CELLS FOR SEGMENTATION");
+      CONSOLE_BRIDGE_logWarn("NOT ENOUGH CELLS FOR SEGMENTATION");
       continue;
     }
     meshes.push_back(mesh);
@@ -138,10 +124,10 @@ void MeshSegmenter::segmentMesh()
   }
   included_indices_.push_back(edge_cells);
 
-  LOG4CXX_INFO(SEGMENTATION_LOGGER, "Found " << included_indices_.size() << " segments");
-  LOG4CXX_INFO(SEGMENTATION_LOGGER, "Total mesh size: " << size);
-  LOG4CXX_INFO(SEGMENTATION_LOGGER, "Used cells size: " << used_cells->GetNumberOfIds());
-  LOG4CXX_INFO(SEGMENTATION_LOGGER, "Edge cells size: " << edge_cells->GetNumberOfIds());
+  CONSOLE_BRIDGE_logInform("Found %d segments", included_indices_.size());
+  CONSOLE_BRIDGE_logInform("Total mesh size: %d", size);
+  CONSOLE_BRIDGE_logInform("Used cells size: %d", used_cells->GetNumberOfIds());
+  CONSOLE_BRIDGE_logInform("Edge cells size: %d",  edge_cells->GetNumberOfIds());
 }
 
 vtkSmartPointer<vtkIdList> MeshSegmenter::segmentMesh(int start_cell)

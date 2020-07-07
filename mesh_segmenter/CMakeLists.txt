@@ -13,6 +13,7 @@ else()
 endif()
 
 find_package(catkin REQUIRED)
+find_package(vtk_viewer REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS
@@ -21,6 +22,7 @@ catkin_package(
     ${PROJECT_NAME}
   DEPENDS
     VTK
+    vtk_viewer
 )
 
 include_directories(
@@ -34,6 +36,7 @@ add_library(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
     ${catkin_LIBRARIES}
     ${VTK_LIBRARIES}
+    noether::vtk_viewer
 )
 add_dependencies(${PROJECT_NAME}
   ${catkin_EXPORTED_TARGETS}
@@ -58,7 +61,7 @@ install(DIRECTORY include/${PROJECT_NAME}/
 ## Testing ##
 #############
 if(CATKIN_ENABLE_TESTING)
-  find_package(catkin REQUIRED COMPONENTS vtk_viewer)
+  find_package(vtk_viewer REQUIRED)
   include_directories(
     include
     ${catkin_INCLUDE_DIRS}

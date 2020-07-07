@@ -3,7 +3,6 @@
  * All rights reserved.
  *
  */
-//#include <vtk_viewer/vtk_viewer.h>
 #include "vtk_viewer/vtk_viewer.h"
 #include <vtkProperty.h>
 #include <vtkVertexGlyphFilter.h>

@@ -115,8 +115,7 @@ TEST(IntersectTest, RasterRotationTest)
 
 #ifdef NDEBUG
     // release build stuff goes here
-    LOG4CXX_ERROR(tool_path_planner::RasterToolPathPlanner::RASTER_PATH_PLANNER_LOGGER,
-                  "noether/tool_path_planner test: visualization is only available in debug mode");
+    CONSOLE_BRIDGE_logError("noether/tool_path_planner test: visualization is only available in debug mode");
 #else
     // Debug-specific code goes here
     viz.renderDisplay();
@@ -224,7 +223,7 @@ TEST(IntersectTest, TestCase1)
 
   #ifdef NDEBUG
   // release build stuff goes here
-  LOG4CXX_ERROR(tool_path_planner::RasterToolPathPlanner::RASTER_PATH_PLANNER_LOGGER, "noether/tool_path_planner test: visualization is only available in debug mode");
+  CONSOLE_BRIDGE_logError("noether/tool_path_planner test: visualization is only available in debug mode");
   #else
   // Debug-specific code goes here
   viz.renderDisplay();
@@ -325,7 +324,7 @@ TEST(IntersectTest, TestCaseRansac)
 
   #ifdef NDEBUG
   // release build stuff goes here
-  LOG4CXX_ERROR(tool_path_planner::RasterToolPathPlanner::RASTER_PATH_PLANNER_LOGGER, "noether/tool_path_planner test: visualization is only available in debug mode");
+  CONSOLE_BRIDGE_logError("noether/tool_path_planner test: visualization is only available in debug mode");
   #else
   // Debug-specific code goes here
   viz.renderDisplay();
@@ -393,7 +392,7 @@ TEST(IntersectTest, ExtraRasterTest)
 
 #ifdef NDEBUG
   // release build stuff goes here
-  LOG4CXX_INFO(tool_path_planner::RasterToolPathPlanner::RASTER_PATH_PLANNER_LOGGER, "noether/tool_path_planner test: visualization is only available in debug mode");
+  CONSOLE_BRIDGE_logInform("noether/tool_path_planner test: visualization is only available in debug mode");
 
 #else
   // Debug-specific code goes here

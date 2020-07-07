@@ -31,8 +31,9 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_conversions
   roscpp
   tool_path_planner
-  vtk_viewer
 )
+
+find_package(vtk_viewer REQUIRED)
 
 find_package(noether_filtering)
 if(NOT noether_filtering_FOUND)
@@ -53,10 +54,10 @@ catkin_package(
     pcl_conversions
     roscpp
     tool_path_planner
-    vtk_viewer
   DEPENDS
     VTK
     PCL
+    vtk_viewer
 )
 
 include_directories(include ${catkin_INCLUDE_DIRS})
@@ -68,6 +69,7 @@ add_executable(surface_raster_planner_server
 target_link_libraries(surface_raster_planner_server
   ${catkin_LIBRARIES}
   ${VTK_LIBRARIES}
+  noether::vtk_viewer
 )
 
 add_executable(surface_raster_planner_application
@@ -76,6 +78,7 @@ add_executable(surface_raster_planner_application
 target_link_libraries(surface_raster_planner_application
   ${catkin_LIBRARIES}
   ${VTK_LIBRARIES}
+  noether::vtk_viewer
 )
 
 add_executable(segmentation_server
@@ -84,6 +87,7 @@ add_executable(segmentation_server
 target_link_libraries(segmentation_server
   ${catkin_LIBRARIES}
   ${VTK_LIBRARIES}
+  noether::vtk_viewer
 )
 #There needs to be a better pathing to the library
 add_executable(convex_hull_node
@@ -94,6 +98,7 @@ add_executable(convex_hull_node
 target_link_libraries(convex_hull_node  
   ${catkin_LIBRARIES}
   ${VTK_LIBRARIES}
+  noether::vtk_viewer
 )
 
 if(noether_filtering_FOUND)
@@ -103,6 +108,7 @@ if(noether_filtering_FOUND)
   target_link_libraries(mesh_filter_server PUBLIC
     ${catkin_LIBRARIES}
     noether_filtering::noether_filtering
+    noether::vtk_viewer
   )
 endif()
 
@@ -111,6 +117,7 @@ add_executable(edge_generator_server
 )
 target_link_libraries(edge_generator_server 
   ${catkin_LIBRARIES}
+  noether::vtk_viewer
 )
 
 add_executable(halfedge_boundary_finder_server
@@ -118,6 +125,7 @@ add_executable(halfedge_boundary_finder_server
 )
 target_link_libraries(halfedge_boundary_finder_server 
   ${catkin_LIBRARIES}
+  noether::vtk_viewer
 )
 
 #############
