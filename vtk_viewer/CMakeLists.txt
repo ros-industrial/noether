@@ -20,6 +20,12 @@ endif()
 find_package(Eigen3 REQUIRED)
 find_package(console_bridge REQUIRED)
 
+if(NOETHER_ENABLE_TESTING)
+    set(CLANG_ARGS ${DEFAULT_CLANG_TIDY_ERROR_ARGS})
+else()
+    set(CLANG_ARGS ${DEFAULT_CLANG_TIDY_WARNING_ARGS})
+endif()
+
 add_code_coverage()
 
 add_library(${PROJECT_NAME} SHARED src/mouse_interactor.cpp src/vtk_utils.cpp src/${PROJECT_NAME}.cpp)
@@ -30,9 +36,10 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
     ${EIGEN3_INCLUDE_DIRS}
     ${PCL_INCLUDE_DIRS})
-target_clang_tidy(${PACKAGE_NAME} ${DEFAULT_CLANG_TIDY_ERROR_ARGS})
-target_include_what_you_use(${PACKAGE_NAME} ${DEFAULT_IWYU_ARGS})
-target_cppcheck(${PACKAGE_NAME} ${DEFAULT_CPPCHECK_ARGS})
+target_cxx_version(${PROJECT_NAME} PUBLIC VERSION 14)
+target_clang_tidy(${PROJECT_NAME} ARGUMENTS ${CLANG_ARGS} ENABLE ${NOETHER_ENABLE_TESTING})
+target_include_what_you_use(${PROJECT_NAME} ARGUMENTS ${DEFAULT_IWYU_ARGS} ENABLE ${NOETHER_ENABLE_TESTING})
+target_cppcheck(${PROJECT_NAME} ARGUMENTS ${DEFAULT_CPPCHECK_ARGS} ENABLE ${NOETHER_ENABLE_TESTING})
 
 configure_package(NAMESPACE noether TARGETS ${PROJECT_NAME})
 

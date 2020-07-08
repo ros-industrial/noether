@@ -39,27 +39,25 @@ TEST(ViewerTest, TestCase1)
   cout << "cutter points: " << cut->GetPoints()->GetNumberOfPoints() << "\n";
   cout << "cutter lines: " << cut->GetNumberOfLines() << "\n";
 
-
-
   vtk_viewer::VTKViewer viz;
   std::vector<float> color(3);
 
   // Display mesh results
-  color[0] = 0.2;
-  color[1] = 0.9;
-  color[2] = 0.9;
+  color[0] = 0.2f;
+  color[1] = 0.9f;
+  color[2] = 0.9f;
 
   viz.addPointDataDisplay(points, color);
 
   // Display mesh results
-  color[0] = 0.2;
-  color[1] = 0.2;
-  color[2] = 0.9;
+  color[0] = 0.2f;
+  color[1] = 0.2f;
+  color[2] = 0.9f;
   //viz.addPolyDataDisplay(data, color);
 
-  color[0] = 0.1;
-  color[1] = 0.9;
-  color[2] = 0.1;
+  color[0] = 0.1f;
+  color[1] = 0.9f;
+  color[2] = 0.1f;
   //viz.addCellNormalDisplay(data, color, 1.0);
 
   viz.addPolyDataDisplay(cut,color);

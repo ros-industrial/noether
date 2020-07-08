@@ -54,7 +54,7 @@ namespace vtk_viewer
     this->iren_->Start();
   }
 
-  void VTKViewer::addPointDataDisplay(vtkPoints* points, std::vector<float> color)
+  void VTKViewer::addPointDataDisplay(vtkPoints* points, const std::vector<float>& color)
   {
     // Add the grid points to a polydata object
     vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
@@ -81,7 +81,7 @@ namespace vtk_viewer
 
   }
 
-  void VTKViewer::addPolyDataDisplay(vtkPolyData* polydata , std::vector<float> color)
+  void VTKViewer::addPolyDataDisplay(vtkPolyData* polydata, const std::vector<float>& color)
   {
     // create mapper and add to list
     vtkSmartPointer<vtkPolyDataMapper> triangulated_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -144,7 +144,7 @@ namespace vtk_viewer
     glyph->Update();
   }
 
-  void VTKViewer::addPolyNormalsDisplay(vtkPolyData* polydata, std::vector<float> color, double scale)
+  void VTKViewer::addPolyNormalsDisplay(vtkPolyData* polydata, const std::vector<float>& color, double scale)
   {
     VTK_SP(vtkGlyph3D, glyph);
     makeGlyphs(polydata, false, glyph, scale);
@@ -166,7 +166,7 @@ namespace vtk_viewer
     this->renderer_->AddActor(actors_.back());
   }
 
-  void VTKViewer::addCellNormalDisplay(vtkPolyData *polydata, std::vector<float> color, double scale)
+  void VTKViewer::addCellNormalDisplay(vtkPolyData *polydata, const std::vector<float>& color, double scale)
   {
     // get cell and point data
 

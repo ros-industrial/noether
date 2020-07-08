@@ -8,7 +8,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>cmake_common_scripts</build_depend>
-  <depend>console_bridge</depend>
+  <depend>libconsole-bridge-dev</depend>
   <depend>libpcl-all-dev</depend>
 
   <test_depend>rosunit</test_depend>
