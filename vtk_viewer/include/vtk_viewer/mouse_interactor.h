@@ -54,7 +54,7 @@ class MouseInteractorStyle : public vtkInteractorStyleTrackballCamera
      * @brief getSaveLocation Get the current pathway used to save polydata to
      * @return The current pathway for saving data
      */
-    std::string getSaveLocation(){return save_location_.str().c_str();}
+    std::string getSaveLocation(){return save_location_.str();}
 
     /**
      * @brief OnLeftButtonDown Callback function for handling left mouse button click events, selects an actor in a window

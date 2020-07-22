@@ -148,7 +148,7 @@ TEST(IntersectTest, TestCase1)
 
   #ifdef NDEBUG
   // release build stuff goes here
-  LOG4CXX_ERROR(vtk_viewer::VTK_LOGGER,"noether/path_sequence_planner test: visualization is only available in debug mode");
+  CONSOLE_BRIDGE_logError("noether/path_sequence_planner test: visualization is only available in debug mode");
   #else
   // Debug-specific code goes here
   viz.renderDisplay();

@@ -15,8 +15,9 @@ find_package(catkin REQUIRED COMPONENTS
   rosconsole
   roslib
   shape_msgs
-  vtk_viewer
 )
+
+find_package(vtk_viewer REQUIRED)
 
 find_package(VTK REQUIRED NO_MODULE)
 if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 7.1))
@@ -47,11 +48,11 @@ catkin_package(
     noether_msgs
     rosconsole
     shape_msgs
-    vtk_viewer
   DEPENDS
     EIGEN3
     PCL
     VTK
+    vtk_viewer
 )
 
 include_directories(
@@ -71,6 +72,7 @@ target_link_libraries(${PROJECT_NAME}
     ${catkin_LIBRARIES}
     ${PCL_LIBRARIES}
     ${VTK_LIBRARIES}
+    noether::vtk_viewer
 )
 add_dependencies(${PROJECT_NAME}
   ${catkin_EXPORTED_TARGETS}

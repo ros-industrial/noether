@@ -8,6 +8,7 @@
 #include <vtkPointData.h>
 #include <ros/ros.h>
 #include <ros/file_log.h>
+#include <console_bridge/console.h>
 
 namespace noether {
 
@@ -148,7 +149,10 @@ int main(int argc, char **argv)
   pnh.param<double>("centroid_y", center[1], 0.0);
   pnh.param<double>("centroid_z", center[2], 0.0);
 
-  vtk_viewer::VTK_LOGGER->setLevel(console_debug_on ? log4cxx::Level::getDebug(): log4cxx::Level::getInfo());
+  if (console_debug_on)
+    console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_DEBUG);
+  else
+    console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_INFO);
 
   // load tool config
   tool_path_planner::ProcessTool tool = loadTool(pnh);

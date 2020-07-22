@@ -1,0 +1,12 @@
+find_package(GTest REQUIRED)
+
+add_executable(${PROJECT_NAME}_unit utest.cpp)
+target_link_libraries(${PROJECT_NAME}_unit PRIVATE GTest::GTest GTest::Main ${PROJECT_NAME} ${PCL_LIBRARIES} ${VTK_LIBRARIES})
+target_clang_tidy(${PROJECT_NAME}_unit)
+target_cxx_version(${PROJECT_NAME} PRIVATE VERSION 14)
+target_include_what_you_use(${PROJECT_NAME})
+target_cppcheck(${PROJECT_NAME})
+add_code_coverage(${PROJECT_NAME}_unit ALL EXCLUDE ${COVERAGE_EXCLUDE})
+add_gtest_discover_tests(${PROJECT_NAME}_unit)
+add_dependencies(${PROJECT_NAME}_unit ${PROJECT_NAME})
+add_dependencies(run_tests ${PROJECT_NAME}_unit)

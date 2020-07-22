@@ -32,8 +32,6 @@
 
 namespace vtk_viewer
 {
-
-
   class VTKViewer
   {
   public:
@@ -48,7 +46,7 @@ namespace vtk_viewer
      * @param polydata The polydata to be displayed
      * @param color The color to use for rendering the data
      */
-    void addPolyDataDisplay(vtkPolyData* polydata, std::vector<float> color);
+    void addPolyDataDisplay(vtkPolyData* polydata, const std::vector<float>& color);
 
     /**
      * @brief addPolyNormalsDisplay Add a renderer and actor for a polydata
@@ -57,14 +55,14 @@ namespace vtk_viewer
      * @param color The color to use for rendering the data
      * @param scale The size to scale and show the arrows at
      */
-    void addPolyNormalsDisplay(vtkPolyData* polydata, std::vector<float> color, double scale);
+    void addPolyNormalsDisplay(vtkPolyData* polydata, const std::vector<float>& color, double scale);
 
     /**
      * @brief addPointDataDisplay Add a renderer and actor for a point data object
      * @param points The point data to be displayed
      * @param color The color to use for rendering the data
      */
-    void addPointDataDisplay(vtkPoints* points, std::vector<float> color);
+    void addPointDataDisplay(vtkPoints* points, const std::vector<float>& color);
 
     /**
      * @brief addCellNormalDisplay Displays the normals for a mesh object
@@ -72,7 +70,7 @@ namespace vtk_viewer
      * @param color The color to use for rendering the data
      * @param scale The size to scale and show the arrows at
      */
-    void addCellNormalDisplay(vtkPolyData* polydata, std::vector<float> color, double scale);
+    void addCellNormalDisplay(vtkPolyData* polydata, const std::vector<float>& color, double scale);
 
     /**
      * @brief renderDisplay Calls the VTK window Render() command to visualize
@@ -85,7 +83,7 @@ namespace vtk_viewer
      * objects currently being displayed
      * @return The number of actor objects
      */
-    int getNumberOfDisplayObjects(){return actors_.size();}
+    std::size_t getNumberOfDisplayObjects(){return actors_.size();}
 
     /**
      * @brief removeObjectDisplay Remove an object from the list of objects
@@ -94,7 +92,7 @@ namespace vtk_viewer
      * @return True if the index of the item to remove exists and was removed,
      * false if the index exceeds the list of items available
      */
-    bool removeObjectDisplay(int index);
+    bool removeObjectDisplay(std::size_t index);
 
     /**
      * @brief removeAllDisplays Removes all displays from the renderer

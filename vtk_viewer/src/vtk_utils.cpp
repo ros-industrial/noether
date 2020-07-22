@@ -49,24 +49,10 @@
 #include <vtkImplicitSelectionLoop.h>
 #include <vtkClipPolyData.h>
 
-#include <log4cxx/basicconfigurator.h>
-#include <log4cxx/patternlayout.h>
-#include <log4cxx/consoleappender.h>
-
-log4cxx::LoggerPtr createConsoleLogger(const std::string& logger_name)
-{
-  using namespace log4cxx;
-  PatternLayoutPtr pattern_layout(new PatternLayout("[\%-5p] [\%c](L:\%L): \%m\%n"));
-  ConsoleAppenderPtr console_appender(new ConsoleAppender(pattern_layout));
-  log4cxx::LoggerPtr logger(Logger::getLogger(logger_name));
-  logger->addAppender(console_appender);
-  logger->setLevel(Level::getInfo());
-  return logger;
-}
+#include <console_bridge/console.h>
 
 namespace vtk_viewer
 {
-log4cxx::LoggerPtr VTK_LOGGER = createConsoleLogger("VTK_VIEWER");
 
 vtkSmartPointer<vtkPoints> createPlane(unsigned int grid_size_x, unsigned int grid_size_y, vtk_viewer::plane_type type)
 {
@@ -102,7 +88,7 @@ vtkSmartPointer<vtkPoints> createPlane(unsigned int grid_size_x, unsigned int gr
 
 vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points,
                                         double sample_spacing,
-                                        double neigborhood_size)
+                                        int neigborhood_size)
 {
   if (!points)
   {
@@ -148,7 +134,8 @@ void cleanMesh(const vtkSmartPointer<vtkPoints>& points, vtkSmartPointer<vtkPoly
   kd_tree->BuildLocator();
 
   vtkSmartPointer<vtkCellArray> cells = mesh->GetPolys();
-  int size = cells->GetNumberOfCells();
+  assert(cells->GetNumberOfCells() < std::numeric_limits<int>::max());
+  int size = static_cast<int>(cells->GetNumberOfCells());
   // loop through all cells, mark cells for deletion if they do not have enough points nearby
   for (int i = 0; i < size; ++i)
   {
@@ -234,7 +221,7 @@ vtkSmartPointer<vtkPolyData> readSTLFile(std::string file)
   return reader->GetOutput();
 }
 
-bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata, std::string background, bool return_mesh)
+bool loadPCDFile(std::string file, vtkSmartPointer<vtkPolyData>& polydata, std::string background, bool /*return_mesh*/)
 {
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
 
@@ -277,7 +264,7 @@ void vtkSurfaceReconstructionMesh(const pcl::PointCloud<pcl::PointXYZ>::Ptr clou
   // Set parameters (TODO: Make these parameters configurable)
   mls.setComputeNormals(false);
   mls.setInputCloud(cloud);
-  mls.setPolynomialFit(true);
+  mls.setPolynomialOrder(2);
   mls.setSearchMethod(tree);
   mls.setSearchRadius(0.01);
 
@@ -304,10 +291,10 @@ void removeBackground(pcl::PointCloud<pcl::PointXYZ>& cloud, const pcl::PointClo
     return;
   }
 
-  for (int i = 0; i < cloud.points.size(); ++i)
+  for (std::size_t i = 0; i < cloud.points.size(); ++i)
   {
-    if (fabs(cloud.points[i].z - background.points[i].z) < 0.05 || std::isnan(background.points[i].z) ||
-        cloud.points[i].y > 0.75)
+    if (fabs(cloud.points[i].z - background.points[i].z) < 0.05f || std::isnan(background.points[i].z) ||
+        cloud.points[i].y > 0.75f)
     {
       cloud.points[i].x = NAN;
       cloud.points[i].y = NAN;
@@ -317,7 +304,7 @@ void removeBackground(pcl::PointCloud<pcl::PointXYZ>& cloud, const pcl::PointClo
 
   // create new point cloud with NaN's removed
   pcl::PointCloud<pcl::PointXYZ> cloud2;
-  for (int i = 0; i < cloud.points.size(); ++i)
+  for (std::size_t i = 0; i < cloud.points.size(); ++i)
   {
     if (!std::isnan(cloud.points[i].x))
     {
@@ -334,7 +321,7 @@ void removeBackground(pcl::PointCloud<pcl::PointXYZ>& cloud, const pcl::PointClo
 void PCLtoVTK(const pcl::PointCloud<pcl::PointXYZ>& cloud, vtkPolyData* const pdata)
 {
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-  for (int i = 0; i < cloud.points.size(); ++i)
+  for (std::size_t i = 0; i < cloud.points.size(); ++i)
   {
     if (std::isnan(cloud.points[i].x) || std::isnan(cloud.points[i].y) || std::isnan(cloud.points[i].z))
     {
@@ -353,18 +340,18 @@ void PCLtoVTK(const pcl::PointCloud<pcl::PointXYZ>& cloud, vtkPolyData* const pd
 
 void VTKtoPCL(vtkPolyData* const pdata, pcl::PointCloud<pcl::PointNormal>& cloud)
 {
-  for (int i = 0; i < pdata->GetPoints()->GetNumberOfPoints(); ++i)
+  for (long i = 0; i < pdata->GetPoints()->GetNumberOfPoints(); ++i)
   {
     pcl::PointNormal pt;
     double* ptr = pdata->GetPoints()->GetPoint(i);
-    pt.x = ptr[0];
-    pt.y = ptr[1];
-    pt.z = ptr[2];
+    pt.x = static_cast<float>(ptr[0]);
+    pt.y = static_cast<float>(ptr[1]);
+    pt.z = static_cast<float>(ptr[2]);
 
     double* norm = pdata->GetPointData()->GetNormals()->GetTuple(i);
-    pt.normal_x = norm[0];
-    pt.normal_y = norm[1];
-    pt.normal_z = norm[2];
+    pt.normal_x = static_cast<float>(norm[0]);
+    pt.normal_y = static_cast<float>(norm[1]);
+    pt.normal_z = static_cast<float>(norm[2]);
 
     cloud.push_back(pt);
   }
@@ -397,8 +384,8 @@ vtkSmartPointer<vtkPolyData> estimateCurvature(vtkSmartPointer<vtkPolyData> mesh
 bool embedRightHandRuleNormals(vtkSmartPointer<vtkPolyData>& data)
 {
   bool success = true;
-  LOG4CXX_DEBUG(VTK_LOGGER, "Embedding mesh normals from right hand rule");
-  int size = data->GetNumberOfCells();
+  CONSOLE_BRIDGE_logDebug("Embedding mesh normals from right hand rule");
+  int size = static_cast<int>(data->GetNumberOfCells());
   vtkDoubleArray* cell_normals = vtkDoubleArray::New();
 
   cell_normals->SetNumberOfComponents(3);
@@ -475,7 +462,7 @@ bool embedRightHandRuleNormals(vtkSmartPointer<vtkPolyData>& data)
     }
   }
   if (bad_cells > 0)
-    LOG4CXX_ERROR(VTK_LOGGER, "Could not embed normals on " << bad_cells << "cells");
+    CONSOLE_BRIDGE_logError("Could not embed normals on %d cells", bad_cells);
 
   // We have looped over every cell. Now embed the normals
   data->GetCellData()->SetNormals(cell_normals);
@@ -487,8 +474,8 @@ void generateNormals(vtkSmartPointer<vtkPolyData>& data, int flip_normals)
   // If point data exists but cell data does not, iterate through the cells and generate normals manually
   if (data->GetPointData()->GetNormals() && !data->GetCellData()->GetNormals())
   {
-    LOG4CXX_DEBUG(VTK_LOGGER, "Generating Mesh Normals manually");
-    int size = data->GetNumberOfCells();
+    CONSOLE_BRIDGE_logDebug("Generating Mesh Normals manually");
+    int size = static_cast<int>(data->GetNumberOfCells());
     vtkDoubleArray* cell_normals = vtkDoubleArray::New();
 
     cell_normals->SetNumberOfComponents(3);
@@ -530,7 +517,7 @@ void generateNormals(vtkSmartPointer<vtkPolyData>& data, int flip_normals)
   }
   else
   {
-    LOG4CXX_DEBUG(VTK_LOGGER, "Recomputing Mesh normals");
+    CONSOLE_BRIDGE_logDebug("Recomputing Mesh normals");
     vtkSmartPointer<vtkPolyDataNormals> normal_generator = vtkSmartPointer<vtkPolyDataNormals>::New();
     normal_generator->SetInputData(data);
     normal_generator->ComputePointNormalsOn();
@@ -545,23 +532,23 @@ void generateNormals(vtkSmartPointer<vtkPolyData>& data, int flip_normals)
     if (!data->GetPointData()->GetNormals())
     {
       normal_generator->SetComputePointNormals(1);
-      LOG4CXX_DEBUG(VTK_LOGGER, "Point Normals Computation ON");
+      CONSOLE_BRIDGE_logDebug("Point Normals Computation ON");
     }
     else
     {
       normal_generator->SetComputePointNormals(0);
-      LOG4CXX_DEBUG(VTK_LOGGER, "Point Normals Computation OFF");
+      CONSOLE_BRIDGE_logDebug("Point Normals Computation OFF");
     }
 
     if (!data->GetCellData()->GetNormals())
     {
       normal_generator->SetComputeCellNormals(1);
-      LOG4CXX_DEBUG(VTK_LOGGER, "Cell Normals Computation ON");
+      CONSOLE_BRIDGE_logDebug("Cell Normals Computation ON");
     }
     else
     {
       normal_generator->SetComputeCellNormals(0);
-      LOG4CXX_DEBUG(VTK_LOGGER, "Cell Normals Computation OFF");
+      CONSOLE_BRIDGE_logDebug("Cell Normals Computation OFF");
     }
 
     normal_generator->SetFlipNormals(0);

@@ -7,7 +7,7 @@
   <license>Apache 2.0</license>
   <author email="jrgnichodevel@gmail.com">Jorge Nicho</author>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <depend>libconsole-bridge-dev</depend>
   <depend>pluginlib</depend>
   <depend>libpcl-all-dev</depend>
   <export>

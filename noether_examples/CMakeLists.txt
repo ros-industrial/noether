@@ -32,8 +32,9 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   roslib
   tool_path_planner
-  vtk_viewer
 )
+
+find_package(vtk_viewer REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS
@@ -48,10 +49,10 @@ catkin_package(
     roscpp
     roslib
     tool_path_planner
-    vtk_viewer
   DEPENDS
     VTK
     PCL
+    vtk_viewer
 )
 
 include_directories(
@@ -61,23 +62,23 @@ include_directories(
 )
 
 add_executable(mesh_segmenter_client_node src/mesh_segmenter_client.cpp)
-target_link_libraries(mesh_segmenter_client_node ${catkin_LIBRARIES} ${VTK_LIBRARIES})
+target_link_libraries(mesh_segmenter_client_node ${catkin_LIBRARIES} ${VTK_LIBRARIES} noether::vtk_viewer)
 list (APPEND PACKAGE_TARGETS mesh_segmenter_client_node)
 
 add_executable(mesh_segmenter_node src/mesh_segmenter_node.cpp)
-target_link_libraries(mesh_segmenter_node ${catkin_LIBRARIES} ${VTK_LIBRARIES})
+target_link_libraries(mesh_segmenter_node ${catkin_LIBRARIES} ${VTK_LIBRARIES} noether::vtk_viewer)
 list (APPEND PACKAGE_TARGETS mesh_segmenter_node)
 
 add_executable(mesh_filtering_client src/mesh_filtering_client.cpp)
-target_link_libraries(mesh_filtering_client ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+target_link_libraries(mesh_filtering_client ${catkin_LIBRARIES} ${PCL_LIBRARIES} noether::vtk_viewer)
 list (APPEND PACKAGE_TARGETS mesh_filtering_client)
 
 add_executable(edge_generator_client src/edge_generator_client.cpp)
-target_link_libraries(edge_generator_client ${catkin_LIBRARIES})
+target_link_libraries(edge_generator_client ${catkin_LIBRARIES} noether::vtk_viewer)
 list (APPEND PACKAGE_TARGETS edge_generator_client)
 
 add_executable(halfedge_finder_node  src/halfedge_finder_node.cpp)
-target_link_libraries(halfedge_finder_node ${catkin_LIBRARIES})
+target_link_libraries(halfedge_finder_node ${catkin_LIBRARIES} noether::vtk_viewer)
 list (APPEND PACKAGE_TARGETS halfedge_finder_node)
 
 #############

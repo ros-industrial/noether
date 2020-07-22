@@ -8,6 +8,6 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <test_depend>vtk_viewer</test_depend>
+  <depend>vtk_viewer</depend>
 
 </package>

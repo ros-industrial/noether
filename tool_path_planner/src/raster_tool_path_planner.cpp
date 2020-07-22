@@ -33,9 +33,8 @@
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_plane.h>
 
-#include <log4cxx/basicconfigurator.h>
-#include <log4cxx/patternlayout.h>
-#include <log4cxx/consoleappender.h>
+#include <console_bridge/console.h>
+
 #include <tool_path_planner/raster_tool_path_planner.h>
 #include "tool_path_planner/utilities.h"
 
@@ -44,19 +43,6 @@ static const std::size_t MAX_ATTEMPTS = 1000;
 static const double ANGLE_CORRECTION_THRESHOLD = (150.0/180.0)*M_PI;
 static const double EXTRUDE_EXTEND_PERCENTAGE = 1.5;
 static const double RAY_INTERSECTION_TOLERANCE = 0.001;
-
-log4cxx::LoggerPtr createConsoleLogger(const std::string& logger_name)
-{
-  using namespace log4cxx;
-  PatternLayoutPtr pattern_layout(new PatternLayout( "[\%-5p] [\%c](L:\%L): \%m\%n"));
-  ConsoleAppenderPtr console_appender(new ConsoleAppender(pattern_layout));
-  log4cxx::LoggerPtr logger(Logger::getLogger(logger_name));
-  logger->addAppender(console_appender);
-  logger->setLevel(Level::getInfo());
-  return logger;
-}
-log4cxx::LoggerPtr tool_path_planner::RasterToolPathPlanner::RASTER_PATH_PLANNER_LOGGER = createConsoleLogger(
-    "RasterPathPlanner");
 
 /**
  * @brief computes the angle between two vectors
@@ -144,7 +130,7 @@ namespace tool_path_planner
       planPaths(meshes[i], new_path);
       if(new_path.empty())
       {
-        LOG4CXX_WARN(RASTER_PATH_PLANNER_LOGGER, "Could not plan path for mesh " << i);
+        CONSOLE_BRIDGE_logWarn("Could not plan path for mesh %d", i);
       }
       else
       {
@@ -278,7 +264,7 @@ namespace tool_path_planner
     // if paths need to be modified, delete all old paths (starting at the back) and insert new ones
     if(!delete_paths.empty())
     {
-      LOG4CXX_INFO(RASTER_PATH_PLANNER_LOGGER, "Deleting " << delete_paths.size() << " paths");
+      CONSOLE_BRIDGE_logInform("Deleting %d paths", delete_paths.size());
     }
     for(int i = delete_paths.size() - 1; i >=0 ; --i )
     {
@@ -297,7 +283,7 @@ namespace tool_path_planner
         sum_of_normal += current_normal;
       }
       sum_of_normal.normalize(); // this is now the average normal
-      LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER,"Line Normal = \n" << sum_of_normal);
+      CONSOLE_BRIDGE_logDebug("Line Normal = %d", sum_of_normal);
       vtkDataArray* normals = new_paths[i].line->GetPointData()->GetNormals();
 
       // flip normal directions if it is in a different direction from the average of normal for the line
@@ -309,10 +295,10 @@ namespace tool_path_planner
         Eigen::Vector3d current_normal = Eigen::Vector3d::Zero();
         new_paths[i].line->GetPointData()->GetNormals()->GetTuple(j,current_normal.data());
         double dp = current_normal.dot(sum_of_normal);
-        LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER,"Line " << i <<" waypoint "<< j << " dot product: " << dp);
+        CONSOLE_BRIDGE_logDebug("Line %d waypoint %d dot product: %d", i, j, dp);
         if(dp < 0)
         {
-          LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER,"Flipping line " << i <<" waypoint "<< j);
+          CONSOLE_BRIDGE_logDebug("Flipping line %d waypoint $d", i, j);
           double* pt = line_normals ->GetTuple(i);
           pt[0] *= -1;
           pt[1] *= -1;
@@ -354,7 +340,7 @@ namespace tool_path_planner
       }
       else
       {
-        LOG4CXX_ERROR(RASTER_PATH_PLANNER_LOGGER, "Failed to generate path off leading edge");
+        CONSOLE_BRIDGE_logError("Failed to generate path off leading edge");
       }
       if (getExtraPath(last, last_path, tool_.line_spacing))
       {
@@ -362,7 +348,7 @@ namespace tool_path_planner
       }
       else
       {
-        LOG4CXX_ERROR(RASTER_PATH_PLANNER_LOGGER, "Failed to generate path off trailing edge");
+        CONSOLE_BRIDGE_logError("Failed to generate path off trailing edge");
       }
     }
 
@@ -411,7 +397,7 @@ namespace tool_path_planner
 
     if(!findIntersectionLine(cutting_mesh, intersection_line, spline))
     {
-      LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER,"No intersection found");
+      CONSOLE_BRIDGE_logDebug("No intersection found");
       return false;
     }
 
@@ -434,7 +420,7 @@ namespace tool_path_planner
   {
     if(dist == 0.0 && this_path.intersection_plane->GetPoints()->GetNumberOfPoints() < 2)
     {
-      LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER,"No path offset and no intersection plane given. Cannot generate next path");
+      CONSOLE_BRIDGE_logDebug("No path offset and no intersection plane given. Cannot generate next path");
       return false;
     }
 
@@ -492,7 +478,7 @@ namespace tool_path_planner
 
     if(!findIntersectionLine(next_path.intersection_plane, intersection_line, spline))
     {
-      LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER,"No intersection found for creating spline");
+      CONSOLE_BRIDGE_logDebug("No intersection found for creating spline");
       return false;
     }
 
@@ -509,7 +495,7 @@ namespace tool_path_planner
       intersection_filter->Update();
       if(intersection_filter->GetOutput()->GetPoints()->GetNumberOfPoints() > 0)
       {
-        LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER,"Self intersection found with back path");
+        CONSOLE_BRIDGE_logDebug("Self intersection found with back path");
         return false;
       }
 
@@ -517,7 +503,7 @@ namespace tool_path_planner
       intersection_filter->Update();
       if(intersection_filter->GetOutput()->GetPoints()->GetNumberOfPoints() > 0)
       {
-        LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER, "Self intersection found with front path");
+        CONSOLE_BRIDGE_logDebug("Self intersection found with front path");
         return false;
       }
     }
@@ -554,7 +540,7 @@ namespace tool_path_planner
 
     if(points->GetPoints()->GetNumberOfPoints() < 2)
     {
-      LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER,"Number of points after smoothing is less than 2, skip computing path data");
+      CONSOLE_BRIDGE_logDebug("Number of points after smoothing is less than 2, skip computing path data");
       return false;
     }
     next_path.line = points;
@@ -587,7 +573,7 @@ namespace tool_path_planner
   {
     if (std::fabs(dist) == 0.0)
     {
-      LOG4CXX_ERROR(RASTER_PATH_PLANNER_LOGGER, "No offset given. Cannot generate extra path");
+      CONSOLE_BRIDGE_logError("No offset given. Cannot generate extra path");
       return false;
     }
 
@@ -711,7 +697,7 @@ namespace tool_path_planner
           }
           else
           {
-            LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER,"Hole segment has less than 2 points, skipping resampling");
+            CONSOLE_BRIDGE_logDebug("Hole segment has less than 2 points, skipping resampling");
           }
 
           new_line->SetPoints(new_points);
@@ -938,8 +924,7 @@ namespace tool_path_planner
     // Check to make sure that the input cut surface contains a valid mesh
     if(cut_surface->GetNumberOfCells() < 1)
     {
-      LOG4CXX_ERROR(RASTER_PATH_PLANNER_LOGGER,
-                    "Number of input cells for calculating intersection is less than 1, cannot compute intersection");
+      CONSOLE_BRIDGE_logError("Number of input cells for calculating intersection is less than 1, cannot compute intersection");
       return false;
     }
 
@@ -977,7 +962,7 @@ namespace tool_path_planner
 
     if(temp_pts->GetNumberOfPoints() == 0)
     {
-      LOG4CXX_ERROR(RASTER_PATH_PLANNER_LOGGER, "No connected lines were found");
+      CONSOLE_BRIDGE_logError("No connected lines were found");
       return false;
     }
 
@@ -1470,7 +1455,7 @@ namespace tool_path_planner
       cell_locator_->FindClosestPoint(query_point.data(),closest_point.data(),cell_id,sub_index,dist);
       if(cell_id < 0)
       {
-        LOG4CXX_ERROR(RASTER_PATH_PLANNER_LOGGER,"FindClosestPoint returned an invalid cell id");
+        CONSOLE_BRIDGE_logError("FindClosestPoint returned an invalid cell id");
         return false;
       }
 
@@ -1495,13 +1480,13 @@ namespace tool_path_planner
     // If normal or derivative data does not exist, or number of normals and derivatives do not match, return a null pointer
     if(!normals || !ders || normals->GetNumberOfTuples() != ders->GetNumberOfTuples())
     {
-      LOG4CXX_ERROR(RASTER_PATH_PLANNER_LOGGER,"Could not create offset line");
+      CONSOLE_BRIDGE_logError("Could not create offset line");
       return new_points;
     }
 
     if(normals->GetNumberOfTuples() != line->GetNumberOfPoints())
     {
-      LOG4CXX_DEBUG(RASTER_PATH_PLANNER_LOGGER,"ERROR IN CALC OFFSET LINE");
+      CONSOLE_BRIDGE_logDebug("ERROR IN CALC OFFSET LINE");
       return new_points;
     }
 
@@ -1588,7 +1573,7 @@ namespace tool_path_planner
 
     if(!normals)
     {
-      LOG4CXX_ERROR(RASTER_PATH_PLANNER_LOGGER,"no normals, cannot create surface from spline");
+      CONSOLE_BRIDGE_logError("No normals, cannot create surface from spline");
       return new_surface;
     }
 
@@ -1676,7 +1661,7 @@ namespace tool_path_planner
 
     if(!normals)
     {
-      LOG4CXX_ERROR(RASTER_PATH_PLANNER_LOGGER,"no normals, cannot create surface from spline");
+      CONSOLE_BRIDGE_logError("No normals, cannot create surface from spline");
       return new_surface;
     }
 
@@ -1735,7 +1720,10 @@ namespace tool_path_planner
 
   void RasterToolPathPlanner::enableConsoleDebug(bool enable)
   {
-    RASTER_PATH_PLANNER_LOGGER->setLevel(enable ? log4cxx::Level::getDebug() : log4cxx::Level::getInfo());
+    if (enable)
+      console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_DEBUG);
+    else
+      console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_INFO);
   }
 
 }
