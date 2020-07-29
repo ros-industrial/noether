@@ -12,5 +12,9 @@
   <depend>libpcl-all-dev</depend>
 
   <test_depend>rosunit</test_depend>
+  
+  <export>
+	  <build_type> cmake </build_type>
+  </export>
 
 </package>
