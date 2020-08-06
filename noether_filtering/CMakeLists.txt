@@ -21,8 +21,12 @@ find_package(console_bridge REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(xmlrpcpp REQUIRED)
 
+if (NOT ENABLE_NURBS)
+   set(ENABLE_NURBS, OFF)
+endif()
+
 # Check if PCL was compiled with OpenNURBS
-if(NOT DEFINED NURBS_FOUND)
+if(ENABLE_NURBS)
     try_compile(
         NURBS_FOUND
         ${CMAKE_CURRENT_BINARY_DIR}/pcl_nurbs_try_compile
@@ -80,7 +84,7 @@ if(${BUILD_MESH_PLUGINS})
       )
   set(MESH_FILTERS_COMPILE_DEFINITIONS "")
 
-if (${NURBS_FOUND})
+if (ENABLE_NURBS)
     list(APPEND MESH_FILTERS_SRC src/mesh/bspline_reconstruction.cpp)
     list(APPEND MESH_FILTERS_COMPILE_DEFINITIONS ENABLE_NURBS)
 endif()
