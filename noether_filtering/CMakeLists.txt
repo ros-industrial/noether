@@ -25,22 +25,6 @@ if (NOT ENABLE_NURBS)
    set(ENABLE_NURBS, OFF)
 endif()
 
-# Check if PCL was compiled with OpenNURBS
-if(ENABLE_NURBS)
-    try_compile(
-        NURBS_FOUND
-        ${CMAKE_CURRENT_BINARY_DIR}/pcl_nurbs_try_compile
-        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/test_scripts/check_pcl_nurbs.cpp
-        CMAKE_FLAGS ${CMAKE_FLAGS} -DINCLUDE_DIRECTORIES=${PCL_INCLUDE_DIRS}
-        LINK_LIBRARIES ${PCL_LIBRARIES}
-        )
-    if (NOT ${NURBS_FOUND})
-        message("PCL NURBS NOT FOUND")
-    else()
-        message("PCL NURBS FOUND")
-    endif()
-endif()
-
 ###########
 ## Build ##
 ###########
