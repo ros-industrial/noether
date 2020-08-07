@@ -17,7 +17,7 @@ env:
 matrix:
   include:
     - env: ROS_DISTRO=kinetic DOCKER_IMAGE=rosindustrial/noether:kinetic
-    - env: ROS_DISTRO=melodic DOCKER_IMAGE=rosindustrial/noether:melodic TARGET_CMAKE_ARGS="-DNURBS_FOUND=true"
+    - env: ROS_DISTRO=melodic DOCKER_IMAGE=rosindustrial/noether:melodic
     - env: ROS_DISTRO=noetic DOCKER_IMAGE=rosindustrial/noether:noetic
     - env: ROS_DISTRO=noetic
   allow_failures:
