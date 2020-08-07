@@ -2,6 +2,14 @@
 
 Tool path planning and surface segmenter
 
+## Build Status
+
+Platform             | CI Status
+---------------------|:---------
+Linux (Focal)        | [![Build Status](https://github.com/ros-industrial/noether/workflows/Focal-Build/badge.svg)](https://github.com/ros-industrial/noether/actions)
+Linux (Bionic)       | [![Build Status](https://github.com/ros-industrial/noether/workflows/Bionic-Build/badge.svg)](https://github.com/ros-industrial/noether/actions)
+Linux (Xenial)       | [![Build Status](https://github.com/ros-industrial/noether/workflows/Xenial-Build/badge.svg)](https://github.com/ros-industrial/noether/actions)
+
 ---
 ## Prerequisites
 - These packages run on Ubuntu 16.04 and ROS
