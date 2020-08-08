@@ -16,7 +16,7 @@ env:
 
 matrix:
   include:
-    - env: ROS_DISTRO=kinetic DOCKER_IMAGE=rosindustrial/noether:kinetic
+    - env: ROS_DISTRO=kinetic DOCKER_IMAGE=rosindustrial/noether:kinetic ADDITIONAL_DEBS='iwyu python-pip' AFTER_SETUP_UPSTREAM_WORKSPACE='pip install cmake'
     - env: ROS_DISTRO=melodic DOCKER_IMAGE=rosindustrial/noether:melodic ADDITIONAL_DEBS='iwyu python-pip' AFTER_SETUP_UPSTREAM_WORKSPACE='pip install cmake'
     - env: ROS_DISTRO=noetic DOCKER_IMAGE=rosindustrial/noether:noetic
     - env: ROS_DISTRO=noetic
