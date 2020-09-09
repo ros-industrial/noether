@@ -83,13 +83,24 @@ This package depends on PCL 1.9.1+ and VTK 7.1+. If you are using a Ubuntu syste
 
 ---
 ## Build
-- Create a catkin workspace and clone this repository in the `src` directory
-- Build the noether packages
-  ```
-  catkin build noether
-  ```
-  
-  _Note: You can just run `catkin build` in order to build everything in your workspace, including the noether packages_
+
+```
+# if you already have a workspace, skip this step
+mkdir -p ~/catkin_ws/src
+
+# if you already cloned noether, skip this step
+cd ~/catkin_ws/src && git clone https://github.com/ros-industrial/noether.git
+
+# navigate to the root of your workspace
+cd ~/catkin_ws
+
+# pull down the dependencies
+vcstool import src < src/noether/dependencies_ros1.rosinstall
+
+# build the Noether packages
+# note: if you want to build the entire workspace, just run 'catkin build' instead
+catkin build noether
+```
 
 ## Run Unit Tests
 - Run the unit tests for a package:
