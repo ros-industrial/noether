@@ -6,8 +6,8 @@ add_compile_options(-std=c++14)
 project(noether_examples)
 
 find_package(VTK REQUIRED NO_MODULE)
-if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 8.2))
-  message(FATAL_ERROR "The minimum required version of VTK is 8.2, but found ${VTK_VERSION}")
+if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 7.1))
+  message(FATAL_ERROR "The minimum required version of VTK is 7.1, but found ${VTK_VERSION}")
   set(VTK_FOUND FALSE)
 else()
   include(${VTK_USE_FILE})
@@ -80,13 +80,6 @@ list (APPEND PACKAGE_TARGETS edge_generator_client)
 add_executable(halfedge_finder_node  src/halfedge_finder_node.cpp)
 target_link_libraries(halfedge_finder_node ${catkin_LIBRARIES} noether::vtk_viewer)
 list (APPEND PACKAGE_TARGETS halfedge_finder_node)
-
-add_executable(rastering_demo_node
-  src/rastering_demo_node.cpp
-)
-target_link_libraries(rastering_demo_node
-  ${catkin_LIBRARIES}
-)
 
 #############
 ## Install ##

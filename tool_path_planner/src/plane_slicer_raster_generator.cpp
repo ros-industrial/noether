@@ -44,7 +44,8 @@
 #include <vtkErrorCode.h>
 
 #include <boost/make_shared.hpp>
-#include<Eigen/StdVector>
+#include <Eigen/StdVector>
+#include <numeric>
 #include <eigen_conversions/eigen_msg.h>
 #include <pcl/surface/vtk_smoothing/vtk_utils.h>
 #include <console_bridge/console.h>
