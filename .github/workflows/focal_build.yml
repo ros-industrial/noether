@@ -22,7 +22,7 @@ jobs:
       UPSTREAM_WORKSPACE: 'dependencies_ros1.rosinstall'
       ROSDEP_SKIP_KEYS: "iwyu cmake_common_scripts"
       CCACHE_DIR: "/home/runner/work/noether/noether/Focal-Build/.ccache"
-      TARGET_CMAKE_ARGS: "-DNURBS_FOUND=TRUE"
+      TARGET_CMAKE_ARGS: "-DNURBS_FOUND=FALSE"
       DOCKER_IMAGE: "rosindustrial/noether:noetic"
     steps:
       - uses: actions/checkout@v2
