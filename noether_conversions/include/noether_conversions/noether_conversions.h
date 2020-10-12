@@ -85,6 +85,24 @@ namespace noether_conversions {
                                                        const std::tuple<float,float,float,float,float,float>& offset = std::make_tuple(
                                                            0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
 
+  visualization_msgs::MarkerArray convertToArrowMarkers(const std::vector<geometry_msgs::PoseArray>& path,
+                                                      const std::string& frame_id,
+                                                      const std::string& ns,
+                                                      const std::size_t start_id = 1,
+                                                      const float arrow_diameter = 0.002,
+                                                      const float point_size = 0.01,
+                                                      const std::tuple<float, float, float, float, float, float>&offset =
+                                                          std::make_tuple(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+
+  visualization_msgs::MarkerArray convertToArrowMarkers(const noether_msgs::ToolRasterPath& toolpath,
+                                                      const std::string& frame_id,
+                                                      const std::string& ns,
+                                                      const std::size_t start_id = 1,
+                                                      const float arrow_diameter = 0.002,
+                                                      const float point_size = 0.01,
+                                                      const std::tuple<float, float, float, float, float, float>&offset =
+                                                          std::make_tuple(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+
   visualization_msgs::MarkerArray convertToDottedLineMarker(const noether_msgs::ToolRasterPath& toolpath,
                                                       const std::string& frame_id,
                                                       const std::string& ns,
