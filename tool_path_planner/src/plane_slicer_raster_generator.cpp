@@ -479,7 +479,6 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
   vtkSmartPointer<vtkTransformFilter> transform_filter = vtkSmartPointer<vtkTransformFilter>::New();
   transform_filter->SetInputData(mesh_data_);
   transform_filter->SetTransform(vtk_transform);
-  transform_filter->TransformAllInputVectorsOn();
   transform_filter->Update();
   vtkSmartPointer<vtkPolyData> transformed_mesh_data = transform_filter->GetPolyDataOutput();
 
@@ -639,7 +638,6 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
         transform_filter = vtkSmartPointer<vtkTransformFilter>::New();
         transform_filter->SetInputData(segment_data);
         transform_filter->SetTransform(toVtkMatrix(t));
-        transform_filter->TransformAllInputVectorsOn();
         transform_filter->Update();
         segment_data = transform_filter->GetPolyDataOutput();
 

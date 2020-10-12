@@ -30,6 +30,7 @@
 #include <geometry_msgs/PoseArray.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
+#include <cxxabi.h>
 #include "tool_path_planner_base.h"
 
 
