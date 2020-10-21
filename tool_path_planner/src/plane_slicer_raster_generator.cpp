@@ -50,8 +50,8 @@
 #include <pcl/surface/vtk_smoothing/vtk_utils.h>
 #include <console_bridge/console.h>
 #include <noether_conversions/noether_conversions.h>
-#include "tool_path_planner/utilities.h"
-#include "tool_path_planner/plane_slicer_raster_generator.h"
+#include <tool_path_planner/utilities.h>
+#include <tool_path_planner/plane_slicer_raster_generator.h>
 
 static const double EPSILON = 1e-6;
 
@@ -325,15 +325,15 @@ static void rectifyDirection(const vtkSmartPointer<vtkPoints>& points, const Eig
   }
 }
 
-static std::vector<noether_msgs::ToolRasterPath> convertToPoses(const std::vector<RasterConstructData>& rasters_data)
+static tool_path_planner::ToolPaths convertToPoses(const std::vector<RasterConstructData>& rasters_data)
 {
   using namespace Eigen;
-  std::vector<noether_msgs::ToolRasterPath> rasters_array;
+  tool_path_planner::ToolPaths rasters_array;
   bool reverse = true;
   for(const RasterConstructData& rd : rasters_data)
   {
     reverse = !reverse;
-    noether_msgs::ToolRasterPath raster_path_msg;
+    tool_path_planner::ToolPath raster_path;
     std::vector<PolyDataPtr> raster_segments;
     raster_segments.assign(rd.raster_segments.begin(), rd.raster_segments.end());
     if(reverse)
@@ -343,7 +343,7 @@ static std::vector<noether_msgs::ToolRasterPath> convertToPoses(const std::vecto
 
     for(const PolyDataPtr& polydata : raster_segments)
     {
-      std::vector<Eigen::Isometry3d, Eigen::aligned_allocator<Eigen::Isometry3d> > raster_poses;
+      tool_path_planner::ToolPathSegment raster_path_segment;
       std::size_t num_points = polydata->GetNumberOfPoints();
       Vector3d p, p_next, vx, vy, vz;
       Isometry3d pose;
@@ -364,25 +364,17 @@ static std::vector<noether_msgs::ToolRasterPath> convertToPoses(const std::vecto
         vy = vz.cross(vx).normalized();
         vz = vx.cross(vy).normalized();
         pose = Translation3d(p) * AngleAxisd(computeRotation(vx, vy, vz));
-        raster_poses.push_back(pose);
+        raster_path_segment.push_back(pose);
       }
 
       // adding last pose
       pose.translation() = p_next; // orientation stays the same as previous
-      raster_poses.push_back(pose);
+      raster_path_segment.push_back(pose);
 
-      // convert to poses msg
-      geometry_msgs::PoseArray raster_poses_msg;
-      std::transform(raster_poses.begin(), raster_poses.end(),
-                     std::back_inserter(raster_poses_msg.poses),[](const Isometry3d& p){
-        geometry_msgs::Pose pose_msg;
-        tf::poseEigenToMsg(p,pose_msg);
-        return pose_msg;
-      });
-      raster_path_msg.paths.push_back(raster_poses_msg);
+      raster_path.push_back(raster_path_segment);
 
     }
-    rasters_array.push_back(raster_path_msg);
+    rasters_array.push_back(raster_path);
   }
 
   return rasters_array;
@@ -390,52 +382,58 @@ static std::vector<noether_msgs::ToolRasterPath> convertToPoses(const std::vecto
 
 namespace tool_path_planner
 {
-PlaneSlicerRasterGenerator::PlaneSlicerRasterGenerator()
+
+void PlaneSlicerRasterGenerator::setConfiguration(const PlaneSlicerRasterGenerator::Config& config)
 {
-
-}
-
-PlaneSlicerRasterGenerator::~PlaneSlicerRasterGenerator()
-{
-
+  config_ = config;
 }
 
 void PlaneSlicerRasterGenerator::setInput(pcl::PolygonMesh::ConstPtr mesh)
 {
-  mesh_data_ = vtkSmartPointer<vtkPolyData>::New();
-  pcl::VTKUtils::mesh2vtk(*mesh, mesh_data_);
-  mesh_data_->BuildLinks();
-  mesh_data_->BuildCells();
+  auto mesh_data = vtkSmartPointer<vtkPolyData>::New();
+  pcl::VTKUtils::mesh2vtk(*mesh, mesh_data);
+  mesh_data->BuildLinks();
+  mesh_data->BuildCells();
+  setInput(mesh_data);
+}
+
+void PlaneSlicerRasterGenerator::setInput(vtkSmartPointer<vtkPolyData> mesh)
+{
+  if (!mesh_data_)
+    mesh_data_ = vtkSmartPointer<vtkPolyData>::New();
+
+  mesh_data_->DeepCopy(mesh);
 
   if(mesh_data_->GetPointData()->GetNormals() && mesh_data_->GetCellData()->GetNormals() )
   {
-    return; // normal data is available
+    CONSOLE_BRIDGE_logInform("Normal data is available", getName().c_str());
   }
-
-  CONSOLE_BRIDGE_logWarn("%s generating normal data", getName().c_str());
-  vtkSmartPointer<vtkPolyDataNormals> normal_generator = vtkSmartPointer<vtkPolyDataNormals>::New();
-  normal_generator->SetInputData(mesh_data_);
-  normal_generator->ComputePointNormalsOn();
-  normal_generator->SetComputeCellNormals(!mesh_data_->GetCellData()->GetNormals());
-  normal_generator->SetFeatureAngle(M_PI_2);
-  normal_generator->SetSplitting(true);
-  normal_generator->SetConsistency(true);
-  normal_generator->SetAutoOrientNormals(false);
-  normal_generator->SetFlipNormals(false);
-  normal_generator->SetNonManifoldTraversal(false);
-  normal_generator->Update();
-
-
-  if ( !mesh_data_->GetPointData()->GetNormals())
+  else
   {
-    mesh_data_->GetPointData()->SetNormals(normal_generator->GetOutput()->GetPointData()->GetNormals());
-  }
+    CONSOLE_BRIDGE_logWarn("%s generating normal data", getName().c_str());
+    vtkSmartPointer<vtkPolyDataNormals> normal_generator = vtkSmartPointer<vtkPolyDataNormals>::New();
+    normal_generator->SetInputData(mesh_data_);
+    normal_generator->ComputePointNormalsOn();
+    normal_generator->SetComputeCellNormals(!mesh_data_->GetCellData()->GetNormals());
+    normal_generator->SetFeatureAngle(M_PI_2);
+    normal_generator->SetSplitting(true);
+    normal_generator->SetConsistency(true);
+    normal_generator->SetAutoOrientNormals(false);
+    normal_generator->SetFlipNormals(false);
+    normal_generator->SetNonManifoldTraversal(false);
+    normal_generator->Update();
 
-  if ( !mesh_data_->GetCellData()->GetNormals() )
-  {
-    mesh_data_->GetCellData()->SetNormals(normal_generator->GetOutput()->GetCellData()->GetNormals());
-  }
 
+    if ( !mesh_data_->GetPointData()->GetNormals())
+    {
+      mesh_data_->GetPointData()->SetNormals(normal_generator->GetOutput()->GetPointData()->GetNormals());
+    }
+
+    if ( !mesh_data_->GetCellData()->GetNormals() )
+    {
+      mesh_data_->GetCellData()->SetNormals(normal_generator->GetOutput()->GetCellData()->GetNormals());
+    }
+  }
 }
 
 void PlaneSlicerRasterGenerator::setInput(const shape_msgs::Mesh& mesh)
@@ -445,13 +443,17 @@ void PlaneSlicerRasterGenerator::setInput(const shape_msgs::Mesh& mesh)
   setInput(pcl_mesh);
 }
 
-boost::optional<std::vector<noether_msgs::ToolRasterPath> >
-PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& config)
+vtkSmartPointer<vtkPolyData> PlaneSlicerRasterGenerator::getInput()
+{
+  return mesh_data_;
+}
+
+boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
 {
   using namespace Eigen;
   using IDVec = std::vector<vtkIdType>;
 
-  boost::optional<std::vector<noether_msgs::ToolRasterPath> > rasters = boost::none;
+  boost::optional<ToolPaths> rasters = boost::none;
   if(!mesh_data_)
   {
     CONSOLE_BRIDGE_logDebug("%s No mesh data has been provided",getName().c_str());
@@ -483,29 +485,52 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
   vtkSmartPointer<vtkPolyData> transformed_mesh_data = transform_filter->GetPolyDataOutput();
 
   // compute bounds
-  VectorXd bounds(6), abs_bounds(6);
+  VectorXd bounds(6);
+  Vector3d center;
+  Vector3d half_ext;
   transformed_mesh_data->GetBounds(bounds.data());
-  abs_bounds = bounds.cwiseAbs();
 
   // calculating size
-  sizes.x() = abs_bounds[0] > abs_bounds[1] ? 2.0 * abs_bounds[0] : 2.0 *abs_bounds[1];
-  sizes.y() = abs_bounds[2] > abs_bounds[3] ? 2.0 * abs_bounds[2] : 2.0 *abs_bounds[3];
-  sizes.z() = abs_bounds[4] > abs_bounds[5] ? 2.0 * abs_bounds[4] : 2.0 *abs_bounds[5];
+  sizes.x() = bounds[1] - bounds[0];
+  sizes.y() = bounds[3] - bounds[2];
+  sizes.z() = bounds[5] - bounds[4];
+
+  half_ext = sizes / 2.0;
+  center = Eigen::Vector3d(bounds[0], bounds[2], bounds[3]) + half_ext;
 
   // now cutting the mesh with planes along the y axis
-  std::size_t num_planes = std::ceil(sizes[1]/config.raster_spacing);
-  Isometry3d rotation_offset = Isometry3d::Identity() * AngleAxisd(config.raster_rot_offset, Vector3d::UnitZ());
-  Vector3d raster_dir = rotation_offset * Vector3d::UnitY();
-  Vector3d start_loc = -config.raster_spacing * std::ceil(num_planes * 0.5)* raster_dir + Vector3d::Zero();
+  // @todo This should be calculated instead of being fixed along the y-axis
+  Isometry3d rotation_offset = Isometry3d::Identity() * AngleAxisd(config_.raster_rot_offset, Vector3d::UnitZ());
+  Vector3d raster_dir = (rotation_offset * Vector3d::UnitY()).normalized();
+
+  // Calculate all 8 corners projected onto the raster direction vector
+  Eigen::VectorXd dist(8);
+  dist(0) = raster_dir.dot(half_ext);
+  dist(1) = raster_dir.dot(Eigen::Vector3d(half_ext.x(), -half_ext.y(), half_ext.z()));
+  dist(2) = raster_dir.dot(Eigen::Vector3d(half_ext.x(), -half_ext.y(), -half_ext.z()));
+  dist(3) = raster_dir.dot(Eigen::Vector3d(half_ext.x(), half_ext.y(), -half_ext.z()));
+  dist(4) = raster_dir.dot(-half_ext);
+  dist(5) = raster_dir.dot(Eigen::Vector3d(-half_ext.x(), -half_ext.y(), half_ext.z()));
+  dist(6) = raster_dir.dot(Eigen::Vector3d(-half_ext.x(), -half_ext.y(), -half_ext.z()));
+  dist(7) = raster_dir.dot(Eigen::Vector3d(-half_ext.x(), half_ext.y(), -half_ext.z()));
+
+  double max_coeff = dist.maxCoeff();
+  double min_coeff = dist.minCoeff();
+
+  // Calculate the number of planes to cover the bounding box along the direction vector
+  auto num_planes = static_cast<std::size_t>(std::ceil((max_coeff - min_coeff)/config_.raster_spacing));
+
+  // Calculate the start location
+  Vector3d start_loc = center + (min_coeff * raster_dir);
 
   vtkSmartPointer<vtkAppendPolyData> raster_data = vtkSmartPointer<vtkAppendPolyData>::New();
-  for(int i = 0; i < num_planes + 1 ; i++)
+  for(std::size_t i = 0; i < num_planes + 1 ; i++)
   {
     vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
     vtkSmartPointer<vtkCutter> cutter = vtkSmartPointer<vtkCutter>::New();
     vtkSmartPointer<vtkStripper> stripper = vtkSmartPointer<vtkStripper>::New();
 
-    Vector3d current_loc = start_loc + i * config.raster_spacing * raster_dir;
+    Vector3d current_loc = start_loc + i * config_.raster_spacing * raster_dir;
     plane->SetOrigin(current_loc.x(), current_loc.y(), current_loc.z());
     plane->SetNormal(raster_dir.x() ,raster_dir.y(), raster_dir.z());
 
@@ -603,7 +628,7 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
     removeRedundant(raster_ids);
 
     // merging segments
-    mergeRasterSegments(raster_lines->GetPoints(),config.min_hole_size,raster_ids);
+    mergeRasterSegments(raster_lines->GetPoints(),config_.min_hole_size,raster_ids);
 
     // rectifying
     if(!rasters_data_vec.empty())
@@ -625,10 +650,10 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
 
       // compute length and add points if segment length is greater than threshold
       double line_length = computeLength(points);
-      if(line_length > config.min_segment_size && points->GetNumberOfPoints()> 1)
+      if(line_length > config_.min_segment_size && points->GetNumberOfPoints()> 1)
       {
         // enforce point spacing
-        decltype(points) new_points = applyParametricSpline(points,line_length,config.point_spacing);
+        decltype(points) new_points = applyParametricSpline(points,line_length,config_.point_spacing);
 
         // add points to segment now
         PolyDataPtr segment_data = PolyDataPtr::New();
@@ -642,7 +667,7 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
         segment_data = transform_filter->GetPolyDataOutput();
 
         // inserting normals
-        if(!insertNormals(config.search_radius,segment_data))
+        if(!insertNormals(config_.search_radius,segment_data))
         {
           CONSOLE_BRIDGE_logError("%s failed to insert normals to segment %lu of raster %lu",
                                   getName().c_str(), r.raster_segments.size(),
@@ -662,20 +687,6 @@ PlaneSlicerRasterGenerator::generate(const PlaneSlicerRasterGenerator::Config& c
   // converting to poses msg now
   rasters = convertToPoses(rasters_data_vec);
   return rasters;
-}
-
-boost::optional<std::vector<noether_msgs::ToolRasterPath> >
-PlaneSlicerRasterGenerator::generate(const shape_msgs::Mesh& mesh, const PlaneSlicerRasterGenerator::Config& config)
-{
-  setInput(mesh);
-  return generate(config);
-}
-
-boost::optional<std::vector<noether_msgs::ToolRasterPath> >
-PlaneSlicerRasterGenerator::generate(pcl::PolygonMesh::ConstPtr mesh, const PlaneSlicerRasterGenerator::Config& config)
-{
-  setInput(mesh);
-  return generate(config);
 }
 
 bool PlaneSlicerRasterGenerator::insertNormals(const double search_radius,
@@ -749,7 +760,7 @@ bool PlaneSlicerRasterGenerator::insertNormals(const double search_radius,
   return true;
 }
 
-std::string PlaneSlicerRasterGenerator::getName()
+std::string PlaneSlicerRasterGenerator::getName() const
 {
   return getClassName<decltype(*this)>();
 }

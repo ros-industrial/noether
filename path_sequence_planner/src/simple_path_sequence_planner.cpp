@@ -12,10 +12,26 @@
 namespace path_sequence_planner
 {
 
+void SimplePathSequencePlanner::setPaths(tool_path_planner::ToolPaths paths)
+{
+  paths_ = paths;
+  indices_.clear();
+}
+
+tool_path_planner::ToolPaths SimplePathSequencePlanner::getPaths()
+{
+  return paths_;
+}
+
+std::vector<std::size_t> SimplePathSequencePlanner::getIndices() const
+{
+  return indices_;
+}
+
 void SimplePathSequencePlanner::linkPaths()
 {
   bool insert_front = false;
-  int last_index = 0;
+  std::size_t last_index = 0;
 
   while(indices_.size() != paths_.size())
   {
@@ -35,24 +51,25 @@ void SimplePathSequencePlanner::linkPaths()
         last_index = indices_.back();
       }
 
-      int next_index = findNextNearestPath(paths_, indices_, last_index, insert_front);
+      long next_index = findNextNearestPath(paths_, indices_, last_index, insert_front);
 
-
+      if (next_index < 0)
+        return;
 
       if(indices_.size() > 1)
       {
         // check the distance of next_index with front and back to make sure it is in the right location
-        double* front_pt = paths_[indices_.front()].line->GetPoints()->GetPoint(0);
-        double* end_pt = paths_[indices_.back()].line->GetPoints()->GetPoint(paths_[indices_.back()].line->GetPoints()->GetNumberOfPoints()-1);
-        double* next_pt = paths_[next_index].line->GetPoints()->GetPoint(paths_[next_index].line->GetPoints()->GetNumberOfPoints()-1);
+        const Eigen::Isometry3d& front_pt = paths_[indices_.front()].front().front();
+        const Eigen::Isometry3d& end_pt = paths_[indices_.back()].back().back();
+        Eigen::Isometry3d next_pt = paths_[static_cast<std::size_t>(next_index)].back().back();
 
-        double front_dist1 = vtk_viewer::pt_dist(front_pt, next_pt);
-        double back_dist1 = vtk_viewer::pt_dist(end_pt, next_pt);
+        double front_dist1 = (next_pt.translation() - front_pt.translation()).norm();
+        double back_dist1 = (next_pt.translation() - end_pt.translation()).norm();
 
-        next_pt = paths_[next_index].line->GetPoints()->GetPoint(0);
+        next_pt = paths_[static_cast<std::size_t>(next_index)].front().front();
 
-        double front_dist2 = vtk_viewer::pt_dist(front_pt, next_pt);
-        double back_dist2 = vtk_viewer::pt_dist(end_pt, next_pt);
+        double front_dist2 = (next_pt.translation() - front_pt.translation()).norm();
+        double back_dist2 = (next_pt.translation() - end_pt.translation()).norm();
 
         // If the next path found is closer to the opposite side, flip which end we are adding paths to
         bool flip = (front_dist1 < front_dist2 ? front_dist1 : front_dist2) < (back_dist1 < back_dist2 ? back_dist1 : back_dist2) ? true : false;
@@ -69,84 +86,70 @@ void SimplePathSequencePlanner::linkPaths()
       if(next_index >= 0)
       {
         if(insert_front)
-        {
-          indices_.insert(indices_.begin(), next_index);
-        }
+          indices_.insert(indices_.begin(), static_cast<std::size_t>(next_index));
         else
-        {
-          indices_.push_back(next_index);
-        }
+          indices_.push_back(static_cast<std::size_t>(next_index));
 
-        double* last_pt;
+        Eigen::Isometry3d last_pt;
         if(insert_front)
-        {
-          last_pt = paths_[last_index].line->GetPoints()->GetPoint( 0 );
-        }
+          last_pt = paths_[last_index].front().front();
         else
-        {
-          last_pt = paths_[last_index].line->GetPoints()->GetPoint( paths_[last_index].line->GetPoints()->GetNumberOfPoints() - 1 );
-        }
+          last_pt = paths_[last_index].back().back();
 
         // get first last point of of the line and determine if it needs to be flipped
-        double* pt1 = paths_[next_index].line->GetPoints()->GetPoint(0);
-        double dist1 = vtk_viewer::pt_dist(pt1, last_pt);
+        const Eigen::Isometry3d& pt1 = paths_[static_cast<std::size_t>(next_index)].front().front();
+        double dist1 = (pt1.translation() - last_pt.translation()).norm();
 
         // find distance between last point and the end points of the next line
-        int indx = (paths_[next_index].line->GetPoints()->GetNumberOfPoints()) - 1;
-        double* pt2 = paths_[next_index].line->GetPoints()->GetPoint( indx );
-        double dist2 = vtk_viewer::pt_dist(pt2, last_pt);
+        const Eigen::Isometry3d& pt2 = paths_[static_cast<std::size_t>(next_index)].back().back();
+        double dist2 = (pt2.translation() - last_pt.translation()).norm();
 
         // If the distance is shorter, flip the order of the next path
         if(dist2 < dist1 && !insert_front)
         {
-          tool_path_planner::flipPointOrder(paths_[next_index]);
+          tool_path_planner::flipPointOrder(paths_[static_cast<std::size_t>(next_index)]);
         }
         else if (dist1 < dist2 && insert_front)
         {
-          tool_path_planner::flipPointOrder(paths_[next_index]);
+          tool_path_planner::flipPointOrder(paths_[static_cast<std::size_t>(next_index)]);
         }
       }
-
     }
   }
 }
 
-int SimplePathSequencePlanner::findNextNearestPath(std::vector<tool_path_planner::ProcessPath> paths,
-                                             std::vector<int> used_indices, int last_path, bool front)
+long SimplePathSequencePlanner::findNextNearestPath(tool_path_planner::ToolPaths paths,
+                                                    std::vector<std::size_t> used_indices,
+                                                    std::size_t last_path,
+                                                    bool front)
 {
-  double* last_pt;
+  Eigen::Isometry3d last_pt;
   //find next nearest point
   if(front)
-  {
-    last_pt = paths[last_path].line->GetPoints()->GetPoint( 0 );
-  }
+    last_pt = paths[last_path].front().front();
   else
-  {
-    last_pt = paths[last_path].line->GetPoints()->GetPoint( paths[last_path].line->GetPoints()->GetNumberOfPoints() - 1 );
-  }
+    last_pt = paths[last_path].back().back();
 
-  int min_index = -1;
+  long min_index = -1;
   double min_dist = std::numeric_limits<double>::max();
 
-  for (int j = 0; j < paths.size(); ++j)
+  for (std::size_t j = 0; j < paths.size(); ++j)
   {
     // If the current index is aleady used, skip it
     if( std::find(used_indices.begin(), used_indices.end(), j) != used_indices.end() )
-    {
       continue;
-    }
 
     // get first and last point of line j
-    double* pt1 = paths[j].line->GetPoints()->GetPoint(0);
-    double dist1 = vtk_viewer::pt_dist(pt1, last_pt);
+    Eigen::Isometry3d pt1 = paths[j].front().front();
+    double dist1 = (pt1.translation() - last_pt.translation()).norm();
 
     // find distance between last point and the end points of the next line
-    double* pt2 = paths[j].line->GetPoints()->GetPoint( paths[j].line->GetPoints()->GetNumberOfPoints() - 1 );
-    double dist2 = vtk_viewer::pt_dist(pt2, last_pt);
+    Eigen::Isometry3d pt2 = paths[j].back().back();
+    double dist2 =  (pt2.translation() - last_pt.translation()).norm();
 
     if(dist1 < min_dist || dist2 < min_dist)
     {
-      min_index = j;
+      min_index = static_cast<long>(j);
       min_dist = (dist1 < dist2 ? dist1 : dist2);
     }
   }

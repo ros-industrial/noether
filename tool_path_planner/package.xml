@@ -19,6 +19,7 @@
   <depend>shape_msgs</depend>
   <depend>vtk_viewer</depend>
   <depend>libpcl-all-dev</depend>
+  <depend>libjsoncpp-dev</depend>
 
   <test_depend>rosunit</test_depend>
 
