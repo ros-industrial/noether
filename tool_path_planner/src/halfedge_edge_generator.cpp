@@ -26,10 +26,14 @@
 #include <pcl/point_types.h>
 #include <pcl/PointIndices.h>
 #include <pcl/kdtree/kdtree_flann.h>
+#include <pcl/surface/vtk_smoothing/vtk_utils.h>
 #include <vtkParametricSpline.h>
+#include <vtkShadowMapPass.h>
+#include <vtkSmartPointer.h>
+#include <vtkPoints.h>
 #include <console_bridge/console.h>
 #include <noether_conversions/noether_conversions.h>
-#include <tool_path_planner/half_edge_boundary_finder.h>
+#include <tool_path_planner/halfedge_edge_generator.h>
 #include <tool_path_planner/utilities.h>
 #include <numeric>
 
@@ -390,30 +394,48 @@ void averageNormals(pcl::PointCloud<pcl::PointNormal>::ConstPtr src, pcl::PointC
 
 namespace tool_path_planner
 {
-HalfEdgeBoundaryFinder::HalfEdgeBoundaryFinder()
-{
 
+void HalfedgeEdgeGenerator::setConfiguration(const Config& config)
+{
+  config_ = config;
 }
 
-HalfEdgeBoundaryFinder::~HalfEdgeBoundaryFinder()
-{
-
-}
-
-void HalfEdgeBoundaryFinder::setInput(pcl::PolygonMesh::ConstPtr mesh)
+void HalfedgeEdgeGenerator::setInput(pcl::PolygonMesh::ConstPtr mesh)
 {
   mesh_ = mesh;
 }
 
-void HalfEdgeBoundaryFinder::setInput(const shape_msgs::Mesh& mesh)
+void HalfedgeEdgeGenerator::setInput(vtkSmartPointer<vtkPolyData> mesh)
+{
+  if (!vtk_mesh_)
+    vtk_mesh_ = vtkSmartPointer<vtkPolyData>::New();
+
+  vtk_mesh_->DeepCopy(mesh);
+
+  auto pcl_mesh = boost::make_shared<pcl::PolygonMesh>();
+  pcl::VTKUtils::vtk2mesh(vtk_mesh_, *pcl_mesh);
+
+  mesh_ = pcl_mesh;
+}
+
+void HalfedgeEdgeGenerator::setInput(const shape_msgs::Mesh& mesh)
 {
   pcl::PolygonMesh::Ptr pcl_mesh = boost::make_shared<pcl::PolygonMesh>();
   noether_conversions::convertToPCLMesh(mesh,*pcl_mesh);
   setInput(pcl_mesh);
 }
 
-boost::optional<std::vector<geometry_msgs::PoseArray> >
-HalfEdgeBoundaryFinder::generate(const tool_path_planner::HalfEdgeBoundaryFinder::Config& config)
+vtkSmartPointer<vtkPolyData> HalfedgeEdgeGenerator::getInput()
+{
+  return vtk_mesh_;
+}
+
+std::string HalfedgeEdgeGenerator::getName() const
+{
+  return getClassName<decltype(*this)>();
+}
+
+boost::optional<ToolPaths> HalfedgeEdgeGenerator::generate()
 {
   using namespace pcl;
   CONSOLE_BRIDGE_logInform("Input mesh has %lu polygons",mesh_->polygons.size());
@@ -440,13 +462,11 @@ HalfEdgeBoundaryFinder::generate(const tool_path_planner::HalfEdgeBoundaryFinder
   pcl::copyPointCloud(*input_cloud, *input_points );
 
   // traversing half edges list
-  std::vector<geometry_msgs::PoseArray> boundary_poses;
-
+  ToolPaths edge_paths;
   for (std::vector<TraingleMesh::HalfEdgeIndices>::const_iterator boundary = boundary_he_indices.begin(),
                                                                   b_end = boundary_he_indices.end();
        boundary != b_end; ++boundary)
   {
-    geometry_msgs::PoseArray bound_segment_poses;
     PointCloud<PointNormal> bound_segment_points;
     for (TraingleMesh::HalfEdgeIndices::const_iterator edge = boundary->begin(), edge_end = boundary->end();
          edge != edge_end; ++edge)
@@ -468,25 +488,25 @@ HalfEdgeBoundaryFinder::generate(const tool_path_planner::HalfEdgeBoundaryFinder
       bound_segment_points.push_back((*input_cloud)[source_idx]);
     }
 
-    if(bound_segment_points.size() < config.min_num_points)
+    if(bound_segment_points.size() < config_.min_num_points)
     {
       continue;
     }
 
     // decimating
     CONSOLE_BRIDGE_logDebug("Found boundary with %lu points",bound_segment_points.size());
-    if( config.point_dist > MIN_POINT_DIST_ALLOWED )
+    if( config_.point_dist > MIN_POINT_DIST_ALLOWED )
     {
       decltype(bound_segment_points) decimated_points;
 
-      switch(config.point_spacing_method)
+      switch(config_.point_spacing_method)
       {
         case PointSpacingMethod::NONE:
           decimated_points = bound_segment_points;
           break;
 
         case PointSpacingMethod::EQUAL_SPACING:
-          if(!applyEqualDistance(bound_segment_points, decimated_points, config.point_dist))
+          if(!applyEqualDistance(bound_segment_points, decimated_points, config_.point_dist))
           {
             CONSOLE_BRIDGE_logError("applyEqualDistance point spacing method failed");
             return boost::none;
@@ -495,7 +515,7 @@ HalfEdgeBoundaryFinder::generate(const tool_path_planner::HalfEdgeBoundaryFinder
           break;
 
         case PointSpacingMethod::MIN_DISTANCE:
-          if(!applyMinPointDistance(bound_segment_points, decimated_points, config.point_dist))
+          if(!applyMinPointDistance(bound_segment_points, decimated_points, config_.point_dist))
           {
             CONSOLE_BRIDGE_logError("applyMinPointDistance point spacing method failed");
             return boost::none;
@@ -503,7 +523,7 @@ HalfEdgeBoundaryFinder::generate(const tool_path_planner::HalfEdgeBoundaryFinder
           break;
 
         case PointSpacingMethod::PARAMETRIC_SPLINE:
-          if(!applyParametricSpline(bound_segment_points, decimated_points, config.point_dist))
+          if(!applyParametricSpline(bound_segment_points, decimated_points, config_.point_dist))
           {
             CONSOLE_BRIDGE_logError("applyParametricSpline point spacing method failed");
             return boost::none;
@@ -511,7 +531,7 @@ HalfEdgeBoundaryFinder::generate(const tool_path_planner::HalfEdgeBoundaryFinder
           break;
 
         default:
-          CONSOLE_BRIDGE_logError("The point spacing method %i is not valid", static_cast<int>(config.point_spacing_method));
+          CONSOLE_BRIDGE_logError("The point spacing method %i is not valid", static_cast<int>(config_.point_spacing_method));
           return boost::none;
       }
 
@@ -520,62 +540,48 @@ HalfEdgeBoundaryFinder::generate(const tool_path_planner::HalfEdgeBoundaryFinder
       bound_segment_points = std::move(decimated_points);
     }
 
-    if(bound_segment_points.size() < config.min_num_points)
+    if(bound_segment_points.size() < config_.min_num_points)
     {
       CONSOLE_BRIDGE_logDebug("Decimated boundary contains %lu points and does not meet the minimum of %lu, ignoring",
-                              bound_segment_points.size(), config.min_num_points);
+                              bound_segment_points.size(), config_.min_num_points);
       continue;
     }
 
     // average normals
-    if(config.normal_averaging)
+    if(config_.normal_averaging)
     {
-      averageNormals(input_cloud, input_points, bound_segment_points,config.normal_search_radius, config.normal_influence_weight);
+      averageNormals(input_cloud, input_points, bound_segment_points,config_.normal_search_radius, config_.normal_influence_weight);
     }
 
-    if(!createPoseArray(bound_segment_points,{},bound_segment_poses))
-    {
+    ToolPathSegment edge_segment;
+    if(!createToolPathSegment(bound_segment_points, {}, edge_segment))
       return boost::none;
-    }
 
-    boundary_poses.push_back(bound_segment_poses);
-    CONSOLE_BRIDGE_logInform("Added boundary with %lu points", boundary_poses.back().poses.size());
+    edge_paths.push_back({edge_segment});
+    CONSOLE_BRIDGE_logInform("Added boundary with %lu points", edge_paths.back()[0].size());
   }
 
   // sorting
-  std::sort(boundary_poses.begin(), boundary_poses.end(),[](decltype(boundary_poses)::value_type& p1,
-      decltype(boundary_poses)::value_type& p2){
-    return p1.poses.size() >  p2.poses.size();
+  std::sort(edge_paths.begin(), edge_paths.end(),[](decltype(edge_paths)::value_type& p1,
+      decltype(edge_paths)::value_type& p2){
+    return p1[0].size() >  p2[0].size();
   });
 
   // erase
-  decltype(boundary_poses)::iterator last = std::remove_if(boundary_poses.begin(), boundary_poses.end(),
-                                                           [&config](decltype(boundary_poses)::value_type& p){
-    return p.poses.size() < config.min_num_points;
+  decltype(edge_paths)::iterator last = std::remove_if(edge_paths.begin(), edge_paths.end(),
+                                                           [&](decltype(edge_paths)::value_type& p){
+    return p[0].size() < config_.min_num_points;
   });
-  boundary_poses.erase(last,boundary_poses.end());
-  if(boundary_poses.empty())
+  edge_paths.erase(last,edge_paths.end());
+
+  if(edge_paths.empty())
   {
-    CONSOLE_BRIDGE_logError("No valid boundary segments were found, original mesh may have duplicate vertices");
+    CONSOLE_BRIDGE_logError("No valid edge segments were found, original mesh may have duplicate vertices");
     return boost::none;
   }
 
-  CONSOLE_BRIDGE_logInform("Found %lu valid boundary segments", boundary_poses.size());
-  return boundary_poses;
-}
-
-boost::optional<std::vector<geometry_msgs::PoseArray>>
-HalfEdgeBoundaryFinder::generate(const shape_msgs::Mesh& mesh, const HalfEdgeBoundaryFinder::Config& config)
-{
-  setInput(mesh);
-  return generate(config);
-}
-
-boost::optional<std::vector<geometry_msgs::PoseArray>>
-HalfEdgeBoundaryFinder::generate(pcl::PolygonMesh::ConstPtr mesh, const HalfEdgeBoundaryFinder::Config& config)
-{
-  setInput(mesh);
-  return generate(config);
+  CONSOLE_BRIDGE_logInform("Found %lu valid edge segments", edge_paths.size());
+  return edge_paths;
 }
 
 } /* namespace tool_path_planner */

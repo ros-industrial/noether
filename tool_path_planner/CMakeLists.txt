@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   shape_msgs
 )
 
+find_package(jsoncpp REQUIRED)
 find_package(vtk_viewer REQUIRED)
 
 find_package(VTK REQUIRED NO_MODULE)
@@ -53,6 +54,7 @@ catkin_package(
     PCL
     VTK
     vtk_viewer
+    jsoncpp
 )
 
 include_directories(
@@ -62,11 +64,10 @@ include_directories(
 )
 
 add_library(${PROJECT_NAME}
-  src/raster_path_generator.cpp
-  src/raster_tool_path_planner.cpp
+  src/surface_walk_raster_generator.cpp
   src/plane_slicer_raster_generator.cpp
-  src/edge_path_generator.cpp
-  src/halfedge_boundary_finder.cpp
+  src/eigen_value_edge_generator.cpp
+  src/halfedge_edge_generator.cpp
   src/utilities.cpp
 )
 target_link_libraries(${PROJECT_NAME}
@@ -74,6 +75,7 @@ target_link_libraries(${PROJECT_NAME}
     ${PCL_LIBRARIES}
     ${VTK_LIBRARIES}
     noether::vtk_viewer
+    jsoncpp_lib
 )
 add_dependencies(${PROJECT_NAME}
   ${catkin_EXPORTED_TARGETS}

@@ -7,7 +7,8 @@
  */
 
 #include <path_sequence_planner/simple_path_sequence_planner.h>
-#include <tool_path_planner/raster_tool_path_planner.h>
+#include <tool_path_planner/surface_walk_raster_generator.h>
+#include <tool_path_planner/utilities.h>
 #include <vtk_viewer/vtk_utils.h>
 #include <vtk_viewer/vtk_viewer.h>
 #include <gtest/gtest.h>
@@ -48,102 +49,102 @@ TEST(IntersectTest, TestCase1)
   data2 = vtk_viewer::cutMesh(data, points2, false);
 
   // Set input mesh
-  tool_path_planner::RasterToolPathPlanner planner;
-  planner.setInputMesh(data2);
+  tool_path_planner::SurfaceWalkRasterGenerator planner;
+  planner.setInput(data2);
 
   // Set input tool data
-  tool_path_planner::ProcessTool tool;
-  tool.pt_spacing = 0.6;
-  tool.line_spacing = 0.75;
+  tool_path_planner::SurfaceWalkRasterGenerator::Config tool;
+  tool.point_spacing = 0.6;
+  tool.raster_spacing = 0.75;
   tool.tool_offset = 0.0; // currently unused
-  tool.intersecting_plane_height = 0.2; // 0.5 works best, not sure if this should be included in the tool
+  tool.intersection_plane_height = 0.2; // 0.5 works best, not sure if this should be included in the tool
   tool.min_hole_size = 0.1;
-  planner.setTool(tool);
+  planner.setConfiguration(tool);
 
   vtk_viewer::VTKViewer viz;
   std::vector<float> color(3);
 
   double scale = 0.5;
   // Display mesh results
-  color[0] = 0.9;
-  color[1] = 0.9;
-  color[2] = 0.9;
+  color[0] = 0.9f;
+  color[1] = 0.9f;
+  color[2] = 0.9f;
   viz.addPolyDataDisplay(data2, color);
 
 
   // Display surface normals
   if(DISPLAY_NORMALS)
   {
-    color[0] = 0.9;
-    color[1] = 0.1;
-    color[2] = 0.1;
+    color[0] = 0.9f;
+    color[1] = 0.1f;
+    color[2] = 0.1f;
     vtkSmartPointer<vtkPolyData> normals_data = vtkSmartPointer<vtkPolyData>::New();
-    normals_data = planner.getInputMesh();
+    normals_data = planner.getInput();
     viz.addPolyNormalsDisplay(normals_data, color, scale);
   }
 
-  tool_path_planner::ProcessPath path;
-  planner.computePaths();
-  std::vector<tool_path_planner::ProcessPath> paths = planner.getPaths();
-
+  boost::optional<tool_path_planner::ToolPaths> paths = planner.generate();
+  ASSERT_TRUE(paths);
 
   // Create sequence planner and set the data
   path_sequence_planner::SimplePathSequencePlanner sequence_planner;
-  sequence_planner.setPaths(paths);
-
+  sequence_planner.setPaths(paths.get());
   sequence_planner.linkPaths();
 
-  std::vector<tool_path_planner::ProcessPath> paths2 = sequence_planner.getPaths();
-  std::vector<int> indices = sequence_planner.getIndices();
+  tool_path_planner::ToolPaths paths2 = sequence_planner.getPaths();
+  std::vector<std::size_t> indices = sequence_planner.getIndices();
+  tool_path_planner::ToolPathsData paths2_data = tool_path_planner::toToolPathsData(paths2);
 
   vtkSmartPointer<vtkPolyData> connecting_data = vtkSmartPointer<vtkPolyData>::New();
   vtkSmartPointer<vtkPoints> connecting_points = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkDoubleArray> normals = vtkSmartPointer<vtkDoubleArray>::New();
   normals->SetNumberOfComponents(3);
-  for(int i = 0; i < paths2.size(); ++i)
+  for(std::size_t i = 0; i < paths2.size(); ++i)
   {
-    if(DISPLAY_LINES) // display line
+    for(std::size_t j = 0; j < paths2[i].size(); ++j)
     {
-      color[0] = 0.2;
-      color[1] = 0.9;
-      color[2] = 0.2;
-      viz.addPolyNormalsDisplay(paths2[i].line, color, scale);
-    }
+      if(DISPLAY_LINES) // display line
+      {
+        color[0] = 0.2f;
+        color[1] = 0.9f;
+        color[2] = 0.2f;
+        viz.addPolyNormalsDisplay(paths2_data[i][j].line, color, scale);
+      }
 
-    if(DISPLAY_DERIVATIVES) // display derivatives
-    {
-      color[0] = 0.9;
-      color[1] = 0.9;
-      color[2] = 0.2;
-      viz.addPolyNormalsDisplay(paths2[i].derivatives, color, scale);
-    }
-
-    if(DISPLAY_CUTTING_MESHES) // Display cutting mesh
-    {
-      color[0] = 0.9;
-      color[1] = 0.9;
-      color[2] = 0.9;
-      viz.addPolyDataDisplay(paths2[i].intersection_plane, color);
+      if(DISPLAY_DERIVATIVES) // display derivatives
+      {
+        color[0] = 0.9f;
+        color[1] = 0.9f;
+        color[2] = 0.2f;
+        viz.addPolyNormalsDisplay(paths2_data[i][j].derivatives, color, scale);
+      }
     }
 
     if(i > 0)
     {
-      double* pt1 = paths2[i-1].line->GetPoints()->GetPoint(paths2[i-1].line->GetPoints()->GetNumberOfPoints()-1);
-      double* pt2 = paths2[i].line->GetPoints()->GetPoint(0);
-      connecting_points->InsertNextPoint(pt2);
+      const Eigen::Isometry3d& pt1 = paths2[i-1].back().back();
+      const Eigen::Isometry3d& pt2 = paths2[i].front().front();
+      Eigen::VectorXd delta = (pt1.translation() - pt2.translation()).normalized();
+
+      double pt[3];
+      pt[0] = pt2.translation().x();
+      pt[1] = pt2.translation().y();
+      pt[2] = pt2.translation().z();
+      connecting_points->InsertNextPoint(pt);
+
       double norm[3];
-      norm[0] = pt1[0] - pt2[0];
-      norm[1] = pt1[1] - pt2[1];
-      norm[2] = pt1[2] - pt2[2];
+      norm[0] = delta.x();
+      norm[1] = delta.y();
+      norm[2] = delta.z();
       normals->InsertNextTuple(norm);
     }
   }
   connecting_data->SetPoints(connecting_points);
   connecting_data->GetPointData()->SetNormals(normals);
 
-  color[0] = 0.2;
-  color[1] = 0.9;
-  color[2] = 0.9;
+  color[0] = 0.2f;
+  color[1] = 0.9f;
+  color[2] = 0.9f;
   viz.addPolyNormalsDisplay(connecting_data, color, 1.0);
 
   #ifdef NDEBUG

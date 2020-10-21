@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="tool_path_planner_node" type="tool_path_planner" pkg="noether" output="screen" />
+</launch>
