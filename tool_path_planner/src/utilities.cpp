@@ -13,8 +13,6 @@
 #include <numeric>
 
 #include <Eigen/Core>
-#include <eigen_conversions/eigen_msg.h>
-
 #include <vtkParametricFunctionSource.h>
 #include <vtkOBBTree.h>
 #include <vtkIntersectionPolyDataFilter.h>
@@ -43,248 +41,70 @@
 namespace tool_path_planner
 {
 
-void flipPointOrder(tool_path_planner::ProcessPath& path)
+void flipPointOrder(ToolPath &path)
 {
-  vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-  vtkSmartPointer<vtkPoints> points2 = vtkSmartPointer<vtkPoints>::New();
-  points = path.line->GetPoints();
+  // Reverse the order of the segments
+  std::reverse(std::begin(path), std::end(path));
 
-  // flip point order
-  for(int i = points->GetNumberOfPoints() - 1; i >= 0; --i)
-  {
-    points2->InsertNextPoint(points->GetPoint(i));
-  }
-  path.line->SetPoints(points2);
+  // Reverse the order of the points in each segment
+  for (auto& s : path)
+    std::reverse(std::begin(s), std::end(s));
 
-  // flip normal order
-  vtkSmartPointer<vtkDataArray> norms = path.line->GetPointData()->GetNormals();
-  vtkSmartPointer<vtkDoubleArray> new_norms = vtkSmartPointer<vtkDoubleArray>::New();
-  new_norms->SetNumberOfComponents(3);
-
-  for(int i = norms->GetNumberOfTuples() - 1; i >= 0; --i)
-  {
-    double* ptr = norms->GetTuple(i);
-    new_norms->InsertNextTuple(ptr);
-  }
-  path.line->GetPointData()->SetNormals(new_norms);
-
-  // flip point order
-  points = path.derivatives->GetPoints();
-  vtkSmartPointer<vtkPoints> dpoints2 = vtkSmartPointer<vtkPoints>::New();
-  for(int i = points->GetNumberOfPoints() - 1; i >= 0; --i)
-  {
-    dpoints2->InsertNextPoint(points->GetPoint(i));
-  }
-  path.derivatives->SetPoints(dpoints2);
-
-  // flip derivative directions
-  vtkDataArray* ders = path.derivatives->GetPointData()->GetNormals();
-  vtkSmartPointer<vtkDoubleArray> new_ders = vtkSmartPointer<vtkDoubleArray>::New();
-  new_ders->SetNumberOfComponents(3);
-  for(int i = ders->GetNumberOfTuples() -1; i >= 0; --i)
-  {
-    double* pt = ders->GetTuple(i);
-    pt[0] *= -1;
-    pt[1] *= -1;
-    pt[2] *= -1;
-    new_ders->InsertNextTuple(pt);
-  }
-  path.derivatives->GetPointData()->SetNormals(new_ders);
-
-  // reset points in spline
-  path.spline->SetPoints(points);
+  // Next rotate each pose around the z-axis 180 degrees
+  for (auto& s : path)
+    for (auto& p : s)
+      p *= Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ());
 }
 
-std::vector<geometry_msgs::PoseArray> convertVTKtoGeometryMsgs(
-    const std::vector<tool_path_planner::ProcessPath>& paths)
-{
-  std::vector<geometry_msgs::PoseArray> poseArrayVector;
-  for(int j = 0; j < paths.size(); ++j)
-  {
-     geometry_msgs::PoseArray poses;
-     poses.header.seq = j;
-     poses.header.stamp = ros::Time::now();
-     poses.header.frame_id = "0";
-     for(int k = 0; k < paths[j].line->GetPoints()->GetNumberOfPoints(); ++k)
-     {
-        geometry_msgs::Pose pose;
-        double pt[3];
-
-        // Get the point location
-        paths[j].line->GetPoints()->GetPoint(k, pt);
-        pose.position.x = pt[0];
-        pose.position.y = pt[1];
-        pose.position.z = pt[2];
-
-        // Get the point normal and derivative for creating the 3x3 transform
-        double* norm =
-            paths[j].line->GetPointData()->GetNormals()->GetTuple(k);
-        double* der =
-            paths[j].derivatives->GetPointData()->GetNormals()->GetTuple(k);
-
-        // perform cross product to get the third axis direction
-        Eigen::Vector3d u(norm[0], norm[1], norm[2]);
-        Eigen::Vector3d v(der[0], der[1], der[2]);
-        Eigen::Vector3d w = u.cross(v);
-        w.normalize();
-
-        // after first cross product, u and w will be orthogonal.
-        // Perform cross product one more time to make sure that v is perfectly
-        // orthogonal to u and w
-        v = u.cross(w);
-        v.normalize();
-
-        Eigen::Affine3d epose = Eigen::Affine3d::Identity();
-        epose.matrix().col(0).head<3>() = v;
-        epose.matrix().col(1).head<3>() = -w;
-        epose.matrix().col(2).head<3>() = u;
-        epose.matrix().col(3).head<3>() = Eigen::Vector3d(pt[0], pt[1], pt[2]);
-
-        tf::poseEigenToMsg(epose, pose);
-
-        // push back new matrix (pose and orientation), this makes one long
-        // vector may need to break this up more
-        poses.poses.push_back(pose);
-
-      }
-      poseArrayVector.push_back(poses);
-    }
-
-  return poseArrayVector;
-}
-
-std::vector<tool_path_planner::ProcessPath> toNoetherToolpaths(const noether_msgs::ToolRasterPath& paths)
+tool_path_planner::ToolPathsData toToolPathsData(const tool_path_planner::ToolPaths& paths)
 {
   using namespace Eigen;
-  std::vector<tool_path_planner::ProcessPath> noether_tp;
 
-  for(auto& s : paths.paths)
+  tool_path_planner::ToolPathsData results;
+  for (const auto& path : paths)
   {
-    tool_path_planner::ProcessPath tpp;
-    tpp.line = vtkSmartPointer<vtkPolyData>::New();
-    tpp.derivatives = vtkSmartPointer<vtkPolyData>::New();
-
-    //set vertex (cell) normals
-    vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-    vtkSmartPointer<vtkDoubleArray> line_normals = vtkSmartPointer<vtkDoubleArray>::New();
-    line_normals->SetNumberOfComponents(3); //3d normals (ie x,y,z)
-    line_normals->SetNumberOfTuples(s.poses.size());
-    vtkSmartPointer<vtkDoubleArray> der_normals = vtkSmartPointer<vtkDoubleArray>::New();;
-    der_normals->SetNumberOfComponents(3); //3d normals (ie x,y,z)
-    der_normals->SetNumberOfTuples(s.poses.size());
-
-    int idx = 0;
-    for(auto& pose : s.poses)
+    tool_path_planner::ToolPathData tp_data;
+    for(const auto& segment : path)
     {
-      Isometry3d pose_eigen;
-      Vector3d point, vx, vy, vz;
-      tf::poseMsgToEigen(pose, pose_eigen);
-      point = pose_eigen.translation();
-      vx = pose_eigen.linear().col(0);
-      vx *= -1.0;
-      vy = pose_eigen.linear().col(1);
-      vz = pose_eigen.linear().col(2);
-      points->InsertNextPoint(point.data());
-      line_normals->SetTuple(idx,vz.data());
-      der_normals->SetTuple(idx,vx.data());
 
-      idx++;
-    }
-    tpp.line->SetPoints(points);
-    tpp.line->GetPointData()->SetNormals(line_normals);
-    tpp.derivatives->GetPointData()->SetNormals(der_normals);
-    tpp.derivatives->SetPoints(points);
+      tool_path_planner::ToolPathSegmentData tps_data;
+      tps_data.line = vtkSmartPointer<vtkPolyData>::New();
+      tps_data.derivatives = vtkSmartPointer<vtkPolyData>::New();
 
-    noether_tp.push_back(tpp);
-  }
-  return noether_tp;
-}
+      //set vertex (cell) normals
+      vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+      vtkSmartPointer<vtkDoubleArray> line_normals = vtkSmartPointer<vtkDoubleArray>::New();
+      line_normals->SetNumberOfComponents(3); //3d normals (ie x,y,z)
+      line_normals->SetNumberOfTuples(static_cast<long>(segment.size()));
+      vtkSmartPointer<vtkDoubleArray> der_normals = vtkSmartPointer<vtkDoubleArray>::New();;
+      der_normals->SetNumberOfComponents(3); //3d normals (ie x,y,z)
+      der_normals->SetNumberOfTuples(static_cast<long>(segment.size()));
 
-std::vector<geometry_msgs::PoseArray> toPosesMsgs(const std::vector<tool_path_planner::ProcessPath>& paths)
-{
-  std::vector<geometry_msgs::PoseArray> poseArrayVector;
-  for(int j = 0; j < paths.size(); ++j)
-  {
-     geometry_msgs::PoseArray poses;
-     poses.header.seq = j;
-     poses.header.stamp = ros::Time::now();
-     poses.header.frame_id = "0";
-     for(int k = 0; k < paths[j].line->GetPoints()->GetNumberOfPoints(); ++k)
-     {
-        geometry_msgs::Pose pose;
-        double pt[3];
+      int idx = 0;
+      for(auto& pose : segment)
+      {
+        Vector3d point, vx, vy, vz;
+        point = pose.translation();
+        vx = pose.linear().col(0);
+        vx *= -1.0;
+        vy = pose.linear().col(1);
+        vz = pose.linear().col(2);
+        points->InsertNextPoint(point.data());
+        line_normals->SetTuple(idx,vz.data());
+        der_normals->SetTuple(idx,vx.data());
 
-        // Get the point location
-        paths[j].line->GetPoints()->GetPoint(k, pt);
-        pose.position.x = pt[0];
-        pose.position.y = pt[1];
-        pose.position.z = pt[2];
-
-        // Get the point normal and derivative for creating the 3x3 transform
-        double* norm =
-            paths[j].line->GetPointData()->GetNormals()->GetTuple(k);
-        double* der =
-            paths[j].derivatives->GetPointData()->GetNormals()->GetTuple(k);
-
-        // perform cross product to get the third axis direction
-        Eigen::Vector3d u(norm[0], norm[1], norm[2]);
-        Eigen::Vector3d v(der[0], der[1], der[2]);
-        Eigen::Vector3d w = u.cross(v);
-        w.normalize();
-
-        // after first cross product, u and w will be orthogonal.
-        // Perform cross product one more time to make sure that v is perfectly
-        // orthogonal to u and w
-        v = u.cross(w);
-        v.normalize();
-
-        Eigen::Affine3d epose = Eigen::Affine3d::Identity();
-        epose.matrix().col(0).head<3>() = v;
-        epose.matrix().col(1).head<3>() = -w;
-        epose.matrix().col(2).head<3>() = u;
-        epose.matrix().col(3).head<3>() = Eigen::Vector3d(pt[0], pt[1], pt[2]);
-
-        tf::poseEigenToMsg(epose, pose);
-
-        // push back new matrix (pose and orientation), this makes one long
-        // vector may need to break this up more
-        poses.poses.push_back(pose);
-
+        idx++;
       }
-      poseArrayVector.push_back(poses);
+      tps_data.line->SetPoints(points);
+      tps_data.line->GetPointData()->SetNormals(line_normals);
+      tps_data.derivatives->GetPointData()->SetNormals(der_normals);
+      tps_data.derivatives->SetPoints(points);
+
+      tp_data.push_back(tps_data);
     }
-
-  return poseArrayVector;
-}
-
-tool_path_planner::ProcessTool fromTppMsg(const noether_msgs::ToolPathConfig& tpp_msg_config)
-{
-  return tool_path_planner::ProcessTool{.pt_spacing = tpp_msg_config.pt_spacing,
-    .line_spacing = tpp_msg_config.line_spacing,
-    .tool_offset = tpp_msg_config.tool_offset,
-    .intersecting_plane_height = tpp_msg_config.intersecting_plane_height,
-    .min_hole_size = tpp_msg_config.min_hole_size,
-    .min_segment_size = tpp_msg_config.min_segment_size,
-    .raster_angle = tpp_msg_config.raster_angle,
-    .raster_wrt_global_axes = static_cast<bool>(tpp_msg_config.raster_wrt_global_axes),
-    .generate_extra_rasters = static_cast<bool>(tpp_msg_config.generate_extra_rasters)
-  };
-}
-
-noether_msgs::ToolPathConfig toTppMsg(const tool_path_planner::ProcessTool& tool_config)
-{
-  noether_msgs::ToolPathConfig tpp_config_msg;
-  tpp_config_msg.pt_spacing = tool_config.pt_spacing;
-  tpp_config_msg.line_spacing = tool_config.line_spacing;
-  tpp_config_msg.tool_offset = tool_config.tool_offset;
-  tpp_config_msg.intersecting_plane_height = tool_config.intersecting_plane_height;
-  tpp_config_msg.min_hole_size = tool_config.min_hole_size;
-  tpp_config_msg.min_segment_size = tool_config.min_segment_size;
-  tpp_config_msg.raster_angle = tool_config.raster_angle;
-  tpp_config_msg.raster_wrt_global_axes = tool_config.raster_wrt_global_axes;
-  tpp_config_msg.generate_extra_rasters = tool_config.generate_extra_rasters;
-
-  return std::move(tpp_config_msg);
+    results.push_back(tp_data);
+  }
+  return results;
 }
 
 Eigen::Matrix3d toRotationMatrix(const Eigen::Vector3d& vx, const Eigen::Vector3d& vy,
@@ -298,14 +118,123 @@ Eigen::Matrix3d toRotationMatrix(const Eigen::Vector3d& vx, const Eigen::Vector3
   return rot;
 }
 
+bool toHalfedgeConfigMsg(noether_msgs::HalfedgeEdgeGeneratorConfig& config_msg,
+                         const HalfedgeEdgeGenerator::Config& config)
+{
+  config_msg.min_num_points = config.min_num_points;
+  config_msg.normal_averaging = config.normal_averaging;
+  config_msg.normal_search_radius = config.normal_search_radius;
+  config_msg.normal_influence_weight =config.normal_influence_weight;
+  config_msg.point_spacing_method = static_cast<int>(config.point_spacing_method);
+  config_msg.point_dist = config.point_dist;
+  return true;
+}
 
-bool createPoseArray(const pcl::PointCloud<pcl::PointNormal>& cloud_normals, const std::vector<int>& indices,
-                     geometry_msgs::PoseArray& poses)
+bool toEigenValueConfigMsg(noether_msgs::EigenValueEdgeGeneratorConfig& config_msg,
+                           const EigenValueEdgeGenerator::Config& config)
+{
+  config_msg.octree_res = config.octree_res;
+  config_msg.search_radius = config.search_radius;
+  config_msg.num_threads = config.num_threads;
+  config_msg.neighbor_tol = config.neighbor_tol;
+  config_msg.edge_cluster_min = config.edge_cluster_min;
+  config_msg.kdtree_epsilon = config.kdtree_epsilon;
+  config_msg.min_projection_dist = config.min_projection_dist;
+  config_msg.max_intersecting_voxels = config.max_intersecting_voxels;
+  config_msg.merge_dist = config.merge_dist;
+  return true;
+}
+
+bool toSurfaceWalkConfigMsg(noether_msgs::SurfaceWalkRasterGeneratorConfig& config_msg,
+                            const SurfaceWalkRasterGenerator::Config& config)
+{
+  config_msg.point_spacing = config.point_spacing;
+  config_msg.raster_spacing = config.raster_spacing;
+  config_msg.tool_offset = config.tool_offset;
+  config_msg.intersection_plane_height = config.intersection_plane_height;
+  config_msg.min_hole_size = config.min_hole_size;
+  config_msg.min_segment_size = config.min_segment_size;
+  config_msg.raster_rot_offset = config.raster_rot_offset;
+  config_msg.raster_wrt_global_axes = config.raster_wrt_global_axes;
+  config_msg.generate_extra_rasters = config.generate_extra_rasters;
+  return true;
+}
+
+bool toPlaneSlicerConfigMsg(noether_msgs::PlaneSlicerRasterGeneratorConfig &config_msg,
+                            const PlaneSlicerRasterGenerator::Config& config)
+{
+  config_msg.point_spacing = config.point_spacing;
+  config_msg.raster_spacing = config.raster_spacing;
+// config_msg.tool_offset = config.tool_offset;
+  config_msg.min_hole_size = config.min_hole_size;
+  config_msg.min_segment_size = config.min_segment_size;
+  config_msg.raster_rot_offset = config.raster_rot_offset;
+
+  return true;
+}
+
+bool toHalfedgeConfig(HalfedgeEdgeGenerator::Config& config,
+                      const noether_msgs::HalfedgeEdgeGeneratorConfig& config_msg)
+{
+  config.min_num_points = config_msg.min_num_points;
+  config.normal_averaging = config_msg.normal_averaging;
+  config.normal_search_radius = config_msg.normal_search_radius;
+  config.normal_influence_weight = config_msg.normal_influence_weight;
+  config.point_spacing_method = static_cast<tool_path_planner::HalfedgeEdgeGenerator::PointSpacingMethod>(config_msg.point_spacing_method);
+  config.point_dist = config_msg.point_dist;
+  return true;
+}
+
+bool toEigenValueConfig(EigenValueEdgeGenerator::Config& config,
+                        const noether_msgs::EigenValueEdgeGeneratorConfig& config_msg)
+{
+  config.octree_res = config_msg.octree_res;
+  config.search_radius = config_msg.search_radius;
+  config.num_threads = config_msg.num_threads;
+  config.neighbor_tol = config_msg.neighbor_tol;
+  config.edge_cluster_min = config_msg.edge_cluster_min;
+  config.kdtree_epsilon = config_msg.kdtree_epsilon;
+  config.min_projection_dist = config_msg.min_projection_dist;
+  config.max_intersecting_voxels = config_msg.max_intersecting_voxels;
+  config.merge_dist = config_msg.merge_dist;
+  return true;
+}
+
+bool toSurfaceWalkConfig(SurfaceWalkRasterGenerator::Config& config,
+                         const noether_msgs::SurfaceWalkRasterGeneratorConfig& config_msg)
+{
+  config.point_spacing = config_msg.point_spacing;
+  config.raster_spacing = config_msg.raster_spacing;
+  config.tool_offset = config_msg.tool_offset;
+  config.intersection_plane_height = config_msg.intersection_plane_height;
+  config.min_hole_size = config_msg.min_hole_size;
+  config.min_segment_size = config_msg.min_segment_size;
+  config.raster_rot_offset = config_msg.raster_rot_offset;
+  config.raster_wrt_global_axes = config_msg.raster_wrt_global_axes;
+  config.generate_extra_rasters = config_msg.generate_extra_rasters;
+  return true;
+}
+
+bool toPlaneSlicerConfig(PlaneSlicerRasterGenerator::Config& config,
+                         const noether_msgs::PlaneSlicerRasterGeneratorConfig& config_msg)
+{
+  config.point_spacing = config_msg.point_spacing;
+  config.raster_spacing = config_msg.raster_spacing;
+// config.tool_offset = config_msg.tool_offset;
+  config.min_hole_size = config_msg.min_hole_size;
+  config.min_segment_size = config_msg.min_segment_size;
+  config.raster_rot_offset = config_msg.raster_rot_offset;
+
+  return true;
+}
+
+bool createToolPathSegment(const pcl::PointCloud<pcl::PointNormal>& cloud_normals,
+                           const std::vector<int>& indices,
+                           ToolPathSegment& segment)
 {
   using namespace pcl;
   using namespace Eigen;
 
-  geometry_msgs::Pose pose_msg;
   Isometry3d pose;
   Vector3d x_dir, z_dir, y_dir;
   std::vector<int> cloud_indices;
@@ -337,17 +266,15 @@ bool createPoseArray(const pcl::PointCloud<pcl::PointNormal>& cloud_normals, con
 
     pose = Translation3d(p1.getVector3fMap().cast<double>());
     pose.matrix().block<3,3>(0,0) = tool_path_planner::toRotationMatrix(x_dir, y_dir, z_dir);
-    tf::poseEigenToMsg(pose,pose_msg);
-
-    poses.poses.push_back(pose_msg);
+    segment.push_back(pose);
   }
 
   // last pose
-  pose_msg = poses.poses.back();
-  pose_msg.position.x = cloud_normals[cloud_indices.back()].x;
-  pose_msg.position.y = cloud_normals[cloud_indices.back()].y;
-  pose_msg.position.z = cloud_normals[cloud_indices.back()].z;
-  poses.poses.push_back(pose_msg);
+  Eigen::Isometry3d p = segment.back();
+  p.translation().x() = cloud_normals[cloud_indices.back()].x;
+  p.translation().y() = cloud_normals[cloud_indices.back()].y;
+  p.translation().z() = cloud_normals[cloud_indices.back()].z;
+  segment.push_back(p);
 
   return true;
 }

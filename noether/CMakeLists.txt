@@ -41,8 +41,6 @@ if(NOT noether_filtering_FOUND)
 endif()
 
 catkin_package(
-  INCLUDE_DIRS
-    include
   LIBRARIES
     mesh_segmenter
   CATKIN_DEPENDS
@@ -60,22 +58,13 @@ catkin_package(
     vtk_viewer
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(${catkin_INCLUDE_DIRS})
 
-add_executable(surface_raster_planner_server
-  src/surface_raster_planner_server.cpp
+add_executable(tool_path_planner_server
+  src/tool_path_planner_server.cpp
 )
 
-target_link_libraries(surface_raster_planner_server
-  ${catkin_LIBRARIES}
-  ${VTK_LIBRARIES}
-  noether::vtk_viewer
-)
-
-add_executable(surface_raster_planner_application
-  src/surface_raster_planner_application.cpp
-)
-target_link_libraries(surface_raster_planner_application
+target_link_libraries(tool_path_planner_server
   ${catkin_LIBRARIES}
   ${VTK_LIBRARIES}
   noether::vtk_viewer
@@ -112,28 +101,10 @@ if(noether_filtering_FOUND)
   )
 endif()
 
-add_executable(edge_generator_server
-  src/edge_generator_server.cpp
-)
-target_link_libraries(edge_generator_server 
-  ${catkin_LIBRARIES}
-  noether::vtk_viewer
-)
-
-add_executable(halfedge_boundary_finder_server
-  src/halfedge_boundary_finder_server.cpp
-)
-target_link_libraries(halfedge_boundary_finder_server 
-  ${catkin_LIBRARIES}
-  noether::vtk_viewer
-)
-
 #############
 ## Install ##
 #############
-install(TARGETS segmentation_server surface_raster_planner_application 
-  surface_raster_planner_server edge_generator_server
-  halfedge_boundary_finder_server convex_hull_node
+install(TARGETS segmentation_server tool_path_planner_server convex_hull_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -146,11 +117,6 @@ if(noether_filtering_FOUND)
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   )
 endif()
-
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  PATTERN ".svn" EXCLUDE
-)
 
 install(DIRECTORY config launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}

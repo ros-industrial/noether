@@ -19,16 +19,20 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   FILES
     FilteringConfig.msg
+    PlaneSlicerRasterGeneratorConfig.msg
+    SurfaceWalkRasterGeneratorConfig.msg
+    EigenValueEdgeGeneratorConfig.msg
+    HalfedgeEdgeGeneratorConfig.msg
     SegmentationConfig.msg
     ToolPathConfig.msg
-    ToolRasterPath.msg
+    ToolPath.msg
+    ToolPaths.msg
 )
 
 ## Generate actions in the 'action' folder
 add_action_files(
   FILES
     GenerateToolPaths.action
-    GenerateEdgePaths.action
     ApplyMeshFilters.action
     Segment.action
 )

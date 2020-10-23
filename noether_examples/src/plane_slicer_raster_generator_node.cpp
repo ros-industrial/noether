@@ -25,31 +25,47 @@
 #include <boost/filesystem.hpp>
 #include <noether_conversions/noether_conversions.h>
 #include <tool_path_planner/plane_slicer_raster_generator.h>
+#include <tool_path_planner/utilities.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <actionlib/client/simple_action_client.h>
 #include <console_bridge/console.h>
+#include <noether_msgs/GenerateToolPathsAction.h>
 
 using RGBA = std::tuple<double,double,double,double>;
 
+static const double GOAL_WAIT_PERIOD = 300.0; //sec
 static const std::string DEFAULT_FRAME_ID = "world";
+static const std::string GENERATE_TOOL_PATHS_ACTION = "generate_tool_paths";
 static const std::string RASTER_LINES_MARKERS_TOPIC ="raster_lines";
 static const std::string RASTER_POSES_MARKERS_TOPIC ="raster_poses";
 static const std::string RASTER_PATH_NS = "raster_";
 static const std::string INPUT_MESH_NS = "input_mesh";
 static const RGBA RAW_MESH_RGBA = std::make_tuple(0.6, 0.6, 1.0, 1.0);
 
-class Rasterer
+std::size_t countPathPoints(const noether_msgs::ToolPaths& tool_paths)
+{
+  std::size_t point_count = 0;
+
+  for(const auto& path : tool_paths.paths)
+    for (const auto& segment : path.segments)
+      point_count += segment.poses.size();
+
+  return point_count;
+}
+
+class PlaneSlicerExample
 {
 public:
 
-  Rasterer(ros::NodeHandle nh):
-    nh_(nh)
+  PlaneSlicerExample(ros::NodeHandle nh)
+    : nh_(nh)
+    , ac_(GENERATE_TOOL_PATHS_ACTION)
   {
     raster_lines_markers_pub_ = nh_.advertise<visualization_msgs::MarkerArray>(RASTER_LINES_MARKERS_TOPIC,1);
     raster_poses_markers_pub_ = nh_.advertise<visualization_msgs::MarkerArray>(RASTER_POSES_MARKERS_TOPIC,1);
   }
 
-  ~Rasterer()
+  ~PlaneSlicerExample()
   {
 
   }
@@ -62,19 +78,6 @@ public:
     {
       return false;
     }
-
-    /*
-     * load configuration into the following struct type
-      struct Config
-      {
-        double raster_spacing = 0.04;
-        double point_spacing = 0.01;
-        double raster_rot_offset = 0.0;
-        double min_hole_size = 0.01;
-        double min_segment_size = 0.01;
-        double search_radius = 0.01;
-      };
-    */
 
     std::vector<std::string> field_names = {"raster_spacing",
       "point_spacing",
@@ -148,42 +151,58 @@ public:
     }
     line_markers_.markers.push_back(createMeshMarker(mesh_file,INPUT_MESH_NS,DEFAULT_FRAME_ID,RAW_MESH_RGBA));
 
-
-
-    // rastering
-    tool_path_planner::PlaneSlicerRasterGenerator raster_gen;
-    boost::optional< std::vector<noether_msgs::ToolRasterPath> > temp = raster_gen.generate(mesh_msg,config);
-    if(!temp)
+    // waiting for server
+    if(!ac_.waitForServer(ros::Duration(5.0)))
     {
-      ROS_ERROR("Failed to generate rasters");
+      ROS_ERROR("Action server %s was not found", GENERATE_TOOL_PATHS_ACTION.c_str());
       return false;
     }
-    std::vector<noether_msgs::ToolRasterPath> raster_paths = *temp;
+
+    // sending request
+    noether_msgs::GenerateToolPathsGoal goal;
+    noether_msgs::ToolPathConfig config_msg;
+    config_msg.type = noether_msgs::ToolPathConfig::PLANE_SLICER_RASTER_GENERATOR;
+    tool_path_planner::toPlaneSlicerConfigMsg(config_msg.plane_slicer_generator, config);
+
+    goal.path_configs.push_back(config_msg);
+    goal.surface_meshes.push_back(mesh_msg);
+    goal.proceed_on_failure = true;
+    ac_.sendGoal(goal);
+    ros::Time start_time = ros::Time::now();
+    if(!ac_.waitForResult(ros::Duration(GOAL_WAIT_PERIOD)))
+    {
+      ROS_ERROR("Failed to generate edges from mesh");
+      return false;
+    }
+
+    noether_msgs::GenerateToolPathsResultConstPtr res = ac_.getResult();
+    if(!res->success)
+    {
+      ROS_ERROR("Failed to generate edges from mesh");
+      return false;
+    }
+
+    const std::vector<noether_msgs::ToolPaths>& raster_paths = res->tool_paths;
 
     ROS_INFO("Found %lu rasters",raster_paths.size());
 
     for(std::size_t i = 0; i < raster_paths.size(); i++)
     {
-      ROS_INFO("Raster %lu contains %lu segments",i, raster_paths[i].paths.size());
-      for(std::size_t j = 0; j < raster_paths[i].paths.size(); j++)
-      {
-        std::cout<<"\tSegment "<< j << " contains "<< raster_paths[i].paths[j].poses.size() << " points"<<std::endl;
+      ROS_INFO("Raster %lu contains %lu points",i, countPathPoints(raster_paths[i]));
 
+      std::string ns = RASTER_PATH_NS + std::to_string(i);
+      visualization_msgs::MarkerArray edge_path_axis_markers = convertToAxisMarkers(raster_paths[i],
+                                                                                    DEFAULT_FRAME_ID,
+                                                                                    ns);
 
-        std::string ns = RASTER_PATH_NS + std::to_string(i) + std::string("_s[") + std::to_string(j) + std::string("]") ;
-        visualization_msgs::MarkerArray edge_path_axis_markers = convertToAxisMarkers({raster_paths[i].paths[j]},
-                                                                                 DEFAULT_FRAME_ID,
-                                                                                 ns);
+      visualization_msgs::MarkerArray edge_path_line_markers = convertToArrowMarkers(raster_paths[i],
+                                                                                     DEFAULT_FRAME_ID,
+                                                                                     ns);
 
-        visualization_msgs::MarkerArray edge_path_line_markers = convertToArrowMarkers({raster_paths[i].paths[j]},
-                                                                                 DEFAULT_FRAME_ID,
-                                                                                 ns);
-
-        poses_markers_.markers.insert( poses_markers_.markers.end(),
-                                 edge_path_axis_markers.markers.begin(), edge_path_axis_markers.markers.end());
-        line_markers_.markers.insert( line_markers_.markers.end(),
-                                 edge_path_line_markers.markers.begin(), edge_path_line_markers.markers.end());
-      }
+      poses_markers_.markers.insert( poses_markers_.markers.end(),
+                               edge_path_axis_markers.markers.begin(), edge_path_axis_markers.markers.end());
+      line_markers_.markers.insert( line_markers_.markers.end(),
+                               edge_path_line_markers.markers.begin(), edge_path_line_markers.markers.end());
     }
     return true;
   }
@@ -195,18 +214,18 @@ private:
   ros::Publisher raster_poses_markers_pub_;
   visualization_msgs::MarkerArray line_markers_;
   visualization_msgs::MarkerArray poses_markers_;
-
+  actionlib::SimpleActionClient<noether_msgs::GenerateToolPathsAction> ac_;
 };
 
 int main(int argc, char** argv)
 {
-  ros::init(argc,argv,"halfedge_finder");
+  ros::init(argc,argv,"plane_slicer_example");
   console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_DEBUG);
   ros::NodeHandle nh;
   ros::AsyncSpinner spinner(2);
   spinner.start();
-  Rasterer edge_finder(nh);
-  if(!edge_finder.run())
+  PlaneSlicerExample plane_slicer_example(nh);
+  if(!plane_slicer_example.run())
   {
     return -1;
   }

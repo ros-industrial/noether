@@ -24,56 +24,40 @@
 #define INCLUDE_TOOL_PATH_PLANNER_UTILITIES_H_
 
 #include <noether_msgs/ToolPathConfig.h>
-#include <noether_msgs/ToolRasterPath.h>
 #include <Eigen/Dense>
 #include <eigen_stl_containers/eigen_stl_containers.h>
-#include <geometry_msgs/PoseArray.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
+#include <tool_path_planner/path_generator.h>
 #include <cxxabi.h>
-#include "tool_path_planner_base.h"
 
+#include <tool_path_planner/halfedge_edge_generator.h>
+#include <noether_msgs/HalfedgeEdgeGeneratorConfig.h>
+
+#include <tool_path_planner/eigen_value_edge_generator.h>
+#include <noether_msgs/EigenValueEdgeGeneratorConfig.h>
+
+#include <tool_path_planner/surface_walk_raster_generator.h>
+#include <noether_msgs/SurfaceWalkRasterGeneratorConfig.h>
+
+#include <tool_path_planner/plane_slicer_raster_generator.h>
+#include <noether_msgs/PlaneSlicerRasterGeneratorConfig.h>
 
 namespace tool_path_planner
 {
 
   /**
-   * @brief flipPointOrder Inverts a path, points, normals, and derivatives (not necessarily the spline)
+   * @brief flipPointOrder Inverts a path
    * @param path The input path to invert
    */
-  void flipPointOrder(tool_path_planner::ProcessPath& path);
-
-
-  std::vector<geometry_msgs::PoseArray> convertVTKtoGeometryMsgs(
-      const std::vector<tool_path_planner::ProcessPath>& paths);
+  void flipPointOrder(ToolPath& path);
 
   /**
    * @brief conversion function. Not well tested yet
    * @param paths The toolpaths within a raster
-   * @return a vector to process paths
+   * @return A vector of tool path data
    */
-  std::vector<tool_path_planner::ProcessPath> toNoetherToolpaths(const noether_msgs::ToolRasterPath& paths);
-
-  /**
-   * @brief Convenience conversion function
-   * @param paths The tool paths
-   * @return  array of PoseArray objects
-   */
-	std::vector<geometry_msgs::PoseArray> toPosesMsgs(const std::vector<tool_path_planner::ProcessPath>& paths);
-
-	/**
-	 * @brief Convenience conversion function.
-	 * @param tpp_msg_config  The input tool config message
-	 * @return  The Process Tool struct.
-	 */
-	tool_path_planner::ProcessTool fromTppMsg(const noether_msgs::ToolPathConfig& tpp_msg_config);
-
-	/**
-	 * @brief Convenience conversion function
-	 * @param tool_config The tool configuration struct
-	 * @return  The tool config message
-	 */
-	noether_msgs::ToolPathConfig toTppMsg(const tool_path_planner::ProcessTool& tool_config);
+  ToolPathsData toToolPathsData(const ToolPaths& paths);
 
 	/**
 	 * @details creates a rotation matrix from the column vectors; it can then be assigned to a Isometry3d pose
@@ -86,18 +70,43 @@ namespace tool_path_planner
 	 */
 	Eigen::Matrix3d toRotationMatrix(const Eigen::Vector3d& vx, const Eigen::Vector3d& vy, const Eigen::Vector3d& vz);
 
+  bool toHalfedgeConfigMsg(noether_msgs::HalfedgeEdgeGeneratorConfig& config_msg,
+                           const HalfedgeEdgeGenerator::Config& config);
+
+  bool toEigenValueConfigMsg(noether_msgs::EigenValueEdgeGeneratorConfig& config_msg,
+                             const EigenValueEdgeGenerator::Config& config);
+
+  bool toSurfaceWalkConfigMsg(noether_msgs::SurfaceWalkRasterGeneratorConfig& config_msg,
+                              const SurfaceWalkRasterGenerator::Config& config);
+
+  bool toPlaneSlicerConfigMsg(noether_msgs::PlaneSlicerRasterGeneratorConfig &config_msg,
+                              const PlaneSlicerRasterGenerator::Config &config);
+
+  bool toHalfedgeConfig(HalfedgeEdgeGenerator::Config& config,
+                        const noether_msgs::HalfedgeEdgeGeneratorConfig& config_msg);
+
+  bool toEigenValueConfig(EigenValueEdgeGenerator::Config& config,
+                          const noether_msgs::EigenValueEdgeGeneratorConfig& config_msg);
+
+  bool toSurfaceWalkConfig(SurfaceWalkRasterGenerator::Config& config,
+                           const noether_msgs::SurfaceWalkRasterGeneratorConfig& config_msg);
+
+  bool toPlaneSlicerConfig(PlaneSlicerRasterGenerator::Config& config,
+                           const noether_msgs::PlaneSlicerRasterGeneratorConfig& config_msg);
+
 	/**
-	 * @details Creates an array of poses from the point cloud with normals
+   * @details Creates an tool path segment from the point cloud with normals
 	 * It treats the point cloud as a set of consecutive points and so the x direction is along the line that
 	 * connects the current point to the next in the sequence .  The y vector is obtained from the cross product
 	 *  of the point normal and the x direction.
 	 * @param cloud_normals The points with normals
 	 * @param indices       Selects only these points, if left empty all points are used.
-	 * @poses               The output pose array
+   * @segment             The output segment
 	 * @return  True on success, false otherwise.
 	 */
-	bool createPoseArray(const pcl::PointCloud<pcl::PointNormal>& cloud_normals, const std::vector<int>& indices,
-	                     geometry_msgs::PoseArray& poses);
+  bool createToolPathSegment(const pcl::PointCloud<pcl::PointNormal>& cloud_normals,
+                             const std::vector<int>& indices,
+                             ToolPathSegment& segment);
 
 	template <class C>
 	static std::string getClassName() {

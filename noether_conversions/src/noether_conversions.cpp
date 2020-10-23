@@ -88,7 +88,7 @@ bool convertToMeshMsg(const pcl::PolygonMesh& mesh, shape_msgs::Mesh& mesh_msg)
   std::transform(cloud.begin(),cloud.end(),mesh_msg.vertices.begin(),[](pcl::PointXYZ& v){
     geometry_msgs::Point p;
     std::tie(p.x, p.y, p.z) = std::make_tuple(v.x,v.y,v.z);
-    return std::move(p);
+    return p;
   });
   return true;
 }
@@ -134,7 +134,7 @@ visualization_msgs::Marker createMeshMarker(const std::string& mesh_file, const 
   std::tie(m.scale.x , m.scale.y ,m.scale.z) = std::make_tuple(1.0,1.0,1.0);
   m.mesh_resource = "file://" + mesh_file;
   m.type = m.MESH_RESOURCE;
-  return std::move(m);
+  return m;
 }
 
 void convertToPointNormals(const pcl::PolygonMesh& mesh, pcl::PointCloud<pcl::PointNormal>& cloud_normals, bool flip, bool silent )
@@ -194,21 +194,13 @@ void convertToPointNormals(const pcl::PolygonMesh& mesh, pcl::PointCloud<pcl::Po
   return;
 }
 
-visualization_msgs::MarkerArray convertToAxisMarkers(const noether_msgs::ToolRasterPath& toolpath,
+visualization_msgs::MarkerArray convertToAxisMarkers(const noether_msgs::ToolPaths& toolpaths,
                                                      const std::string& frame_id, const std::string& ns,
                                                      const std::size_t& start_id, const double& axis_scale,
                                                      const double& axis_length,
                                                      const std::tuple<float, float, float, float, float, float>& offset)
 {
-  return convertToAxisMarkers(toolpath.paths, frame_id, ns, start_id, axis_scale, axis_length, offset);
-}
 
-visualization_msgs::MarkerArray convertToAxisMarkers(const std::vector<geometry_msgs::PoseArray>& path,
-                                                     const std::string& frame_id, const std::string& ns,
-                                                     const std::size_t& start_id, const double& axis_scale,
-                                                     const double& axis_length,
-                                                     const std::tuple<float, float, float, float, float, float>& offset)
-{
   using namespace Eigen;
 
   visualization_msgs::MarkerArray markers;
@@ -225,7 +217,7 @@ visualization_msgs::MarkerArray convertToAxisMarkers(const std::vector<geometry_
     line_marker.ns = ns;
     std::tie(line_marker.scale.x, line_marker.scale.y, line_marker.scale.z) = std::make_tuple(axis_scale, 0.0, 0.0);
     line_marker.pose = pose3DtoPoseMsg(offset);
-    return std::move(line_marker);
+    return line_marker;
   };
 
   // markers for each axis line
@@ -249,30 +241,32 @@ visualization_msgs::MarkerArray convertToAxisMarkers(const std::vector<geometry_
     marker.points.push_back(p2);
   };
 
-  for(auto& poses : path)
+  for (const noether_msgs::ToolPath& tool_path : toolpaths.paths)
   {
-    for(auto& pose : poses.poses)
+    for(const geometry_msgs::PoseArray& segment : tool_path.segments)
     {
-      Eigen::Isometry3d eigen_pose;
-      tf::poseMsgToEigen(pose,eigen_pose);
+      for(const geometry_msgs::Pose& pose : segment.poses)
+      {
+        Eigen::Isometry3d eigen_pose;
+        tf::poseMsgToEigen(pose,eigen_pose);
 
-      geometry_msgs::Point p1;
-      std::tie(p1.x, p1.y, p1.z) = std::make_tuple(pose.position.x, pose.position.y, pose.position.z);
+        geometry_msgs::Point p1;
+        std::tie(p1.x, p1.y, p1.z) = std::make_tuple(pose.position.x, pose.position.y, pose.position.z);
 
-      add_axis_line(eigen_pose,Vector3d::UnitX()* axis_length,p1, x_axis_marker);
-      add_axis_line(eigen_pose,Vector3d::UnitY()* axis_length,p1, y_axis_marker);
-      add_axis_line(eigen_pose,Vector3d::UnitZ()* axis_length,p1, z_axis_marker);
+        add_axis_line(eigen_pose,Vector3d::UnitX()* axis_length,p1, x_axis_marker);
+        add_axis_line(eigen_pose,Vector3d::UnitY()* axis_length,p1, y_axis_marker);
+        add_axis_line(eigen_pose,Vector3d::UnitZ()* axis_length,p1, z_axis_marker);
+      }
     }
-
   }
 
   markers.markers.push_back(x_axis_marker);
   markers.markers.push_back(y_axis_marker);
   markers.markers.push_back(z_axis_marker);
-  return std::move(markers);
+  return markers;
 }
 
-visualization_msgs::MarkerArray convertToArrowMarkers(const noether_msgs::ToolRasterPath& toolpath,
+visualization_msgs::MarkerArray convertToArrowMarkers(const noether_msgs::ToolPaths& toolpaths,
                                                     const std::string& frame_id,
                                                     const std::string& ns,
                                                     const std::size_t start_id,
@@ -280,17 +274,7 @@ visualization_msgs::MarkerArray convertToArrowMarkers(const noether_msgs::ToolRa
                                                     const float point_size,
                                                     const std::tuple<float, float, float, float, float, float>&offset)
 {
-  return convertToArrowMarkers(toolpath.paths,frame_id, ns, start_id, arrow_diameter, point_size, offset);
-}
 
-visualization_msgs::MarkerArray convertToArrowMarkers(const std::vector<geometry_msgs::PoseArray>& path,
-                                                    const std::string& frame_id,
-                                                    const std::string& ns,
-                                                    const std::size_t start_id,
-                                                    const float arrow_diameter,
-                                                    const float point_size,
-                                                    const std::tuple<float, float, float, float, float, float>&offset)
-{
   visualization_msgs::MarkerArray markers_msgs;
   visualization_msgs::Marker arrow_marker, points_marker;
   const geometry_msgs::Pose pose_msg = pose3DtoPoseMsg(offset);
@@ -326,41 +310,33 @@ visualization_msgs::MarkerArray convertToArrowMarkers(const std::vector<geometry
   };
 
   int id_counter = static_cast<int>(start_id);
-  for(auto& poses : path)
+  for (const noether_msgs::ToolPath& tool_path : toolpaths.paths)
   {
-    points_marker.points.clear();
-    points_marker.points.push_back(poses.poses.front().position);
-    for(std::size_t i = 1; i < poses.poses.size(); i++)
+    for(const geometry_msgs::PoseArray& segment : tool_path.segments)
     {
-      arrow_marker.points.clear();
-      geometry_msgs::Point p_start = transformPoint(pose_msg, poses.poses[i - 1].position);
-      geometry_msgs::Point p_end = transformPoint(pose_msg,poses.poses[i].position);
-      arrow_marker.points.push_back(p_start);
-      arrow_marker.points.push_back(p_end);
-      arrow_marker.id = (++id_counter);
-      markers_msgs.markers.push_back(arrow_marker);
-    }
-    points_marker.points.push_back(poses.poses.back().position);
+      points_marker.points.clear();
+      points_marker.points.push_back(segment.poses.front().position);
+      for(std::size_t i = 1; i < segment.poses.size(); i++)
+      {
+        arrow_marker.points.clear();
+        geometry_msgs::Point p_start = transformPoint(pose_msg, segment.poses[i - 1].position);
+        geometry_msgs::Point p_end = transformPoint(pose_msg,segment.poses[i].position);
+        arrow_marker.points.push_back(p_start);
+        arrow_marker.points.push_back(p_end);
+        arrow_marker.id = (++id_counter);
+        markers_msgs.markers.push_back(arrow_marker);
+      }
+      points_marker.points.push_back(segment.poses.back().position);
 
-    points_marker.id = (++id_counter);
-    markers_msgs.markers.push_back(points_marker);
+      points_marker.id = (++id_counter);
+      markers_msgs.markers.push_back(points_marker);
+    }
   }
 
   return markers_msgs;
 }
 
-visualization_msgs::MarkerArray convertToDottedLineMarker(const noether_msgs::ToolRasterPath& toolpath,
-                                                    const std::string& frame_id,
-                                                    const std::string& ns,
-                                                    const std::size_t& start_id,
-                                                    const std::tuple<float, float, float, float, float, float>& offset,
-                                                    const float& line_width,
-                                                    const float& point_size)
-{
-  return convertToDottedLineMarker(toolpath.paths,frame_id, ns, start_id, offset, line_width, point_size);
-}
-
-visualization_msgs::MarkerArray convertToDottedLineMarker(const std::vector<geometry_msgs::PoseArray>& path,
+visualization_msgs::MarkerArray convertToDottedLineMarker(const noether_msgs::ToolPaths& toolpaths,
                                                     const std::string& frame_id,
                                                     const std::string& ns,
                                                     const std::size_t& start_id,
@@ -390,24 +366,27 @@ visualization_msgs::MarkerArray convertToDottedLineMarker(const std::vector<geom
   std::tie(points_marker.scale.x, points_marker.scale.y, points_marker.scale.z) = std::make_tuple(point_size,point_size,point_size);
 
   int id_counter = start_id;
-  for(auto& poses : path)
+  for (const noether_msgs::ToolPath& tool_path : toolpaths.paths)
   {
-    line_marker.points.clear();
-    points_marker.points.clear();
-    line_marker.points.reserve(poses.poses.size());
-    points_marker.points.reserve(poses.poses.size());
-    for(auto& pose : poses.poses)
+    for(const geometry_msgs::PoseArray& segment : tool_path.segments)
     {
-      geometry_msgs::Point p;
-      std::tie(p.x, p.y, p.z) = std::make_tuple(pose.position.x, pose.position.y, pose.position.z);
-      line_marker.points.push_back(p);
-      points_marker.points.push_back(p);
-    }
+      line_marker.points.clear();
+      points_marker.points.clear();
+      line_marker.points.reserve(segment.poses.size());
+      points_marker.points.reserve(segment.poses.size());
+      for(auto& pose : segment.poses)
+      {
+        geometry_msgs::Point p;
+        std::tie(p.x, p.y, p.z) = std::make_tuple(pose.position.x, pose.position.y, pose.position.z);
+        line_marker.points.push_back(p);
+        points_marker.points.push_back(p);
+      }
 
-    line_marker.id = (++id_counter);
-    points_marker.id = (++id_counter);
-    markers_msgs.markers.push_back(line_marker);
-    markers_msgs.markers.push_back(points_marker);
+      line_marker.id = (++id_counter);
+      points_marker.id = (++id_counter);
+      markers_msgs.markers.push_back(line_marker);
+      markers_msgs.markers.push_back(points_marker);
+    }
   }
 
   return markers_msgs;

@@ -28,28 +28,13 @@ namespace path_sequence_planner
   {
   public:
 
-    /**
-     * @brief linkPaths Connects all of the paths_ into a single path and flips paths as necessary
-     */
-    void linkPaths();
+    void linkPaths() override;
 
-    /**
-     * @brief setPaths Sets the paths to be used for linking
-     * @param paths The input set of paths
-     */
-    void setPaths(std::vector<tool_path_planner::ProcessPath> paths){paths_ = paths; indices_.clear();}
+    void setPaths(tool_path_planner::ToolPaths paths) override;
 
-    /**
-     * @brief getPaths Get the list of paths currently stored (some paths may be flipped after linking)
-     * @return The set of paths currently stored
-     */
-    std::vector<tool_path_planner::ProcessPath> getPaths(){return paths_;}
+    tool_path_planner::ToolPaths getPaths() override;
 
-    /**
-     * @brief getIndices Get the list of path indices denoting the order in which paths should be executed
-     * @return The list path indices
-     */
-    std::vector<int> getIndices(){return indices_;}
+    std::vector<std::size_t> getIndices() const override;
 
   private:
 
@@ -61,11 +46,13 @@ namespace path_sequence_planner
      * @param front Used to determine whether to use the front or back of the last path to calculate distance
      * @return The index of the next nearest path to last_path
      */
-    int findNextNearestPath(std::vector<tool_path_planner::ProcessPath> paths,
-                             std::vector<int> used_indices, int last_path, bool front);
+    long findNextNearestPath(tool_path_planner::ToolPaths paths,
+                             std::vector<std::size_t> used_indices,
+                             std::size_t last_path,
+                             bool front);
 
-    std::vector<tool_path_planner::ProcessPath> paths_; /**< The input paths to operate on */
-    std::vector<int> indices_;  /**< The list of indices specifying the order in which to execute the paths_ */
+    tool_path_planner::ToolPaths paths_; /**< The input paths to operate on */
+    std::vector<std::size_t> indices_;  /**< The list of indices specifying the order in which to execute the paths_ */
   };
 
 }
