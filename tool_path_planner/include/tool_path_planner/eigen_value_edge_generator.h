@@ -38,7 +38,7 @@ namespace tool_path_planner
 /**
  * @brief The EigenValueEdgeGenerator class
  *
- * @details Currently this approache use the the geometric feature 'Surface Variation' to identify edges/contour which
+ * @details Currently this approach use the the geometric feature 'Surface Variation' to identify edges/contour which
  * does not work well. Need to explore the other feature below to see if they produce better results. This feature is
  * go at detecting creases but not the contour.
  *

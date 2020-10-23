@@ -73,13 +73,17 @@ add_executable(mesh_filtering_client src/mesh_filtering_client.cpp)
 target_link_libraries(mesh_filtering_client ${catkin_LIBRARIES} ${PCL_LIBRARIES} noether::vtk_viewer)
 list (APPEND PACKAGE_TARGETS mesh_filtering_client)
 
-add_executable(edge_generator_client src/edge_generator_client.cpp)
-target_link_libraries(edge_generator_client ${catkin_LIBRARIES} noether::vtk_viewer)
-list (APPEND PACKAGE_TARGETS edge_generator_client)
+add_executable(eigen_value_example_node src/eigen_value_edge_generator_node.cpp)
+target_link_libraries(eigen_value_example_node ${catkin_LIBRARIES} noether::vtk_viewer)
+list (APPEND PACKAGE_TARGETS eigen_value_example_node)
 
-add_executable(halfedge_finder_node  src/halfedge_finder_node.cpp)
-target_link_libraries(halfedge_finder_node ${catkin_LIBRARIES} noether::vtk_viewer)
-list (APPEND PACKAGE_TARGETS halfedge_finder_node)
+add_executable(halfedge_example_node  src/halfedge_edge_generator_node.cpp)
+target_link_libraries(halfedge_example_node ${catkin_LIBRARIES} noether::vtk_viewer)
+list (APPEND PACKAGE_TARGETS halfedge_example_node)
+
+add_executable(plane_slicer_example_node  src/plane_slicer_raster_generator_node.cpp)
+target_link_libraries(plane_slicer_example_node ${catkin_LIBRARIES} noether::vtk_viewer)
+list (APPEND PACKAGE_TARGETS plane_slicer_example_node)
 
 #############
 ## Install ##

@@ -241,11 +241,11 @@ visualization_msgs::MarkerArray convertToAxisMarkers(const noether_msgs::ToolPat
     marker.points.push_back(p2);
   };
 
-  for (const auto& tool_path : toolpaths.paths)
+  for (const noether_msgs::ToolPath& tool_path : toolpaths.paths)
   {
-    for(auto& segment : tool_path.segments)
+    for(const geometry_msgs::PoseArray& segment : tool_path.segments)
     {
-      for(auto& pose : segment.poses)
+      for(const geometry_msgs::Pose& pose : segment.poses)
       {
         Eigen::Isometry3d eigen_pose;
         tf::poseMsgToEigen(pose,eigen_pose);
@@ -310,9 +310,9 @@ visualization_msgs::MarkerArray convertToArrowMarkers(const noether_msgs::ToolPa
   };
 
   int id_counter = static_cast<int>(start_id);
-  for (const auto& tool_path : toolpaths.paths)
+  for (const noether_msgs::ToolPath& tool_path : toolpaths.paths)
   {
-    for(auto& segment : tool_path.segments)
+    for(const geometry_msgs::PoseArray& segment : tool_path.segments)
     {
       points_marker.points.clear();
       points_marker.points.push_back(segment.poses.front().position);
@@ -366,9 +366,9 @@ visualization_msgs::MarkerArray convertToDottedLineMarker(const noether_msgs::To
   std::tie(points_marker.scale.x, points_marker.scale.y, points_marker.scale.z) = std::make_tuple(point_size,point_size,point_size);
 
   int id_counter = start_id;
-  for (const auto& tool_path : toolpaths.paths)
+  for (const noether_msgs::ToolPath& tool_path : toolpaths.paths)
   {
-    for(auto& segment : tool_path.segments)
+    for(const geometry_msgs::PoseArray& segment : tool_path.segments)
     {
       line_marker.points.clear();
       points_marker.points.clear();

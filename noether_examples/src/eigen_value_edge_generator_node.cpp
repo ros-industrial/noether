@@ -23,15 +23,16 @@
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <noether_conversions/noether_conversions.h>
+#include <tool_path_planner/utilities.h>
 #include <visualization_msgs/MarkerArray.h>
-#include <noether_msgs/GenerateEdgePathsAction.h>
+#include <noether_msgs/GenerateToolPathsAction.h>
 #include <actionlib/client/simple_action_client.h>
 #include <console_bridge/console.h>
 
 using RGBA = std::tuple<double,double,double,double>;
 
 static const double GOAL_WAIT_PERIOD = 300.0; //sec
-static const std::string GENERATE_EDGE_PATHS_ACTION = "generate_edge_paths";
+static const std::string GENERATE_EDGE_PATHS_ACTION = "generate_tool_paths";
 static const std::string DEFAULT_FRAME_ID = "world";
 static const std::string BOUNDARY_LINES_MARKERS_TOPIC ="boundary_lines";
 static const std::string BOUNDARY_POSES_MARKERS_TOPIC ="boundary_poses";
@@ -40,23 +41,22 @@ static const std::string INPUT_MESH_NS = "input_mesh";
 static const RGBA RAW_MESH_RGBA = std::make_tuple(0.6, 0.6, 1.0, 1.0);
 static const std::size_t MAX_MARKERS_ON_DISPLAY = 500;
 
-std::size_t countPathPoints(const noether_msgs::ToolRasterPath& rasters)
+std::size_t countPathPoints(const noether_msgs::ToolPaths& tool_paths)
 {
   std::size_t point_count = 0;
 
-  for(const auto& p : rasters.paths)
-  {
-    point_count += p.poses.size();
-  }
+  for(const auto& path : tool_paths.paths)
+    for (const auto& segment : path.segments)
+      point_count += segment.poses.size();
 
   return point_count;
 }
 
-class HalfEdgeFinder
+class HalfedgeExample
 {
 public:
 
-  HalfEdgeFinder(ros::NodeHandle nh):
+  HalfedgeExample(ros::NodeHandle nh):
     nh_(nh),
     ac_(GENERATE_EDGE_PATHS_ACTION)
   {
@@ -64,7 +64,7 @@ public:
     boundary_poses_markers_pub_ = nh_.advertise<visualization_msgs::MarkerArray>(BOUNDARY_POSES_MARKERS_TOPIC,1);
   }
 
-  ~HalfEdgeFinder()
+  ~HalfedgeExample()
   {
 
   }
@@ -110,9 +110,14 @@ public:
     }
 
     // sending request
-    noether_msgs::GenerateEdgePathsGoal goal;
-    goal.proceed_on_failure = true;
+    noether_msgs::GenerateToolPathsGoal goal;
+    noether_msgs::ToolPathConfig config;
+    config.type = noether_msgs::ToolPathConfig::EIGEN_VALUE_EDGE_GENERATOR;
+    tool_path_planner::toEigenValueConfigMsg(config.eigen_value_generator, tool_path_planner::EigenValueEdgeGenerator::Config());
+
+    goal.path_configs.push_back(config);
     goal.surface_meshes.push_back(mesh_msg);
+    goal.proceed_on_failure = true;
     ac_.sendGoal(goal);
     ros::Time start_time = ros::Time::now();
     if(!ac_.waitForResult(ros::Duration(GOAL_WAIT_PERIOD)))
@@ -121,16 +126,16 @@ public:
       return false;
     }
 
-    noether_msgs::GenerateEdgePathsResultConstPtr res = ac_.getResult();
+    noether_msgs::GenerateToolPathsResultConstPtr res = ac_.getResult();
     if(!res->success)
     {
       ROS_ERROR("Failed to generate edges from mesh");
       return false;
     }
 
-    const auto& boundary_poses = res->edge_paths;
+    const std::vector<noether_msgs::ToolPaths>& boundary_poses = res->tool_paths;
 
-    ROS_INFO("Found %lu edges",boundary_poses.size());
+    ROS_INFO("Found %lu edges", boundary_poses.size());
 
     for(std::size_t i = 0; i < boundary_poses.size(); i++)
     {
@@ -172,29 +177,21 @@ private:
   ros::Publisher boundary_poses_markers_pub_;
   visualization_msgs::MarkerArray line_markers_;
   visualization_msgs::MarkerArray poses_markers_;
-  actionlib::SimpleActionClient<noether_msgs::GenerateEdgePathsAction> ac_;
-
-
-
+  actionlib::SimpleActionClient<noether_msgs::GenerateToolPathsAction> ac_;
 };
 
 int main(int argc, char** argv)
 {
-  ros::init(argc,argv,"halfedge_finder");
+  ros::init(argc,argv,"eigen_value_example");
   ros::NodeHandle nh;
   ros::AsyncSpinner spinner(2);
   spinner.start();
   console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_INFO);
-  HalfEdgeFinder edge_finder(nh);
-  if(!edge_finder.run())
+  HalfedgeExample halfedge_example(nh);
+  if(!halfedge_example.run())
   {
     return -1;
   }
   ros::waitForShutdown();
   return 0;
 }
-
-
-
-
-

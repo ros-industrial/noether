@@ -113,17 +113,7 @@ protected:
       {
         auto path_gen = std::make_shared<tool_path_planner::SurfaceWalkRasterGenerator>();
         tool_path_planner::SurfaceWalkRasterGenerator::Config path_config;
-
-        path_config.point_spacing = config.surface_walk_generator.point_spacing;
-        path_config.raster_spacing = config.surface_walk_generator.raster_spacing;
-        path_config.tool_offset = config.surface_walk_generator.tool_offset;
-        path_config.intersection_plane_height = config.surface_walk_generator.intersection_plane_height;
-        path_config.min_hole_size = config.surface_walk_generator.min_hole_size;
-        path_config.min_segment_size = config.surface_walk_generator.min_segment_size;
-        path_config.raster_rot_offset = config.surface_walk_generator.raster_rot_offset;
-        path_config.raster_wrt_global_axes = config.surface_walk_generator.raster_wrt_global_axes;
-        path_config.generate_extra_rasters = config.surface_walk_generator.generate_extra_rasters;
-
+        tool_path_planner::toSurfaceWalkConfig(path_config, config.surface_walk_generator);
         path_gen->setConfiguration(path_config);
         generator = path_gen;
       }
@@ -131,14 +121,7 @@ protected:
       {
         auto path_gen = std::make_shared<tool_path_planner::PlaneSlicerRasterGenerator>();
         tool_path_planner::PlaneSlicerRasterGenerator::Config path_config;
-
-        path_config.point_spacing = config.plane_slicer_generator.point_spacing;
-        path_config.raster_spacing = config.plane_slicer_generator.raster_spacing;
-//        path_config.tool_offset = config.plane_slicer_generator.tool_offset;
-        path_config.min_hole_size = config.plane_slicer_generator.min_hole_size;
-        path_config.min_segment_size = config.plane_slicer_generator.min_segment_size;
-        path_config.raster_rot_offset = config.plane_slicer_generator.raster_rot_offset;
-
+        tool_path_planner::toPlaneSlicerConfig(path_config, config.plane_slicer_generator);
         path_gen->setConfiguration(path_config);
         generator = path_gen;
       }
@@ -146,17 +129,7 @@ protected:
       {
         auto path_gen = std::make_shared<tool_path_planner::EigenValueEdgeGenerator>();
         tool_path_planner::EigenValueEdgeGenerator::Config path_config;
-
-        path_config.octree_res = config.eigen_value_generator.octree_res;
-        path_config.search_radius = config.eigen_value_generator.search_radius;
-        path_config.num_threads = config.eigen_value_generator.num_threads;
-        path_config.neighbor_tol = config.eigen_value_generator.neighbor_tol;
-        path_config.edge_cluster_min = config.eigen_value_generator.edge_cluster_min;
-        path_config.kdtree_epsilon = config.eigen_value_generator.kdtree_epsilon;
-        path_config.min_projection_dist = config.eigen_value_generator.min_projection_dist;
-        path_config.max_intersecting_voxels = config.eigen_value_generator.max_intersecting_voxels;
-        path_config.merge_dist = config.eigen_value_generator.merge_dist;
-
+        tool_path_planner::toEigenValueConfig(path_config, config.eigen_value_generator);
         path_gen->setConfiguration(path_config);
         generator = path_gen;
       }
@@ -164,14 +137,7 @@ protected:
       {
         auto path_gen = std::make_shared<tool_path_planner::HalfedgeEdgeGenerator>();
         tool_path_planner::HalfedgeEdgeGenerator::Config path_config;
-
-        path_config.min_num_points = config.halfedge_generator.min_num_points;
-        path_config.normal_averaging = config.halfedge_generator.normal_averaging;
-        path_config.normal_search_radius = config.halfedge_generator.normal_search_radius;
-        path_config.normal_influence_weight = config.halfedge_generator.normal_influence_weight;
-        path_config.point_spacing_method = static_cast<tool_path_planner::HalfedgeEdgeGenerator::PointSpacingMethod>(config.halfedge_generator.point_spacing_method);
-        path_config.point_dist = config.halfedge_generator.point_dist;
-
+        tool_path_planner::toHalfedgeConfig(path_config, config.halfedge_generator);
         path_gen->setConfiguration(path_config);
         generator = path_gen;
       }

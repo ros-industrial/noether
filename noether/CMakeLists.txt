@@ -41,8 +41,6 @@ if(NOT noether_filtering_FOUND)
 endif()
 
 catkin_package(
-  INCLUDE_DIRS
-    include
   LIBRARIES
     mesh_segmenter
   CATKIN_DEPENDS
@@ -60,7 +58,7 @@ catkin_package(
     vtk_viewer
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(${catkin_INCLUDE_DIRS})
 
 add_executable(tool_path_planner_server
   src/tool_path_planner_server.cpp
@@ -71,15 +69,6 @@ target_link_libraries(tool_path_planner_server
   ${VTK_LIBRARIES}
   noether::vtk_viewer
 )
-
-#add_executable(surface_raster_planner_application
-#  src/surface_raster_planner_application.cpp
-#)
-#target_link_libraries(surface_raster_planner_application
-#  ${catkin_LIBRARIES}
-#  ${VTK_LIBRARIES}
-#  noether::vtk_viewer
-#)
 
 add_executable(segmentation_server
   src/segmentation_server.cpp
@@ -128,11 +117,6 @@ if(noether_filtering_FOUND)
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   )
 endif()
-
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  PATTERN ".svn" EXCLUDE
-)
 
 install(DIRECTORY config launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}

@@ -22,7 +22,7 @@
 
 #include <vtk_viewer/vtk_viewer.h>
 #include <mesh_segmenter/mesh_segmenter.h>
-#include <tool_path_planner/raster_tool_path_planner.h>
+#include <tool_path_planner/path_generator.h>
 #include <path_sequence_planner/path_sequence_planner.h>
 
 namespace noether
@@ -32,8 +32,8 @@ namespace noether
   {
 
   public:
-    Noether(){}
-    ~Noether(){}
+    Noether() = default;
+    virtual ~Noether() = default;
 
     /**
      * @brief addMeshDisplay Add a display for a vector of meshes (each mesh will be colored differently)
@@ -49,7 +49,7 @@ namespace noether
      * @param show_cutting_meshes If true, will show the cutting meshes used to calculate the path points
      * @param show_derivatives If true, will show the derivatives for each point in the path
      */
-    void addPathDisplay(std::vector<std::vector< tool_path_planner::ProcessPath > >& paths, double scale,
+    void addPathDisplay(std::vector<tool_path_planner::ToolPaths>& paths, double scale,
                         bool show_path = true, bool show_cutting_meshes = false, bool show_derivatives = false);
 
     /**
@@ -60,12 +60,10 @@ namespace noether
      * @param show_cutting_meshes If true, will show the cutting meshes used to calculate the path points
      * @param show_derivatives If true, will show the derivatives for each point in the path
      */
-    void addPathDisplay(std::vector< tool_path_planner::ProcessPath >& paths, double scale, bool show_path = true,
+    void addPathDisplay(tool_path_planner::ToolPaths& paths, double scale, bool show_path = true,
                         bool show_cutting_meshes = false, bool show_derivatives = false);
 
-    /**
-     * @brief visualizeDisplay Calls the VTK render function
-     */
+    /** @brief visualizeDisplay Calls the VTK render function */
     void visualizeDisplay(){viewer_.renderDisplay();}
 
     /**
