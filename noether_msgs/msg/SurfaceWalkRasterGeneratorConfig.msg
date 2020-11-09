@@ -1,3 +1,4 @@
+float64 line_spacing 		        # Required spacing between paths
 float64 point_spacing 		        # Required spacing between path points
 float64 raster_spacing 			# Offset between two rasters
 float64 tool_offset 			# How far off the surface the tool needs to be
