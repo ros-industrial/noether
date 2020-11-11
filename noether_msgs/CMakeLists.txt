@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_msgs
   shape_msgs
   std_msgs
+  heat_msgs
 )
 
 ################################################
@@ -48,6 +49,7 @@ generate_messages(
     pcl_msgs
     shape_msgs
     std_msgs
+    heat_msgs
 )
 
 ###################################
@@ -61,4 +63,5 @@ catkin_package(
     pcl_msgs
     shape_msgs
     std_msgs
+    heat_msgs
 )
