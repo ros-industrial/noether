@@ -507,6 +507,7 @@ int findClosestPoint(const std::vector<double>& pt,  const std::vector<std::vect
 bool SurfaceWalkRasterGenerator::setConfiguration(const Config& config)
 {
   config_ = config;
+  return(true);
 }
 
 void SurfaceWalkRasterGenerator::setInput(pcl::PolygonMesh::ConstPtr mesh)

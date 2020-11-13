@@ -172,9 +172,8 @@ protected:
             tp.segments.push_back(seg);
           }
           trp.paths.push_back(tp);
+	  result.tool_paths[i].paths.push_back(tp);
         }
-
-	result.tool_paths[i].paths.push_back(trp);
         result.tool_path_validities[i] = true;
 
         std::string ros_info_msg = boost::str(boost::format("Surface %1% processed successfully") % (i+1));
