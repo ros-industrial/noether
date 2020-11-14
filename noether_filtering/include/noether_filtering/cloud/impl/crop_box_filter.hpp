@@ -17,7 +17,7 @@ bool fromXmlRpc(XmlRpc::XmlRpcValue value, Eigen::Ref<Eigen::Vector4f> out)
     out.y() = static_cast<double>(value["y"]);
     out.z() = static_cast<double>(value["z"]);
   }
-  catch (const XmlRpc::XmlRpcException &ex)
+  catch (const XmlRpc::XmlRpcException& ex)
   {
     CONSOLE_BRIDGE_logError("%s", ex.getMessage().c_str());
     return false;
@@ -39,7 +39,7 @@ bool fromXmlRpc(XmlRpc::XmlRpcValue value, Eigen::Affine3f& out)
     Eigen::AngleAxisf rz(static_cast<double>(value["rz"]), Eigen::Vector3f::UnitZ());
     out.rotate(rx * ry * rz);
   }
-  catch (const XmlRpc::XmlRpcException &ex)
+  catch (const XmlRpc::XmlRpcException& ex)
   {
     CONSOLE_BRIDGE_logError("%s", ex.getMessage().c_str());
     return false;
@@ -47,25 +47,25 @@ bool fromXmlRpc(XmlRpc::XmlRpcValue value, Eigen::Affine3f& out)
   return true;
 }
 
-} // namespace anonymous
+}  // namespace
 
 namespace noether_filtering
 {
 namespace cloud
 {
-template<typename PointT>
+template <typename PointT>
 const std::string CropBoxFilter<PointT>::MAX = "max";
 
-template<typename PointT>
+template <typename PointT>
 const std::string CropBoxFilter<PointT>::MIN = "min";
 
-template<typename PointT>
+template <typename PointT>
 const std::string CropBoxFilter<PointT>::TRANSFORM = "transform";
 
-template<typename PointT>
+template <typename PointT>
 const std::string CropBoxFilter<PointT>::CROP_OUTSIDE = "crop_outside";
 
-template<typename PointT>
+template <typename PointT>
 bool CropBoxFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
 {
   std::string error;
@@ -76,7 +76,7 @@ bool CropBoxFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
   if (!value.hasMember(TRANSFORM))
     error += TRANSFORM + ", ";
 
-  if(!error.empty())
+  if (!error.empty())
   {
     CONSOLE_BRIDGE_logError("Filter configuration missing required parameters: %s", error.c_str());
     return false;
@@ -94,7 +94,7 @@ bool CropBoxFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
       return false;
     }
   }
-  catch (const XmlRpc::XmlRpcException &ex)
+  catch (const XmlRpc::XmlRpcException& ex)
   {
     CONSOLE_BRIDGE_logError("Failed to load required parameter(s) for pass through filter: '%s'",
                             ex.getMessage().c_str());
@@ -102,27 +102,26 @@ bool CropBoxFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
   }
 
   // Optional parameter(s)
-  if(value.hasMember(CROP_OUTSIDE))
+  if (value.hasMember(CROP_OUTSIDE))
   {
     try
     {
       params.crop_outside = static_cast<bool>(value[CROP_OUTSIDE]);
     }
-    catch (const XmlRpc::XmlRpcException &ex)
+    catch (const XmlRpc::XmlRpcException& ex)
     {
-      CONSOLE_BRIDGE_logWarn("Failed to load optional parameter(s) for crop box filter: '%s'",
-                             ex.getMessage().c_str());
+      CONSOLE_BRIDGE_logWarn("Failed to load optional parameter(s) for crop box filter: '%s'", ex.getMessage().c_str());
     }
   }
 
   return true;
 }
 
-template<typename PointT>
-bool CropBoxFilter<PointT>::filter(const T &input, T &output)
+template <typename PointT>
+bool CropBoxFilter<PointT>::filter(const T& input, T& output)
 {
   // Create a shared pointer to the input object with a "destructor" function that does not delete the raw pointer
-  auto cloud = boost::shared_ptr<const T>(&input, [](const T *) {});
+  auto cloud = boost::shared_ptr<const T>(&input, [](const T*) {});
 
   // Set the parameters
   pcl::CropBox<PointT> f(params.crop_outside);
@@ -136,16 +135,15 @@ bool CropBoxFilter<PointT>::filter(const T &input, T &output)
   return true;
 }
 
-template<typename PointT>
+template <typename PointT>
 std::string CropBoxFilter<PointT>::getName() const
 {
   return utils::getClassName<decltype(this)>();
 }
 
-} // namespace cloud
-} // namespace noether_filtering
+}  // namespace cloud
+}  // namespace noether_filtering
 
-#define PCL_INSTANTIATE_CropBoxFilter(T) \
-  template class PCL_EXPORTS noether_filtering::cloud::CropBoxFilter<T>;
+#define PCL_INSTANTIATE_CropBoxFilter(T) template class PCL_EXPORTS noether_filtering::cloud::CropBoxFilter<T>;
 
-#endif // NOETHER_FILTERING_CLOUD_IMPL_CROP_BOX_FILTER_HPP
+#endif  // NOETHER_FILTERING_CLOUD_IMPL_CROP_BOX_FILTER_HPP

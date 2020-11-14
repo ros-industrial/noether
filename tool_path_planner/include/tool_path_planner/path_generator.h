@@ -13,7 +13,6 @@
 
 namespace tool_path_planner
 {
-
 using ToolPathSegment = std::vector<Eigen::Isometry3d>;
 using ToolPath = std::vector<ToolPathSegment>;
 using ToolPaths = std::vector<ToolPath>;
@@ -80,5 +79,5 @@ public:
    */
   virtual std::string getName() const = 0;
 };
-}
-#endif // TOOL_PATH_PLANNER_PATH_GENERATOR_H
+}  // namespace tool_path_planner
+#endif  // TOOL_PATH_PLANNER_PATH_GENERATOR_H

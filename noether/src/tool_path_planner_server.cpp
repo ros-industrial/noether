@@ -12,27 +12,19 @@
 #include <tool_path_planner/eigen_value_edge_generator.h>
 #include <tool_path_planner/halfedge_edge_generator.h>
 
-static const double FEEDBACK_PUBLISH_PERIOD = 1.0; // seconds
+static const double FEEDBACK_PUBLISH_PERIOD = 1.0;  // seconds
 static const std::string GENERATE_TOOL_PATHS_ACTION = "generate_tool_paths";
 
 namespace tpp_path_gen
 {
-
 using GenPathActionServer = actionlib::SimpleActionServer<noether_msgs::GenerateToolPathsAction>;
 
 class TppServer
 {
 public:
-  TppServer(ros::NodeHandle nh, std::string action_name):
-    as_(nh,action_name,false)
-  {
+  TppServer(ros::NodeHandle nh, std::string action_name) : as_(nh, action_name, false) {}
 
-  }
-
-  ~TppServer()
-  {
-
-  }
+  ~TppServer() {}
 
   void start()
   {
@@ -42,62 +34,59 @@ public:
   }
 
 protected:
-
   void runPathGeneration(const GenPathActionServer::GoalConstPtr goal)
   {
     ROS_INFO("Starting path generation");
     {
       std::lock_guard<std::mutex> lock(goal_process_mutex_);
       // validating data
-      if(goal->surface_meshes.empty())
+      if (goal->surface_meshes.empty())
       {
         std::string err_msg = "No surfaces were received";
         ROS_ERROR_STREAM(err_msg);
         noether_msgs::GenerateToolPathsResult result;
-        as_.setAborted(result,err_msg);
+        as_.setAborted(result, err_msg);
         return;
       }
 
       // verifying configs
-      if(goal->path_configs.empty())
+      if (goal->path_configs.empty())
       {
         std::string err_msg = "Path configuration array is empty, using default values";
         ROS_ERROR_STREAM(err_msg);
         noether_msgs::GenerateToolPathsResult result;
-        as_.setAborted(result,err_msg);
+        as_.setAborted(result, err_msg);
         return;
       }
 
       std::vector<noether_msgs::ToolPathConfig> tpp_configs;
-      tpp_configs.assign(goal->path_configs.begin(),goal->path_configs.end());
+      tpp_configs.assign(goal->path_configs.begin(), goal->path_configs.end());
 
-      if(tpp_configs.size() != goal->surface_meshes.size())
+      if (tpp_configs.size() != goal->surface_meshes.size())
       {
         std::string err_msg = "Surface meshes and path configs array have unequal sizes";
         ROS_ERROR_STREAM(err_msg);
         noether_msgs::GenerateToolPathsResult result;
-        as_.setAborted(result,err_msg);
+        as_.setAborted(result, err_msg);
         return;
       }
     }
     noether_msgs::GenerateToolPathsFeedback feedback;
-    ros::Timer feedback_timer = nh_.createTimer(ros::Duration(),[&](const ros::TimerEvent& evnt)
-    {
-      as_.publishFeedback(feedback);
-    });
+    ros::Timer feedback_timer =
+        nh_.createTimer(ros::Duration(), [&](const ros::TimerEvent& evnt) { as_.publishFeedback(feedback); });
 
     const std::size_t num_meshes = goal->surface_meshes.size();
     std::vector<bool> validities;
     using ToolPath = std::vector<geometry_msgs::PoseArray>;
     noether_msgs::GenerateToolPathsResult result;
-    result.tool_path_validities.resize(num_meshes,false);
+    result.tool_path_validities.resize(num_meshes, false);
     result.tool_paths.resize(num_meshes);
-    for(std::size_t i = 0; i < goal->surface_meshes.size(); i++)
+    for (std::size_t i = 0; i < goal->surface_meshes.size(); i++)
     {
       {
         std::lock_guard<std::mutex> lock(goal_process_mutex_);
         feedback.current_mesh_index = i;
-        if(as_.isPreemptRequested())
+        if (as_.isPreemptRequested())
         {
           ROS_WARN("Canceling Tool Path Generation Request");
           break;
@@ -146,14 +135,14 @@ protected:
         std::string err_msg = "Unsupported request type!";
         ROS_ERROR_STREAM(err_msg);
         noether_msgs::GenerateToolPathsResult result;
-        as_.setAborted(result,err_msg);
+        as_.setAborted(result, err_msg);
         return;
       }
 
       generator->setInput(mesh);
       tool_paths = generator->generate();
 
-      if(tool_paths.is_initialized())
+      if (tool_paths.is_initialized())
       {
         noether_msgs::ToolPaths trp;
         for (const auto& tool_path : tool_paths.get())
@@ -175,27 +164,26 @@ protected:
 
         result.tool_path_validities[i] = true;
 
-        std::string ros_info_msg = boost::str(boost::format("Surface %1% processed successfully") % (i+1));
+        std::string ros_info_msg = boost::str(boost::format("Surface %1% processed successfully") % (i + 1));
         ROS_INFO_STREAM(ros_info_msg);
       }
       else
       {
-        std::string err_msg = boost::str(boost::format("Path planning on surface %1% failed") % (i+1));
+        std::string err_msg = boost::str(boost::format("Path planning on surface %1% failed") % (i + 1));
         ROS_ERROR_STREAM(err_msg);
-        if(!goal->proceed_on_failure)
+        if (!goal->proceed_on_failure)
         {
           break;
         }
       }
     }
 
-    result.success = std::any_of(result.tool_path_validities.begin(),result.tool_path_validities.end(),[](const bool& b){
-      return b;
-    });
+    result.success = std::any_of(
+        result.tool_path_validities.begin(), result.tool_path_validities.end(), [](const bool& b) { return b; });
 
     {
       std::lock_guard<std::mutex> lock(goal_process_mutex_);
-      if(result.success)
+      if (result.success)
       {
         as_.setSucceeded(result);
       }
@@ -212,22 +200,21 @@ protected:
     {
       std::lock_guard<std::mutex> lock(goal_process_mutex_);
 
-      if(as_.isActive())
+      if (as_.isActive())
       {
         ROS_ERROR("Currently Processing a TPP request, rejecting");
         return;
       }
 
       goal = as_.acceptNewGoal();
-      if(goal == nullptr)
+      if (goal == nullptr)
       {
         std::string err_msg = "Goal ptr received is invalid";
         ROS_ERROR_STREAM(err_msg);
         noether_msgs::GenerateToolPathsResult result;
-        as_.setAborted(result,err_msg);
+        as_.setAborted(result, err_msg);
         return;
       }
-
     }
 
     runPathGeneration(goal);
@@ -242,14 +229,13 @@ protected:
   ros::NodeHandle nh_;
   GenPathActionServer as_;
   std::mutex goal_process_mutex_;
-
 };
 
-}
+}  // namespace tpp_path_gen
 
-int main(int argc,char** argv)
+int main(int argc, char** argv)
 {
-  ros::init(argc,argv,"tool_path_planner_node");
+  ros::init(argc, argv, "tool_path_planner_node");
   ros::AsyncSpinner spinner(4);
   ros::NodeHandle nh;
   spinner.start();

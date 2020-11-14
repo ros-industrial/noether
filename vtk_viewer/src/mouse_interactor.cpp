@@ -29,100 +29,95 @@
 
 namespace vtk_viewer
 {
+vtkStandardNewMacro(MouseInteractorStyle);
 
-  vtkStandardNewMacro(MouseInteractorStyle);
+void MouseInteractorStyle::OnKeyPress()
+{
+  vtkRenderWindowInteractor* rwi = this->Interactor;
+  std::string key = rwi->GetKeySym();
 
-  void MouseInteractorStyle::OnKeyPress()
+  // Handle a "normal" key
+  if (key == "a")
   {
-    vtkRenderWindowInteractor *rwi = this->Interactor;
-    std::string key = rwi->GetKeySym();
-
-    // Handle a "normal" key
-    if(key == "a")
+    // check to see if the pointer exists;
+    if (selected_actor_)
     {
-      // check to see if the pointer exists;
-      if(selected_actor_)
+      vtkSmartPointer<vtkXMLPolyDataWriter> writer = vtkSmartPointer<vtkXMLPolyDataWriter>::New();
+      vtkPolyData* pd = vtkPolyData::SafeDownCast(selected_actor_->GetMapper()->GetInput());
+
+      // check to make sure that there is data to save
+      if (pd->GetNumberOfCells() > 0 || pd->GetPoints()->GetNumberOfPoints() > 0)
       {
-        vtkSmartPointer<vtkXMLPolyDataWriter> writer =
-            vtkSmartPointer<vtkXMLPolyDataWriter>::New();
-        vtkPolyData *pd = vtkPolyData::SafeDownCast(selected_actor_->GetMapper()->GetInput());
+        writer->SetInputData(pd);
 
-        // check to make sure that there is data to save
-        if(pd->GetNumberOfCells() > 0 || pd->GetPoints()->GetNumberOfPoints() > 0)
+        // Save the data if the directory exists and the file can be created
+        if (boost::filesystem::is_directory(save_location_.str().c_str()))
         {
-          writer->SetInputData(pd);
+          int count = 0;
+          std::stringstream polydata_file;
+          polydata_file << save_location_.str().c_str() << "/polydata" << count << ".vtp";
 
-          // Save the data if the directory exists and the file can be created
-          if(boost::filesystem::is_directory(save_location_.str().c_str()))
+          while (std::ifstream(polydata_file.str().c_str()) && count < 100)
           {
-            int count = 0;
-            std::stringstream polydata_file;
+            std::cout << "File already exists" << std::endl;
+            ++count;
+            polydata_file.str("");
             polydata_file << save_location_.str().c_str() << "/polydata" << count << ".vtp";
+          }
 
-            while(std::ifstream(polydata_file.str().c_str()) && count < 100)
-            {
-              std::cout << "File already exists" << std::endl;
-              ++count;
-              polydata_file.str("");
-              polydata_file << save_location_.str().c_str() << "/polydata" << count << ".vtp";
-            }
-
-            std::ofstream file(polydata_file.str().c_str());
-            if (!file)
-            {
-              std::cout << "File " << polydata_file.str().c_str() << " could not be created" << std::endl;
-            }
-            else
-            {
-              std::cout << "Saving polydata file: " << polydata_file.str().c_str() << "\n";
-              file.close();
-              writer->SetFileName(polydata_file.str().c_str());
-              writer->Write();
-            }
-
+          std::ofstream file(polydata_file.str().c_str());
+          if (!file)
+          {
+            std::cout << "File " << polydata_file.str().c_str() << " could not be created" << std::endl;
           }
           else
           {
-            std::cout << "Directory " << save_location_.str().c_str() << " does not exist.  Not saving polydata file." << std::endl;
+            std::cout << "Saving polydata file: " << polydata_file.str().c_str() << "\n";
+            file.close();
+            writer->SetFileName(polydata_file.str().c_str());
+            writer->Write();
           }
-
-
+        }
+        else
+        {
+          std::cout << "Directory " << save_location_.str().c_str() << " does not exist.  Not saving polydata file."
+                    << std::endl;
         }
       }
     }
+  }
 
-    // Forward events
-    vtkInteractorStyleTrackballCamera::OnKeyPress();
-  }// end OnKeyPress
+  // Forward events
+  vtkInteractorStyleTrackballCamera::OnKeyPress();
+}  // end OnKeyPress
 
-  void MouseInteractorStyle::OnLeftButtonDown()
+void MouseInteractorStyle::OnLeftButtonDown()
+{
+  // Get the location of the click (in window coordinates)
+  int* pos = this->GetInteractor()->GetEventPosition();
+
+  vtkSmartPointer<vtkCellPicker> picker = vtkSmartPointer<vtkCellPicker>::New();
+  picker->SetTolerance(0.0005);
+
+  // Pick from this location.
+  picker->Pick(pos[0], pos[1], 0, this->GetDefaultRenderer());
+
+  double* worldPosition = picker->GetPickPosition();
+
+  if (picker->GetCellId() != -1)
   {
-    // Get the location of the click (in window coordinates)
-    int* pos = this->GetInteractor()->GetEventPosition();
+    vtkSmartPointer<vtkIdTypeArray> ids = vtkSmartPointer<vtkIdTypeArray>::New();
+    ids->SetNumberOfComponents(1);
+    ids->InsertNextValue(picker->GetCellId());
 
-    vtkSmartPointer<vtkCellPicker> picker =
-      vtkSmartPointer<vtkCellPicker>::New();
-    picker->SetTolerance(0.0005);
+    selected_actor_ = picker->GetActor();
+  }
+  else
+  {
+    // selected_actor_ = NULL;
+  }
+  // Forward events
+  vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
+}  // end OnLeftButtonDown
 
-    // Pick from this location.
-    picker->Pick(pos[0], pos[1], 0, this->GetDefaultRenderer());
-
-    double* worldPosition = picker->GetPickPosition();
-
-    if(picker->GetCellId() != -1)
-    {
-      vtkSmartPointer<vtkIdTypeArray> ids = vtkSmartPointer<vtkIdTypeArray>::New();
-      ids->SetNumberOfComponents(1);
-      ids->InsertNextValue(picker->GetCellId());
-
-      selected_actor_ =  picker->GetActor();
-    }
-    else
-    {
-      //selected_actor_ = NULL;
-    }
-    // Forward events
-    vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
-  }// end OnLeftButtonDown
-
-}// namespace vtk_viewer
+}  // namespace vtk_viewer

@@ -8,7 +8,7 @@ namespace noether_filtering
 {
 namespace cloud
 {
-template<typename PointT>
+template <typename PointT>
 class PassThroughFilter : public FilterBase<pcl::PointCloud<PointT>>
 {
 public:
@@ -27,7 +27,7 @@ public:
    * @return
    */
   bool configure(XmlRpc::XmlRpcValue config) override final;
-  bool filter(const T &input, T &output) override final;
+  bool filter(const T& input, T& output) override final;
   std::string getName() const override final;
 
   struct Params
@@ -44,7 +44,7 @@ public:
   static const std::string MAX_LIMIT;
   static const std::string NEGATIVE;
 };
-} // namespace cloud
-} // namespace noether_filtering
+}  // namespace cloud
+}  // namespace noether_filtering
 
-#endif // NOETHER_FILTERING_CLOUD_PASS_THROUGH_FILTER_H
+#endif  // NOETHER_FILTERING_CLOUD_PASS_THROUGH_FILTER_H

@@ -15,42 +15,39 @@
 
 namespace noether_filtering
 {
-
 namespace config_fields
 {
-
 namespace filter
 {
-  static const std::string TYPE_NAME = "type";
-  static const std::string NAME = "name";
-  static const std::string CONFIG = "config";
-} // namespace filter
+static const std::string TYPE_NAME = "type";
+static const std::string NAME = "name";
+static const std::string CONFIG = "config";
+}  // namespace filter
 
 namespace group
 {
-  static const std::string GROUP_NAME = "group_name";
-  static const std::string CONTINUE_ON_FAILURE = "continue_on_failure";
-  static const std::string VERBOSITY_ON = "verbosity_on";
-  static const std::string FILTERS = "filters";
-} // namespace group
-} // namespace config_fields
+static const std::string GROUP_NAME = "group_name";
+static const std::string CONTINUE_ON_FAILURE = "continue_on_failure";
+static const std::string VERBOSITY_ON = "verbosity_on";
+static const std::string FILTERS = "filters";
+}  // namespace group
+}  // namespace config_fields
 
 /**
  * @brief The FilterManager class
  */
-template<class F>
+template <class F>
 class FilterGroup
 {
 public:
-
   FilterGroup(const std::string& base_class_name);
   virtual ~FilterGroup() = default;
 
-    /**
+  /**
    * @details Initializes the filter chain and loads all the filter plugins from a yaml structured parameter.
-   * When 'continue_on_failure = true' then it only takes one filter to succeed for the whole pass through the group to succeed.
-   * When 'continue_on_failure = false' then the algorithm returns false as soon as one filter fails.
-   * The parameter must conform to the following syntax:
+   * When 'continue_on_failure = true' then it only takes one filter to succeed for the whole pass through the group to
+   * succeed. When 'continue_on_failure = false' then the algorithm returns false as soon as one filter fails. The
+   * parameter must conform to the following syntax:
    *
    * continue_on_failure: True
    * mesh_filters:
@@ -78,11 +75,10 @@ public:
   bool applyFilters(const std::vector<std::string>& filters, const F& input, F& output, std::string& err_msg);
 
 protected:
+  using FilterT = FilterBase<F>;
+  typedef typename std::unique_ptr<FilterT> FilterBasePtr;
 
-  using FilterT = FilterBase< F >;
-  typedef typename std::unique_ptr< FilterT> FilterBasePtr ;
-
-  pluginlib::ClassLoader< FilterT> filter_loader_;
+  pluginlib::ClassLoader<FilterT> filter_loader_;
   std::vector<std::string> filters_loaded_;
   std::map<std::string, FilterBasePtr> filters_map_;
   bool continue_on_failure_;

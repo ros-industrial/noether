@@ -11,13 +11,13 @@ namespace noether_filtering
 {
 namespace cloud
 {
-template<typename PointT>
+template <typename PointT>
 const std::string StatisticalOutlierFilter<PointT>::MEAN_K = "mean_k";
 
-template<typename PointT>
+template <typename PointT>
 const std::string StatisticalOutlierFilter<PointT>::STD_DEV_MULT = "std_dev_mult";
 
-template<typename PointT>
+template <typename PointT>
 bool StatisticalOutlierFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
 {
   std::string error;
@@ -37,20 +37,19 @@ bool StatisticalOutlierFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
     params.mean_k = static_cast<int>(value[MEAN_K]);
     params.std_dev_mult = static_cast<double>(value[STD_DEV_MULT]);
   }
-  catch (const XmlRpc::XmlRpcException &ex)
+  catch (const XmlRpc::XmlRpcException& ex)
   {
-    CONSOLE_BRIDGE_logError("Error configuring statistical outlier filter: '%s'",
-                            ex.getMessage().c_str());
+    CONSOLE_BRIDGE_logError("Error configuring statistical outlier filter: '%s'", ex.getMessage().c_str());
     return false;
   }
   return true;
 }
 
-template<typename PointT>
-bool StatisticalOutlierFilter<PointT>::filter(const T &input, T &output)
+template <typename PointT>
+bool StatisticalOutlierFilter<PointT>::filter(const T& input, T& output)
 {
   // Create a shared pointer to the input object with a "destructor" function that does not delete the raw pointer
-  auto cloud = boost::shared_ptr<const T>(&input, [](const T *) {});
+  auto cloud = boost::shared_ptr<const T>(&input, [](const T*) {});
 
   pcl::StatisticalOutlierRemoval<PointT> f;
 
@@ -64,16 +63,16 @@ bool StatisticalOutlierFilter<PointT>::filter(const T &input, T &output)
   return true;
 }
 
-template<typename PointT>
+template <typename PointT>
 std::string StatisticalOutlierFilter<PointT>::getName() const
 {
   return utils::getClassName<decltype(this)>();
 }
 
-} // namespace cloud
-} // namespace noether_filtering
+}  // namespace cloud
+}  // namespace noether_filtering
 
-#define PCL_INSTANTIATE_StatisticalOutlierFilter(T) \
+#define PCL_INSTANTIATE_StatisticalOutlierFilter(T)                                                                    \
   template class PCL_EXPORTS noether_filtering::cloud::StatisticalOutlierFilter<T>;
 
-#endif // STATISTICAL_OUTLIER_FILTER_HPP
+#endif  // STATISTICAL_OUTLIER_FILTER_HPP

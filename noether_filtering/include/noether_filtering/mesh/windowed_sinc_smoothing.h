@@ -17,7 +17,8 @@ namespace mesh
 /**
  * @class noether_filtering:;mesh::WindowedSincSmoothing
  * @details uses the vtkWindowedSincPolyDataFilter to smooth out the mesh, details of the implementation
- * and the configuration parameters can be found here https://vtk.org/doc/nightly/html/classvtkWindowedSincPolyDataFilter.html
+ * and the configuration parameters can be found here
+ * https://vtk.org/doc/nightly/html/classvtkWindowedSincPolyDataFilter.html
  */
 class WindowedSincSmoothing : public MeshFilterBase
 {
@@ -25,14 +26,13 @@ public:
   struct Config
   {
     std::size_t num_iter = 100;
-    bool enable_boundary_smoothing = true;       /**@brief Set to true to enable */
-    bool enable_feature_edge_smoothing = false;  /**@brief Set to true to enable */
-    bool enable_non_manifold_smoothing = true;   /**@brief Set to true to enable */
-    bool enable_normalize_coordinates = true;    /**@brief Set to true to enable */
-    double feature_angle = 10.0;          /**@brief degrees, only applicable when feature_edge_smoothing = true */
-    double edge_angle = 150.0;            /**@brief degrees, only applicable when feature_edge_smoothing = true */
-    double pass_band = 0.01;              /**@brief PassBand for the windowed sinc filter, see explanation in reference link */
-
+    bool enable_boundary_smoothing = true;      /**@brief Set to true to enable */
+    bool enable_feature_edge_smoothing = false; /**@brief Set to true to enable */
+    bool enable_non_manifold_smoothing = true;  /**@brief Set to true to enable */
+    bool enable_normalize_coordinates = true;   /**@brief Set to true to enable */
+    double feature_angle = 10.0;                /**@brief degrees, only applicable when feature_edge_smoothing = true */
+    double edge_angle = 150.0;                  /**@brief degrees, only applicable when feature_edge_smoothing = true */
+    double pass_band = 0.01; /**@brief PassBand for the windowed sinc filter, see explanation in reference link */
   };
 
   WindowedSincSmoothing();
@@ -70,9 +70,7 @@ public:
   std::string getName() const override final;
 
 private:
-
   Config config_;
-
 };
 
 } /* namespace mesh */

@@ -38,30 +38,31 @@ namespace mesh
 class BSplineReconstruction : public MeshFilterBase
 {
 public:
-
-  enum class SurfInitMethod: int
+  enum class SurfInitMethod : int
   {
     PCA = 1,
     PCA_BB,
-    CUSTOM_PLANE, //  not implemented yet but will use pcl::on_nurbs::FittingSurface::initNurbs4Corners
+    CUSTOM_PLANE,  //  not implemented yet but will use pcl::on_nurbs::FittingSurface::initNurbs4Corners
   };
 
   struct Parameters
   {
-    bool verbosity_on = false;        /** @brief print more info */
-    int order = 3;                    /** @brief is the polynomial order of the B-spline surface. */
-    int refinement = 3;               /** @brief refinement is the number of refinement iterations, where for each iteration
-                                                  control-points are inserted*/
-    unsigned iterations = 1;          /** @brief is the number of iterations that are performed after refinement is completed */
-    unsigned mesh_resolution = 50;    /** @brief  the number of vertices in each parametric direction, used for
-                                                  triangulation of the B-spline surface.*/
-    SurfInitMethod surf_init_method = SurfInitMethod::PCA_BB; /** @brief method for creating the initial surface to be fit */
+    bool verbosity_on = false; /** @brief print more info */
+    int order = 3;             /** @brief is the polynomial order of the B-spline surface. */
+    int refinement = 3;        /** @brief refinement is the number of refinement iterations, where for each iteration
+                                           control-points are inserted*/
+    unsigned iterations = 1; /** @brief is the number of iterations that are performed after refinement is completed */
+    unsigned mesh_resolution = 50; /** @brief  the number of vertices in each parametric direction, used for
+                                               triangulation of the B-spline surface.*/
+    SurfInitMethod surf_init_method =
+        SurfInitMethod::PCA_BB; /** @brief method for creating the initial surface to be fit */
     pcl::on_nurbs::FittingSurface::Parameter surface_params; /** @brief parameters to fit the surface**/
 
-    bool clip_boundary_curve = true;  /** @brief whether to fit the boundary curve and clip every that extends past it*/
-    int boundary_fit_order = 2;       /** @brief applicable only when clip_boundary_curve = true */
-    int boundary_startCPs = 0;        /** @brief initial number of control points */
-    bool boundary_clipping_required = false;  /** @brief if True then algorithm will fail if the boundary could not be clipped */
+    bool clip_boundary_curve = true; /** @brief whether to fit the boundary curve and clip every that extends past it*/
+    int boundary_fit_order = 2;      /** @brief applicable only when clip_boundary_curve = true */
+    int boundary_startCPs = 0;       /** @brief initial number of control points */
+    bool boundary_clipping_required =
+        false; /** @brief if True then algorithm will fail if the boundary could not be clipped */
     pcl::on_nurbs::FittingCurve2dAPDM::FitParameter boundary_curve_params;
   };
 

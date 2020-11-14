@@ -30,8 +30,9 @@ namespace mesh
 {
 /**
  * @class noether_filtering::mesh::CleanData
- * @details Uses the VTK capability shown in this example https://lorensen.github.io/VTKExamples/site/Cxx/PolyData/CleanPolyData/
- *          Merges duplicate points, and/or remove unused points and/or remove degenerate cells
+ * @details Uses the VTK capability shown in this example
+ * https://lorensen.github.io/VTKExamples/site/Cxx/PolyData/CleanPolyData/ Merges duplicate points, and/or remove unused
+ * points and/or remove degenerate cells
  */
 class CleanData : public MeshFilterBase
 {
@@ -54,7 +55,6 @@ public:
    */
   bool filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMesh& mesh_out) override final;
   std::string getName() const override final;
-
 };
 
 } /* namespace mesh */

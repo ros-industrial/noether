@@ -16,10 +16,10 @@
 #include <vtkDoubleArray.h>
 #include <vtkPointData.h>
 
-#define DISPLAY_LINES  1
-#define DISPLAY_NORMALS  0
-#define DISPLAY_DERIVATIVES  1
-#define DISPLAY_CUTTING_MESHES  0
+#define DISPLAY_LINES 1
+#define DISPLAY_NORMALS 0
+#define DISPLAY_DERIVATIVES 1
+#define DISPLAY_CUTTING_MESHES 0
 
 // This test displays the results of the path sequencer and should look very similar to the results
 // from the tool_path_planner unit test.  This test adds cyan arrows which link the paths together
@@ -36,10 +36,10 @@ TEST(IntersectTest, TestCase1)
 
   // create cutout in the middle of the mesh
   vtkSmartPointer<vtkPoints> points2 = vtkSmartPointer<vtkPoints>::New();
-  double pt1[3] = {2.0, 3.0, 0.0};
-  double pt2[3] = {4.0, 2.0, 0.0};
-  double pt3[3] = {5.0, 3.0, 0.0};
-  double pt4[3] = {4.0, 5.0, 0.0};
+  double pt1[3] = { 2.0, 3.0, 0.0 };
+  double pt2[3] = { 4.0, 2.0, 0.0 };
+  double pt3[3] = { 5.0, 3.0, 0.0 };
+  double pt4[3] = { 4.0, 5.0, 0.0 };
   points2->InsertNextPoint(pt1);
   points2->InsertNextPoint(pt2);
   points2->InsertNextPoint(pt3);
@@ -56,8 +56,8 @@ TEST(IntersectTest, TestCase1)
   tool_path_planner::SurfaceWalkRasterGenerator::Config tool;
   tool.point_spacing = 0.6;
   tool.raster_spacing = 0.75;
-  tool.tool_offset = 0.0; // currently unused
-  tool.intersection_plane_height = 0.2; // 0.5 works best, not sure if this should be included in the tool
+  tool.tool_offset = 0.0;                // currently unused
+  tool.intersection_plane_height = 0.2;  // 0.5 works best, not sure if this should be included in the tool
   tool.min_hole_size = 0.1;
   planner.setConfiguration(tool);
 
@@ -71,9 +71,8 @@ TEST(IntersectTest, TestCase1)
   color[2] = 0.9f;
   viz.addPolyDataDisplay(data2, color);
 
-
   // Display surface normals
-  if(DISPLAY_NORMALS)
+  if (DISPLAY_NORMALS)
   {
     color[0] = 0.9f;
     color[1] = 0.1f;
@@ -99,11 +98,11 @@ TEST(IntersectTest, TestCase1)
   vtkSmartPointer<vtkPoints> connecting_points = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkDoubleArray> normals = vtkSmartPointer<vtkDoubleArray>::New();
   normals->SetNumberOfComponents(3);
-  for(std::size_t i = 0; i < paths2.size(); ++i)
+  for (std::size_t i = 0; i < paths2.size(); ++i)
   {
-    for(std::size_t j = 0; j < paths2[i].size(); ++j)
+    for (std::size_t j = 0; j < paths2[i].size(); ++j)
     {
-      if(DISPLAY_LINES) // display line
+      if (DISPLAY_LINES)  // display line
       {
         color[0] = 0.2f;
         color[1] = 0.9f;
@@ -111,7 +110,7 @@ TEST(IntersectTest, TestCase1)
         viz.addPolyNormalsDisplay(paths2_data[i][j].line, color, scale);
       }
 
-      if(DISPLAY_DERIVATIVES) // display derivatives
+      if (DISPLAY_DERIVATIVES)  // display derivatives
       {
         color[0] = 0.9f;
         color[1] = 0.9f;
@@ -120,9 +119,9 @@ TEST(IntersectTest, TestCase1)
       }
     }
 
-    if(i > 0)
+    if (i > 0)
     {
-      const Eigen::Isometry3d& pt1 = paths2[i-1].back().back();
+      const Eigen::Isometry3d& pt1 = paths2[i - 1].back().back();
       const Eigen::Isometry3d& pt2 = paths2[i].front().front();
       Eigen::VectorXd delta = (pt1.translation() - pt2.translation()).normalized();
 
@@ -147,19 +146,19 @@ TEST(IntersectTest, TestCase1)
   color[2] = 0.9f;
   viz.addPolyNormalsDisplay(connecting_data, color, 1.0);
 
-  #ifdef NDEBUG
+#ifdef NDEBUG
   // release build stuff goes here
   CONSOLE_BRIDGE_logError("noether/path_sequence_planner test: visualization is only available in debug mode");
-  #else
+#else
   // Debug-specific code goes here
   viz.renderDisplay();
-  #endif
+#endif
 }
 
 // Run all the tests that were declared with TEST()
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
-  //ros::init(argc, argv, "test");  // some tests need ROS framework
+  // ros::init(argc, argv, "test");  // some tests need ROS framework
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

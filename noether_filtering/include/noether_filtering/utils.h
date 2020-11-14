@@ -18,21 +18,17 @@ namespace noether_filtering
 namespace utils
 {
 template <class C>
-static std::string getClassName() {
+static std::string getClassName()
+{
+  int status = -4;  // some arbitrary value to eliminate the compiler warning
+  const char* mangled_name = typeid(C).name();
 
-    int status = -4; // some arbitrary value to eliminate the compiler warning
-    const char* mangled_name = typeid(C).name();
-
-    // enable c++11 by passing the flag -std=c++11 to g++
-    std::unique_ptr<char, void(*)(void*)> res {
-        abi::__cxa_demangle(mangled_name, NULL, NULL, &status),
-        std::free
-    };
-    return (status==0) ? res.get() : mangled_name ;
+  // enable c++11 by passing the flag -std=c++11 to g++
+  std::unique_ptr<char, void (*)(void*)> res{ abi::__cxa_demangle(mangled_name, NULL, NULL, &status), std::free };
+  return (status == 0) ? res.get() : mangled_name;
 }
 
-}
-}
-
+}  // namespace utils
+}  // namespace noether_filtering
 
 #endif /* INCLUDE_NOETHER_FILTERING_UTILS_H_ */

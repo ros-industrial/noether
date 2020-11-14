@@ -12,13 +12,13 @@ namespace noether_filtering
 {
 namespace cloud
 {
-template<typename PointT>
+template <typename PointT>
 const std::string MLSSmoothingFilter<PointT>::POLYNOMIAL_ORDER = "polynomial_order";
 
-template<typename PointT>
+template <typename PointT>
 const std::string MLSSmoothingFilter<PointT>::SEARCH_RADIUS = "search_radius";
 
-template<typename PointT>
+template <typename PointT>
 bool MLSSmoothingFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
 {
   std::string error;
@@ -38,7 +38,7 @@ bool MLSSmoothingFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
     params.search_radius = static_cast<double>(value[SEARCH_RADIUS]);
     params.polynomial_order = static_cast<int>(value[POLYNOMIAL_ORDER]);
   }
-  catch (const XmlRpc::XmlRpcException &ex)
+  catch (const XmlRpc::XmlRpcException& ex)
   {
     CONSOLE_BRIDGE_logError("Error configuring MLS Smoothing Filter: '%s'", ex.getMessage().c_str());
     return false;
@@ -47,8 +47,8 @@ bool MLSSmoothingFilter<PointT>::configure(XmlRpc::XmlRpcValue value)
   return true;
 }
 
-template<typename PointT>
-bool MLSSmoothingFilter<PointT>::filter(const T &input, T &output)
+template <typename PointT>
+bool MLSSmoothingFilter<PointT>::filter(const T& input, T& output)
 {
   // Convert the input cloud to XYZ type
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>());
@@ -80,9 +80,9 @@ bool MLSSmoothingFilter<PointT>::filter(const T &input, T &output)
 /**
  * Provide an override specifically for the Point Normal template type that will calculate normals
  */
-template<>
-bool MLSSmoothingFilter<pcl::PointNormal>::filter(const pcl::PointCloud<pcl::PointNormal> &input,
-                                                  pcl::PointCloud<pcl::PointNormal> &output)
+template <>
+bool MLSSmoothingFilter<pcl::PointNormal>::filter(const pcl::PointCloud<pcl::PointNormal>& input,
+                                                  pcl::PointCloud<pcl::PointNormal>& output)
 {
   // Convert the input cloud to XYZ type
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>());
@@ -107,16 +107,16 @@ bool MLSSmoothingFilter<pcl::PointNormal>::filter(const pcl::PointCloud<pcl::Poi
   return true;
 }
 
-template<typename PointT>
+template <typename PointT>
 std::string MLSSmoothingFilter<PointT>::getName() const
 {
   return utils::getClassName<decltype(*this)>();
 }
 
-} // namespace cloud
-} // namespace noether_filtering
+}  // namespace cloud
+}  // namespace noether_filtering
 
-#define PCL_INSTANTIATE_MLSSmoothingFilter(T) \
+#define PCL_INSTANTIATE_MLSSmoothingFilter(T)                                                                          \
   template class PCL_EXPORTS noether_filtering::cloud::MLSSmoothingFilter<T>;
 
-#endif // NOETHER_FILTERING_CLOUD_IMPL_MLS_SMOOTHING_FILTER_HPP
+#endif  // NOETHER_FILTERING_CLOUD_IMPL_MLS_SMOOTHING_FILTER_HPP

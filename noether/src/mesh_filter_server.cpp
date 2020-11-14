@@ -19,7 +19,6 @@
  * limitations under the License.
  */
 
-
 #include <ros/ros.h>
 #include <boost/format.hpp>
 #include <actionlib/server/simple_action_server.h>
@@ -32,21 +31,17 @@ static const std::string MESH_FILTER_MNGR_PARAM = "mesh_filter_manager";
 
 class MeshFilterServer
 {
-  public:
-  MeshFilterServer():
-    server_(nh_, APPLY_MESH_FILTERS_ACTION, boost::bind(&MeshFilterServer::executeAction, this, _1),false)
+public:
+  MeshFilterServer()
+    : server_(nh_, APPLY_MESH_FILTERS_ACTION, boost::bind(&MeshFilterServer::executeAction, this, _1), false)
   {
-
   }
 
-  ~MeshFilterServer()
-  {
-
-  }
+  ~MeshFilterServer() {}
 
   bool run()
   {
-    if(!loadConfig())
+    if (!loadConfig())
     {
       return false;
     }
@@ -57,19 +52,18 @@ class MeshFilterServer
   }
 
 private:
-
   bool loadConfig()
   {
     ros::NodeHandle ph("~");
     XmlRpc::XmlRpcValue config;
-    if(!ph.getParam(MESH_FILTER_MNGR_PARAM,config))
+    if (!ph.getParam(MESH_FILTER_MNGR_PARAM, config))
     {
       ROS_ERROR("Mesh Filter Server did not find the '%s' parameter",
                 ph.resolveName(MESH_FILTER_MNGR_PARAM, true).c_str());
       return false;
     }
 
-    if(!filter_manager_.init(config))
+    if (!filter_manager_.init(config))
     {
       ROS_ERROR("Mesh Filter Server failed to initialize the filter manager");
       return false;
@@ -84,46 +78,46 @@ private:
     ApplyMeshFiltersResult res;
     ApplyMeshFiltersFeedback feedback;
 
-    if(!loadConfig())
+    if (!loadConfig())
     {
-      std::string err_msg = boost::str(boost::format("Mesh Filter Server failed to load parameters") );
+      std::string err_msg = boost::str(boost::format("Mesh Filter Server failed to load parameters"));
       ROS_ERROR_STREAM(err_msg);
-      server_.setAborted(res,err_msg);
+      server_.setAborted(res, err_msg);
       return;
     }
 
     res.success = false;
-    std::shared_ptr< noether_filtering::mesh::MeshFilterGroup > mesh_filter_group = filter_manager_.getFilterGroup(goal->filter_group);
-    if(mesh_filter_group == nullptr)
+    std::shared_ptr<noether_filtering::mesh::MeshFilterGroup> mesh_filter_group =
+        filter_manager_.getFilterGroup(goal->filter_group);
+    if (mesh_filter_group == nullptr)
     {
       std::string err_msg = boost::str(boost::format("The filter group '%s' was not found") % goal->filter_group);
-      server_.setAborted(res,err_msg);
+      server_.setAborted(res, err_msg);
       return;
     }
 
     // creating timer for publishing feedback
-    ros::Timer feedback_pub_timer = nh_.createTimer(ros::Duration(0.5),[&](const ros::TimerEvent& evnt){
-      server_.publishFeedback(feedback);
-    });
+    ros::Timer feedback_pub_timer =
+        nh_.createTimer(ros::Duration(0.5), [&](const ros::TimerEvent& evnt) { server_.publishFeedback(feedback); });
 
     // applying filters one mesh at a time
-    for(std::size_t i = 0; i < goal->surface_meshes.size(); i++)
+    for (std::size_t i = 0; i < goal->surface_meshes.size(); i++)
     {
       feedback.current_mesh_index = i;
 
       pcl::PolygonMesh mesh_in, mesh_out;
-      noether_conversions::convertToPCLMesh(goal->surface_meshes[i],mesh_in);
+      noether_conversions::convertToPCLMesh(goal->surface_meshes[i], mesh_in);
       std::string err_msg;
-      if(!mesh_filter_group->applyFilters(goal->custom_filter_names,mesh_in,mesh_out, err_msg))
+      if (!mesh_filter_group->applyFilters(goal->custom_filter_names, mesh_in, mesh_out, err_msg))
       {
-        std::string name = goal->label + "[" + std::to_string(i) + "]" ;
-        server_.setAborted(res,err_msg);
+        std::string name = goal->label + "[" + std::to_string(i) + "]";
+        server_.setAborted(res, err_msg);
         ROS_ERROR("Failed to filter %s mesh", name.c_str());
         return;
       }
       ROS_INFO("Filtered mesh %lu", i);
       shape_msgs::Mesh filtered_mesh_msg;
-      noether_conversions::convertToMeshMsg(mesh_out,filtered_mesh_msg);
+      noether_conversions::convertToMeshMsg(mesh_out, filtered_mesh_msg);
       res.filtered_meshes.push_back(std::move(filtered_mesh_msg));
     }
     res.success = true;
@@ -137,12 +131,12 @@ private:
 
 int main(int argc, char** argv)
 {
-  ros::init(argc,argv,"mesh_filter_server");
+  ros::init(argc, argv, "mesh_filter_server");
   ros::AsyncSpinner spinner(2);
   spinner.start();
   console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_INFO);
   MeshFilterServer server;
-  if(!server.run())
+  if (!server.run())
   {
     return -1;
   }
@@ -150,4 +144,3 @@ int main(int argc, char** argv)
   ros::waitForShutdown();
   return 0;
 }
-

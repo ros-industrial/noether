@@ -12,7 +12,6 @@
 
 namespace noether_filtering
 {
-
 template <typename T>
 class FilterBase
 {
@@ -25,6 +24,6 @@ public:
   virtual std::string getName() const = 0;
 };
 
-} // namespace noether_filtering
+}  // namespace noether_filtering
 
 #endif /* INCLUDE_NOETHER_FILTERING_MESH_FILTER_BASE_H_ */

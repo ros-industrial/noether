@@ -17,7 +17,6 @@
  * limitations under the License.
  */
 
-
 #ifndef CONVEX_HULL_H
 #define CONVEX_HULL_H
 
@@ -36,36 +35,38 @@ class ConvexHullGenerator
 {
 public:
   /**
-  * @brief default constructor
-  */
+   * @brief default constructor
+   */
   ConvexHullGenerator();
   /**
-  * @brief Reads in a meash from a .PLY file
-  * @param input The file to be read in
-  * @param inMesh The mesh object that will be populated (internal)
-  * @return Success of file read
-  */
+   * @brief Reads in a meash from a .PLY file
+   * @param input The file to be read in
+   * @param inMesh The mesh object that will be populated (internal)
+   * @return Success of file read
+   */
   bool MakeMesh(const std::string& input, pcl::PointCloud<pcl::PointXYZ>& inMesh);
   /**
-  * @brief Reorients the inverted faces of the convex hull
-  * @param outMesh Contains the vertices of the mesh
-  * @param outMeshPoly Holds the polygon information for the convex hull
-  */
+   * @brief Reorients the inverted faces of the convex hull
+   * @param outMesh Contains the vertices of the mesh
+   * @param outMeshPoly Holds the polygon information for the convex hull
+   */
   void CleanMesh(const pcl::PointCloud<pcl::PointXYZ>& outMesh, pcl::PolygonMesh& outMeshPoly);
   /**
-  * @brief Saves convex hull to a PLY file
-  * @param outMesh Contains the vertices of the mesh
-  * @param outMeshPoly Holds the polygon information for the convex hull
-  * @param outfile File of name to be written out
-  * @return Success of file save
-  */
-  bool SaveMesh(const pcl::PointCloud<pcl::PointXYZ>& outMesh, pcl::PolygonMesh& outMeshPoly, const std::string& outfile);
+   * @brief Saves convex hull to a PLY file
+   * @param outMesh Contains the vertices of the mesh
+   * @param outMeshPoly Holds the polygon information for the convex hull
+   * @param outfile File of name to be written out
+   * @return Success of file save
+   */
+  bool SaveMesh(const pcl::PointCloud<pcl::PointXYZ>& outMesh,
+                pcl::PolygonMesh& outMeshPoly,
+                const std::string& outfile);
   /**
-  * @brief Master function that calls all other functions
-  * @param infile Input file to be read in
-  * @param outfile File of name to be written out
-  * @return success Process completion
-  */
+   * @brief Master function that calls all other functions
+   * @param infile Input file to be read in
+   * @param outfile File of name to be written out
+   * @return success Process completion
+   */
   bool Generate(const std::string& infile, const std::string& outfile);
 };
 #endif

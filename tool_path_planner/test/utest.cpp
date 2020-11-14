@@ -15,9 +15,9 @@
 #include <tool_path_planner/halfedge_edge_generator.h>
 #include <tool_path_planner/utilities.h>
 
-#define DISPLAY_LINES  1
-#define DISPLAY_NORMALS  0
-#define DISPLAY_DERIVATIVES  1
+#define DISPLAY_LINES 1
+#define DISPLAY_NORMALS 0
+#define DISPLAY_DERIVATIVES 1
 #define POINT_SPACING 0.5
 
 vtkSmartPointer<vtkPolyData> createTestMesh1(double sample_spacing = 0.5)
@@ -50,13 +50,12 @@ vtkSmartPointer<vtkPolyData> createTestMesh2(double sample_spacing = 0.5)
   vtkSmartPointer<vtkPolyData> data = vtk_viewer::createMesh(points, sample_spacing, 5);
   vtk_viewer::generateNormals(data);
 
-
   // create cutout in the middle of the mesh
   vtkSmartPointer<vtkPoints> points2 = vtkSmartPointer<vtkPoints>::New();
-  double pt1[3] = {2.0, 3.0, 0.0};
-  double pt2[3] = {4.0, 2.0, 0.0};
-  double pt3[3] = {5.0, 3.0, 0.0};
-  double pt4[3] = {4.0, 5.0, 0.0};
+  double pt1[3] = { 2.0, 3.0, 0.0 };
+  double pt2[3] = { 4.0, 2.0, 0.0 };
+  double pt3[3] = { 5.0, 3.0, 0.0 };
+  double pt4[3] = { 4.0, 5.0, 0.0 };
   points2->InsertNextPoint(pt1);
   points2->InsertNextPoint(pt2);
   points2->InsertNextPoint(pt3);
@@ -128,7 +127,6 @@ void runRasterRotationTest(tool_path_planner::PathGenerator& planner, vtkSmartPo
   // Debug-specific code goes here
   viz.renderDisplay();
 #endif
-
 }
 
 void runTestCase1(tool_path_planner::PathGenerator& planner, vtkSmartPointer<vtkPolyData> mesh)
@@ -147,9 +145,8 @@ void runTestCase1(tool_path_planner::PathGenerator& planner, vtkSmartPointer<vtk
   color[2] = 0.9f;
   viz.addPolyDataDisplay(mesh, color);
 
-
   // Display surface normals
-  if(DISPLAY_NORMALS)
+  if (DISPLAY_NORMALS)
   {
     color[0] = 0.9f;
     color[1] = 0.1f;
@@ -158,7 +155,6 @@ void runTestCase1(tool_path_planner::PathGenerator& planner, vtkSmartPointer<vtk
     normals_data = planner.getInput();
     viz.addPolyNormalsDisplay(normals_data, color, scale);
   }
-
 
   // Plan paths for given mesh
   boost::optional<tool_path_planner::ToolPaths> paths = planner.generate();
@@ -186,13 +182,13 @@ void runTestCase1(tool_path_planner::PathGenerator& planner, vtkSmartPointer<vtk
     }
   }
 
-  #ifdef NDEBUG
+#ifdef NDEBUG
   // release build stuff goes here
   CONSOLE_BRIDGE_logError("noether/tool_path_planner test: visualization is only available in debug mode");
-  #else
+#else
   // Debug-specific code goes here
   viz.renderDisplay();
-  #endif
+#endif
 }
 
 void runTestCaseRansac(tool_path_planner::PathGenerator& planner, vtkSmartPointer<vtkPolyData> mesh)
@@ -211,9 +207,8 @@ void runTestCaseRansac(tool_path_planner::PathGenerator& planner, vtkSmartPointe
   color[2] = 0.9f;
   viz.addPolyDataDisplay(mesh, color);
 
-
   // Display surface normals
-  if(DISPLAY_NORMALS)
+  if (DISPLAY_NORMALS)
   {
     color[0] = 0.9f;
     color[1] = 0.1f;
@@ -222,7 +217,6 @@ void runTestCaseRansac(tool_path_planner::PathGenerator& planner, vtkSmartPointe
     normals_data = planner.getInput();
     viz.addPolyNormalsDisplay(normals_data, color, scale);
   }
-
 
   // Plan paths for given mesh
   boost::optional<tool_path_planner::ToolPaths> paths = planner.generate();
@@ -250,13 +244,13 @@ void runTestCaseRansac(tool_path_planner::PathGenerator& planner, vtkSmartPointe
     }
   }
 
-  #ifdef NDEBUG
+#ifdef NDEBUG
   // release build stuff goes here
   CONSOLE_BRIDGE_logError("noether/tool_path_planner test: visualization is only available in debug mode");
-  #else
+#else
   // Debug-specific code goes here
   viz.renderDisplay();
-  #endif
+#endif
 }
 
 void runExtraRasterTest(tool_path_planner::PathGenerator& planner,
@@ -295,7 +289,7 @@ void runExtraRasterTest(tool_path_planner::PathGenerator& planner,
   viz.addPolyDataDisplay(mesh, color);
 
   // Display surface normals
-  if(DISPLAY_NORMALS)
+  if (DISPLAY_NORMALS)
   {
     color[0] = 0.9f;
     color[1] = 0.1f;
@@ -363,7 +357,7 @@ TEST(IntersectTest, SurfaceWalkRasterRotationTest)
 {
   vtkSmartPointer<vtkPolyData> mesh = createTestMesh1();
 
-  double raster_directions[] = {0., 0.78, 1.57, 2.35};
+  double raster_directions[] = { 0., 0.78, 1.57, 2.35 };
 
   for (auto direction : raster_directions)
   {
@@ -387,7 +381,7 @@ TEST(IntersectTest, PlaneSlicerRasterRotationTest)
 {
   vtkSmartPointer<vtkPolyData> mesh = createTestMesh1();
 
-  double raster_directions[] = {0., 0.78, 1.57, 2.35};
+  double raster_directions[] = { 0., 0.78, 1.57, 2.35 };
 
   for (auto direction : raster_directions)
   {
@@ -396,11 +390,11 @@ TEST(IntersectTest, PlaneSlicerRasterRotationTest)
     tool_path_planner::PlaneSlicerRasterGenerator::Config tool;
     tool.point_spacing = POINT_SPACING;
     tool.raster_spacing = 0.75;
-//    tool.tool_offset = 0.0;                // currently unused
+    //    tool.tool_offset = 0.0;                // currently unused
     tool.min_hole_size = 0.1;
     tool.raster_rot_offset = direction;
-//    tool.raster_wrt_global_axes = false;
-//    tool.debug = false;
+    //    tool.raster_wrt_global_axes = false;
+    //    tool.debug = false;
     planner.setConfiguration(tool);
     runRasterRotationTest(planner, mesh);
   }
@@ -430,10 +424,10 @@ TEST(IntersectTest, EigenValueEdgeGeneratorTestCase0)
 }
 
 // This test shows the results of the tool path planner on a square grid that has a sinusoidal
-// variation in the z axis and a cutout in the middle.  It will generate a series of evenly spaced lines (aprox. equal to line_spacing)
-// with evenly spaced points on each line (aprox. equal to pt_spacing).  Yellow arrows show the direction of
-// travel in a give line (all lines should point in the same direction) and green arrows show the process normal
-// direction (should be aprox. normal to the surface in that region)
+// variation in the z axis and a cutout in the middle.  It will generate a series of evenly spaced lines (aprox. equal
+// to line_spacing) with evenly spaced points on each line (aprox. equal to pt_spacing).  Yellow arrows show the
+// direction of travel in a give line (all lines should point in the same direction) and green arrows show the process
+// normal direction (should be aprox. normal to the surface in that region)
 
 TEST(IntersectTest, SurfaceWalkTestCase1)
 {
@@ -444,8 +438,8 @@ TEST(IntersectTest, SurfaceWalkTestCase1)
   tool_path_planner::SurfaceWalkRasterGenerator::Config tool;
   tool.point_spacing = POINT_SPACING;
   tool.raster_spacing = 0.75;
-  tool.tool_offset = 0.0; // currently unused
-  tool.intersection_plane_height = 0.2; // 0.5 works best, not sure if this should be included in the tool
+  tool.tool_offset = 0.0;                // currently unused
+  tool.intersection_plane_height = 0.2;  // 0.5 works best, not sure if this should be included in the tool
   tool.min_hole_size = 0.1;
   tool.debug = false;
   planner.setConfiguration(tool);
@@ -462,9 +456,9 @@ TEST(IntersectTest, PlaneSlicerTestCase1)
   tool_path_planner::PlaneSlicerRasterGenerator::Config tool;
   tool.point_spacing = POINT_SPACING;
   tool.raster_spacing = 0.75;
-//  tool.tool_offset = 0.0; // currently unused
+  //  tool.tool_offset = 0.0; // currently unused
   tool.min_hole_size = 0.1;
-//  tool.debug = false;
+  //  tool.debug = false;
   planner.setConfiguration(tool);
 
   runTestCase1(planner, mesh);
@@ -479,8 +473,8 @@ TEST(IntersectTest, SurfaceWalkTestCaseRansac)
   tool_path_planner::SurfaceWalkRasterGenerator::Config tool;
   tool.point_spacing = POINT_SPACING;
   tool.raster_spacing = 0.75;
-  tool.tool_offset = 0.0; // currently unused
-  tool.intersection_plane_height = 0.2; // 0.5 works best, not sure if this should be included in the tool
+  tool.tool_offset = 0.0;                // currently unused
+  tool.intersection_plane_height = 0.2;  // 0.5 works best, not sure if this should be included in the tool
   tool.min_hole_size = 0.1;
   tool.debug = false;
   planner.setConfiguration(tool);
@@ -496,9 +490,9 @@ TEST(IntersectTest, PlaneSlicerTestCaseRansac)
   tool_path_planner::PlaneSlicerRasterGenerator::Config tool;
   tool.point_spacing = POINT_SPACING;
   tool.raster_spacing = 0.75;
-//  tool.tool_offset = 0.0; // currently unused
+  //  tool.tool_offset = 0.0; // currently unused
   tool.min_hole_size = 0.1;
-//  tool.debug = false;
+  //  tool.debug = false;
   planner.setConfiguration(tool);
   runTestCaseRansac(planner, mesh);
 }
@@ -518,8 +512,8 @@ TEST(IntersectTest, EigenValueEdgeGeneratorTestRansac)
 {
   vtkSmartPointer<vtkPolyData> mesh = createTestMesh2();
   tool_path_planner::EigenValueEdgeGenerator planner;
-//  tool_path_planner::PlaneSlicerRasterGenerator::Config tool;
-//  planner.setConfiguration(tool);
+  //  tool_path_planner::PlaneSlicerRasterGenerator::Config tool;
+  //  planner.setConfiguration(tool);
   runTestCase1(planner, mesh);
 }
 
@@ -550,7 +544,7 @@ TEST(IntersectTest, SurfaceWalkExtraRasterTest)
   runExtraRasterTest(planner, planner_with_extra, mesh);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

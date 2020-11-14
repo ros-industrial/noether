@@ -105,16 +105,20 @@ public:
     {
       // Apply Windowed Sinc function interpolation Smoothing
       vtkSmartPointer<vtkWindowedSincPolyDataFilter> smooth_filter1 =
-      vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
+          vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
       smooth_filter1->SetInputConnection(cleanPolyData->GetOutputPort());
       smooth_filter1->SetNumberOfIterations(windowed_sinc_iterations);
       smooth_filter1->SetPassBand(windowed_sinc_pass_band);
-      windowed_sinc_edge_smoothing  ? smooth_filter1->FeatureEdgeSmoothingOn() : smooth_filter1->FeatureEdgeSmoothingOff();  // Smooth along sharp interior edges
-      smooth_filter1->SetFeatureAngle(windowed_sinc_feature_angle);        // Angle to identify sharp edges (degrees)
-      smooth_filter1->SetEdgeAngle(windowed_sinc_edge_angle);           // Not sure what this controls (degrees)
+      windowed_sinc_edge_smoothing ? smooth_filter1->FeatureEdgeSmoothingOn() :
+                                     smooth_filter1->FeatureEdgeSmoothingOff();  // Smooth along sharp interior edges
+      smooth_filter1->SetFeatureAngle(windowed_sinc_feature_angle);  // Angle to identify sharp edges (degrees)
+      smooth_filter1->SetEdgeAngle(windowed_sinc_edge_angle);        // Not sure what this controls (degrees)
       windowed_sinc_boundary_smoothing ? smooth_filter1->BoundarySmoothingOn() : smooth_filter1->BoundarySmoothingOff();
-      windowed_sinc_nonmanifold_smoothing ? smooth_filter1->NonManifoldSmoothingOn() : smooth_filter1->NonManifoldSmoothingOff();
-      windowed_sinc_normalize_coordinates ? smooth_filter1->NormalizeCoordinatesOn() : smooth_filter1->NormalizeCoordinatesOff();  // "Improves numerical stability"
+      windowed_sinc_nonmanifold_smoothing ? smooth_filter1->NonManifoldSmoothingOn() :
+                                            smooth_filter1->NonManifoldSmoothingOff();
+      windowed_sinc_normalize_coordinates ?
+          smooth_filter1->NormalizeCoordinatesOn() :
+          smooth_filter1->NormalizeCoordinatesOff();  // "Improves numerical stability"
       smooth_filter1->Update();
       mesh_filtered1 = smooth_filter1->GetOutput();
 
