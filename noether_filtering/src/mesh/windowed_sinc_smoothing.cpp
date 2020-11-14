@@ -18,37 +18,31 @@ namespace noether_filtering
 {
 namespace mesh
 {
-WindowedSincSmoothing::WindowedSincSmoothing()
-{
+WindowedSincSmoothing::WindowedSincSmoothing() {}
 
-}
-
-WindowedSincSmoothing::~WindowedSincSmoothing()
-{
-
-}
+WindowedSincSmoothing::~WindowedSincSmoothing() {}
 
 bool WindowedSincSmoothing::configure(XmlRpc::XmlRpcValue config)
 {
-  std::vector<std::string> fields = {"num_iter",
-                                     "enable_boundary_smoothing",
-                                     "enable_feature_edge_smoothing",
-                                     "enable_non_manifold_smoothing",
-                                     "enable_normalize_coordinates",
-                                     "feature_angle",
-                                     "edge_angle",
-                                     "pass_band",
-                                     };
+  std::vector<std::string> fields = {
+    "num_iter",
+    "enable_boundary_smoothing",
+    "enable_feature_edge_smoothing",
+    "enable_non_manifold_smoothing",
+    "enable_normalize_coordinates",
+    "feature_angle",
+    "edge_angle",
+    "pass_band",
+  };
 
-  if(!std::all_of(fields.begin(), fields.end(), [&config, this](const std::string& f){
-    if( !config.hasMember(f))
-    {
-      CONSOLE_BRIDGE_logError("The %s config field %s was not found", getName().c_str(), f.c_str());
-      return false;
-    }
-    return true;
-  }
-  ))
+  if (!std::all_of(fields.begin(), fields.end(), [&config, this](const std::string& f) {
+        if (!config.hasMember(f))
+        {
+          CONSOLE_BRIDGE_logError("The %s config field %s was not found", getName().c_str(), f.c_str());
+          return false;
+        }
+        return true;
+      }))
   {
     return false;
   }
@@ -65,7 +59,7 @@ bool WindowedSincSmoothing::configure(XmlRpc::XmlRpcValue config)
     config_.edge_angle = static_cast<double>(config[fields[idx++]]);
     config_.pass_band = static_cast<double>(config[fields[idx++]]);
   }
-  catch(XmlRpc::XmlRpcException& e)
+  catch (XmlRpc::XmlRpcException& e)
   {
     CONSOLE_BRIDGE_logError(e.getMessage().c_str());
     return false;
@@ -97,14 +91,11 @@ bool WindowedSincSmoothing::filter(const pcl::PolygonMesh& mesh_in, pcl::Polygon
   smoother->Update();
 
   mesh_data = smoother->GetOutput();
-  VTKUtils::vtk2mesh(mesh_data,mesh_out);
+  VTKUtils::vtk2mesh(mesh_data, mesh_out);
   return true;
 }
 
-std::string WindowedSincSmoothing::getName() const
-{
-  return utils::getClassName<decltype(*this)>();
-}
+std::string WindowedSincSmoothing::getName() const { return utils::getClassName<decltype(*this)>(); }
 
 } /* namespace mesh */
 } /* namespace noether_filtering */

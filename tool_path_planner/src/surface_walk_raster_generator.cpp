@@ -30,13 +30,12 @@
 #include <tool_path_planner/utilities.h>
 
 static const std::size_t MAX_ATTEMPTS = 1000;
-static const double ANGLE_CORRECTION_THRESHOLD = (150.0/180.0)*M_PI;
+static const double ANGLE_CORRECTION_THRESHOLD = (150.0 / 180.0) * M_PI;
 static const double EXTRUDE_EXTEND_PERCENTAGE = 1.5;
 static const double RAY_INTERSECTION_TOLERANCE = 0.001;
 
 namespace tool_path_planner
 {
-
 /**
  * @brief Structure to store the first and last positions of the path segments. This is all the info
  * we need to make decisions about path order as we currently don't split paths up.
@@ -90,7 +89,7 @@ std::vector<PathEndPoints> toEndPoints(const std::vector<EigenSTL::vector_Affine
     const auto& s = segments[i];
     Eigen::Vector3d a = (ref_inv * s.front()).translation();
     Eigen::Vector3d b = (ref_inv * s.back()).translation();
-    result.push_back({a, b, i});
+    result.push_back({ a, b, i });
   }
   return result;
 }
@@ -113,8 +112,8 @@ std::vector<geometry_msgs::PoseArray> makeSequence(const std::vector<geometry_ms
 
   for (const auto& seq : seqs)
   {
-    rs.push_back(in[end_points[seq.id].id]); // seq.id points to end_points; end_points.id points to in
-    if (!seq.from_a) // The 'in' trajectory has segments that are always A to B
+    rs.push_back(in[end_points[seq.id].id]);  // seq.id points to end_points; end_points.id points to in
+    if (!seq.from_a)                          // The 'in' trajectory has segments that are always A to B
     {
       std::reverse(rs.back().poses.begin(), rs.back().poses.end());
     }
@@ -133,7 +132,7 @@ std::vector<geometry_msgs::PoseArray> makeSequence(const std::vector<geometry_ms
  */
 Eigen::Quaterniond average(const std::vector<Eigen::Quaterniond, Eigen::aligned_allocator<Eigen::Quaterniond>>& qs)
 {
-  Eigen::MatrixXd Q (4, qs.size());
+  Eigen::MatrixXd Q(4, qs.size());
 
   for (std::size_t i = 0; i < qs.size(); ++i)
   {
@@ -159,16 +158,15 @@ Eigen::Quaterniond average(const std::vector<Eigen::Quaterniond, Eigen::aligned_
   }
 
   Eigen::VectorXd coeffs = eigen_vecs.col(max_idx);
-  Eigen::Quaterniond avg_quat (coeffs(3), coeffs(0), coeffs(1), coeffs(2));
+  Eigen::Quaterniond avg_quat(coeffs(3), coeffs(0), coeffs(1), coeffs(2));
   return avg_quat;
 }
 
 // Helpers to go from pose arrays to Eigen vectors of Poses
 EigenSTL::vector_Affine3d toEigen(const geometry_msgs::PoseArray& p)
 {
-  EigenSTL::vector_Affine3d rs (p.poses.size());
-  std::transform(p.poses.begin(), p.poses.end(), rs.begin(), [] (const geometry_msgs::Pose& pose)
-  {
+  EigenSTL::vector_Affine3d rs(p.poses.size());
+  std::transform(p.poses.begin(), p.poses.end(), rs.begin(), [](const geometry_msgs::Pose& pose) {
     Eigen::Affine3d e;
     tf::poseMsgToEigen(pose, e);
     return e;
@@ -179,11 +177,9 @@ EigenSTL::vector_Affine3d toEigen(const geometry_msgs::PoseArray& p)
 // Helpers to go from pose arrays to Eigen vectors of Poses
 std::vector<EigenSTL::vector_Affine3d> toEigen(const std::vector<geometry_msgs::PoseArray>& ps)
 {
-  std::vector<EigenSTL::vector_Affine3d> rs (ps.size());
-  std::transform(ps.begin(), ps.end(), rs.begin(), [] (const geometry_msgs::PoseArray& poses)
-  {
-    return toEigen(poses);
-  });
+  std::vector<EigenSTL::vector_Affine3d> rs(ps.size());
+  std::transform(
+      ps.begin(), ps.end(), rs.begin(), [](const geometry_msgs::PoseArray& poses) { return toEigen(poses); });
   return rs;
 }
 
@@ -246,8 +242,7 @@ std::vector<geometry_msgs::PoseArray> sequence(const std::vector<geometry_msgs::
   auto end_points = toEndPoints(eigen_poses, avg_quaternion);
 
   // Sort end points, -y to y
-  std::sort(end_points.begin(), end_points.end(), [] (const PathEndPoints& lhs, const PathEndPoints& rhs)
-  {
+  std::sort(end_points.begin(), end_points.end(), [](const PathEndPoints& lhs, const PathEndPoints& rhs) {
     auto lhs_value = std::min(lhs.a.y(), lhs.b.y());
     auto rhs_value = std::min(rhs.a.y(), rhs.b.y());
     return lhs_value < rhs_value;
@@ -256,9 +251,9 @@ std::vector<geometry_msgs::PoseArray> sequence(const std::vector<geometry_msgs::
   // A helper function to get the starting point of a transition given a sequence number and
   // whether we started at A or B.
   auto current_position = [&end_points](const SequencePoint& p) {
-    if (p.from_a) // If we came from A, we're now at B
+    if (p.from_a)  // If we came from A, we're now at B
       return end_points[p.id].b;
-    else // if we came from B, we're not at A
+    else  // if we came from B, we're not at A
       return end_points[p.id].a;
   };
 
@@ -266,7 +261,7 @@ std::vector<geometry_msgs::PoseArray> sequence(const std::vector<geometry_msgs::
   sequence.reserve(input.size());
 
   // We always start at the first end_point, position A
-  sequence.push_back({0, true});
+  sequence.push_back({ 0, true });
 
   for (std::size_t i = 1; i < end_points.size(); ++i)
   {
@@ -277,7 +272,7 @@ std::vector<geometry_msgs::PoseArray> sequence(const std::vector<geometry_msgs::
     const auto dist_b = (end_points[i].b - current_pos).squaredNorm();
 
     const auto from_a = dist_a < dist_b;
-    sequence.push_back({i, from_a});
+    sequence.push_back({ i, from_a });
   }
 
   // Re-order the original inputs and produce a new segment.
@@ -288,7 +283,7 @@ std::vector<geometry_msgs::PoseArray> sequence(const std::vector<geometry_msgs::
 /// NEW CODE BELOW
 ///////////////////////////////////////////////////
 
-//std::vector<noether_msgs::ToolRasterPath> toPosesMsgs(const std::vector<tool_path_planner::ProcessPath>& paths)
+// std::vector<noether_msgs::ToolRasterPath> toPosesMsgs(const std::vector<tool_path_planner::ProcessPath>& paths)
 //{
 //  std::vector<noether_msgs::ToolRasterPath> results;
 
@@ -348,14 +343,14 @@ std::vector<geometry_msgs::PoseArray> sequence(const std::vector<geometry_msgs::
 //  return results;
 //}
 
-void flipPointOrder(ProcessPath &path)
+void flipPointOrder(ProcessPath& path)
 {
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkPoints> points2 = vtkSmartPointer<vtkPoints>::New();
   points = path.line->GetPoints();
 
   // flip point order
-  for(long i = points->GetNumberOfPoints() - 1; i >= 0; --i)
+  for (long i = points->GetNumberOfPoints() - 1; i >= 0; --i)
   {
     points2->InsertNextPoint(points->GetPoint(i));
   }
@@ -366,7 +361,7 @@ void flipPointOrder(ProcessPath &path)
   vtkSmartPointer<vtkDoubleArray> new_norms = vtkSmartPointer<vtkDoubleArray>::New();
   new_norms->SetNumberOfComponents(3);
 
-  for(long i = norms->GetNumberOfTuples() - 1; i >= 0; --i)
+  for (long i = norms->GetNumberOfTuples() - 1; i >= 0; --i)
   {
     double* ptr = norms->GetTuple(i);
     new_norms->InsertNextTuple(ptr);
@@ -376,7 +371,7 @@ void flipPointOrder(ProcessPath &path)
   // flip point order
   points = path.derivatives->GetPoints();
   vtkSmartPointer<vtkPoints> dpoints2 = vtkSmartPointer<vtkPoints>::New();
-  for(long i = points->GetNumberOfPoints() - 1; i >= 0; --i)
+  for (long i = points->GetNumberOfPoints() - 1; i >= 0; --i)
   {
     dpoints2->InsertNextPoint(points->GetPoint(i));
   }
@@ -386,7 +381,7 @@ void flipPointOrder(ProcessPath &path)
   vtkDataArray* ders = path.derivatives->GetPointData()->GetNormals();
   vtkSmartPointer<vtkDoubleArray> new_ders = vtkSmartPointer<vtkDoubleArray>::New();
   new_ders->SetNumberOfComponents(3);
-  for(long i = ders->GetNumberOfTuples() -1; i >= 0; --i)
+  for (long i = ders->GetNumberOfTuples() - 1; i >= 0; --i)
   {
     double* pt = ders->GetTuple(i);
     pt[0] *= -1;
@@ -403,55 +398,52 @@ void flipPointOrder(ProcessPath &path)
 std::vector<geometry_msgs::PoseArray> toPosesMsgs(const std::vector<tool_path_planner::ProcessPath>& paths)
 {
   std::vector<geometry_msgs::PoseArray> poseArrayVector;
-  for(std::size_t j = 0; j < paths.size(); ++j)
+  for (std::size_t j = 0; j < paths.size(); ++j)
   {
-     geometry_msgs::PoseArray poses;
-     poses.header.seq = j;
-     poses.header.frame_id = "0";
-     for(int k = 0; k < paths[j].line->GetPoints()->GetNumberOfPoints(); ++k)
-     {
-        geometry_msgs::Pose pose;
-        double pt[3];
+    geometry_msgs::PoseArray poses;
+    poses.header.seq = j;
+    poses.header.frame_id = "0";
+    for (int k = 0; k < paths[j].line->GetPoints()->GetNumberOfPoints(); ++k)
+    {
+      geometry_msgs::Pose pose;
+      double pt[3];
 
-        // Get the point location
-        paths[j].line->GetPoints()->GetPoint(k, pt);
-        pose.position.x = pt[0];
-        pose.position.y = pt[1];
-        pose.position.z = pt[2];
+      // Get the point location
+      paths[j].line->GetPoints()->GetPoint(k, pt);
+      pose.position.x = pt[0];
+      pose.position.y = pt[1];
+      pose.position.z = pt[2];
 
-        // Get the point normal and derivative for creating the 3x3 transform
-        double* norm =
-            paths[j].line->GetPointData()->GetNormals()->GetTuple(k);
-        double* der =
-            paths[j].derivatives->GetPointData()->GetNormals()->GetTuple(k);
+      // Get the point normal and derivative for creating the 3x3 transform
+      double* norm = paths[j].line->GetPointData()->GetNormals()->GetTuple(k);
+      double* der = paths[j].derivatives->GetPointData()->GetNormals()->GetTuple(k);
 
-        // perform cross product to get the third axis direction
-        Eigen::Vector3d u(norm[0], norm[1], norm[2]);
-        Eigen::Vector3d v(der[0], der[1], der[2]);
-        Eigen::Vector3d w = u.cross(v);
-        w.normalize();
+      // perform cross product to get the third axis direction
+      Eigen::Vector3d u(norm[0], norm[1], norm[2]);
+      Eigen::Vector3d v(der[0], der[1], der[2]);
+      Eigen::Vector3d w = u.cross(v);
+      w.normalize();
 
-        // after first cross product, u and w will be orthogonal.
-        // Perform cross product one more time to make sure that v is perfectly
-        // orthogonal to u and w
-        v = u.cross(w);
-        v.normalize();
+      // after first cross product, u and w will be orthogonal.
+      // Perform cross product one more time to make sure that v is perfectly
+      // orthogonal to u and w
+      v = u.cross(w);
+      v.normalize();
 
-        Eigen::Affine3d epose = Eigen::Affine3d::Identity();
-        epose.matrix().col(0).head<3>() = v;
-        epose.matrix().col(1).head<3>() = -w;
-        epose.matrix().col(2).head<3>() = u;
-        epose.matrix().col(3).head<3>() = Eigen::Vector3d(pt[0], pt[1], pt[2]);
+      Eigen::Affine3d epose = Eigen::Affine3d::Identity();
+      epose.matrix().col(0).head<3>() = v;
+      epose.matrix().col(1).head<3>() = -w;
+      epose.matrix().col(2).head<3>() = u;
+      epose.matrix().col(3).head<3>() = Eigen::Vector3d(pt[0], pt[1], pt[2]);
 
-        tf::poseEigenToMsg(epose, pose);
+      tf::poseEigenToMsg(epose, pose);
 
-        // push back new matrix (pose and orientation), this makes one long
-        // vector may need to break this up more
-        poses.poses.push_back(pose);
-
-      }
-      poseArrayVector.push_back(poses);
+      // push back new matrix (pose and orientation), this makes one long
+      // vector may need to break this up more
+      poses.poses.push_back(pose);
     }
+    poseArrayVector.push_back(poses);
+  }
 
   return poseArrayVector;
 }
@@ -464,7 +456,7 @@ std::vector<geometry_msgs::PoseArray> toPosesMsgs(const std::vector<tool_path_pl
  */
 double computeAngle(const Eigen::Vector3d& v1, const Eigen::Vector3d& v2)
 {
-  return std::acos(v1.dot(v2)/(v1.norm() * v2.norm()));
+  return std::acos(v1.dot(v2) / (v1.norm() * v2.norm()));
 }
 
 /**
@@ -475,11 +467,11 @@ double computeAngle(const Eigen::Vector3d& v1, const Eigen::Vector3d& v2)
  */
 double computeSquaredDistance(const std::vector<double>& pt1, const std::vector<double>& pt2)
 {
-  if(pt1.size() != 3 || pt2.size() != 3)
+  if (pt1.size() != 3 || pt2.size() != 3)
   {
     return 0;
   }
-  return (pow(pt1[0] - pt2[0], 2.0) + pow(pt1[1] - pt2[1], 2.0 ) + pow((pt1[2] - pt2[2]), 2.0 ));
+  return (pow(pt1[0] - pt2[0], 2.0) + pow(pt1[1] - pt2[1], 2.0) + pow((pt1[2] - pt2[2]), 2.0));
 }
 
 /**
@@ -488,14 +480,14 @@ double computeSquaredDistance(const std::vector<double>& pt1, const std::vector<
  * @param pts The list of points to search for the closest point
  * @return The index of the closest point
  */
-int findClosestPoint(const std::vector<double>& pt,  const std::vector<std::vector<double> >& pts)
+int findClosestPoint(const std::vector<double>& pt, const std::vector<std::vector<double>>& pts)
 {
   double min = std::numeric_limits<double>::max();
   int index = -1;
-  for(std::size_t i = 0; i < pts.size(); ++i)
+  for (std::size_t i = 0; i < pts.size(); ++i)
   {
     double d = computeSquaredDistance(pt, pts[i]);
-    if(d < min)
+    if (d < min)
     {
       index = static_cast<int>(i);
       min = d;
@@ -504,10 +496,7 @@ int findClosestPoint(const std::vector<double>& pt,  const std::vector<std::vect
   return index;
 }
 
-bool SurfaceWalkRasterGenerator::setConfiguration(const Config& config)
-{
-  config_ = config;
-}
+bool SurfaceWalkRasterGenerator::setConfiguration(const Config& config) { config_ = config; }
 
 void SurfaceWalkRasterGenerator::setInput(pcl::PolygonMesh::ConstPtr mesh)
 {
@@ -525,7 +514,7 @@ void SurfaceWalkRasterGenerator::setInput(vtkSmartPointer<vtkPolyData> mesh)
 
   mesh_data_->DeepCopy(mesh);
 
-  if(mesh_data_->GetPointData()->GetNormals() && mesh_data_->GetCellData()->GetNormals() )
+  if (mesh_data_->GetPointData()->GetNormals() && mesh_data_->GetCellData()->GetNormals())
   {
     CONSOLE_BRIDGE_logError("Normal data is not available", getName().c_str());
   }
@@ -544,13 +533,12 @@ void SurfaceWalkRasterGenerator::setInput(vtkSmartPointer<vtkPolyData> mesh)
     normal_generator->SetNonManifoldTraversal(false);
     normal_generator->Update();
 
-
-    if ( !mesh_data_->GetPointData()->GetNormals())
+    if (!mesh_data_->GetPointData()->GetNormals())
     {
       mesh_data_->GetPointData()->SetNormals(normal_generator->GetOutput()->GetPointData()->GetNormals());
     }
 
-    if ( !mesh_data_->GetCellData()->GetNormals() )
+    if (!mesh_data_->GetCellData()->GetNormals())
     {
       mesh_data_->GetCellData()->SetNormals(normal_generator->GetOutput()->GetCellData()->GetNormals());
     }
@@ -570,11 +558,13 @@ void SurfaceWalkRasterGenerator::setInput(vtkSmartPointer<vtkPolyData> mesh)
   bsp_tree_->BuildLocator();
 
   // Add display for debugging
-  if(config_.debug)
+  if (config_.debug)
   {
     debug_viewer_.removeAllDisplays();
     std::vector<float> color(3);
-    color[0] = 0.9f; color[1] = 0.9f; color[2] = 0.9f;
+    color[0] = 0.9f;
+    color[1] = 0.9f;
+    color[2] = 0.9f;
     debug_viewer_.addPolyDataDisplay(mesh_data_, color);
   }
 }
@@ -582,23 +572,20 @@ void SurfaceWalkRasterGenerator::setInput(vtkSmartPointer<vtkPolyData> mesh)
 void SurfaceWalkRasterGenerator::setInput(const shape_msgs::Mesh& mesh)
 {
   pcl::PolygonMesh::Ptr pcl_mesh = boost::make_shared<pcl::PolygonMesh>();
-  noether_conversions::convertToPCLMesh(mesh,*pcl_mesh);
+  noether_conversions::convertToPCLMesh(mesh, *pcl_mesh);
   setInput(pcl_mesh);
 }
 
-vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::getInput()
-{
-  return mesh_data_;
-}
+vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::getInput() { return mesh_data_; }
 
 boost::optional<ToolPaths> SurfaceWalkRasterGenerator::generate()
 {
   // Need to call getFirstPath or other method to generate the first path
   // If no paths exist, there is nothing to create offset paths from
-  if(paths_.size() != 1)
+  if (paths_.size() != 1)
   {
     ProcessPath first_path;
-    if(!getFirstPath(first_path))
+    if (!getFirstPath(first_path))
     {
       return boost::none;
     }
@@ -610,10 +597,10 @@ boost::optional<ToolPaths> SurfaceWalkRasterGenerator::generate()
   int count = 0;
 
   // From existing cutting plane, create more offset planes in one direction
-  while(!done && count < max)
+  while (!done && count < max)
   {
     ProcessPath path2;
-    if(getNextPath(paths_.back(), path2, config_.raster_spacing))
+    if (getNextPath(paths_.back(), path2, config_.raster_spacing))
     {
       paths_.push_back(path2);
     }
@@ -627,12 +614,12 @@ boost::optional<ToolPaths> SurfaceWalkRasterGenerator::generate()
   // From existing cutting plane, create more offset planes in opposite direction
   count = 0;
   done = false;
-  while(!done && count < max)
+  while (!done && count < max)
   {
     ProcessPath path2;
-    if(getNextPath(paths_.front(), path2, -config_.raster_spacing))
+    if (getNextPath(paths_.front(), path2, -config_.raster_spacing))
     {
-      paths_.insert(paths_.begin(), path2 );
+      paths_.insert(paths_.begin(), path2);
     }
     else
     {
@@ -643,26 +630,25 @@ boost::optional<ToolPaths> SurfaceWalkRasterGenerator::generate()
   }
 
   // clear all but the first (mesh) display
-  if(config_.debug)
+  if (config_.debug)
   {
     int num_obj = static_cast<int>(debug_viewer_.getNumberOfDisplayObjects()) - 1;
-    for(int i = 0; i < num_obj; ++i)
-    debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
+    for (int i = 0; i < num_obj; ++i)
+      debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
   }
-
 
   std::vector<ProcessPath> new_paths;
   std::vector<int> delete_paths;
-  for(std::size_t i = 0; i < paths_.size(); ++i)
+  for (std::size_t i = 0; i < paths_.size(); ++i)
   {
     std::vector<ProcessPath> out_paths;
-    if(checkPathForHoles(paths_[i], out_paths))
+    if (checkPathForHoles(paths_[i], out_paths))
     {
       // mark a path to delete
       delete_paths.push_back(static_cast<int>(i));
-      for(std::size_t j = 0; j < out_paths.size(); ++j)
+      for (std::size_t j = 0; j < out_paths.size(); ++j)
       {
-        new_paths.push_back(out_paths[j]); // save all new paths
+        new_paths.push_back(out_paths[j]);  // save all new paths
       }
     }
   }
@@ -675,44 +661,45 @@ boost::optional<ToolPaths> SurfaceWalkRasterGenerator::generate()
   ProcessPath last = paths_.back();
 
   // if paths need to be modified, delete all old paths (starting at the back) and insert new ones
-  if(!delete_paths.empty())
+  if (!delete_paths.empty())
   {
     CONSOLE_BRIDGE_logInform("Deleting %d paths", delete_paths.size());
   }
-  for(int i = static_cast<int>(delete_paths.size()) - 1; i >= 0 ; --i )
+  for (int i = static_cast<int>(delete_paths.size()) - 1; i >= 0; --i)
   {
     paths_.erase(paths_.begin() + delete_paths[static_cast<std::size_t>(i)]);
   }
 
   // flip any errant normals that tend to happen at edge of the mesh
-  for(std::size_t i = 0; i < new_paths.size(); i++)
+  for (std::size_t i = 0; i < new_paths.size(); i++)
   {
     // find the average normal along each new_path
     Eigen::Vector3d sum_of_normal = Eigen::Vector3d::Zero();
-    for(int j = 0; j<new_paths[i].line->GetPoints()->GetNumberOfPoints(); j++)
+    for (int j = 0; j < new_paths[i].line->GetPoints()->GetNumberOfPoints(); j++)
     {
       Eigen::Vector3d current_normal = Eigen::Vector3d::Zero();
-      new_paths[i].line->GetPointData()->GetNormals()->GetTuple(j,current_normal.data());
+      new_paths[i].line->GetPointData()->GetNormals()->GetTuple(j, current_normal.data());
       sum_of_normal += current_normal;
     }
-    sum_of_normal.normalize(); // this is now the average normal
-    CONSOLE_BRIDGE_logDebug("Line Normal xyz = %f, %f, %f, %f", sum_of_normal.x(), sum_of_normal.y(), sum_of_normal.z());
+    sum_of_normal.normalize();  // this is now the average normal
+    CONSOLE_BRIDGE_logDebug(
+        "Line Normal xyz = %f, %f, %f, %f", sum_of_normal.x(), sum_of_normal.y(), sum_of_normal.z());
     vtkDataArray* normals = new_paths[i].line->GetPointData()->GetNormals();
 
     // flip normal directions if it is in a different direction from the average of normal for the line
     vtkDataArray* line_normals = new_paths[i].line->GetPointData()->GetNormals();
     vtkSmartPointer<vtkDoubleArray> new_line_normals = vtkSmartPointer<vtkDoubleArray>::New();
     new_line_normals->SetNumberOfComponents(3);
-    for(long j = line_normals ->GetNumberOfTuples() - 1; j >= 0; --j)
+    for (long j = line_normals->GetNumberOfTuples() - 1; j >= 0; --j)
     {
       Eigen::Vector3d current_normal = Eigen::Vector3d::Zero();
-      new_paths[i].line->GetPointData()->GetNormals()->GetTuple(j,current_normal.data());
+      new_paths[i].line->GetPointData()->GetNormals()->GetTuple(j, current_normal.data());
       double dp = current_normal.dot(sum_of_normal);
       CONSOLE_BRIDGE_logDebug("Line %d waypoint %d dot product: %d", i, j, dp);
-      if(dp < 0)
+      if (dp < 0)
       {
         CONSOLE_BRIDGE_logDebug("Flipping line %d waypoint $d", i, j);
-        double* pt = line_normals ->GetTuple(static_cast<long>(i));
+        double* pt = line_normals->GetTuple(static_cast<long>(i));
         pt[0] *= -1;
         pt[1] *= -1;
         pt[2] *= -1;
@@ -720,23 +707,24 @@ boost::optional<ToolPaths> SurfaceWalkRasterGenerator::generate()
       }
       else
       {
-        double* pt = line_normals ->GetTuple(static_cast<long>(i));
+        double* pt = line_normals->GetTuple(static_cast<long>(i));
         new_line_normals->InsertNextTuple(pt);
       }
     }
     new_paths[i].line->GetPointData()->SetNormals(new_line_normals);
-
   }
 
   // Insert new meshes
-  for(std::size_t i = 0; i < new_paths.size(); ++i)
+  for (std::size_t i = 0; i < new_paths.size(); ++i)
   {
     paths_.push_back(new_paths[i]);
 
-    if(config_.debug)  // cutting mesh display
+    if (config_.debug)  // cutting mesh display
     {
       std::vector<float> color(3);
-      color[0] = 0.8f; color[1] = 0.8f; color[2] = 0.8f;
+      color[0] = 0.8f;
+      color[1] = 0.8f;
+      color[2] = 0.8f;
 
       debug_viewer_.addPolyDataDisplay(new_paths[i].intersection_plane, color);
       debug_viewer_.renderDisplay();
@@ -749,7 +737,7 @@ boost::optional<ToolPaths> SurfaceWalkRasterGenerator::generate()
     ProcessPath first_path, last_path;
     if (getExtraPath(first, first_path, -config_.raster_spacing))
     {
-      paths_.insert(paths_.begin(), first_path );
+      paths_.insert(paths_.begin(), first_path);
     }
     else
     {
@@ -765,7 +753,7 @@ boost::optional<ToolPaths> SurfaceWalkRasterGenerator::generate()
     }
   }
 
-  if(paths_.empty())
+  if (paths_.empty())
   {
     ROS_ERROR("All tool paths generated are empty");
     return boost::none;
@@ -798,10 +786,7 @@ boost::optional<ToolPaths> SurfaceWalkRasterGenerator::generate()
   return results;
 }
 
-std::string SurfaceWalkRasterGenerator::getName() const
-{
-  return getClassName<decltype(*this)>();
-}
+std::string SurfaceWalkRasterGenerator::getName() const { return getClassName<decltype(*this)>(); }
 
 bool SurfaceWalkRasterGenerator::getFirstPath(ProcessPath& path)
 {
@@ -824,15 +809,17 @@ bool SurfaceWalkRasterGenerator::getFirstPath(ProcessPath& path)
   max = max > z ? max : z;
 
   vtkSmartPointer<vtkPolyData> cutting_mesh = extrudeSplineToSurface(start_curve, max);
-  if(!cutting_mesh)
+  if (!cutting_mesh)
   {
     return false;
   }
 
-  if(config_.debug)  // cutting mesh display
+  if (config_.debug)  // cutting mesh display
   {
     std::vector<float> color(3);
-    color[0] = 0.8f; color[1] = 0.8f; color[2] = 0.8f;
+    color[0] = 0.8f;
+    color[1] = 0.8f;
+    color[2] = 0.8f;
 
     debug_viewer_.addPolyDataDisplay(cutting_mesh, color);
     debug_viewer_.renderDisplay();
@@ -843,20 +830,20 @@ bool SurfaceWalkRasterGenerator::getFirstPath(ProcessPath& path)
   vtkSmartPointer<vtkPolyData> intersection_line = vtkSmartPointer<vtkPolyData>::New();
   vtkSmartPointer<vtkParametricSpline> spline = vtkSmartPointer<vtkParametricSpline>::New();
 
-  if(!findIntersectionLine(cutting_mesh, intersection_line, spline))
+  if (!findIntersectionLine(cutting_mesh, intersection_line, spline))
   {
     CONSOLE_BRIDGE_logDebug("No intersection found");
     return false;
   }
 
   ProcessPath this_path;
-  if(!computeSurfaceLineNormals(intersection_line))
+  if (!computeSurfaceLineNormals(intersection_line))
   {
     return false;
   }
   this_path.intersection_plane = intersection_line;
 
-  if(getNextPath(this_path, path, 0.0))
+  if (getNextPath(this_path, path, 0.0))
   {
     paths_.push_back(path);
     return true;
@@ -864,27 +851,30 @@ bool SurfaceWalkRasterGenerator::getFirstPath(ProcessPath& path)
   return false;
 }
 
-bool SurfaceWalkRasterGenerator::getNextPath(const ProcessPath this_path, ProcessPath& next_path, double dist, bool test_self_intersection)
+bool SurfaceWalkRasterGenerator::getNextPath(const ProcessPath this_path,
+                                             ProcessPath& next_path,
+                                             double dist,
+                                             bool test_self_intersection)
 {
-  if(dist == 0.0 && this_path.intersection_plane->GetPoints()->GetNumberOfPoints() < 2)
+  if (dist == 0.0 && this_path.intersection_plane->GetPoints()->GetNumberOfPoints() < 2)
   {
     CONSOLE_BRIDGE_logDebug("No path offset and no intersection plane given. Cannot generate next path");
     return false;
   }
 
   vtkSmartPointer<vtkPolyData> offset_line = vtkSmartPointer<vtkPolyData>::New();
-  if(dist != 0.0)  // if offset distance given, create an offset surface
+  if (dist != 0.0)  // if offset distance given, create an offset surface
   {
     // create offset points in the adjacent line at a distance "dist"
     offset_line = createOffsetLine(this_path.line, this_path.derivatives, dist);
-    if(!offset_line)
+    if (!offset_line)
     {
       return false;
     }
 
     // create cutting surface  TODO: offset may need to be based upon point bounds
     next_path.intersection_plane = extrudeSplineToSurface(offset_line, config_.intersection_plane_height);
-    if(!next_path.intersection_plane)
+    if (!next_path.intersection_plane)
     {
       return false;
     }
@@ -896,25 +886,29 @@ bool SurfaceWalkRasterGenerator::getNextPath(const ProcessPath this_path, Proces
     points = this_path.intersection_plane->GetPoints();
     resamplePoints(points);
     offset_line->SetPoints(points);
-    if(!computeSurfaceLineNormals(offset_line))
+    if (!computeSurfaceLineNormals(offset_line))
     {
       return false;
     }
 
     next_path.intersection_plane = extrudeSplineToSurface(offset_line, config_.intersection_plane_height);
-    if(!next_path.intersection_plane)
+    if (!next_path.intersection_plane)
     {
       return false;
     }
   }
 
-  if(config_.debug)  // offset points and cutting mesh display
+  if (config_.debug)  // offset points and cutting mesh display
   {
     std::vector<float> color(3);
-    color[0] = 0.9f; color[1] = 0.2f; color[2] = 0.2f;
+    color[0] = 0.9f;
+    color[1] = 0.2f;
+    color[2] = 0.2f;
     debug_viewer_.addPolyNormalsDisplay(offset_line, color, config_.point_spacing);
 
-    color[0] = 0.8f; color[1] = 0.8f; color[2] = 0.8f;
+    color[0] = 0.8f;
+    color[1] = 0.8f;
+    color[2] = 0.8f;
     debug_viewer_.addPolyDataDisplay(next_path.intersection_plane, color);
     debug_viewer_.renderDisplay();
     debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 2);
@@ -924,7 +918,7 @@ bool SurfaceWalkRasterGenerator::getNextPath(const ProcessPath this_path, Proces
   vtkSmartPointer<vtkPolyData> intersection_line = vtkSmartPointer<vtkPolyData>::New();
   vtkSmartPointer<vtkParametricSpline> spline = vtkSmartPointer<vtkParametricSpline>::New();
 
-  if(!findIntersectionLine(next_path.intersection_plane, intersection_line, spline))
+  if (!findIntersectionLine(next_path.intersection_plane, intersection_line, spline))
   {
     CONSOLE_BRIDGE_logDebug("No intersection found for creating spline");
     return false;
@@ -932,35 +926,36 @@ bool SurfaceWalkRasterGenerator::getNextPath(const ProcessPath this_path, Proces
 
   // Check for self intersection (intersection of next path with the last path computed
   // If self-intersection occurs, return false (done planning paths)
-  if(test_self_intersection && paths_.size() >= 1)
+  if (test_self_intersection && paths_.size() >= 1)
   {
     vtkSmartPointer<vtkIntersectionPolyDataFilter> intersection_filter =
-      vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
+        vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
     intersection_filter->SetSplitFirstOutput(0);
     intersection_filter->SetSplitSecondOutput(0);
-    intersection_filter->SetInputData( 0, next_path.intersection_plane);
-    intersection_filter->SetInputData( 1, paths_.back().intersection_plane);
+    intersection_filter->SetInputData(0, next_path.intersection_plane);
+    intersection_filter->SetInputData(1, paths_.back().intersection_plane);
     intersection_filter->Update();
-    if(intersection_filter->GetOutput()->GetPoints()->GetNumberOfPoints() > 0)
+    if (intersection_filter->GetOutput()->GetPoints()->GetNumberOfPoints() > 0)
     {
       CONSOLE_BRIDGE_logDebug("Self intersection found with back path");
       return false;
     }
 
-    intersection_filter->SetInputData( 1, paths_.front().intersection_plane);
+    intersection_filter->SetInputData(1, paths_.front().intersection_plane);
     intersection_filter->Update();
-    if(intersection_filter->GetOutput()->GetPoints()->GetNumberOfPoints() > 0)
+    if (intersection_filter->GetOutput()->GetPoints()->GetNumberOfPoints() > 0)
     {
       CONSOLE_BRIDGE_logDebug("Self intersection found with front path");
       return false;
     }
   }
 
-
-  if(config_.debug)  // spline display
+  if (config_.debug)  // spline display
   {
     std::vector<float> color(3);
-    color[0] = 0.2f; color[1] = 0.9f; color[2] = 0.9f;
+    color[0] = 0.2f;
+    color[1] = 0.9f;
+    color[2] = 0.9f;
     vtkSmartPointer<vtkParametricFunctionSource> source = vtkSmartPointer<vtkParametricFunctionSource>::New();
     source->SetParametricFunction(spline);
     source->Update();
@@ -970,23 +965,27 @@ bool SurfaceWalkRasterGenerator::getNextPath(const ProcessPath this_path, Proces
     debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
   }
 
-  //use spline to create interpolated data with normals and derivatives
+  // use spline to create interpolated data with normals and derivatives
   vtkSmartPointer<vtkPolyData> points = vtkSmartPointer<vtkPolyData>::New();
   vtkSmartPointer<vtkPolyData> derivatives = vtkSmartPointer<vtkPolyData>::New();
   smoothData(spline, points, derivatives);
 
-  if(config_.debug)  // points display
+  if (config_.debug)  // points display
   {
     std::vector<float> color(3);
-    color[0] = 0.2f; color[1] = 0.2f; color[2] = 0.9f;
+    color[0] = 0.2f;
+    color[1] = 0.2f;
+    color[2] = 0.9f;
     debug_viewer_.addPolyNormalsDisplay(points, color, config_.point_spacing);
-    color[0] = 0.9f; color[1] = 0.9f; color[2] = 0.2f;
+    color[0] = 0.9f;
+    color[1] = 0.9f;
+    color[2] = 0.2f;
     debug_viewer_.addPolyNormalsDisplay(derivatives, color, config_.point_spacing);
     debug_viewer_.renderDisplay();
     debug_viewer_.removeObjectDisplay(debug_viewer_.getNumberOfDisplayObjects() - 1);
   }
 
-  if(points->GetPoints()->GetNumberOfPoints() < 2)
+  if (points->GetPoints()->GetNumberOfPoints() < 2)
   {
     CONSOLE_BRIDGE_logDebug("Number of points after smoothing is less than 2, skip computing path data");
     return false;
@@ -996,20 +995,23 @@ bool SurfaceWalkRasterGenerator::getNextPath(const ProcessPath this_path, Proces
   next_path.derivatives = derivatives;
 
   // compare start/end points of new line to old line, flip order if necessary
-  if(dist != 0.0)  // only flip if offset is non-zero (new_path)
+  if (dist != 0.0)  // only flip if offset is non-zero (new_path)
   {
     long length = next_path.line->GetPoints()->GetNumberOfPoints();
-    if(vtk_viewer::pt_dist(this_path.line->GetPoints()->GetPoint(0), next_path.line->GetPoints()->GetPoint(0))
-       > vtk_viewer::pt_dist(this_path.line->GetPoints()->GetPoint(0), next_path.line->GetPoints()->GetPoint(length-1)))
+    if (vtk_viewer::pt_dist(this_path.line->GetPoints()->GetPoint(0), next_path.line->GetPoints()->GetPoint(0)) >
+        vtk_viewer::pt_dist(this_path.line->GetPoints()->GetPoint(0),
+                            next_path.line->GetPoints()->GetPoint(length - 1)))
     {
       flipPointOrder(next_path);
     }
   }
 
-  if(config_.debug)  // points display
+  if (config_.debug)  // points display
   {
     std::vector<float> color(3);
-    color[0] = 0.9f; color[1] = 0.9f; color[2] = 0.2f;
+    color[0] = 0.9f;
+    color[1] = 0.9f;
+    color[2] = 0.2f;
     debug_viewer_.addPolyNormalsDisplay(derivatives, color, config_.point_spacing);
     debug_viewer_.renderDisplay();
   }
@@ -1028,7 +1030,7 @@ bool SurfaceWalkRasterGenerator::getExtraPath(const ProcessPath& last_path, Proc
   // create offset points in the adjacent line at a distance "dist"
   extra_path.line = vtkSmartPointer<vtkPolyData>::New();
   extra_path.line = createOffsetLine(last_path.line, last_path.derivatives, dist);
-  if(!extra_path.line)
+  if (!extra_path.line)
   {
     return false;
   }
@@ -1061,7 +1063,7 @@ bool SurfaceWalkRasterGenerator::checkPathForHoles(const ProcessPath path, std::
   vtkSmartPointer<vtkPolyData> intersection_line = vtkSmartPointer<vtkPolyData>::New();
   vtkSmartPointer<vtkParametricSpline> spline = vtkSmartPointer<vtkParametricSpline>::New();
 
-  if(!findIntersectionLine(path.intersection_plane, intersection_line, spline))
+  if (!findIntersectionLine(path.intersection_plane, intersection_line, spline))
   {
     return false;
   }
@@ -1071,16 +1073,16 @@ bool SurfaceWalkRasterGenerator::checkPathForHoles(const ProcessPath path, std::
   // For each point on the intersection line, check to see if the points share a common triangle/cell.
   // If they share a cell, there is no hole, if they don't share a cell, then there is a hole and the
   // distance between the two points should be checked to see how large the hole is
-  for(int i = 1; i < intersection_line->GetPoints()->GetNumberOfPoints() - 1; ++i)
+  for (int i = 1; i < intersection_line->GetPoints()->GetNumberOfPoints() - 1; ++i)
   {
     // get two adjacent points
     double pt1[3], pt2[3], pcoords[3];
-    double weights[3] = {0,0,0};
-    intersection_line->GetPoints()->GetPoint(i-1, pt1);
+    double weights[3] = { 0, 0, 0 };
+    intersection_line->GetPoints()->GetPoint(i - 1, pt1);
     intersection_line->GetPoints()->GetPoint(i, pt2);
 
     // calculate the distance between each point
-    double diff[3] = {pt2[0] - pt1[0], pt2[1] - pt1[1], pt2[2] - pt1[2]};
+    double diff[3] = { pt2[0] - pt1[0], pt2[1] - pt1[1], pt2[2] - pt1[2] };
 
     // move each point by a small amount towards each other
     diff[0] *= 0.1;
@@ -1103,13 +1105,13 @@ bool SurfaceWalkRasterGenerator::checkPathForHoles(const ProcessPath path, std::
 
     // find the cell that each point lies on
     cell1 = cell_locator_->FindCell(pt1, tol, cell, pcoords, &weights[0]);
-    if(cell1 != -1)
+    if (cell1 != -1)
     {
       cell2 = cell_locator_->FindCell(pt2, tol, cell, pcoords, &weights[0]);
-      if(cell2 != -1)
+      if (cell2 != -1)
       {
         // if the cell for point 1 == the cell for point 2, then there is no hole
-        if(cell1 == cell2)
+        if (cell1 == cell2)
         {
           continous = true;
         }
@@ -1118,19 +1120,19 @@ bool SurfaceWalkRasterGenerator::checkPathForHoles(const ProcessPath path, std::
 
     // If a hole is found, the current path needs to be broken up, create new path from previous start point
     // to current point (i) in the intersection path
-    if(!continous)
+    if (!continous)
     {
       // if no shared cell found, check distance and whether or not the path needs to be split
-      intersection_line->GetPoints()->GetPoint(i-1, pt1);
+      intersection_line->GetPoints()->GetPoint(i - 1, pt1);
       intersection_line->GetPoints()->GetPoint(i, pt2);
       double dist = sqrt(vtk_viewer::pt_dist(&pt1[0], &pt2[0]));
 
       // split paths if hole is too large
-      if(dist > config_.min_hole_size)
+      if (dist > config_.min_hole_size)
       {
         vtkSmartPointer<vtkIdList> ids = vtkSmartPointer<vtkIdList>::New();
         // create new path from prev_start_point to current i
-        for(int j = prev_start_point; j < i; ++j)
+        for (int j = prev_start_point; j < i; ++j)
         {
           ids->InsertNextId(j);
         }
@@ -1139,7 +1141,7 @@ bool SurfaceWalkRasterGenerator::checkPathForHoles(const ProcessPath path, std::
         vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
         intersection_line->GetPoints()->GetPoints(ids, new_points);
 
-        if(new_points->GetNumberOfPoints() >= 2)
+        if (new_points->GetNumberOfPoints() >= 2)
         {
           resamplePoints(new_points);
         }
@@ -1154,7 +1156,7 @@ bool SurfaceWalkRasterGenerator::checkPathForHoles(const ProcessPath path, std::
         computeSurfaceLineNormals(new_line);
         this_path.intersection_plane = new_line;
 
-        if(getNextPath(this_path, new_path, 0.0, false))
+        if (getNextPath(this_path, new_path, 0.0, false))
         {
           out_paths.push_back(new_path);
         }
@@ -1164,10 +1166,10 @@ bool SurfaceWalkRasterGenerator::checkPathForHoles(const ProcessPath path, std::
   }
 
   // once done looping, make last path (if a break occured)
-  if(prev_start_point > 0)
+  if (prev_start_point > 0)
   {
     vtkSmartPointer<vtkIdList> ids = vtkSmartPointer<vtkIdList>::New();
-    for(int j = prev_start_point; j < intersection_line->GetPoints()->GetNumberOfPoints(); ++j)
+    for (int j = prev_start_point; j < intersection_line->GetPoints()->GetNumberOfPoints(); ++j)
     {
       ids->InsertNextId(j);
     }
@@ -1181,14 +1183,13 @@ bool SurfaceWalkRasterGenerator::checkPathForHoles(const ProcessPath path, std::
     computeSurfaceLineNormals(new_line);
     this_path.intersection_plane = new_line;
 
-    if(getNextPath(this_path, new_path, 0.0, false))
+    if (getNextPath(this_path, new_path, 0.0, false))
     {
       out_paths.push_back(new_path);
     }
   }
 
   return out_paths.size() >= 1;
-
 }
 
 vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createStartCurve()
@@ -1197,25 +1198,25 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createStartCurve()
   vtkSmartPointer<vtkCellArray> cell_ids = mesh_data_->GetPolys();
   cell_ids->InitTraversal();
 
-  double avg_center[3] = {0,0,0};
-  double avg_norm[3] = {0,0,0};
+  double avg_center[3] = { 0, 0, 0 };
+  double avg_norm[3] = { 0, 0, 0 };
   double avg_area = 0;
   long num_cells = cell_ids->GetNumberOfCells();
 
   // iterate through all cells to find averages
-  for(int i = 0; i < num_cells; ++i)
+  for (int i = 0; i < num_cells; ++i)
   {
-    double center[3] = {0,0,0};
-    double norm[3] = {0,0,0};
+    double center[3] = { 0, 0, 0 };
+    double norm[3] = { 0, 0, 0 };
     double area = 0;
-    if(getCellCentroidData(i, &center[0], &norm[0], area))
+    if (getCellCentroidData(i, &center[0], &norm[0], area))
     {
-      avg_center[0] += center[0]*area;
-      avg_center[1] += center[1]*area;
-      avg_center[2] += center[2]*area;
-      avg_norm[0] += norm[0]*area;
-      avg_norm[1] += norm[1]*area;
-      avg_norm[2] += norm[2]*area;
+      avg_center[0] += center[0] * area;
+      avg_center[1] += center[1] * area;
+      avg_center[2] += center[2] * area;
+      avg_norm[0] += norm[0] * area;
+      avg_norm[1] += norm[1] * area;
+      avg_norm[2] += norm[2] * area;
       avg_area += area;
     }
   }
@@ -1239,10 +1240,14 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createStartCurve()
   double min[3];
   double size[3];
 
-  if(config_.cut_direction[0] || config_.cut_direction[1] || config_.cut_direction[2])
+  if (config_.cut_direction[0] || config_.cut_direction[1] || config_.cut_direction[2])
   {
-    max[0] = config_.cut_direction[0]; max[1] = config_.cut_direction[1]; max[2] = config_.cut_direction[2];
-    avg_center[0] = config_.cut_centroid[0]; avg_center[1] = config_.cut_centroid[1]; avg_center[2] = config_.cut_centroid[2];
+    max[0] = config_.cut_direction[0];
+    max[1] = config_.cut_direction[1];
+    max[2] = config_.cut_direction[2];
+    avg_center[0] = config_.cut_centroid[0];
+    avg_center[1] = config_.cut_centroid[1];
+    avg_center[2] = config_.cut_centroid[2];
   }
   else
   {
@@ -1251,7 +1256,8 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createStartCurve()
     obb_tree->SetLazyEvaluation(0);
     obb_tree->ComputeOBB(mesh_data_->GetPoints(), corner, max, mid, min, size);
 
-    // size gives the length of each vector (max, mid, min) in order, normalize the size vector by the max size for comparison
+    // size gives the length of each vector (max, mid, min) in order, normalize the size vector by the max size for
+    // comparison
     double m = size[0];
     size[0] /= m;
     size[1] /= m;
@@ -1259,7 +1265,7 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createStartCurve()
 
     // ComputeOBB uses PCA to find the principle axes, thus for square objects it returns the diagonals instead
     // of the minimum bounding box.  Compare the first and second axes to see if they are within 1% of each other
-    if(size[0] - size[1] < 0.01)
+    if (size[0] - size[1] < 0.01)
     {
       // if object is square, need to average max and mid in order to get the correct axes of the object
       m = sqrt(max[0] * max[0] + max[1] * max[1] + max[2] * max[2]);
@@ -1317,12 +1323,12 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createStartCurve()
   // set the normal for all points inserted
   vtkSmartPointer<vtkDoubleArray> norms = vtkSmartPointer<vtkDoubleArray>::New();
   norms->SetNumberOfComponents(3);
-  for(int i = 0; i < line->GetPoints()->GetNumberOfPoints(); ++i)
+  for (int i = 0; i < line->GetPoints()->GetNumberOfPoints(); ++i)
   {
     Eigen::Vector3d m(avg_norm[0], avg_norm[1], avg_norm[2]);
     m.normalize();
 
-    double n[3] ={m[0], m[1], m[2]};
+    double n[3] = { m[0], m[1], m[2] };
 
     norms->InsertNextTuple(n);
   }
@@ -1333,70 +1339,69 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createStartCurve()
 
 bool SurfaceWalkRasterGenerator::getCellCentroidData(int id, double* center, double* norm, double& area)
 {
+  vtkCell* cell = mesh_data_->GetCell(id);
+  if (cell)
+  {
+    vtkTriangle* triangle = dynamic_cast<vtkTriangle*>(cell);
+    double p0[3];
+    double p1[3];
+    double p2[3];
 
-    vtkCell* cell = mesh_data_->GetCell(id);
-    if(cell)
+    triangle->GetPoints()->GetPoint(0, p0);
+    triangle->GetPoints()->GetPoint(1, p1);
+    triangle->GetPoints()->GetPoint(2, p2);
+    triangle->TriangleCenter(p0, p1, p2, center);
+    area = vtkTriangle::TriangleArea(p0, p1, p2);
+
+    double* n = mesh_data_->GetCellData()->GetNormals()->GetTuple(id);
+    if (n)
     {
-      vtkTriangle* triangle = dynamic_cast<vtkTriangle*>(cell);
-      double p0[3];
-      double p1[3];
-      double p2[3];
-
-      triangle->GetPoints()->GetPoint(0, p0);
-      triangle->GetPoints()->GetPoint(1, p1);
-      triangle->GetPoints()->GetPoint(2, p2);
-      triangle->TriangleCenter(p0, p1, p2, center);
-      area = vtkTriangle::TriangleArea(p0, p1, p2);
-
-      double* n = mesh_data_->GetCellData()->GetNormals()->GetTuple(id);
-      if(n)
-      {
-        norm[0] = n[0];
-        norm[1] = n[1];
-        norm[2] = n[2];
-      }
-
-      return true;
-    }
-    else
-    {
-      return false;
+      norm[0] = n[0];
+      norm[1] = n[1];
+      norm[2] = n[2];
     }
 
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }
 
 bool SurfaceWalkRasterGenerator::findIntersectionLine(vtkSmartPointer<vtkPolyData> cut_surface,
-                                       vtkSmartPointer<vtkPolyData>& points,
-                                       vtkSmartPointer<vtkParametricSpline>& spline)
+                                                      vtkSmartPointer<vtkPolyData>& points,
+                                                      vtkSmartPointer<vtkParametricSpline>& spline)
 {
   // Check to make sure that the input cut surface contains a valid mesh
-  if(cut_surface->GetNumberOfCells() < 1)
+  if (cut_surface->GetNumberOfCells() < 1)
   {
-    CONSOLE_BRIDGE_logError("Number of input cells for calculating intersection is less than 1, cannot compute intersection");
+    CONSOLE_BRIDGE_logError("Number of input cells for calculating intersection is less than 1, cannot compute "
+                            "intersection");
     return false;
   }
 
   // Find the intersection between the input mesh and given cutting surface
   vtkSmartPointer<vtkIntersectionPolyDataFilter> intersection_filter =
-    vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
+      vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
   intersection_filter->SetSplitFirstOutput(0);
   intersection_filter->SetSplitSecondOutput(0);
-  intersection_filter->SetInputData( 0, mesh_data_);
-  intersection_filter->SetInputData( 1, cut_surface );
+  intersection_filter->SetInputData(0, mesh_data_);
+  intersection_filter->SetInputData(1, cut_surface);
   intersection_filter->GlobalWarningDisplayOff();
 
   intersection_filter->Update();
 
   // Check output of intersection to see if it is valid
   vtkSmartPointer<vtkPolyData> output = intersection_filter->GetOutput();
-  if(!output)
+  if (!output)
   {
     return false;
   }
 
   // if no intersection found, return false
   vtkSmartPointer<vtkPoints> pts = intersection_filter->GetOutput()->GetPoints();
-  if(intersection_filter->GetStatus() == 0 || !pts || pts->GetNumberOfPoints() <= 1)
+  if (intersection_filter->GetStatus() == 0 || !pts || pts->GetNumberOfPoints() <= 1)
   {
     return false;
   }
@@ -1408,7 +1413,7 @@ bool SurfaceWalkRasterGenerator::findIntersectionLine(vtkSmartPointer<vtkPolyDat
   poly_data = intersection_filter->GetOutput();
   getConnectedIntersectionLine(poly_data, temp_pts);
 
-  if(temp_pts->GetNumberOfPoints() == 0)
+  if (temp_pts->GetNumberOfPoints() == 0)
   {
     CONSOLE_BRIDGE_logError("No connected lines were found");
     return false;
@@ -1419,23 +1424,22 @@ bool SurfaceWalkRasterGenerator::findIntersectionLine(vtkSmartPointer<vtkPolyDat
   spline->SetPoints(temp_pts);
 
   return true;
-
 }
 
 void SurfaceWalkRasterGenerator::getConnectedIntersectionLine(vtkSmartPointer<vtkPolyData> line,
-                                                         vtkSmartPointer<vtkPoints>& points)
+                                                              vtkSmartPointer<vtkPoints>& points)
 {
   int start = 0;
   std::vector<int> used_ids;
-  std::vector<vtkSmartPointer<vtkPoints> > lines;
+  std::vector<vtkSmartPointer<vtkPoints>> lines;
   long num_points = line->GetNumberOfPoints();
 
-  while(used_ids.size() < static_cast<std::size_t>(num_points))
+  while (used_ids.size() < static_cast<std::size_t>(num_points))
   {
-    for(int i = 0; i < num_points; ++i)
+    for (int i = 0; i < num_points; ++i)
     {
       // if id 'i' is not found, use it as the next index to start with for finding connected lines
-      if(std::find(used_ids.begin(), used_ids.end(), i) == used_ids.end())
+      if (std::find(used_ids.begin(), used_ids.end(), i) == used_ids.end())
       {
         start = i;
         break;
@@ -1445,53 +1449,52 @@ void SurfaceWalkRasterGenerator::getConnectedIntersectionLine(vtkSmartPointer<vt
 
     // only add the line segment if it is large enough
     double dist = getConnectedIntersectionLine(line, temp_points, used_ids, start);
-    if( dist > config_.min_segment_size)
+    if (dist > config_.min_segment_size)
     {
       lines.push_back(temp_points);
     }
   }
 
   // Now that we have 1 or more lines, check to see if we need to merge/delete lines
-  if(lines.size() == 1)
+  if (lines.size() == 1)
   {
     points = lines[0];  // if only one line, return it
   }
-  else if(lines.size() > 1)
+  else if (lines.size() > 1)
   {
     // check ends of each line for merging/deleting
     vtkSmartPointer<vtkPoints> temp_points = vtkSmartPointer<vtkPoints>::New();
     // find largest line to start with
     long size = 0;
     std::size_t index = 0;
-    for(std::size_t i = 0; i < lines.size(); ++i)
+    for (std::size_t i = 0; i < lines.size(); ++i)
     {
-      if(lines[i]->GetNumberOfPoints() > size)
+      if (lines[i]->GetNumberOfPoints() > size)
       {
-        index =i;
+        index = i;
         size = lines[i]->GetNumberOfPoints();
       }
     }
     temp_points = lines[index];
     lines.erase(lines.begin() + static_cast<long>(index));
 
-    while(lines.size() > 0)
+    while (lines.size() > 0)
     {
       std::size_t next_index = 0;
       int order = 0;
       double min_dist = std::numeric_limits<double>::max();
 
       // find the next closest line
-      for(std::size_t i = 0; i < lines.size(); ++i)
+      for (std::size_t i = 0; i < lines.size(); ++i)
       {
         // get distance
         double dist1 = vtk_viewer::pt_dist(temp_points->GetPoint(0), lines[i]->GetPoint(0));
-        double dist2 = vtk_viewer::pt_dist(temp_points->GetPoint( temp_points->GetNumberOfPoints() - 1 ),
-                                           lines[i]->GetPoint(0) );
-        double dist3 = vtk_viewer::pt_dist(temp_points->GetPoint(0),
-                                           lines[i]->GetPoint(lines[i]->GetNumberOfPoints() - 1) );
-        double dist4 = vtk_viewer::pt_dist(temp_points->GetPoint( temp_points->GetNumberOfPoints() - 1 ),
-                                           lines[i]->GetPoint(lines[i]->GetNumberOfPoints() - 1) );
-
+        double dist2 =
+            vtk_viewer::pt_dist(temp_points->GetPoint(temp_points->GetNumberOfPoints() - 1), lines[i]->GetPoint(0));
+        double dist3 =
+            vtk_viewer::pt_dist(temp_points->GetPoint(0), lines[i]->GetPoint(lines[i]->GetNumberOfPoints() - 1));
+        double dist4 = vtk_viewer::pt_dist(temp_points->GetPoint(temp_points->GetNumberOfPoints() - 1),
+                                           lines[i]->GetPoint(lines[i]->GetNumberOfPoints() - 1));
 
         double dist = std::min(dist1, dist2);
         dist = std::min(dist, dist3);
@@ -1499,7 +1502,7 @@ void SurfaceWalkRasterGenerator::getConnectedIntersectionLine(vtkSmartPointer<vt
 
         // store distance and index if it is the smallest
         // also store the order, used for later concatenation (front->front, back->front, front->back, back->back)
-        if(dist < min_dist)
+        if (dist < min_dist)
         {
           next_index = i;
           min_dist = dist;
@@ -1513,77 +1516,80 @@ void SurfaceWalkRasterGenerator::getConnectedIntersectionLine(vtkSmartPointer<vt
       }
 
       // Use new index to append lines together or delete lines
-      // VTK does not support inserting new points at the front so sometimes we need to create a new object to insert points to
+      // VTK does not support inserting new points at the front so sometimes we need to create a new object to insert
+      // points to
       switch (order)
       {
-      case 1:
-      {
-        vtkSmartPointer<vtkPoints> tmp = vtkSmartPointer<vtkPoints>::New();
+        case 1:
+        {
+          vtkSmartPointer<vtkPoints> tmp = vtkSmartPointer<vtkPoints>::New();
 
-        for(long i = lines[next_index]->GetNumberOfPoints() - 1 ; i >=0 ; --i)
-        {
-          double pt[3];
-          lines[next_index]->GetPoint(i, pt);
-          tmp->InsertNextPoint(pt);
+          for (long i = lines[next_index]->GetNumberOfPoints() - 1; i >= 0; --i)
+          {
+            double pt[3];
+            lines[next_index]->GetPoint(i, pt);
+            tmp->InsertNextPoint(pt);
+          }
+          for (int i = 0; i < temp_points->GetNumberOfPoints(); ++i)
+          {
+            double pt[3];
+            temp_points->GetPoint(i, pt);
+            tmp->InsertNextPoint(pt);
+          }
+          temp_points->SetNumberOfPoints(tmp->GetNumberOfPoints());
+          temp_points->DeepCopy(tmp);
+          break;
         }
-        for(int i = 0; i < temp_points->GetNumberOfPoints(); ++i)
+        case 2:
         {
-          double pt[3];
-          temp_points->GetPoint(i, pt);
-          tmp->InsertNextPoint(pt);
+          for (int i = 0; i < lines[next_index]->GetNumberOfPoints(); ++i)
+          {
+            temp_points->InsertNextPoint(lines[next_index]->GetPoint(i));
+          }
+          break;
         }
-        temp_points->SetNumberOfPoints(tmp->GetNumberOfPoints());
-        temp_points->DeepCopy(tmp);
-        break;
-      }
-      case 2:
-      {
-        for(int i = 0; i < lines[next_index]->GetNumberOfPoints(); ++i)
+        case 3:
         {
-          temp_points->InsertNextPoint(lines[next_index]->GetPoint(i));
-        }
-        break;
-      }
-      case 3:
-      {
-        vtkSmartPointer<vtkPoints> tmp = vtkSmartPointer<vtkPoints>::New();
+          vtkSmartPointer<vtkPoints> tmp = vtkSmartPointer<vtkPoints>::New();
 
-        for(int i = 0 ; i < lines[next_index]->GetNumberOfPoints(); ++i)
-        {
-          double pt[3];
-          lines[next_index]->GetPoint(i, pt);
-          tmp->InsertNextPoint(pt);
+          for (int i = 0; i < lines[next_index]->GetNumberOfPoints(); ++i)
+          {
+            double pt[3];
+            lines[next_index]->GetPoint(i, pt);
+            tmp->InsertNextPoint(pt);
+          }
+          for (int i = 0; i < temp_points->GetNumberOfPoints(); ++i)
+          {
+            double pt[3];
+            temp_points->GetPoint(i, pt);
+            tmp->InsertNextPoint(pt);
+          }
+          temp_points->SetNumberOfPoints(tmp->GetNumberOfPoints());
+          temp_points->DeepCopy(tmp);
+          break;
         }
-        for(int i = 0; i < temp_points->GetNumberOfPoints(); ++i)
+        case 4:
         {
-          double pt[3];
-          temp_points->GetPoint(i, pt);
-          tmp->InsertNextPoint(pt);
+          for (long i = lines[next_index]->GetNumberOfPoints() - 1; i >= 0; --i)
+          {
+            temp_points->InsertNextPoint(lines[next_index]->GetPoint(i));
+          }
+          break;
         }
-        temp_points->SetNumberOfPoints(tmp->GetNumberOfPoints());
-        temp_points->DeepCopy(tmp);
-        break;
-      }
-      case 4:
-      {
-        for(long i = lines[next_index]->GetNumberOfPoints() - 1 ; i >= 0; --i)
-        {
-          temp_points->InsertNextPoint(lines[next_index]->GetPoint(i));
-        }
-        break;
-      }
-      default:
-        break;
+        default:
+          break;
       }
       lines.erase(lines.begin() + static_cast<long>(next_index));
 
-    }// end of while loop
+    }  // end of while loop
     points = temp_points;
-  }// end concatenating lines together
-
+  }  // end concatenating lines together
 }
 
-double SurfaceWalkRasterGenerator::getConnectedIntersectionLine(vtkSmartPointer<vtkPolyData> line, vtkSmartPointer<vtkPoints>& points, std::vector<int>& used_ids, int start_pt)
+double SurfaceWalkRasterGenerator::getConnectedIntersectionLine(vtkSmartPointer<vtkPolyData> line,
+                                                                vtkSmartPointer<vtkPoints>& points,
+                                                                std::vector<int>& used_ids,
+                                                                int start_pt)
 {
   int search_location = 0;
   long num_points = line->GetNumberOfPoints();
@@ -1600,27 +1606,27 @@ double SurfaceWalkRasterGenerator::getConnectedIntersectionLine(vtkSmartPointer<
   long next_id = start_pt;
   double line_length = 0.0;
 
-  while(static_cast<long>(ids.size()) < num_points)
+  while (static_cast<long>(ids.size()) < num_points)
   {
     // get the next point id, loop through all line to find
     int j = 0;
 
     // if next_id is already used, exit
-    if(std::find(used_ids.begin(), used_ids.end(), next_id) != used_ids.end())
+    if (std::find(used_ids.begin(), used_ids.end(), next_id) != used_ids.end())
     {
       break;
     }
 
     line_data->InitTraversal();
-    for(j = 0; j < num_lines; ++j)
+    for (j = 0; j < num_lines; ++j)
     {
       vtkSmartPointer<vtkIdList> temp_cell = vtkSmartPointer<vtkIdList>::New();
       line_data->GetNextCell(temp_cell);
-      if(temp_cell->GetNumberOfIds() == 0)
+      if (temp_cell->GetNumberOfIds() == 0)
       {
         continue;
       }
-      if(next_id == temp_cell->GetId(search_location))
+      if (next_id == temp_cell->GetId(search_location))
       {
         // based on search direction, determine which value to insert in the id list (first or second)
         int location = (search_location + 1) % 2;
@@ -1634,7 +1640,7 @@ double SurfaceWalkRasterGenerator::getConnectedIntersectionLine(vtkSmartPointer<
         line_length += sqrt(vtk_viewer::pt_dist(&pt[0], &pt_temp[0]));
 
         // insert next id
-        if(search_location)
+        if (search_location)
         {
           ids.insert(ids.begin(), next_id);
         }
@@ -1647,23 +1653,23 @@ double SurfaceWalkRasterGenerator::getConnectedIntersectionLine(vtkSmartPointer<
     }
 
     // If we have gone around a complete loop, next_id will equal first id, then break
-    if( (next_id == ids.front() && search_location == 0) || (next_id == ids.back() && search_location == 1))
+    if ((next_id == ids.front() && search_location == 0) || (next_id == ids.back() && search_location == 1))
     {
       break;
     }
 
     // completed loop without finding a match
-    if(j == num_lines && static_cast<long>(ids.size()) < num_points && search_location == 0)
+    if (j == num_lines && static_cast<long>(ids.size()) < num_points && search_location == 0)
     {
-        search_location = 1;
-        next_id = ids[0];
+      search_location = 1;
+      next_id = ids[0];
       // search from the front to connect points
     }
-    else if(j == num_lines && search_location == 1)
+    else if (j == num_lines && search_location == 1)
     {
       break;
     }
-  } // end loop getting connected lines
+  }  // end loop getting connected lines
 
   // copy the ids used into the in_id list
   used_ids.insert(used_ids.end(), ids.begin(), ids.end());
@@ -1671,7 +1677,7 @@ double SurfaceWalkRasterGenerator::getConnectedIntersectionLine(vtkSmartPointer<
   // Copy the line ids into a VTK list
   vtkSmartPointer<vtkIdList> connected_pts = vtkSmartPointer<vtkIdList>::New();
   connected_pts->SetNumberOfIds(static_cast<long>(ids.size()));
-  for(std::size_t i = 0; i < ids.size(); ++i)
+  for (std::size_t i = 0; i < ids.size(); ++i)
   {
     connected_pts->SetId(static_cast<long>(i), ids[i]);
   }
@@ -1692,15 +1698,15 @@ void SurfaceWalkRasterGenerator::resamplePoints(vtkSmartPointer<vtkPoints>& poin
 
   long num_line_pts = points->GetNumberOfPoints() / 2.0;
 
-  double u[3], pt[3], d[9]; // u - search point, pt - resulting point, d - unused but still required
+  double u[3], pt[3], d[9];  // u - search point, pt - resulting point, d - unused but still required
   u[0] = u[1] = u[2] = 0;
 
   vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
   new_points->SetNumberOfPoints(num_line_pts);
 
-  for(int i = 0; i < num_line_pts; ++i)
+  for (int i = 0; i < num_line_pts; ++i)
   {
-    u[0] = double(i)/double(num_line_pts - 1);
+    u[0] = double(i) / double(num_line_pts - 1);
 
     // spline->Evaluate() takes a number in the range [0,1]
     spline->Evaluate(u, pt, d);
@@ -1712,16 +1718,16 @@ void SurfaceWalkRasterGenerator::resamplePoints(vtkSmartPointer<vtkPoints>& poin
   double* pt1;
 
   // Extend end point
-  pt1 = new_points->GetPoint(new_points->GetNumberOfPoints()- 1);
+  pt1 = new_points->GetPoint(new_points->GetNumberOfPoints() - 1);
   new_pt[0] = pt1[0];
   new_pt[1] = pt1[1];
   new_pt[2] = pt1[2];
 
-  pt1 = new_points->GetPoint(new_points->GetNumberOfPoints()- 2);
-  new_pt[0] +=  (new_pt[0] - pt1[0]);
-  new_pt[1] +=  (new_pt[1] - pt1[1]);
-  new_pt[2] +=  (new_pt[2] - pt1[2]);
-  new_points->SetPoint(new_points->GetNumberOfPoints()-1, new_pt);
+  pt1 = new_points->GetPoint(new_points->GetNumberOfPoints() - 2);
+  new_pt[0] += (new_pt[0] - pt1[0]);
+  new_pt[1] += (new_pt[1] - pt1[1]);
+  new_pt[2] += (new_pt[2] - pt1[2]);
+  new_points->SetPoint(new_points->GetNumberOfPoints() - 1, new_pt);
 
   // Extend front point
   pt1 = new_points->GetPoint(0);
@@ -1729,24 +1735,23 @@ void SurfaceWalkRasterGenerator::resamplePoints(vtkSmartPointer<vtkPoints>& poin
   new_pt[1] = pt1[1];
   new_pt[2] = pt1[2];
   pt1 = new_points->GetPoint(1);
-  new_pt[0] +=  (new_pt[0] - pt1[0]);
-  new_pt[1] +=  (new_pt[1] - pt1[1]);
-  new_pt[2] +=  (new_pt[2] - pt1[2]);
+  new_pt[0] += (new_pt[0] - pt1[0]);
+  new_pt[1] += (new_pt[1] - pt1[1]);
+  new_pt[2] += (new_pt[2] - pt1[2]);
   new_points->SetPoint(0, new_pt);
-
 
   points->SetNumberOfPoints(new_points->GetNumberOfPoints());
   points->DeepCopy(new_points);
 }
 
-void SurfaceWalkRasterGenerator::smoothData(vtkSmartPointer<vtkParametricSpline> spline, vtkSmartPointer<vtkPolyData>& points,
-                                       vtkSmartPointer<vtkPolyData>& derivatives)
+void SurfaceWalkRasterGenerator::smoothData(vtkSmartPointer<vtkParametricSpline> spline,
+                                            vtkSmartPointer<vtkPolyData>& points,
+                                            vtkSmartPointer<vtkPolyData>& derivatives)
 {
   vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
 
   vtkSmartPointer<vtkDoubleArray> derv = vtkSmartPointer<vtkDoubleArray>::New();
   derv->SetNumberOfComponents(3);
-
 
   // get points which are evenly spaced along the spline
   // initialize num_line_pts to some number, find the Euclidean distance between two points (m & n),
@@ -1754,37 +1759,36 @@ void SurfaceWalkRasterGenerator::smoothData(vtkSmartPointer<vtkParametricSpline>
   Eigen::Vector3d new_pt(0, 0, 0);
   long num_line_pts;
   double m[3], n[3];
-  double u[3], pt[3], d[9]; // u - search point, pt - resulting point, d - unused but still required
+  double u[3], pt[3], d[9];  // u - search point, pt - resulting point, d - unused but still required
   u[0] = u[1] = u[2] = 0;
 
   // computing entire line length
   double spline_length = 0;
   std::array<double, 3> p1, p2;
-  spline->GetPoints()->GetPoint(0,p1.data());
-  for(long i = 1; i < spline->GetPoints()->GetNumberOfPoints(); i++)
+  spline->GetPoints()->GetPoint(0, p1.data());
+  for (long i = 1; i < spline->GetPoints()->GetNumberOfPoints(); i++)
   {
-    spline->GetPoints()->GetPoint(i,p2.data());
+    spline->GetPoints()->GetPoint(i, p2.data());
     spline_length += sqrt(vtk_viewer::pt_dist(p1.data(), p2.data()));
-    std::copy(p2.begin(),p2.end(),p1.begin());
+    std::copy(p2.begin(), p2.end(), p1.begin());
   }
 
-  num_line_pts = static_cast<long>(std::ceil(spline_length/config_.point_spacing)) + 1;
+  num_line_pts = static_cast<long>(std::ceil(spline_length / config_.point_spacing)) + 1;
 
   // Get points evenly spaced along the spline
-  const double du = 1.0/(1.0*double(num_line_pts));
-  for( int i = 0; i <= num_line_pts; ++i)
+  const double du = 1.0 / (1.0 * double(num_line_pts));
+  for (int i = 0; i <= num_line_pts; ++i)
   {
     // Get point and store
-    u[0] = i * du; // double(i)/double(num_line_pts);
-    u[1] = i * du; // double(i)/double(num_line_pts);
-    u[2] = i * du; // double(i)/double(num_line_pts);
+    u[0] = i * du;  // double(i)/double(num_line_pts);
+    u[1] = i * du;  // double(i)/double(num_line_pts);
+    u[2] = i * du;  // double(i)/double(num_line_pts);
     spline->Evaluate(u, pt, d);
     new_points->InsertNextPoint(pt);
 
-
     double pt1[3], pt2[3];
     // find nearby points in order to calculate the local derivative
-    if(i == 0)
+    if (i == 0)
     {
       pt1[0] = pt[0];
       pt1[1] = pt[1];
@@ -1792,7 +1796,7 @@ void SurfaceWalkRasterGenerator::smoothData(vtkSmartPointer<vtkParametricSpline>
       u[0] += du;
       spline->Evaluate(u, pt2, d);
     }
-    else if(i == num_line_pts)
+    else if (i == num_line_pts)
     {
       pt2[0] = pt[0];
       pt2[1] = pt[1];
@@ -1802,7 +1806,7 @@ void SurfaceWalkRasterGenerator::smoothData(vtkSmartPointer<vtkParametricSpline>
     }
     else
     {
-      double u2[3] = {u[0], u[1], u[2]};
+      double u2[3] = { u[0], u[1], u[2] };
       u2[0] += du;
       spline->Evaluate(u2, pt2, d);
 
@@ -1818,7 +1822,7 @@ void SurfaceWalkRasterGenerator::smoothData(vtkSmartPointer<vtkParametricSpline>
     new_pt.normalize();
 
     // insert the next derivative
-    double new_ptr[3] = {new_pt[0], new_pt[1], new_pt[2]};
+    double new_ptr[3] = { new_pt[0], new_pt[1], new_pt[2] };
     derv->InsertNextTuple(&new_ptr[0]);
   }
   // Set points and normals
@@ -1833,8 +1837,8 @@ void SurfaceWalkRasterGenerator::smoothData(vtkSmartPointer<vtkParametricSpline>
 // Sort points in linear order
 void SurfaceWalkRasterGenerator::sortPoints(vtkSmartPointer<vtkPoints>& points)
 {
-  std::vector<std::vector<double> > new_points;
-  for(int i = 0; i < points->GetNumberOfPoints(); ++i)
+  std::vector<std::vector<double>> new_points;
+  for (int i = 0; i < points->GetNumberOfPoints(); ++i)
   {
     double d[3];
     points->GetPoint(i, d);
@@ -1845,13 +1849,13 @@ void SurfaceWalkRasterGenerator::sortPoints(vtkSmartPointer<vtkPoints>& points)
     new_points.push_back(pt);
   }
 
-  std::vector<std::vector<double> > sorted_points;
+  std::vector<std::vector<double>> sorted_points;
 
   // create new vector of sorted points
   std::size_t size = new_points.size();
-  while(sorted_points.size() != size)
+  while (sorted_points.size() != size)
   {
-    if(sorted_points.size() == 0)
+    if (sorted_points.size() == 0)
     {
       sorted_points.push_back(new_points.front());
       new_points.erase(new_points.begin());
@@ -1859,7 +1863,8 @@ void SurfaceWalkRasterGenerator::sortPoints(vtkSmartPointer<vtkPoints>& points)
     else
     {
       long next = findClosestPoint(sorted_points.back(), new_points);
-      if (computeSquaredDistance(sorted_points.back(), new_points[static_cast<std::size_t>(next)]) < computeSquaredDistance(sorted_points.front(), new_points[static_cast<std::size_t>(next)]))
+      if (computeSquaredDistance(sorted_points.back(), new_points[static_cast<std::size_t>(next)]) <
+          computeSquaredDistance(sorted_points.front(), new_points[static_cast<std::size_t>(next)]))
       {
         sorted_points.push_back(new_points[static_cast<std::size_t>(next)]);
         new_points.erase(new_points.begin() + next);
@@ -1875,7 +1880,7 @@ void SurfaceWalkRasterGenerator::sortPoints(vtkSmartPointer<vtkPoints>& points)
 
   // convert array to vtkPoints and return
   vtkSmartPointer<vtkPoints> line_points = vtkSmartPointer<vtkPoints>::New();
-  for(std::size_t i = 0; i < size; ++i)
+  for (std::size_t i = 0; i < size; ++i)
   {
     line_points->InsertNextPoint(sorted_points[i][0], sorted_points[i][1], sorted_points[i][2]);
   }
@@ -1890,18 +1895,17 @@ bool SurfaceWalkRasterGenerator::computeSurfaceLineNormals(vtkSmartPointer<vtkPo
   new_norm->SetNumberOfComponents(3);
   new_norm->SetNumberOfTuples(data->GetPoints()->GetNumberOfPoints());
 
-  for(int i = 0; i < data->GetPoints()->GetNumberOfPoints(); ++i)
+  for (int i = 0; i < data->GetPoints()->GetNumberOfPoints(); ++i)
   {
-
     // locate closest cell
-    std::array<double,3> query_point;
-    std::array<double,3> closest_point;
+    std::array<double, 3> query_point;
+    std::array<double, 3> closest_point;
     vtkIdType cell_id;
     int sub_index;
     double dist;
     data->GetPoints()->GetPoint(i, query_point.data());
-    cell_locator_->FindClosestPoint(query_point.data(),closest_point.data(),cell_id,sub_index,dist);
-    if(cell_id < 0)
+    cell_locator_->FindClosestPoint(query_point.data(), closest_point.data(), cell_id, sub_index, dist);
+    if (cell_id < 0)
     {
       CONSOLE_BRIDGE_logError("FindClosestPoint returned an invalid cell id");
       return false;
@@ -1909,30 +1913,32 @@ bool SurfaceWalkRasterGenerator::computeSurfaceLineNormals(vtkSmartPointer<vtkPo
 
     // get normal
     Eigen::Vector3d normal_vect = Eigen::Vector3d::Zero();
-    mesh_data_->GetCellData()->GetNormals()->GetTuple(cell_id,normal_vect.data());
-    new_norm->SetTuple3(i,normal_vect(0),normal_vect(1),normal_vect(2));
-
+    mesh_data_->GetCellData()->GetNormals()->GetTuple(cell_id, normal_vect.data());
+    new_norm->SetTuple3(i, normal_vect(0), normal_vect(1), normal_vect(2));
   }
   // Insert the normal data
   data->GetPointData()->SetNormals(new_norm);
   return true;
 }
 
-vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createOffsetLine(vtkSmartPointer<vtkPolyData> line, vtkSmartPointer<vtkPolyData> derivatives, double dist)
+vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createOffsetLine(vtkSmartPointer<vtkPolyData> line,
+                                                                          vtkSmartPointer<vtkPolyData> derivatives,
+                                                                          double dist)
 {
   vtkSmartPointer<vtkPolyData> new_points;
 
   vtkDataArray* normals = line->GetPointData()->GetNormals();
   vtkDataArray* ders = derivatives->GetPointData()->GetNormals();
 
-  // If normal or derivative data does not exist, or number of normals and derivatives do not match, return a null pointer
-  if(!normals || !ders || normals->GetNumberOfTuples() != ders->GetNumberOfTuples())
+  // If normal or derivative data does not exist, or number of normals and derivatives do not match, return a null
+  // pointer
+  if (!normals || !ders || normals->GetNumberOfTuples() != ders->GetNumberOfTuples())
   {
     CONSOLE_BRIDGE_logError("Could not create offset line");
     return new_points;
   }
 
-  if(normals->GetNumberOfTuples() != line->GetNumberOfPoints())
+  if (normals->GetNumberOfTuples() != line->GetNumberOfPoints())
   {
     CONSOLE_BRIDGE_logDebug("ERROR IN CALC OFFSET LINE");
     return new_points;
@@ -1943,9 +1949,9 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createOffsetLine(vtkSma
 
   // calculate offset for each point
   Eigen::Vector3d offset_dir;
-  for(int i = 0; i < normals->GetNumberOfTuples(); ++i)
+  for (int i = 0; i < normals->GetNumberOfTuples(); ++i)
   {
-    //calculate cross to get offset direction
+    // calculate cross to get offset direction
     double* nrml = normals->GetTuple(i);
     double* line_dir = ders->GetTuple(i);
 
@@ -1954,15 +1960,15 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createOffsetLine(vtkSma
     Eigen::Vector3d w = u.cross(v);
     w.normalize();
 
-    if(i == 0)
+    if (i == 0)
     {
       offset_dir = w;
     }
     else
     {
       // check offset direction consistency to correct due to flipped normals
-      double angle = computeAngle(offset_dir,w);
-      if(angle > ANGLE_CORRECTION_THRESHOLD)
+      double angle = computeAngle(offset_dir, w);
+      if (angle > ANGLE_CORRECTION_THRESHOLD)
       {
         // flip direction of w
         w *= -1;
@@ -1986,15 +1992,15 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createOffsetLine(vtkSma
   double* pt1;
 
   // Extend end point
-  pt1 = new_pts->GetPoint(new_pts->GetNumberOfPoints()- 1);
+  pt1 = new_pts->GetPoint(new_pts->GetNumberOfPoints() - 1);
   new_pt[0] = pt1[0];
   new_pt[1] = pt1[1];
   new_pt[2] = pt1[2];
-  pt1 = new_pts->GetPoint(new_pts->GetNumberOfPoints()- 2);
-  new_pt[0] +=  (new_pt[0] - pt1[0]);
-  new_pt[1] +=  (new_pt[1] - pt1[1]);
-  new_pt[2] +=  (new_pt[2] - pt1[2]);
-  new_pts->SetPoint(new_pts->GetNumberOfPoints()-1, new_pt);
+  pt1 = new_pts->GetPoint(new_pts->GetNumberOfPoints() - 2);
+  new_pt[0] += (new_pt[0] - pt1[0]);
+  new_pt[1] += (new_pt[1] - pt1[1]);
+  new_pt[2] += (new_pt[2] - pt1[2]);
+  new_pts->SetPoint(new_pts->GetNumberOfPoints() - 1, new_pt);
 
   // Extend front point
   pt1 = new_pts->GetPoint(0);
@@ -2002,9 +2008,9 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createOffsetLine(vtkSma
   new_pt[1] = pt1[1];
   new_pt[2] = pt1[2];
   pt1 = new_pts->GetPoint(1);
-  new_pt[0] +=  (new_pt[0] - pt1[0]);
-  new_pt[1] +=  (new_pt[1] - pt1[1]);
-  new_pt[2] +=  (new_pt[2] - pt1[2]);
+  new_pt[0] += (new_pt[0] - pt1[0]);
+  new_pt[1] += (new_pt[1] - pt1[1]);
+  new_pt[2] += (new_pt[2] - pt1[2]);
   new_pts->SetPoint(0, new_pt);
 
   new_points->SetPoints(new_pts);
@@ -2014,12 +2020,12 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createOffsetLine(vtkSma
 }
 
 vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::extrudeSplineToSurface(vtkSmartPointer<vtkPolyData> line,
-                                                                           double intersection_dist )
+                                                                                double intersection_dist)
 {
   vtkSmartPointer<vtkPolyData> new_surface;
   vtkSmartPointer<vtkDataArray> normals = line->GetPointData()->GetNormals();
 
-  if(!normals)
+  if (!normals)
   {
     CONSOLE_BRIDGE_logError("No normals, cannot create surface from spline");
     return new_surface;
@@ -2035,12 +2041,12 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::extrudeSplineToSurface(
   Eigen::Vector3d cell_normal;
   vtkIdType cell_id;
   int sub_index;
-  for(int i = 0; i < line->GetNumberOfPoints(); ++i)
+  for (int i = 0; i < line->GetNumberOfPoints(); ++i)
   {
     Eigen::Vector3d current_point = Eigen::Vector3d::Zero();
     Eigen::Vector3d current_normal = Eigen::Vector3d::Zero();
-    line->GetPoints()->GetPoint(i,current_point.data());
-    line->GetPointData()->GetNormals()->GetTuple(i,current_normal.data());
+    line->GetPoints()->GetPoint(i, current_point.data());
+    line->GetPointData()->GetNormals()->GetTuple(i, current_normal.data());
     current_normal.normalize();
 
     // finding distance and closest point to surface
@@ -2048,22 +2054,21 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::extrudeSplineToSurface(
     Eigen::Vector3d ray_target_point = -intersection_dist * current_normal + current_point;
     Eigen::Vector3d extruded_point_a, extruded_point_b, intersection_point;
     vtkSmartPointer<vtkPoints> intersection_points = vtkSmartPointer<vtkPoints>::New();
-    int res = bsp_tree_->IntersectWithLine(ray_source_point.data(),ray_target_point.data(),
-                                           RAY_INTERSECTION_TOLERANCE,
-                                           intersection_points,nullptr);
+    int res = bsp_tree_->IntersectWithLine(
+        ray_source_point.data(), ray_target_point.data(), RAY_INTERSECTION_TOLERANCE, intersection_points, nullptr);
 
     bool refine_extrude_points = false;
     Eigen::Vector3d dir;
     double dist = 0.0;
-    if(res > 0)
+    if (res > 0)
     {
-      intersection_points->GetPoint(0,intersection_point.data());
+      intersection_points->GetPoint(0, intersection_point.data());
       dir = (intersection_point - current_point);
       dist = dir.norm();
       refine_extrude_points = dist > RAY_INTERSECTION_TOLERANCE;
     }
 
-    if(!refine_extrude_points)
+    if (!refine_extrude_points)
     {
       extruded_point_a = ray_source_point;
       extruded_point_b = ray_target_point;
@@ -2077,19 +2082,19 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::extrudeSplineToSurface(
       extruded_point_b = current_point + EXTRUDE_EXTEND_PERCENTAGE * dist * dir.normalized();
     }
 
-    if(i < line->GetNumberOfPoints() - 1)
+    if (i < line->GetNumberOfPoints() - 1)
     {
-      vtkIdType start = i*2;
+      vtkIdType start = i * 2;
 
       cells->InsertNextCell(3);
       cells->InsertCellPoint(start);
-      cells->InsertCellPoint(start+1);
-      cells->InsertCellPoint(start+3);
+      cells->InsertCellPoint(start + 1);
+      cells->InsertCellPoint(start + 3);
 
       cells->InsertNextCell(3);
       cells->InsertCellPoint(start);
-      cells->InsertCellPoint(start+3);
-      cells->InsertCellPoint(start+2);
+      cells->InsertCellPoint(start + 3);
+      cells->InsertCellPoint(start + 2);
     }
 
     points->InsertNextPoint(extruded_point_a.data());
@@ -2102,12 +2107,12 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::extrudeSplineToSurface(
 }
 
 vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createSurfaceFromSpline(vtkSmartPointer<vtkPolyData> line,
-                                                                            double dist)
+                                                                                 double dist)
 {
   vtkSmartPointer<vtkPolyData> new_surface;
   vtkSmartPointer<vtkDataArray> normals = line->GetPointData()->GetNormals();
 
-  if(!normals)
+  if (!normals)
   {
     CONSOLE_BRIDGE_logError("No normals, cannot create surface from spline");
     return new_surface;
@@ -2119,32 +2124,32 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createSurfaceFromSpline
 
   // for each point, insert 2 points, one above and one below, to create a new surface
   double dist_to_surf;
-  for(int i = 0; i < line->GetNumberOfPoints(); ++i)
+  for (int i = 0; i < line->GetNumberOfPoints(); ++i)
   {
     Eigen::Vector3d current_point = Eigen::Vector3d::Zero();
     Eigen::Vector3d current_normal = Eigen::Vector3d::Zero();
-    line->GetPoints()->GetPoint(i,current_point.data());
-    line->GetPointData()->GetNormals()->GetTuple(i,current_normal.data());
+    line->GetPoints()->GetPoint(i, current_point.data());
+    line->GetPointData()->GetNormals()->GetTuple(i, current_normal.data());
 
     current_normal.normalize();
-    Eigen::Vector3d point_below = -dist * current_normal  + current_point;
+    Eigen::Vector3d point_below = -dist * current_normal + current_point;
     Eigen::Vector3d point_above = dist * current_normal + current_point;
-    if(i < line->GetNumberOfPoints() - 1)
+    if (i < line->GetNumberOfPoints() - 1)
     {
-      vtkIdType start = i*2;
+      vtkIdType start = i * 2;
 
       cells->InsertNextCell(3);
       cells->InsertCellPoint(start);
-      cells->InsertCellPoint(start+1);
-      cells->InsertCellPoint(start+3);
+      cells->InsertCellPoint(start + 1);
+      cells->InsertCellPoint(start + 3);
 
       cells->InsertNextCell(3);
       cells->InsertCellPoint(start);
-      cells->InsertCellPoint(start+3);
-      cells->InsertCellPoint(start+2);
+      cells->InsertCellPoint(start + 3);
+      cells->InsertCellPoint(start + 2);
     }
 
-    points->InsertNextPoint( point_above.data());
+    points->InsertNextPoint(point_above.data());
     points->InsertNextPoint(point_below.data());
   }
 
@@ -2154,4 +2159,3 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createSurfaceFromSpline
 }
 
 } /* namespace tool_path_planner */
-

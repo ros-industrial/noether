@@ -11,38 +11,31 @@
 
 namespace path_sequence_planner
 {
-
 void SimplePathSequencePlanner::setPaths(tool_path_planner::ToolPaths paths)
 {
   paths_ = paths;
   indices_.clear();
 }
 
-tool_path_planner::ToolPaths SimplePathSequencePlanner::getPaths()
-{
-  return paths_;
-}
+tool_path_planner::ToolPaths SimplePathSequencePlanner::getPaths() { return paths_; }
 
-std::vector<std::size_t> SimplePathSequencePlanner::getIndices() const
-{
-  return indices_;
-}
+std::vector<std::size_t> SimplePathSequencePlanner::getIndices() const { return indices_; }
 
 void SimplePathSequencePlanner::linkPaths()
 {
   bool insert_front = false;
   std::size_t last_index = 0;
 
-  while(indices_.size() != paths_.size())
+  while (indices_.size() != paths_.size())
   {
-    if(indices_.size() == 0)
+    if (indices_.size() == 0)
     {
       indices_.push_back(1);
     }
     else
     {
       // find next nearest point
-      if(insert_front)
+      if (insert_front)
       {
         last_index = indices_.front();
       }
@@ -56,7 +49,7 @@ void SimplePathSequencePlanner::linkPaths()
       if (next_index < 0)
         return;
 
-      if(indices_.size() > 1)
+      if (indices_.size() > 1)
       {
         // check the distance of next_index with front and back to make sure it is in the right location
         const Eigen::Isometry3d& front_pt = paths_[indices_.front()].front().front();
@@ -72,10 +65,13 @@ void SimplePathSequencePlanner::linkPaths()
         double back_dist2 = (next_pt.translation() - end_pt.translation()).norm();
 
         // If the next path found is closer to the opposite side, flip which end we are adding paths to
-        bool flip = (front_dist1 < front_dist2 ? front_dist1 : front_dist2) < (back_dist1 < back_dist2 ? back_dist1 : back_dist2) ? true : false;
+        bool flip = (front_dist1 < front_dist2 ? front_dist1 : front_dist2) <
+                            (back_dist1 < back_dist2 ? back_dist1 : back_dist2) ?
+                        true :
+                        false;
 
         // flip insert side and start from the beginning (finding the next closest path)
-        if(flip != insert_front)
+        if (flip != insert_front)
         {
           insert_front = flip;
           continue;
@@ -83,15 +79,15 @@ void SimplePathSequencePlanner::linkPaths()
       }
 
       // insert the index found of the next closest line
-      if(next_index >= 0)
+      if (next_index >= 0)
       {
-        if(insert_front)
+        if (insert_front)
           indices_.insert(indices_.begin(), static_cast<std::size_t>(next_index));
         else
           indices_.push_back(static_cast<std::size_t>(next_index));
 
         Eigen::Isometry3d last_pt;
-        if(insert_front)
+        if (insert_front)
           last_pt = paths_[last_index].front().front();
         else
           last_pt = paths_[last_index].back().back();
@@ -105,7 +101,7 @@ void SimplePathSequencePlanner::linkPaths()
         double dist2 = (pt2.translation() - last_pt.translation()).norm();
 
         // If the distance is shorter, flip the order of the next path
-        if(dist2 < dist1 && !insert_front)
+        if (dist2 < dist1 && !insert_front)
         {
           tool_path_planner::flipPointOrder(paths_[static_cast<std::size_t>(next_index)]);
         }
@@ -124,8 +120,8 @@ long SimplePathSequencePlanner::findNextNearestPath(tool_path_planner::ToolPaths
                                                     bool front)
 {
   Eigen::Isometry3d last_pt;
-  //find next nearest point
-  if(front)
+  // find next nearest point
+  if (front)
     last_pt = paths[last_path].front().front();
   else
     last_pt = paths[last_path].back().back();
@@ -136,7 +132,7 @@ long SimplePathSequencePlanner::findNextNearestPath(tool_path_planner::ToolPaths
   for (std::size_t j = 0; j < paths.size(); ++j)
   {
     // If the current index is aleady used, skip it
-    if( std::find(used_indices.begin(), used_indices.end(), j) != used_indices.end() )
+    if (std::find(used_indices.begin(), used_indices.end(), j) != used_indices.end())
       continue;
 
     // get first and last point of line j
@@ -145,9 +141,9 @@ long SimplePathSequencePlanner::findNextNearestPath(tool_path_planner::ToolPaths
 
     // find distance between last point and the end points of the next line
     Eigen::Isometry3d pt2 = paths[j].back().back();
-    double dist2 =  (pt2.translation() - last_pt.translation()).norm();
+    double dist2 = (pt2.translation() - last_pt.translation()).norm();
 
-    if(dist1 < min_dist || dist2 < min_dist)
+    if (dist1 < min_dist || dist2 < min_dist)
     {
       min_index = static_cast<long>(j);
       min_dist = (dist1 < dist2 ? dist1 : dist2);
@@ -157,5 +153,4 @@ long SimplePathSequencePlanner::findNextNearestPath(tool_path_planner::ToolPaths
   return min_index;
 }
 
-}
-
+}  // namespace path_sequence_planner

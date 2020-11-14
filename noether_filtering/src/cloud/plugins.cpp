@@ -10,10 +10,10 @@
 #include "noether_filtering/cloud/radius_outlier_filter.h"
 #include "noether_filtering/cloud/mls_smoothing_filter.h"
 
-#define CREATE_FILTER_PLUGIN_IMPL(r, FILTER_TYPE, POINT_TYPE) \
+#define CREATE_FILTER_PLUGIN_IMPL(r, FILTER_TYPE, POINT_TYPE)                                                          \
   PLUGINLIB_EXPORT_CLASS(FILTER_TYPE<POINT_TYPE>, noether_filtering::FilterBase<pcl::PointCloud<POINT_TYPE>>)
 
-#define CREATE_FILTER_PLUGINS(FILTER_TYPE, POINT_TYPES) \
+#define CREATE_FILTER_PLUGINS(FILTER_TYPE, POINT_TYPES)                                                                \
   BOOST_PP_SEQ_FOR_EACH(CREATE_FILTER_PLUGIN_IMPL, FILTER_TYPE, POINT_TYPES)
 
 // Point Cloud Filters

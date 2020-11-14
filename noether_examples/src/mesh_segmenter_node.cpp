@@ -18,40 +18,30 @@
 #include <vtkSTLWriter.h>
 #include <ros/package.h>
 
-namespace noether {
-
+namespace noether
+{
 void Noether::addMeshDisplay(std::vector<vtkSmartPointer<vtkPolyData> >& meshes)
 {
   // mesh colors should be darker than path colors
   int colors[] = {
-    0xcc0000,
-    0xcc6500,
-    0xcccc00,
-    0x65cc00,
-    0x00cc00,
-    0x00cc65,
-    0x00cccc,
-    0x0065cc,
-    0x0000cc,
-    0x6500cc,
-    0xcc00cc,
-    0xcc0065,
-    };
+    0xcc0000, 0xcc6500, 0xcccc00, 0x65cc00, 0x00cc00, 0x00cc65,
+    0x00cccc, 0x0065cc, 0x0000cc, 0x6500cc, 0xcc00cc, 0xcc0065,
+  };
 
   size_t size;
-  size=sizeof(colors)/sizeof(colors[0]);
+  size = sizeof(colors) / sizeof(colors[0]);
 
-  for(int i = 0; i < meshes.size(); ++i)
+  for (int i = 0; i < meshes.size(); ++i)
   {
     std::vector<float> color(3);
-    color[2] = float(colors[i % size] & 0xff)/255.0;
-    color[1] = float((colors[i % size] & 0xff00) >> 8)/255.0;
-    color[0] = float((colors[i % size] & 0xff0000) >> 16)/255.0;
+    color[2] = float(colors[i % size] & 0xff) / 255.0;
+    color[1] = float((colors[i % size] & 0xff00) >> 8) / 255.0;
+    color[0] = float((colors[i % size] & 0xff0000) >> 16) / 255.0;
 
     viewer_.addPolyDataDisplay(meshes[i], color);
   }
 }
-}
+}  // namespace noether
 
 static std::string toLower(const std::string& in)
 {
@@ -192,7 +182,7 @@ int main(int argc, char** argv)
     {
       if (true)
       {
-        ROS_INFO_STREAM( "Mesh: " << ind << "\n");
+        ROS_INFO_STREAM("Mesh: " << ind << "\n");
         std::vector<vtkSmartPointer<vtkPolyData> > tmp(1);
         tmp.push_back(segmented_meshes[ind]);
         noether::Noether viz;

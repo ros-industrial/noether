@@ -18,15 +18,9 @@ namespace noether_filtering
 {
 namespace mesh
 {
-CleanData::CleanData()
-{
+CleanData::CleanData() {}
 
-}
-
-CleanData::~CleanData()
-{
-
-}
+CleanData::~CleanData() {}
 
 bool CleanData::configure(XmlRpc::XmlRpcValue config)
 {
@@ -50,16 +44,12 @@ bool CleanData::filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMesh& mesh_o
   cleanPolyData->Update();
   mesh_data = cleanPolyData->GetOutput();
   std::size_t num_end_points = mesh_data->GetNumberOfPoints();
-  CONSOLE_BRIDGE_logInform("Removed duplicate points, retained %lu points from %lu",
-                           num_end_points, num_start_points);
-  VTKUtils::vtk2mesh(mesh_data,mesh_out);
+  CONSOLE_BRIDGE_logInform("Removed duplicate points, retained %lu points from %lu", num_end_points, num_start_points);
+  VTKUtils::vtk2mesh(mesh_data, mesh_out);
   return true;
 }
 
-std::string CleanData::getName() const
-{
-  return utils::getClassName<decltype(*this)>();
-}
+std::string CleanData::getName() const { return utils::getClassName<decltype(*this)>(); }
 
 } /* namespace mesh */
 } /* namespace noether_filtering */

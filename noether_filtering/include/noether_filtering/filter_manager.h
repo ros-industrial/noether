@@ -11,20 +11,19 @@
 
 namespace noether_filtering
 {
-
 namespace config_fields
 {
 namespace manager
 {
-  static const std::string FILTER_GROUPS = "filter_groups";
-  static const std::string GROUP_NAME = "group_name";
-} // namespace manager
-} // namespace config_fields
+static const std::string FILTER_GROUPS = "filter_groups";
+static const std::string GROUP_NAME = "group_name";
+}  // namespace manager
+}  // namespace config_fields
 
 /**
  * @brief Filter Manager class
  */
-template<typename T>
+template <typename T>
 class FilterManager
 {
 public:

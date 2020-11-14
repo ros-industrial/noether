@@ -4,7 +4,7 @@
 #include <pcl/point_types.h>
 #include <pcl/PolygonMesh.h>
 
-#define PCL_INSTANTIATE_FilterManager(T) \
+#define PCL_INSTANTIATE_FilterManager(T)                                                                               \
   template class PCL_EXPORTS noether_filtering::FilterManager<pcl::PointCloud<T>>;
 
 namespace noether_filtering
@@ -15,4 +15,4 @@ template class FilterManager<pcl::PolygonMesh>;
 // Explicit template instantiation for all XYZ point types
 PCL_INSTANTIATE(FilterManager, PCL_XYZ_POINT_TYPES);
 
-} // namespace noether_filtering
+}  // namespace noether_filtering

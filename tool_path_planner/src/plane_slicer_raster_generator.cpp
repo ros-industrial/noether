@@ -72,17 +72,17 @@ static Eigen::Matrix3d computeRotation(const Eigen::Vector3d& vx, const Eigen::V
   return m;
 }
 
-static  vtkSmartPointer<vtkTransform> toVtkMatrix(const Eigen::Affine3d& t)
+static vtkSmartPointer<vtkTransform> toVtkMatrix(const Eigen::Affine3d& t)
 {
   vtkSmartPointer<vtkTransform> vtk_t = vtkSmartPointer<vtkTransform>::New();
   vtk_t->PreMultiply();
   vtk_t->Identity();
-  vtk_t->Translate(t.translation().x(),t.translation().y(), t.translation().z());
-  Eigen::Vector3d rpy = t.rotation().eulerAngles(0,1,2);
+  vtk_t->Translate(t.translation().x(), t.translation().y(), t.translation().z());
+  Eigen::Vector3d rpy = t.rotation().eulerAngles(0, 1, 2);
   vtk_t->RotateX(vtkMath::DegreesFromRadians(rpy(0)));
   vtk_t->RotateY(vtkMath::DegreesFromRadians(rpy(1)));
   vtk_t->RotateZ(vtkMath::DegreesFromRadians(rpy(2)));
-  vtk_t->Scale(1.0,1.0,1.0);
+  vtk_t->Scale(1.0, 1.0, 1.0);
   return vtk_t;
 }
 
@@ -90,24 +90,25 @@ double computeLength(const vtkSmartPointer<vtkPoints>& points)
 {
   std::size_t num_points = points->GetNumberOfPoints();
   double total_length = 0.0;
-  if(num_points < 2)
+  if (num_points < 2)
   {
     return total_length;
   }
 
   Eigen::Vector3d p0, pf;
-  for(std::size_t i = 1; i < num_points; i++)
+  for (std::size_t i = 1; i < num_points; i++)
   {
-    points->GetPoint(i-1,p0.data());
-    points->GetPoint(i,pf.data());
+    points->GetPoint(i - 1, p0.data());
+    points->GetPoint(i, pf.data());
 
     total_length += (pf - p0).norm();
   }
   return total_length;
 }
 
-static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vtkPoints>& points,double total_length,
-                                                 double point_spacing)
+static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vtkPoints>& points,
+                                                        double total_length,
+                                                        double point_spacing)
 {
   vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
 
@@ -119,21 +120,21 @@ static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vt
 
   // adding first point
   Eigen::Vector3d pt_prev;
-  points->GetPoint(0,pt_prev.data());
+  points->GetPoint(0, pt_prev.data());
   new_points->InsertNextPoint(pt_prev.data());
 
   // adding remaining points by evaluating spline
-  double incr = point_spacing/total_length;
-  std::size_t num_points = std::ceil(total_length/point_spacing) + 1;
+  double incr = point_spacing / total_length;
+  std::size_t num_points = std::ceil(total_length / point_spacing) + 1;
   double du[9];
   Eigen::Vector3d u, pt;
-  for(std::size_t i = 1; i < num_points; i++)
+  for (std::size_t i = 1; i < num_points; i++)
   {
-    double interv = static_cast<double>(i)/static_cast<double>(num_points-1);
-    interv = interv > 1.0 ? 1.0 : interv ;
-    if(std::abs(interv - 1.0) < EPSILON)
+    double interv = static_cast<double>(i) / static_cast<double>(num_points - 1);
+    interv = interv > 1.0 ? 1.0 : interv;
+    if (std::abs(interv - 1.0) < EPSILON)
     {
-      break; // reach end
+      break;  // reach end
     }
 
     u = interv * Eigen::Vector3d::Ones();
@@ -141,7 +142,7 @@ static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vt
     spline->Evaluate(u.data(), pt.data(), du);
 
     // check distance
-    if((pt - pt_prev).norm() >= point_spacing)
+    if ((pt - pt_prev).norm() >= point_spacing)
     {
       new_points->InsertNextPoint(pt.data());
       pt_prev = pt;
@@ -149,7 +150,7 @@ static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vt
   }
 
   // add last point
-  points->GetPoint(points->GetNumberOfPoints() - 1 ,pt_prev.data());
+  points->GetPoint(points->GetNumberOfPoints() - 1, pt_prev.data());
   new_points->InsertNextPoint(pt_prev.data());
 
   return new_points;
@@ -160,39 +161,39 @@ static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vt
  *        index remains
  * @param points_lists
  */
-static void removeRedundant(std::vector< std::vector<vtkIdType> >& points_lists)
+static void removeRedundant(std::vector<std::vector<vtkIdType> >& points_lists)
 {
   using IdList = std::vector<vtkIdType>;
-  if(points_lists.size() < 2)
+  if (points_lists.size() < 2)
   {
     return;
   }
 
-  std::vector< std::vector<vtkIdType> > new_points_lists;
+  std::vector<std::vector<vtkIdType> > new_points_lists;
   new_points_lists.push_back(points_lists.front());
-  for(std::size_t i = 1; i < points_lists.size(); i++)
+  for (std::size_t i = 1; i < points_lists.size(); i++)
   {
     IdList& current_list = points_lists[i];
     IdList new_list;
     IdList all_ids;
 
     // create list of all ids
-    for(auto& ref_list : new_points_lists)
+    for (auto& ref_list : new_points_lists)
     {
       all_ids.insert(all_ids.end(), ref_list.begin(), ref_list.end());
     }
 
-    for(auto& id : current_list)
+    for (auto& id : current_list)
     {
       // add if not found in any of the previous lists
-      if(std::find(all_ids.begin(), all_ids.end(),id) == all_ids.end())
+      if (std::find(all_ids.begin(), all_ids.end(), id) == all_ids.end())
       {
         new_list.push_back(id);
       }
     }
 
     // add if it has enough points
-    if(new_list.size() > 0)
+    if (new_list.size() > 0)
     {
       new_points_lists.push_back(new_list);
     }
@@ -202,12 +203,13 @@ static void removeRedundant(std::vector< std::vector<vtkIdType> >& points_lists)
   points_lists.assign(new_points_lists.begin(), new_points_lists.end());
 }
 
-static void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points, double merge_dist,
-                             std::vector< std::vector<vtkIdType> >& points_lists)
+static void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points,
+                                double merge_dist,
+                                std::vector<std::vector<vtkIdType> >& points_lists)
 {
   using namespace Eigen;
   using IdList = std::vector<vtkIdType>;
-  if(points_lists.size() < 2)
+  if (points_lists.size() < 2)
   {
     return;
   }
@@ -216,37 +218,37 @@ static void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points, double
   IdList merged_list_ids;
   IdList merged_list;
 
-  auto do_merge = [&points](const IdList& current_list, const IdList& next_list, double merge_dist,
-      IdList& merged_list ){
-    Vector3d cl_point, nl_point;
+  auto do_merge =
+      [&points](const IdList& current_list, const IdList& next_list, double merge_dist, IdList& merged_list) {
+        Vector3d cl_point, nl_point;
 
-    // checking front and back end points respectively
-    points->GetPoint(current_list.front(),cl_point.data());
-    points->GetPoint(next_list.back(),nl_point.data());
-    double d = (cl_point - nl_point).norm();
-    if(d < merge_dist)
-    {
-      merged_list.assign(next_list.begin(), next_list.end());
-      merged_list.insert(merged_list.end(),current_list.begin(), current_list.end());
-      return true;
-    }
+        // checking front and back end points respectively
+        points->GetPoint(current_list.front(), cl_point.data());
+        points->GetPoint(next_list.back(), nl_point.data());
+        double d = (cl_point - nl_point).norm();
+        if (d < merge_dist)
+        {
+          merged_list.assign(next_list.begin(), next_list.end());
+          merged_list.insert(merged_list.end(), current_list.begin(), current_list.end());
+          return true;
+        }
 
-    // checking back and front end points respectively
-    points->GetPoint(current_list.back(),cl_point.data());
-    points->GetPoint(next_list.front(),nl_point.data());
-    d = (cl_point - nl_point).norm();
-    if(d < merge_dist)
-    {
-      merged_list.assign(current_list.begin(), current_list.end());
-      merged_list.insert(merged_list.end(),next_list.begin(), next_list.end());
-      return true;
-    }
-    return false;
-  };
+        // checking back and front end points respectively
+        points->GetPoint(current_list.back(), cl_point.data());
+        points->GetPoint(next_list.front(), nl_point.data());
+        d = (cl_point - nl_point).norm();
+        if (d < merge_dist)
+        {
+          merged_list.assign(current_list.begin(), current_list.end());
+          merged_list.insert(merged_list.end(), next_list.begin(), next_list.end());
+          return true;
+        }
+        return false;
+      };
 
-  for(std::size_t i = 0; i < points_lists.size() ; i++)
+  for (std::size_t i = 0; i < points_lists.size(); i++)
   {
-    if(std::find(merged_list_ids.begin(), merged_list_ids.end(),i) != merged_list_ids.end())
+    if (std::find(merged_list_ids.begin(), merged_list_ids.end(), i) != merged_list_ids.end())
     {
       // already merged
       CONSOLE_BRIDGE_logDebug("Segment %i has already been merged, skipping", i);
@@ -256,12 +258,12 @@ static void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points, double
     IdList current_list = points_lists[i];
     Vector3d cl_point, nl_point;
     bool seek_adjacent = true;
-    while(seek_adjacent)
+    while (seek_adjacent)
     {
       seek_adjacent = false;
-      for(std::size_t j = i+1; j <  points_lists.size() ; j++)
+      for (std::size_t j = i + 1; j < points_lists.size(); j++)
       {
-        if(std::find(merged_list_ids.begin(), merged_list_ids.end(),j) != merged_list_ids.end())
+        if (std::find(merged_list_ids.begin(), merged_list_ids.end(), j) != merged_list_ids.end())
         {
           // already merged
           CONSOLE_BRIDGE_logDebug("Segment %i has already been merged, skipping", j);
@@ -270,9 +272,9 @@ static void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points, double
 
         merged_list.clear();
         IdList next_list = points_lists[j];
-        if(do_merge(current_list,next_list,merge_dist,merged_list))
+        if (do_merge(current_list, next_list, merge_dist, merged_list))
         {
-          CONSOLE_BRIDGE_logDebug("Merged segment %lu onto segment %lu",j, i);
+          CONSOLE_BRIDGE_logDebug("Merged segment %lu onto segment %lu", j, i);
           current_list = merged_list;
           merged_list_ids.push_back(j);
           seek_adjacent = true;
@@ -280,9 +282,9 @@ static void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points, double
         }
 
         std::reverse(next_list.begin(), next_list.end());
-        if(do_merge(current_list,next_list,merge_dist,merged_list))
+        if (do_merge(current_list, next_list, merge_dist, merged_list))
         {
-          CONSOLE_BRIDGE_logDebug("Merged segment %lu onto segment %lu",j, i);
+          CONSOLE_BRIDGE_logDebug("Merged segment %lu onto segment %lu", j, i);
           current_list = merged_list;
           merged_list_ids.push_back(j);
           seek_adjacent = true;
@@ -293,33 +295,33 @@ static void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points, double
     new_points_lists.push_back(current_list);
   }
   points_lists.clear();
-  std::copy_if(new_points_lists.begin(), new_points_lists.end(),std::back_inserter(points_lists),[](const IdList& l){
+  std::copy_if(new_points_lists.begin(), new_points_lists.end(), std::back_inserter(points_lists), [](const IdList& l) {
     return l.size() > 1;
   });
   CONSOLE_BRIDGE_logDebug("Final raster contains %lu segments", points_lists.size());
-
 }
 
-static void rectifyDirection(const vtkSmartPointer<vtkPoints>& points, const Eigen::Vector3d& ref_point,
-                             std::vector< std::vector<vtkIdType> >& points_lists )
+static void rectifyDirection(const vtkSmartPointer<vtkPoints>& points,
+                             const Eigen::Vector3d& ref_point,
+                             std::vector<std::vector<vtkIdType> >& points_lists)
 {
   using namespace Eigen;
   Vector3d p0, pf;
-  if(points_lists.empty())
+  if (points_lists.empty())
   {
     return;
   }
 
   // getting first and last points
-  points->GetPoint( points_lists.front().front(),p0.data());
-  points->GetPoint( points_lists.back().back(),pf.data());
+  points->GetPoint(points_lists.front().front(), p0.data());
+  points->GetPoint(points_lists.back().back(), pf.data());
 
   bool reverse = (ref_point - p0).norm() > (ref_point - pf).norm();
-  if(reverse)
+  if (reverse)
   {
-    for(auto& s: points_lists)
+    for (auto& s : points_lists)
     {
-      std::reverse(s.begin(),s.end());
+      std::reverse(s.begin(), s.end());
     }
     std::reverse(points_lists.begin(), points_lists.end());
   }
@@ -330,36 +332,36 @@ static tool_path_planner::ToolPaths convertToPoses(const std::vector<RasterConst
   using namespace Eigen;
   tool_path_planner::ToolPaths rasters_array;
   bool reverse = true;
-  for(const RasterConstructData& rd : rasters_data)
+  for (const RasterConstructData& rd : rasters_data)
   {
     reverse = !reverse;
     tool_path_planner::ToolPath raster_path;
     std::vector<PolyDataPtr> raster_segments;
     raster_segments.assign(rd.raster_segments.begin(), rd.raster_segments.end());
-    if(reverse)
+    if (reverse)
     {
       std::reverse(raster_segments.begin(), raster_segments.end());
     }
 
-    for(const PolyDataPtr& polydata : raster_segments)
+    for (const PolyDataPtr& polydata : raster_segments)
     {
       tool_path_planner::ToolPathSegment raster_path_segment;
       std::size_t num_points = polydata->GetNumberOfPoints();
       Vector3d p, p_next, vx, vy, vz;
       Isometry3d pose;
       std::vector<int> indices(num_points);
-      std::iota(indices.begin(), indices.end(),0);
-      if(reverse)
+      std::iota(indices.begin(), indices.end(), 0);
+      if (reverse)
       {
         std::reverse(indices.begin(), indices.end());
       }
-      for(std::size_t i = 0; i < indices.size() - 1; i++)
+      for (std::size_t i = 0; i < indices.size() - 1; i++)
       {
         int idx = indices[i];
-        int idx_next = indices[i+1];
-        polydata->GetPoint(idx,p.data());
-        polydata->GetPoint(idx_next,p_next.data());
-        polydata->GetPointData()->GetNormals()->GetTuple(idx,vz.data());
+        int idx_next = indices[i + 1];
+        polydata->GetPoint(idx, p.data());
+        polydata->GetPoint(idx_next, p_next.data());
+        polydata->GetPointData()->GetNormals()->GetTuple(idx, vz.data());
         vx = (p_next - p).normalized();
         vy = vz.cross(vx).normalized();
         vz = vx.cross(vy).normalized();
@@ -368,11 +370,10 @@ static tool_path_planner::ToolPaths convertToPoses(const std::vector<RasterConst
       }
 
       // adding last pose
-      pose.translation() = p_next; // orientation stays the same as previous
+      pose.translation() = p_next;  // orientation stays the same as previous
       raster_path_segment.push_back(pose);
 
       raster_path.push_back(raster_path_segment);
-
     }
     rasters_array.push_back(raster_path);
   }
@@ -382,7 +383,6 @@ static tool_path_planner::ToolPaths convertToPoses(const std::vector<RasterConst
 
 namespace tool_path_planner
 {
-
 void PlaneSlicerRasterGenerator::setConfiguration(const PlaneSlicerRasterGenerator::Config& config)
 {
   config_ = config;
@@ -404,7 +404,7 @@ void PlaneSlicerRasterGenerator::setInput(vtkSmartPointer<vtkPolyData> mesh)
 
   mesh_data_->DeepCopy(mesh);
 
-  if(mesh_data_->GetPointData()->GetNormals() && mesh_data_->GetCellData()->GetNormals() )
+  if (mesh_data_->GetPointData()->GetNormals() && mesh_data_->GetCellData()->GetNormals())
   {
     CONSOLE_BRIDGE_logInform("Normal data is available", getName().c_str());
   }
@@ -423,13 +423,12 @@ void PlaneSlicerRasterGenerator::setInput(vtkSmartPointer<vtkPolyData> mesh)
     normal_generator->SetNonManifoldTraversal(false);
     normal_generator->Update();
 
-
-    if ( !mesh_data_->GetPointData()->GetNormals())
+    if (!mesh_data_->GetPointData()->GetNormals())
     {
       mesh_data_->GetPointData()->SetNormals(normal_generator->GetOutput()->GetPointData()->GetNormals());
     }
 
-    if ( !mesh_data_->GetCellData()->GetNormals() )
+    if (!mesh_data_->GetCellData()->GetNormals())
     {
       mesh_data_->GetCellData()->SetNormals(normal_generator->GetOutput()->GetCellData()->GetNormals());
     }
@@ -439,14 +438,11 @@ void PlaneSlicerRasterGenerator::setInput(vtkSmartPointer<vtkPolyData> mesh)
 void PlaneSlicerRasterGenerator::setInput(const shape_msgs::Mesh& mesh)
 {
   pcl::PolygonMesh::Ptr pcl_mesh = boost::make_shared<pcl::PolygonMesh>();
-  noether_conversions::convertToPCLMesh(mesh,*pcl_mesh);
+  noether_conversions::convertToPCLMesh(mesh, *pcl_mesh);
   setInput(pcl_mesh);
 }
 
-vtkSmartPointer<vtkPolyData> PlaneSlicerRasterGenerator::getInput()
-{
-  return mesh_data_;
-}
+vtkSmartPointer<vtkPolyData> PlaneSlicerRasterGenerator::getInput() { return mesh_data_; }
 
 boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
 {
@@ -454,14 +450,14 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   using IDVec = std::vector<vtkIdType>;
 
   boost::optional<ToolPaths> rasters = boost::none;
-  if(!mesh_data_)
+  if (!mesh_data_)
   {
-    CONSOLE_BRIDGE_logDebug("%s No mesh data has been provided",getName().c_str());
+    CONSOLE_BRIDGE_logDebug("%s No mesh data has been provided", getName().c_str());
   }
   // computing mayor axis using oob
   vtkSmartPointer<vtkOBBTree> oob = vtkSmartPointer<vtkOBBTree>::New();
-  Vector3d corner, x_dir, y_dir, z_dir, sizes;// x is longest, y is mid and z is smallest
-  oob->ComputeOBB(mesh_data_,corner.data(), x_dir.data(), y_dir.data(), z_dir.data(), sizes.data());
+  Vector3d corner, x_dir, y_dir, z_dir, sizes;  // x is longest, y is mid and z is smallest
+  oob->ComputeOBB(mesh_data_, corner.data(), x_dir.data(), y_dir.data(), z_dir.data(), sizes.data());
 
   // Compute the center of mass
   Vector3d origin;
@@ -518,13 +514,13 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   double min_coeff = dist.minCoeff();
 
   // Calculate the number of planes to cover the bounding box along the direction vector
-  auto num_planes = static_cast<std::size_t>(std::ceil((max_coeff - min_coeff)/config_.raster_spacing));
+  auto num_planes = static_cast<std::size_t>(std::ceil((max_coeff - min_coeff) / config_.raster_spacing));
 
   // Calculate the start location
   Vector3d start_loc = center + (min_coeff * raster_dir);
 
   vtkSmartPointer<vtkAppendPolyData> raster_data = vtkSmartPointer<vtkAppendPolyData>::New();
-  for(std::size_t i = 0; i < num_planes + 1 ; i++)
+  for (std::size_t i = 0; i < num_planes + 1; i++)
   {
     vtkSmartPointer<vtkPlane> plane = vtkSmartPointer<vtkPlane>::New();
     vtkSmartPointer<vtkCutter> cutter = vtkSmartPointer<vtkCutter>::New();
@@ -532,7 +528,7 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
 
     Vector3d current_loc = start_loc + i * config_.raster_spacing * raster_dir;
     plane->SetOrigin(current_loc.x(), current_loc.y(), current_loc.z());
-    plane->SetNormal(raster_dir.x() ,raster_dir.y(), raster_dir.z());
+    plane->SetNormal(raster_dir.x(), raster_dir.y(), raster_dir.z());
 
     cutter->SetCutFunction(plane);
     cutter->SetInputData(transformed_mesh_data);
@@ -545,12 +541,12 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
     stripper->SetMaximumLength(mesh_data_->GetNumberOfPoints());
     stripper->Update();
 
-    if(stripper->GetErrorCode() != vtkErrorCode::NoError)
+    if (stripper->GetErrorCode() != vtkErrorCode::NoError)
     {
       continue;
     }
 
-    for(int r = 0; r < stripper->GetNumberOfOutputPorts(); r++)
+    for (int r = 0; r < stripper->GetNumberOfOutputPorts(); r++)
     {
       raster_data->AddInputData(stripper->GetOutput(r));
     }
@@ -571,7 +567,7 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   std::vector<RasterConstructData> rasters_data_vec;
   std::vector<IDVec> raster_ids;
   boost::optional<Vector3d> ref_dir;
-  for(std::size_t i = 0; i < num_slices; i++)
+  for (std::size_t i = 0; i < num_slices; i++)
   {
     RasterConstructData r;
 
@@ -583,10 +579,13 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
     vtkPoints* points = raster_lines->GetPoints();
     vtkCellArray* cells = raster_lines->GetLines();
 
-    CONSOLE_BRIDGE_logDebug("%s raster %i has %i lines and %i points",getName().c_str(), i,
-                             raster_lines->GetNumberOfLines(), raster_lines->GetNumberOfPoints());
+    CONSOLE_BRIDGE_logDebug("%s raster %i has %i lines and %i points",
+                            getName().c_str(),
+                            i,
+                            raster_lines->GetNumberOfLines(),
+                            raster_lines->GetNumberOfPoints());
 
-    if(num_lines ==0)
+    if (num_lines == 0)
     {
       continue;
     }
@@ -594,32 +593,31 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
     raster_ids.clear();
 
     unsigned int lineCount = 0;
-    for (cells->InitTraversal(); cells->GetNextCell(num_points, indices);
-         lineCount++)
+    for (cells->InitTraversal(); cells->GetNextCell(num_points, indices); lineCount++)
     {
       IDVec point_ids;
       for (vtkIdType i = 0; i < num_points; i++)
       {
-        if(std::find(point_ids.begin(), point_ids.end(), indices[i]) != point_ids.end())
+        if (std::find(point_ids.begin(), point_ids.end(), indices[i]) != point_ids.end())
         {
           continue;
         }
         point_ids.push_back(indices[i]);
       }
-      if(point_ids.empty())
+      if (point_ids.empty())
       {
         continue;
       }
 
       // removing duplicates
       auto iter = std::unique(point_ids.begin(), point_ids.end());
-      point_ids.erase(iter,point_ids.end());
+      point_ids.erase(iter, point_ids.end());
 
       // adding
       raster_ids.push_back(point_ids);
     }
 
-    if(raster_ids.empty())
+    if (raster_ids.empty())
     {
       continue;
     }
@@ -628,32 +626,32 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
     removeRedundant(raster_ids);
 
     // merging segments
-    mergeRasterSegments(raster_lines->GetPoints(),config_.min_hole_size,raster_ids);
+    mergeRasterSegments(raster_lines->GetPoints(), config_.min_hole_size, raster_ids);
 
     // rectifying
-    if(!rasters_data_vec.empty())
+    if (!rasters_data_vec.empty())
     {
       Vector3d ref_point;
-      rasters_data_vec.back().raster_segments.front()->GetPoint(0,ref_point.data()); // first point in previous raster
+      rasters_data_vec.back().raster_segments.front()->GetPoint(0, ref_point.data());  // first point in previous raster
       rectifyDirection(raster_lines->GetPoints(), t_inv * ref_point, raster_ids);
     }
 
-    for(auto& rpoint_ids: raster_ids)
+    for (auto& rpoint_ids : raster_ids)
     {
       // Populating with points
       vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-      std::for_each(rpoint_ids.begin(), rpoint_ids.end(),[&points, &raster_lines](vtkIdType& id){
-        std::array<double,3> p;
+      std::for_each(rpoint_ids.begin(), rpoint_ids.end(), [&points, &raster_lines](vtkIdType& id) {
+        std::array<double, 3> p;
         raster_lines->GetPoint(id, p.data());
         points->InsertNextPoint(p.data());
       });
 
       // compute length and add points if segment length is greater than threshold
       double line_length = computeLength(points);
-      if(line_length > config_.min_segment_size && points->GetNumberOfPoints()> 1)
+      if (line_length > config_.min_segment_size && points->GetNumberOfPoints() > 1)
       {
         // enforce point spacing
-        decltype(points) new_points = applyParametricSpline(points,line_length,config_.point_spacing);
+        decltype(points) new_points = applyParametricSpline(points, line_length, config_.point_spacing);
 
         // add points to segment now
         PolyDataPtr segment_data = PolyDataPtr::New();
@@ -667,10 +665,11 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
         segment_data = transform_filter->GetPolyDataOutput();
 
         // inserting normals
-        if(!insertNormals(config_.search_radius,segment_data))
+        if (!insertNormals(config_.search_radius, segment_data))
         {
           CONSOLE_BRIDGE_logError("%s failed to insert normals to segment %lu of raster %lu",
-                                  getName().c_str(), r.raster_segments.size(),
+                                  getName().c_str(),
+                                  r.raster_segments.size(),
                                   i);
           return boost::none;
         }
@@ -689,8 +688,7 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   return rasters;
 }
 
-bool PlaneSlicerRasterGenerator::insertNormals(const double search_radius,
-                   vtkSmartPointer<vtkPolyData>& data)
+bool PlaneSlicerRasterGenerator::insertNormals(const double search_radius, vtkSmartPointer<vtkPolyData>& data)
 {
   // Find closest cell to each point and uses its normal vector
   vtkSmartPointer<vtkDoubleArray> new_normals = vtkSmartPointer<vtkDoubleArray>::New();
@@ -700,29 +698,29 @@ bool PlaneSlicerRasterGenerator::insertNormals(const double search_radius,
   // get normal data
   vtkSmartPointer<vtkDataArray> normal_data = mesh_data_->GetPointData()->GetNormals();
 
-  if(!normal_data)
+  if (!normal_data)
   {
     CONSOLE_BRIDGE_logError("%s Normal data is not available", getName().c_str());
     return false;
   }
 
   Eigen::Vector3d normal_vect = Eigen::Vector3d::UnitZ();
-  for(int i = 0; i < data->GetPoints()->GetNumberOfPoints(); ++i)
+  for (int i = 0; i < data->GetPoints()->GetNumberOfPoints(); ++i)
   {
     // locate closest cell
     Eigen::Vector3d query_point;
     vtkSmartPointer<vtkIdList> id_list = vtkSmartPointer<vtkIdList>::New();
     data->GetPoints()->GetPoint(i, query_point.data());
-    kd_tree_->FindPointsWithinRadius(search_radius,query_point.data(),id_list);
-    if(id_list->GetNumberOfIds() < 1)
+    kd_tree_->FindPointsWithinRadius(search_radius, query_point.data(), id_list);
+    if (id_list->GetNumberOfIds() < 1)
     {
       CONSOLE_BRIDGE_logWarn("%s FindPointsWithinRadius found no points for normal averaging, using closests",
                              getName().c_str());
-      kd_tree_->FindClosestNPoints(1, query_point.data(),id_list);
+      kd_tree_->FindClosestNPoints(1, query_point.data(), id_list);
 
-      if(id_list->GetNumberOfIds() < 1)
+      if (id_list->GetNumberOfIds() < 1)
       {
-        CONSOLE_BRIDGE_logError("%s failed to find closest for normal computation",getName().c_str());
+        CONSOLE_BRIDGE_logError("%s failed to find closest for normal computation", getName().c_str());
         return false;
       }
     }
@@ -730,7 +728,7 @@ bool PlaneSlicerRasterGenerator::insertNormals(const double search_radius,
     // compute normal average
     normal_vect = Eigen::Vector3d::Zero();
     std::size_t num_normals = 0;
-    for(std::size_t p = 0; p < id_list->GetNumberOfIds(); p++)
+    for (std::size_t p = 0; p < id_list->GetNumberOfIds(); p++)
     {
       Eigen::Vector3d temp_normal, query_point, closest_point;
       vtkIdType p_id = id_list->GetId(p);
@@ -738,14 +736,14 @@ bool PlaneSlicerRasterGenerator::insertNormals(const double search_radius,
       int sub_index;
       double dist;
 
-      if(p_id < 0)
+      if (p_id < 0)
       {
-        CONSOLE_BRIDGE_logError("%s point id is invalid",getName().c_str());
+        CONSOLE_BRIDGE_logError("%s point id is invalid", getName().c_str());
         continue;
       }
 
       // get normal and add it to average
-      normal_data->GetTuple(p_id,temp_normal.data());
+      normal_data->GetTuple(p_id, temp_normal.data());
       normal_vect += temp_normal.normalized();
       num_normals++;
     }
@@ -754,15 +752,12 @@ bool PlaneSlicerRasterGenerator::insertNormals(const double search_radius,
     normal_vect.normalize();
 
     // save normal
-    new_normals->SetTuple3(i,normal_vect(0),normal_vect(1),normal_vect(2));
+    new_normals->SetTuple3(i, normal_vect(0), normal_vect(1), normal_vect(2));
   }
   data->GetPointData()->SetNormals(new_normals);
   return true;
 }
 
-std::string PlaneSlicerRasterGenerator::getName() const
-{
-  return getClassName<decltype(*this)>();
-}
+std::string PlaneSlicerRasterGenerator::getName() const { return getClassName<decltype(*this)>(); }
 
 } /* namespace tool_path_planner */

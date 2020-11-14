@@ -8,7 +8,7 @@ namespace noether_filtering
 {
 namespace cloud
 {
-template<typename PointT>
+template <typename PointT>
 class VoxelGridFilter : public FilterBase<pcl::PointCloud<PointT>>
 {
 public:
@@ -29,7 +29,7 @@ public:
    * @return
    */
   bool configure(XmlRpc::XmlRpcValue config) override final;
-  bool filter(const T &input, T &output) override final;
+  bool filter(const T& input, T& output) override final;
   std::string getName() const override final;
 
   struct Params
@@ -50,7 +50,7 @@ public:
   static const std::string FILTER_LIMITS_NEGATIVE;
   static const std::string MIN_PTS_PER_VOXEL;
 };
-} // namespace cloud
-} // namespace noether_filtering
+}  // namespace cloud
+}  // namespace noether_filtering
 
-#endif // NOETHER_FILTERING_CLOUD_VOXEL_GRID_FILTER_H
+#endif  // NOETHER_FILTERING_CLOUD_VOXEL_GRID_FILTER_H

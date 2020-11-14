@@ -16,7 +16,6 @@
 
 namespace mesh_segmenter
 {
-
 void MeshSegmenter::setInputMesh(vtkSmartPointer<vtkPolyData> mesh)
 {
   input_mesh_ = mesh;
@@ -36,7 +35,9 @@ std::vector<vtkSmartPointer<vtkPolyData> > MeshSegmenter::getMeshSegments()
   std::vector<vtkSmartPointer<vtkPolyData> > meshes;
   for (std::size_t i = 0; i < included_indices_.size(); ++i)
   {
-    CONSOLE_BRIDGE_logInform(("Segment " + std::to_string(i) + " size: " + std::to_string(included_indices_.at(i)->GetNumberOfIds())).c_str());
+    CONSOLE_BRIDGE_logInform(
+        ("Segment " + std::to_string(i) + " size: " + std::to_string(included_indices_.at(i)->GetNumberOfIds()))
+            .c_str());
 
     vtkSmartPointer<vtkPolyData> mesh = vtkSmartPointer<vtkPolyData>::New();
     // Create new pointer to a new copy of input_mesh_
@@ -127,7 +128,7 @@ void MeshSegmenter::segmentMesh()
   CONSOLE_BRIDGE_logInform("Found %d segments", included_indices_.size());
   CONSOLE_BRIDGE_logInform("Total mesh size: %d", size);
   CONSOLE_BRIDGE_logInform("Used cells size: %d", used_cells->GetNumberOfIds());
-  CONSOLE_BRIDGE_logInform("Edge cells size: %d",  edge_cells->GetNumberOfIds());
+  CONSOLE_BRIDGE_logInform("Edge cells size: %d", edge_cells->GetNumberOfIds());
 }
 
 vtkSmartPointer<vtkIdList> MeshSegmenter::segmentMesh(int start_cell)

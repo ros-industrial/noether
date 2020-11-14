@@ -47,15 +47,14 @@ class PlaneSlicerRasterGenerator : public PathGenerator
   static constexpr double DEFAULT_MIN_HOLE_SIZE = 1e-2;
 
 public:
-
   struct Config
   {
-    double raster_spacing {DEFAULT_RASTER_SPACING};
-    double point_spacing {DEFAULT_POINT_SPACING};
-    double raster_rot_offset {DEFAULT_RASTER_ROT_OFFSET};
-    double min_segment_size {DEFAULT_MIN_SEGMENT_SIZE};
-    double search_radius {DEFAULT_SEARCH_RADIUS};
-    double min_hole_size {DEFAULT_MIN_HOLE_SIZE};
+    double raster_spacing{ DEFAULT_RASTER_SPACING };
+    double point_spacing{ DEFAULT_POINT_SPACING };
+    double raster_rot_offset{ DEFAULT_RASTER_ROT_OFFSET };
+    double min_segment_size{ DEFAULT_MIN_SEGMENT_SIZE };
+    double search_radius{ DEFAULT_SEARCH_RADIUS };
+    double min_hole_size{ DEFAULT_MIN_HOLE_SIZE };
 
     Json::Value toJson() const
     {
@@ -72,26 +71,35 @@ public:
 
     bool fromJson(const Json::Value& jv)
     {
-      if(jv.isNull())
+      if (jv.isNull())
       {
         ROS_ERROR("Json value is null");
         return false;
       }
-      if(jv.type() != Json::ValueType::objectValue)
+      if (jv.type() != Json::ValueType::objectValue)
       {
-        ROS_ERROR( "Json type %i is invalid, only '%i' is allowed",static_cast<int>(jv.type()), static_cast<int>(Json::ValueType::objectValue));
+        ROS_ERROR("Json type %i is invalid, only '%i' is allowed",
+                  static_cast<int>(jv.type()),
+                  static_cast<int>(Json::ValueType::objectValue));
         return false;
       }
-      auto validate = [](const Json::Value& jv,const std::string& name_, const Json::ValueType& type_) -> bool
-      {
+      auto validate = [](const Json::Value& jv, const std::string& name_, const Json::ValueType& type_) -> bool {
         return jv.isMember(name_) && jv[name_].type() == type_;
       };
-      raster_spacing = validate(jv,"raster_spacing",Json::ValueType::realValue) ? jv["raster_spacing"].asDouble() : DEFAULT_RASTER_SPACING;
-      point_spacing = validate(jv,"point_spacing",Json::ValueType::realValue) ? jv["point_spacing"].asDouble() : DEFAULT_POINT_SPACING;
-      raster_rot_offset = validate(jv,"raster_rot_offset", Json::ValueType::realValue) ? jv["raster_rot_offset"].asDouble() : DEFAULT_RASTER_ROT_OFFSET;
-      min_segment_size = validate(jv,"min_segment_size", Json::ValueType::realValue) ? jv["min_segment_size"].asDouble() : DEFAULT_MIN_SEGMENT_SIZE;
-      search_radius = validate(jv,"search_radius", Json::ValueType::realValue) ? jv["search_radius"].asDouble() : DEFAULT_SEARCH_RADIUS;
-      min_hole_size = validate(jv,"min_hole_size",Json::ValueType::realValue) ? jv["min_hole_size"].asDouble() : DEFAULT_MIN_HOLE_SIZE;
+      raster_spacing = validate(jv, "raster_spacing", Json::ValueType::realValue) ? jv["raster_spacing"].asDouble() :
+                                                                                    DEFAULT_RASTER_SPACING;
+      point_spacing = validate(jv, "point_spacing", Json::ValueType::realValue) ? jv["point_spacing"].asDouble() :
+                                                                                  DEFAULT_POINT_SPACING;
+      raster_rot_offset = validate(jv, "raster_rot_offset", Json::ValueType::realValue) ?
+                              jv["raster_rot_offset"].asDouble() :
+                              DEFAULT_RASTER_ROT_OFFSET;
+      min_segment_size = validate(jv, "min_segment_size", Json::ValueType::realValue) ?
+                             jv["min_segment_size"].asDouble() :
+                             DEFAULT_MIN_SEGMENT_SIZE;
+      search_radius = validate(jv, "search_radius", Json::ValueType::realValue) ? jv["search_radius"].asDouble() :
+                                                                                  DEFAULT_SEARCH_RADIUS;
+      min_hole_size = validate(jv, "min_hole_size", Json::ValueType::realValue) ? jv["min_hole_size"].asDouble() :
+                                                                                  DEFAULT_MIN_HOLE_SIZE;
       return true;
     }
 
@@ -108,11 +116,11 @@ public:
     std::string str()
     {
       std::stringstream ss;
-      ss<<"raster_spacing: "<< raster_spacing<<std::endl;
-      ss<<"point_spacing: "<< point_spacing<<std::endl;
-      ss<<"raster_rot_offset: "<< raster_rot_offset<<std::endl;
-      ss<<"min_segment_size: "<< min_segment_size<<std::endl;
-      ss<<"search_radius: "<< search_radius<<std::endl;
+      ss << "raster_spacing: " << raster_spacing << std::endl;
+      ss << "point_spacing: " << point_spacing << std::endl;
+      ss << "raster_rot_offset: " << raster_rot_offset << std::endl;
+      ss << "min_segment_size: " << min_segment_size << std::endl;
+      ss << "search_radius: " << search_radius << std::endl;
       return ss.str();
     }
   };
@@ -140,7 +148,6 @@ public:
   std::string getName() const override;
 
 private:
-
   bool insertNormals(const double search_radius, vtkSmartPointer<vtkPolyData>& data);
 
   vtkSmartPointer<vtkPolyData> mesh_data_;

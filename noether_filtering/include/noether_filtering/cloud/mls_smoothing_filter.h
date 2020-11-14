@@ -7,7 +7,7 @@ namespace noether_filtering
 {
 namespace cloud
 {
-template<typename PointT>
+template <typename PointT>
 class MLSSmoothingFilter : public FilterBase<pcl::PointCloud<PointT>>
 {
 public:
@@ -24,7 +24,7 @@ public:
    * @return
    */
   bool configure(XmlRpc::XmlRpcValue config) override final;
-  bool filter(const T &input, T &output) override final;
+  bool filter(const T& input, T& output) override final;
   std::string getName() const override final;
 
   struct Params
@@ -38,7 +38,7 @@ public:
   static const std::string SEARCH_RADIUS;
 };
 
-} // namespace cloud
-} // namespace noether_filtering
+}  // namespace cloud
+}  // namespace noether_filtering
 
-#endif // NOETHER_FILTERING_CLOUD_MLS_SMOOTHING_FILTER_H
+#endif  // NOETHER_FILTERING_CLOUD_MLS_SMOOTHING_FILTER_H
