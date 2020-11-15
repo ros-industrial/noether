@@ -31,8 +31,6 @@
 #include <vtkSTLWriter.h>
 #include <ros/package.h>
 
-
-
 namespace noether
 {
 void Noether::addMeshDisplay(std::vector<vtkSmartPointer<vtkPolyData> >& meshes)

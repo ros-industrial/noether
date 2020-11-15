@@ -24,36 +24,34 @@
 
 namespace path_sequence_planner
 {
-  class SimplePathSequencePlanner : public PathSequencePlanner
-  {
-  public:
+class SimplePathSequencePlanner : public PathSequencePlanner
+{
+public:
+  void linkPaths() override;
 
-    void linkPaths() override;
+  void setPaths(tool_path_planner::ToolPaths paths) override;
 
-    void setPaths(tool_path_planner::ToolPaths paths) override;
+  tool_path_planner::ToolPaths getPaths() override;
 
-    tool_path_planner::ToolPaths getPaths() override;
+  std::vector<std::size_t> getIndices() const override;
 
-    std::vector<std::size_t> getIndices() const override;
+private:
+  /**
+   * @brief findNextNearestPath Finds the next nearest path in a set to for a sequence
+   * @param paths The set of paths to search
+   * @param used_indices The list of indices already used
+   * @param last_path The index of the current path to check for
+   * @param front Used to determine whether to use the front or back of the last path to calculate distance
+   * @return The index of the next nearest path to last_path
+   */
+  long findNextNearestPath(tool_path_planner::ToolPaths paths,
+                           std::vector<std::size_t> used_indices,
+                           std::size_t last_path,
+                           bool front);
 
-  private:
+  tool_path_planner::ToolPaths paths_; /**< The input paths to operate on */
+  std::vector<std::size_t> indices_;   /**< The list of indices specifying the order in which to execute the paths_ */
+};
 
-    /**
-     * @brief findNextNearestPath Finds the next nearest path in a set to for a sequence
-     * @param paths The set of paths to search
-     * @param used_indices The list of indices already used
-     * @param last_path The index of the current path to check for
-     * @param front Used to determine whether to use the front or back of the last path to calculate distance
-     * @return The index of the next nearest path to last_path
-     */
-    long findNextNearestPath(tool_path_planner::ToolPaths paths,
-                             std::vector<std::size_t> used_indices,
-                             std::size_t last_path,
-                             bool front);
-
-    tool_path_planner::ToolPaths paths_; /**< The input paths to operate on */
-    std::vector<std::size_t> indices_;  /**< The list of indices specifying the order in which to execute the paths_ */
-  };
-
-}
-#endif // PATH_SEQUENCE_PLANNER_H
+}  // namespace path_sequence_planner
+#endif  // PATH_SEQUENCE_PLANNER_H

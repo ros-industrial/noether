@@ -12,7 +12,7 @@
 #include "noether_filtering/cloud/voxel_grid_filter.h"
 #include "noether_filtering/cloud/mls_smoothing_filter.h"
 
-template<typename PointT>
+template <typename PointT>
 XmlRpc::XmlRpcValue createVoxelGridConfig()
 {
   using namespace noether_filtering;
@@ -29,7 +29,7 @@ XmlRpc::XmlRpcValue createVoxelGridConfig()
   return f;
 }
 
-template<typename PointT>
+template <typename PointT>
 XmlRpc::XmlRpcValue createStatisticalOutlierConfig()
 {
   using namespace noether_filtering;
@@ -47,7 +47,7 @@ XmlRpc::XmlRpcValue createStatisticalOutlierConfig()
   return f;
 }
 
-template<typename PointT>
+template <typename PointT>
 XmlRpc::XmlRpcValue createCropBoxConfig()
 {
   using namespace noether_filtering;
@@ -86,7 +86,7 @@ XmlRpc::XmlRpcValue createCropBoxConfig()
   return f;
 }
 
-template<typename PointT>
+template <typename PointT>
 XmlRpc::XmlRpcValue createPassThroughConfig()
 {
   using namespace noether_filtering;
@@ -106,7 +106,7 @@ XmlRpc::XmlRpcValue createPassThroughConfig()
   return f;
 }
 
-template<typename PointT>
+template <typename PointT>
 XmlRpc::XmlRpcValue createRadiusOutlierConfig()
 {
   using namespace noether_filtering;
@@ -124,7 +124,7 @@ XmlRpc::XmlRpcValue createRadiusOutlierConfig()
   return f;
 }
 
-template<typename PointT>
+template <typename PointT>
 XmlRpc::XmlRpcValue createMLSSmoothingConfig()
 {
   using namespace noether_filtering;
@@ -142,7 +142,7 @@ XmlRpc::XmlRpcValue createMLSSmoothingConfig()
   return f;
 }
 
-template<typename PointT>
+template <typename PointT>
 XmlRpc::XmlRpcValue createManagerConfig(std::string group_name)
 {
   using namespace noether_filtering::config_fields;
@@ -175,7 +175,7 @@ XmlRpc::XmlRpcValue createManagerConfig(std::string group_name)
   return manager;
 }
 
-template<typename PointT>
+template <typename PointT>
 class FilterManagerFixture : public testing::Test
 {
 public:
@@ -215,7 +215,7 @@ TYPED_TEST(FilterManagerFixture, FilterManagerTest)
   ASSERT_LE(output_cloud.points.size(), input_cloud.points.size());
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_INFO);
   testing::InitGoogleTest(&argc, argv);

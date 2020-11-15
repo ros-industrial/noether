@@ -33,8 +33,6 @@
 
 namespace tool_path_planner
 {
-
-
 /**
  * @brief The EigenValueEdgeGenerator class
  *
@@ -62,32 +60,31 @@ namespace tool_path_planner
 class EigenValueEdgeGenerator : public PathGenerator
 {
 public:
-
   struct Config
   {
     /**
      * @ingroup  hsv values computation using the covariance matrix
      * @{
      */
-    double octree_res = 0.005;    /** @brief resolution for the octree */
-    double search_radius = 0.01;  /** @brief radious used for grouping */
-    std::size_t num_threads = 4;  /** @brief desired omp thread count  */
+    double octree_res = 0.005;   /** @brief resolution for the octree */
+    double search_radius = 0.01; /** @brief radious used for grouping */
+    std::size_t num_threads = 4; /** @brief desired omp thread count  */
     /** @}*/
 
     /**
      * @ingroup edge filtering
      * @{
      */
-    double neighbor_tol = 0.01;   /** @brief points with "v > max_v * (1 - neighbor_tol)" are considered edge points  */
+    double neighbor_tol = 0.01; /** @brief points with "v > max_v * (1 - neighbor_tol)" are considered edge points  */
     /** @}*/
 
     /**
      * @ingroup  edge point reordering
      * @{
      */
-    double voxel_size = 0.01;        /** @brief used in downsampling edge points  */
-    int edge_cluster_min = 3;        /** @brief downsamples only when edge cluster size is greater than this value  */
-    double kdtree_epsilon = 0.01;    /** @brief precision used for nearest neighbor searches  */
+    double voxel_size = 0.01;     /** @brief used in downsampling edge points  */
+    int edge_cluster_min = 3;     /** @brief downsamples only when edge cluster size is greater than this value  */
+    double kdtree_epsilon = 0.01; /** @brief precision used for nearest neighbor searches  */
     /** @}*/
 
     /**
@@ -95,12 +92,13 @@ public:
      * @brief uses ray-casting against the mesh's octree minus the edge points.
      * @{
      */
-    double min_projection_dist = 0.01;  /** @brief minimum distance by which to project an edge point along the normal,
-                                                   recommended 2 * octree_res */
-    int max_intersecting_voxels = 4;    /** @brief will split when distance exceeds octree_res * max_intersecting_voxels */
+    double min_projection_dist = 0.01; /** @brief minimum distance by which to project an edge point along the normal,
+                                                  recommended 2 * octree_res */
+    int max_intersecting_voxels = 4; /** @brief will split when distance exceeds octree_res * max_intersecting_voxels */
     /** @}*/
 
-    double merge_dist = 0.01;    /** @brief any two consecutive points with a shortest distance smaller than this value are merged */
+    double merge_dist =
+        0.01; /** @brief any two consecutive points with a shortest distance smaller than this value are merged */
   };
 
   EigenValueEdgeGenerator() = default;
@@ -126,7 +124,6 @@ public:
   std::string getName() const override;
 
 protected:
-
   /** @brief Setup Helper Function */
   void setup();
 
@@ -137,9 +134,7 @@ protected:
    * @param segments      The output indices of each edge segment
    * @return  True on success, false otherwise
    */
-  bool splitEdgeSegments(const pcl::PointIndices& edge_indices,
-                         std::vector<pcl::PointIndices>& segments);
-
+  bool splitEdgeSegments(const pcl::PointIndices& edge_indices, std::vector<pcl::PointIndices>& segments);
 
   /**
    * @brief merge points that are very close to one another
@@ -148,8 +143,7 @@ protected:
    * @param merged_points   The merged points
    * @return  Number of points that were merged.
    */
-  int mergePoints(const pcl::PointIndices& edge_segment,
-                  pcl::PointCloud<pcl::PointNormal>& merged_points);
+  int mergePoints(const pcl::PointIndices& edge_segment, pcl::PointCloud<pcl::PointNormal>& merged_points);
 
   /**
    * @brief Checks if the there's a surface that separates two points
@@ -160,15 +154,12 @@ protected:
    */
   int checkSurfaceIntersection(const pcl::PointNormal& p1, const pcl::PointNormal& p2);
 
-
   pcl::PointCloud<pcl::PointNormal>::Ptr input_cloud_;
   pcl::PointCloud<pcl::PointXYZ>::Ptr input_points_;
   pcl::PolygonMesh::ConstPtr mesh_;
   vtkSmartPointer<vtkPolyData> vtk_mesh_;
   pcl::octree::OctreePointCloudSearch<pcl::PointXYZ>::Ptr octree_search_;
   Config config_;
-
-
 };
 
 } /* namespace tool_path_planner */

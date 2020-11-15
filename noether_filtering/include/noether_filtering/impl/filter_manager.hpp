@@ -10,20 +10,17 @@ static const std::string DEFAULT_FILTER_CHAIN_NAME = "Default";
 
 namespace noether_filtering
 {
-
-template<typename T>
-FilterManager<T>::FilterManager(const std::string& base_class_name):
-  base_class_name_(base_class_name)
+template <typename T>
+FilterManager<T>::FilterManager(const std::string& base_class_name) : base_class_name_(base_class_name)
 {
-
 }
 
-template<typename T>
+template <typename T>
 bool FilterManager<T>::init(XmlRpc::XmlRpcValue config)
 {
   using namespace config_fields;
   filter_groups_map_.clear();
-  if(!config.hasMember(manager::FILTER_GROUPS))
+  if (!config.hasMember(manager::FILTER_GROUPS))
   {
     CONSOLE_BRIDGE_logError("The '%s' field was not found, %s failed to load configuration",
                             manager::FILTER_GROUPS.c_str(),
@@ -32,7 +29,7 @@ bool FilterManager<T>::init(XmlRpc::XmlRpcValue config)
   }
 
   XmlRpc::XmlRpcValue filter_groups_config = config[manager::FILTER_GROUPS];
-  if(filter_groups_config.getType() != XmlRpc::XmlRpcValue::TypeArray)
+  if (filter_groups_config.getType() != XmlRpc::XmlRpcValue::TypeArray)
   {
     CONSOLE_BRIDGE_logError("The '%s' field is not an array, %s failed to load configuration",
                             manager::FILTER_GROUPS.c_str(),
@@ -40,7 +37,7 @@ bool FilterManager<T>::init(XmlRpc::XmlRpcValue config)
     return false;
   }
 
-  for(int i = 0; i < filter_groups_config.size(); i++)
+  for (int i = 0; i < filter_groups_config.size(); i++)
   {
     try
     {
@@ -51,7 +48,7 @@ bool FilterManager<T>::init(XmlRpc::XmlRpcValue config)
       XmlRpc::XmlRpcValue group_config = filter_groups_config[i];
       std::string group_name = static_cast<std::string>(group_config[manager::GROUP_NAME]);
 
-      if(filter_groups_map_.find(group_name) != filter_groups_map_.end())
+      if (filter_groups_map_.find(group_name) != filter_groups_map_.end())
       {
         CONSOLE_BRIDGE_logError("The filter group '%s' already exists in %s",
                                 group_name.c_str(),
@@ -59,18 +56,17 @@ bool FilterManager<T>::init(XmlRpc::XmlRpcValue config)
         return false;
       }
 
-      if(!filter_group->init(group_config))
+      if (!filter_group->init(group_config))
       {
         CONSOLE_BRIDGE_logError("Failed to initialize filter group '%s'", group_name.c_str());
         return false;
       }
 
       filter_groups_map_.insert(std::make_pair(group_name, std::move(filter_group)));
-      CONSOLE_BRIDGE_logInform("%s loaded filter group '%s'",
-                               utils::getClassName<decltype(*this)>().c_str(),
-                               group_name.c_str());
+      CONSOLE_BRIDGE_logInform(
+          "%s loaded filter group '%s'", utils::getClassName<decltype(*this)>().c_str(), group_name.c_str());
     }
-    catch(XmlRpc::XmlRpcException& e)
+    catch (XmlRpc::XmlRpcException& e)
     {
       CONSOLE_BRIDGE_logError("Failure while loading %s configuration, error msg: '%s'",
                               utils::getClassName<decltype(*this)>().c_str(),
@@ -82,11 +78,11 @@ bool FilterManager<T>::init(XmlRpc::XmlRpcValue config)
   return true;
 }
 
-template<typename T>
+template <typename T>
 std::shared_ptr<FilterGroup<T>> FilterManager<T>::getFilterGroup(const std::string& name) const
 {
   std::string n = name.empty() ? DEFAULT_FILTER_CHAIN_NAME : name;
-  if(filter_groups_map_.find(n) == filter_groups_map_.end())
+  if (filter_groups_map_.find(n) == filter_groups_map_.end())
   {
     CONSOLE_BRIDGE_logError("Filter chain '%s' was not found", n.c_str());
     return nullptr;
@@ -94,6 +90,6 @@ std::shared_ptr<FilterGroup<T>> FilterManager<T>::getFilterGroup(const std::stri
   return filter_groups_map_.at(n);
 }
 
-} // namespace noether_filtering
+}  // namespace noether_filtering
 
-#endif // NOETHER_FILTERING_FILTER_MANAGER_HPP
+#endif  // NOETHER_FILTERING_FILTER_MANAGER_HPP

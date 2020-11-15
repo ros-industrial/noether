@@ -19,7 +19,6 @@
  * limitations under the License.
  */
 
-
 #ifndef INCLUDE_NOETHER_FILTERING_MESH_EUCLIDEAN_CLUSTERING_H_
 #define INCLUDE_NOETHER_FILTERING_MESH_EUCLIDEAN_CLUSTERING_H_
 
@@ -31,15 +30,14 @@ namespace noether_filtering
 {
 namespace mesh
 {
-class EuclideanClustering: public MeshFilterBase
+class EuclideanClustering : public MeshFilterBase
 {
 public:
-
   struct Parameters
   {
-    double tolerance = 0.02; // meters
+    double tolerance = 0.02;  // meters
     int min_cluster_size = 100;
-    int max_cluster_size = -1; // will use input point cloud size when negative
+    int max_cluster_size = -1;  // will use input point cloud size when negative
   };
 
   bool configure(XmlRpc::XmlRpcValue config) override final;

@@ -9,7 +9,7 @@ namespace noether_filtering
 {
 namespace cloud
 {
-template<typename PointT>
+template <typename PointT>
 class CropBoxFilter : public FilterBase<pcl::PointCloud<PointT>>
 {
 public:
@@ -41,12 +41,12 @@ public:
    * @return
    */
   bool configure(XmlRpc::XmlRpcValue config) override final;
-  bool filter(const T &input, T &output) override final;
+  bool filter(const T& input, T& output) override final;
   std::string getName() const override final;
 
   struct Params
   {
-    Eigen::Vector4f min_pt = -1.0* Eigen::Vector4f::Ones();
+    Eigen::Vector4f min_pt = -1.0 * Eigen::Vector4f::Ones();
     Eigen::Vector4f max_pt = Eigen::Vector4f::Ones();
     Eigen::Affine3f transform = Eigen::Affine3f::Identity();
     bool crop_outside = false;
@@ -59,7 +59,7 @@ public:
   static const std::string CROP_OUTSIDE;
 };
 
-} // namespace cloud
-} // namespace noether_filtering
+}  // namespace cloud
+}  // namespace noether_filtering
 
-#endif // NOETHER_FILTERING_CLOUD_CROP_BOX_FILTER_H
+#endif  // NOETHER_FILTERING_CLOUD_CROP_BOX_FILTER_H

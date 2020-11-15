@@ -8,7 +8,7 @@ namespace noether_filtering
 {
 namespace cloud
 {
-template<typename PointT>
+template <typename PointT>
 class StatisticalOutlierFilter : public FilterBase<pcl::PointCloud<PointT>>
 {
 public:
@@ -25,7 +25,7 @@ public:
    * @return
    */
   virtual bool configure(XmlRpc::XmlRpcValue config) override final;
-  virtual bool filter(const T &input, T &output) override final;
+  virtual bool filter(const T& input, T& output) override final;
   virtual std::string getName() const override final;
 
   struct Params
@@ -38,7 +38,7 @@ public:
   static const std::string MEAN_K;
   static const std::string STD_DEV_MULT;
 };
-} // namespace cloud
-} // namespace noether_filtering
+}  // namespace cloud
+}  // namespace noether_filtering
 
-#endif // STATISTICAL_OUTLIER_FILTER_H
+#endif  // STATISTICAL_OUTLIER_FILTER_H

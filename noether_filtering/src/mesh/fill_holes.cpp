@@ -33,29 +33,22 @@ namespace noether_filtering
 {
 namespace mesh
 {
-FillHoles::FillHoles()
-{
+FillHoles::FillHoles() {}
 
-}
-
-FillHoles::~FillHoles()
-{
-
-}
+FillHoles::~FillHoles() {}
 
 bool FillHoles::configure(XmlRpc::XmlRpcValue config)
 {
-  std::vector<std::string> fields = {"hole_size"};
+  std::vector<std::string> fields = { "hole_size" };
 
-  if(!std::all_of(fields.begin(), fields.end(), [&config, this](const std::string& f){
-    if( !config.hasMember(f))
-    {
-      CONSOLE_BRIDGE_logError("The %s config field %s was not found", getName().c_str(), f.c_str());
-      return false;
-    }
-    return true;
-  }
-  ))
+  if (!std::all_of(fields.begin(), fields.end(), [&config, this](const std::string& f) {
+        if (!config.hasMember(f))
+        {
+          CONSOLE_BRIDGE_logError("The %s config field %s was not found", getName().c_str(), f.c_str());
+          return false;
+        }
+        return true;
+      }))
   {
     return false;
   }
@@ -65,7 +58,7 @@ bool FillHoles::configure(XmlRpc::XmlRpcValue config)
     std::size_t idx = 0;
     hole_size_ = static_cast<double>(config[fields[idx++]]);
   }
-  catch(XmlRpc::XmlRpcException& e)
+  catch (XmlRpc::XmlRpcException& e)
   {
     CONSOLE_BRIDGE_logError(e.getMessage().c_str());
     return false;
@@ -95,14 +88,11 @@ bool FillHoles::filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMesh& mesh_o
   mesh_data = normals_rectifier->GetOutput();
   std::size_t end_num_polys = mesh_data->GetNumberOfPolys();
   CONSOLE_BRIDGE_logInform("Filled %lu polygons", start_num_polys - end_num_polys);
-  VTKUtils::vtk2mesh(mesh_data,mesh_out);
+  VTKUtils::vtk2mesh(mesh_data, mesh_out);
   return true;
 }
 
-std::string FillHoles::getName() const
-{
-  return utils::getClassName<decltype(*this)>();
-}
+std::string FillHoles::getName() const { return utils::getClassName<decltype(*this)>(); }
 
 } /* namespace mesh */
 } /* namespace noether_filtering */

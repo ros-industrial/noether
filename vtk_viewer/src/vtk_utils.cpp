@@ -53,7 +53,6 @@
 
 namespace vtk_viewer
 {
-
 vtkSmartPointer<vtkPoints> createPlane(unsigned int grid_size_x, unsigned int grid_size_y, vtk_viewer::plane_type type)
 {
   // Create points on an XY grid with a sinusoidal Z component
@@ -86,9 +85,7 @@ vtkSmartPointer<vtkPoints> createPlane(unsigned int grid_size_x, unsigned int gr
   return points;
 }
 
-vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points,
-                                        double sample_spacing,
-                                        int neigborhood_size)
+vtkSmartPointer<vtkPolyData> createMesh(vtkSmartPointer<vtkPoints> points, double sample_spacing, int neigborhood_size)
 {
   if (!points)
   {

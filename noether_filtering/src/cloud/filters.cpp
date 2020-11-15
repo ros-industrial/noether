@@ -17,4 +17,4 @@ PCL_INSTANTIATE(PassThroughFilter, PCL_XYZ_POINT_TYPES);
 PCL_INSTANTIATE(RadiusOutlierFilter, PCL_XYZ_POINT_TYPES);
 PCL_INSTANTIATE(MLSSmoothingFilter, PCL_XYZ_POINT_TYPES);
 
-} // namespace noether_filtering
+}  // namespace noether_filtering

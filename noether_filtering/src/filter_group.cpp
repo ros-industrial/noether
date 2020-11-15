@@ -4,8 +4,7 @@
 #include <pcl/point_types.h>
 #include <pcl/PolygonMesh.h>
 
-#define PCL_INSTANTIATE_FilterGroup(T) \
-  template class PCL_EXPORTS noether_filtering::FilterGroup<pcl::PointCloud<T>>;
+#define PCL_INSTANTIATE_FilterGroup(T) template class PCL_EXPORTS noether_filtering::FilterGroup<pcl::PointCloud<T>>;
 
 namespace noether_filtering
 {
@@ -15,4 +14,4 @@ template class FilterGroup<pcl::PolygonMesh>;
 // Explicit template instantiation for all XYZ point types
 PCL_INSTANTIATE(FilterGroup, PCL_XYZ_POINT_TYPES);
 
-} // namespace noether_filtering
+}  // namespace noether_filtering

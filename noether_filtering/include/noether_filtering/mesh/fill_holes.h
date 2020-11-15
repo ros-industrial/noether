@@ -28,7 +28,6 @@ namespace noether_filtering
 {
 namespace mesh
 {
-
 /**
  * @class noether_filtering::mesh::FillHoles
  * @brief Applies the vtkFillHoles filter, more details can be found on
@@ -42,7 +41,8 @@ public:
 
   /**
    * @brief configures the fill hole algorithm from a yaml struct with the following form
-   * - hole_size: 1.0 # Specify the maximum hole size to fill. Represented as a radius to the bounding circumsphere containing the hole.
+   * - hole_size: 1.0 # Specify the maximum hole size to fill. Represented as a radius to the bounding circumsphere
+   * containing the hole.
    *
    * @param config the configuration
    * @return  True on success, false otherwise
@@ -59,9 +59,7 @@ public:
   std::string getName() const override final;
 
 protected:
-
   double hole_size_ = 1.0;
-
 };
 
 } /* namespace mesh */
