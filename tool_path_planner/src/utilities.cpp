@@ -298,4 +298,48 @@ bool createToolPathSegment(const pcl::PointCloud<pcl::PointNormal>& cloud_normal
   return true;
 }
 
+// this is a helper function for splitPaths()
+double getDistance(Eigen::Isometry3d t1, Eigen::Isometry3d t2)
+{
+  auto p1 = t1.translation();
+  auto p2 = t2.translation();
+  return sqrt(pow(p1.x() - p2.x(), 2) + pow(p1.y() - p2.y(), 2) + pow(p1.z() - p2.z(), 2));
+}
+
+ToolPaths splitSegments(ToolPaths tool_paths, double max_segment_length)
+{
+  ToolPaths new_tool_paths;
+  for (auto tool_path : tool_paths)
+  {
+    ToolPath new_tool_path;
+    for (auto seg : tool_path)
+    {
+      // calculate total segment length
+      double total_segment_length = 0.0;
+      for (std::size_t point_i = 0; point_i < seg.size()-1; ++point_i)
+      {
+        total_segment_length += getDistance(seg[point_i], seg[point_i+1]);
+      }
+      int num_cuts = int(ceil(total_segment_length / max_segment_length));
+      double segment_length = total_segment_length / num_cuts;
+      double dist_from_start = 0.0;
+      std::size_t point_i = 1;
+      for (int cut_i = 0; cut_i < num_cuts; ++cut_i)
+      {
+        ToolPathSegment new_seg;
+        new_seg.push_back(seg[point_i-1]);
+        while (dist_from_start < segment_length * (cut_i+1) && point_i < seg.size())
+        {
+          new_seg.push_back(seg[point_i]);
+          dist_from_start += getDistance(seg[point_i-1], seg[point_i]);
+          point_i += 1;
+        }
+        new_tool_path.push_back(new_seg);
+      }
+    }
+    new_tool_paths.push_back(new_tool_path);
+  }
+  return new_tool_paths;
+}
+
 }  // namespace tool_path_planner

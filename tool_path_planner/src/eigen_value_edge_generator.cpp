@@ -330,7 +330,7 @@ boost::optional<ToolPaths> EigenValueEdgeGenerator::generate()
       edge_paths.push_back({ edge_segment });
     }
   }
-  return edge_paths;
+  return tool_path_planner::splitSegments(edge_paths, config_.max_segment_lenth);
 }
 
 void EigenValueEdgeGenerator::setup()

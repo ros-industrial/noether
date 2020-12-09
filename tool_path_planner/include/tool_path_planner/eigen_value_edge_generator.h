@@ -99,6 +99,8 @@ public:
 
     double merge_dist =
         0.01; /** @brief any two consecutive points with a shortest distance smaller than this value are merged */
+
+    double max_segment_lenth = 1.0; /** @brief maximum segment length */
   };
 
   EigenValueEdgeGenerator() = default;
