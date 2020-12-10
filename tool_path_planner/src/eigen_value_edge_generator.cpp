@@ -203,7 +203,7 @@ namespace tool_path_planner
 {
 void EigenValueEdgeGenerator::setConfiguration(const Config& config) { config_ = config; }
 
-boost::optional<ToolPaths> EigenValueEdgeGenerator::generate()
+boost::optional<ToolPath> EigenValueEdgeGenerator::generate()
 {
   using namespace pcl;
 
@@ -288,7 +288,7 @@ boost::optional<ToolPaths> EigenValueEdgeGenerator::generate()
   }
 
   // generating paths from the segments
-  ToolPaths edge_paths;
+  ToolPath edge_paths;
   for (std::size_t c = 0; c < clusters_indices.size(); c++)
   {
     PointIndices& cluster = clusters_indices[c];
@@ -323,7 +323,7 @@ boost::optional<ToolPaths> EigenValueEdgeGenerator::generate()
 
       CONSOLE_BRIDGE_logInform("\tConverting edge segment %lu of cluster %lu to poses", s, c);
 
-      ToolPathSegment edge_segment;
+      RasterSegment edge_segment;
       if (!createToolPathSegment(merged_points, {}, edge_segment))
         return boost::none;
 

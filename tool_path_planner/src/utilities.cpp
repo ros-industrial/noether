@@ -39,7 +39,7 @@
 
 namespace tool_path_planner
 {
-void flipPointOrder(ToolPath& path)
+void flipPointOrder(Raster& path)
 {
   // Reverse the order of the segments
   std::reverse(std::begin(path), std::end(path));
@@ -54,17 +54,17 @@ void flipPointOrder(ToolPath& path)
       p *= Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ());
 }
 
-tool_path_planner::ToolPathsData toToolPathsData(const tool_path_planner::ToolPaths& paths)
+tool_path_planner::ToolPathData toToolPathsData(const tool_path_planner::ToolPath& paths)
 {
   using namespace Eigen;
 
-  tool_path_planner::ToolPathsData results;
+  tool_path_planner::ToolPathData results;
   for (const auto& path : paths)
   {
-    tool_path_planner::ToolPathData tp_data;
+    tool_path_planner::RasterPathData tp_data;
     for (const auto& segment : path)
     {
-      tool_path_planner::ToolPathSegmentData tps_data;
+      tool_path_planner::RasterSegmentData tps_data;
       tps_data.line = vtkSmartPointer<vtkPolyData>::New();
       tps_data.derivatives = vtkSmartPointer<vtkPolyData>::New();
 
@@ -228,7 +228,7 @@ bool toPlaneSlicerConfig(PlaneSlicerRasterGenerator::Config& config,
 
 bool createToolPathSegment(const pcl::PointCloud<pcl::PointNormal>& cloud_normals,
                            const std::vector<int>& indices,
-                           ToolPathSegment& segment)
+                           RasterSegment& segment)
 {
   using namespace pcl;
   using namespace Eigen;

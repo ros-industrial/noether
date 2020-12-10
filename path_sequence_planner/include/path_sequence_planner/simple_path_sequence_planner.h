@@ -27,11 +27,13 @@ namespace path_sequence_planner
 class SimplePathSequencePlanner : public PathSequencePlanner
 {
 public:
+  using PathSequencePlanner::PathSequencePlanner;
+
   void linkPaths() override;
 
-  void setPaths(tool_path_planner::ToolPaths paths) override;
+  void setPath(tool_path_planner::ToolPath paths) override;
 
-  tool_path_planner::ToolPaths getPaths() override;
+  tool_path_planner::ToolPath getPath() override;
 
   std::vector<std::size_t> getIndices() const override;
 
@@ -44,12 +46,12 @@ private:
    * @param front Used to determine whether to use the front or back of the last path to calculate distance
    * @return The index of the next nearest path to last_path
    */
-  long findNextNearestPath(tool_path_planner::ToolPaths paths,
+  long findNextNearestPath(tool_path_planner::ToolPath paths,
                            std::vector<std::size_t> used_indices,
                            std::size_t last_path,
                            bool front);
 
-  tool_path_planner::ToolPaths paths_; /**< The input paths to operate on */
+  tool_path_planner::ToolPath path_; /**< The input path to operate on */
   std::vector<std::size_t> indices_;   /**< The list of indices specifying the order in which to execute the paths_ */
 };
 

@@ -427,7 +427,7 @@ vtkSmartPointer<vtkPolyData> HalfedgeEdgeGenerator::getInput() { return vtk_mesh
 
 std::string HalfedgeEdgeGenerator::getName() const { return getClassName<decltype(*this)>(); }
 
-boost::optional<ToolPaths> HalfedgeEdgeGenerator::generate()
+boost::optional<ToolPath> HalfedgeEdgeGenerator::generate()
 {
   using namespace pcl;
   CONSOLE_BRIDGE_logInform("Input mesh has %lu polygons", mesh_->polygons.size());
@@ -454,7 +454,7 @@ boost::optional<ToolPaths> HalfedgeEdgeGenerator::generate()
   pcl::copyPointCloud(*input_cloud, *input_points);
 
   // traversing half edges list
-  ToolPaths edge_paths;
+  ToolPath edge_paths;
   for (std::vector<TraingleMesh::HalfEdgeIndices>::const_iterator boundary = boundary_he_indices.begin(),
                                                                   b_end = boundary_he_indices.end();
        boundary != b_end;
@@ -552,7 +552,7 @@ boost::optional<ToolPaths> HalfedgeEdgeGenerator::generate()
                      config_.normal_influence_weight);
     }
 
-    ToolPathSegment edge_segment;
+    RasterSegment edge_segment;
     if (!createToolPathSegment(bound_segment_points, {}, edge_segment))
       return boost::none;
 

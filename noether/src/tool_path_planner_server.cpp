@@ -96,7 +96,7 @@ protected:
       tool_path_planner::PathGenerator::Ptr generator = nullptr;
       const noether_msgs::ToolPathConfig& config = goal->path_configs[i];
       const shape_msgs::Mesh& mesh = goal->surface_meshes[i];
-      boost::optional<tool_path_planner::ToolPaths> tool_paths = boost::none;
+      boost::optional<tool_path_planner::ToolPath> tool_paths = boost::none;
       ROS_INFO("Planning path");
       if (config.type == noether_msgs::ToolPathConfig::SURFACE_WALK_RASTER_GENERATOR)
       {

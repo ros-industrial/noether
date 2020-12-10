@@ -327,15 +327,15 @@ static void rectifyDirection(const vtkSmartPointer<vtkPoints>& points,
   }
 }
 
-static tool_path_planner::ToolPaths convertToPoses(const std::vector<RasterConstructData>& rasters_data)
+static tool_path_planner::ToolPath convertToPoses(const std::vector<RasterConstructData>& rasters_data)
 {
   using namespace Eigen;
-  tool_path_planner::ToolPaths rasters_array;
+  tool_path_planner::ToolPath rasters_array;
   bool reverse = true;
   for (const RasterConstructData& rd : rasters_data)
   {
     reverse = !reverse;
-    tool_path_planner::ToolPath raster_path;
+    tool_path_planner::Raster raster_path;
     std::vector<PolyDataPtr> raster_segments;
     raster_segments.assign(rd.raster_segments.begin(), rd.raster_segments.end());
     if (reverse)
@@ -345,7 +345,7 @@ static tool_path_planner::ToolPaths convertToPoses(const std::vector<RasterConst
 
     for (const PolyDataPtr& polydata : raster_segments)
     {
-      tool_path_planner::ToolPathSegment raster_path_segment;
+      tool_path_planner::RasterSegment raster_path_segment;
       std::size_t num_points = polydata->GetNumberOfPoints();
       Vector3d p, p_next, vx, vy, vz;
       Isometry3d pose;
@@ -444,12 +444,12 @@ void PlaneSlicerRasterGenerator::setInput(const shape_msgs::Mesh& mesh)
 
 vtkSmartPointer<vtkPolyData> PlaneSlicerRasterGenerator::getInput() { return mesh_data_; }
 
-boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
+boost::optional<ToolPath> PlaneSlicerRasterGenerator::generate()
 {
   using namespace Eigen;
   using IDVec = std::vector<vtkIdType>;
 
-  boost::optional<ToolPaths> rasters = boost::none;
+  boost::optional<ToolPath> rasters = boost::none;
   if (!mesh_data_)
   {
     CONSOLE_BRIDGE_logDebug("%s No mesh data has been provided", getName().c_str());

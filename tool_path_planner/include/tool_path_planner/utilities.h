@@ -49,14 +49,14 @@ namespace tool_path_planner
  * @brief flipPointOrder Inverts a path
  * @param path The input path to invert
  */
-void flipPointOrder(ToolPath& path);
+void flipPointOrder(Raster& path);
 
 /**
  * @brief conversion function. Not well tested yet
  * @param paths The toolpaths within a raster
  * @return A vector of tool path data
  */
-ToolPathsData toToolPathsData(const ToolPaths& paths);
+ToolPathData toToolPathsData(const ToolPath& paths);
 
 /**
  * @details creates a rotation matrix from the column vectors; it can then be assigned to a Isometry3d pose
@@ -105,7 +105,7 @@ bool toPlaneSlicerConfig(PlaneSlicerRasterGenerator::Config& config,
  */
 bool createToolPathSegment(const pcl::PointCloud<pcl::PointNormal>& cloud_normals,
                            const std::vector<int>& indices,
-                           ToolPathSegment& segment);
+                           RasterSegment& segment);
 
 template <class C>
 static std::string getClassName()

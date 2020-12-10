@@ -48,8 +48,6 @@ namespace tool_path_planner
  */
 struct PathEndPoints
 {
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   Eigen::Vector3d a;
   Eigen::Vector3d b;
   size_t id;
@@ -578,7 +576,7 @@ void SurfaceWalkRasterGenerator::setInput(const shape_msgs::Mesh& mesh)
 
 vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::getInput() { return mesh_data_; }
 
-boost::optional<ToolPaths> SurfaceWalkRasterGenerator::generate()
+boost::optional<ToolPath> SurfaceWalkRasterGenerator::generate()
 {
   // Need to call getFirstPath or other method to generate the first path
   // If no paths exist, there is nothing to create offset paths from
@@ -768,17 +766,17 @@ boost::optional<ToolPaths> SurfaceWalkRasterGenerator::generate()
   tool_path_poses = sequence(tool_path_poses);
 
   // Convert to results struction
-  ToolPaths results;
+  ToolPath results;
   for (const auto& rp : tool_path_poses)
   {
-    ToolPathSegment tps;
+    RasterSegment tps;
     for (const auto& p : rp.poses)
     {
       Eigen::Isometry3d epose;
       tf::poseMsgToEigen(p, epose);
       tps.push_back(epose);
     }
-    ToolPath tp;
+    Raster tp;
     tp.push_back(tps);
     results.push_back(tp);
   }

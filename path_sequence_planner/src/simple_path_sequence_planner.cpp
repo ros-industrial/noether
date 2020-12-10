@@ -11,13 +11,13 @@
 
 namespace path_sequence_planner
 {
-void SimplePathSequencePlanner::setPaths(tool_path_planner::ToolPaths paths)
+void SimplePathSequencePlanner::setPath(tool_path_planner::ToolPath paths)
 {
-  paths_ = paths;
+  path_ = paths;
   indices_.clear();
 }
 
-tool_path_planner::ToolPaths SimplePathSequencePlanner::getPaths() { return paths_; }
+tool_path_planner::ToolPath SimplePathSequencePlanner::getPath() { return path_; }
 
 std::vector<std::size_t> SimplePathSequencePlanner::getIndices() const { return indices_; }
 
@@ -26,7 +26,7 @@ void SimplePathSequencePlanner::linkPaths()
   bool insert_front = false;
   std::size_t last_index = 0;
 
-  while (indices_.size() != paths_.size())
+  while (indices_.size() != path_.size())
   {
     if (indices_.size() == 0)
     {
@@ -44,7 +44,7 @@ void SimplePathSequencePlanner::linkPaths()
         last_index = indices_.back();
       }
 
-      long next_index = findNextNearestPath(paths_, indices_, last_index, insert_front);
+      long next_index = findNextNearestPath(path_, indices_, last_index, insert_front);
 
       if (next_index < 0)
         return;
@@ -52,14 +52,14 @@ void SimplePathSequencePlanner::linkPaths()
       if (indices_.size() > 1)
       {
         // check the distance of next_index with front and back to make sure it is in the right location
-        const Eigen::Isometry3d& front_pt = paths_[indices_.front()].front().front();
-        const Eigen::Isometry3d& end_pt = paths_[indices_.back()].back().back();
-        Eigen::Isometry3d next_pt = paths_[static_cast<std::size_t>(next_index)].back().back();
+        const Eigen::Isometry3d& front_pt = path_[indices_.front()].front().front();
+        const Eigen::Isometry3d& end_pt = path_[indices_.back()].back().back();
+        Eigen::Isometry3d next_pt = path_[static_cast<std::size_t>(next_index)].back().back();
 
         double front_dist1 = (next_pt.translation() - front_pt.translation()).norm();
         double back_dist1 = (next_pt.translation() - end_pt.translation()).norm();
 
-        next_pt = paths_[static_cast<std::size_t>(next_index)].front().front();
+        next_pt = path_[static_cast<std::size_t>(next_index)].front().front();
 
         double front_dist2 = (next_pt.translation() - front_pt.translation()).norm();
         double back_dist2 = (next_pt.translation() - end_pt.translation()).norm();
@@ -88,33 +88,33 @@ void SimplePathSequencePlanner::linkPaths()
 
         Eigen::Isometry3d last_pt;
         if (insert_front)
-          last_pt = paths_[last_index].front().front();
+          last_pt = path_[last_index].front().front();
         else
-          last_pt = paths_[last_index].back().back();
+          last_pt = path_[last_index].back().back();
 
         // get first last point of of the line and determine if it needs to be flipped
-        const Eigen::Isometry3d& pt1 = paths_[static_cast<std::size_t>(next_index)].front().front();
+        const Eigen::Isometry3d& pt1 = path_[static_cast<std::size_t>(next_index)].front().front();
         double dist1 = (pt1.translation() - last_pt.translation()).norm();
 
         // find distance between last point and the end points of the next line
-        const Eigen::Isometry3d& pt2 = paths_[static_cast<std::size_t>(next_index)].back().back();
+        const Eigen::Isometry3d& pt2 = path_[static_cast<std::size_t>(next_index)].back().back();
         double dist2 = (pt2.translation() - last_pt.translation()).norm();
 
         // If the distance is shorter, flip the order of the next path
         if (dist2 < dist1 && !insert_front)
         {
-          tool_path_planner::flipPointOrder(paths_[static_cast<std::size_t>(next_index)]);
+          tool_path_planner::flipPointOrder(path_[static_cast<std::size_t>(next_index)]);
         }
         else if (dist1 < dist2 && insert_front)
         {
-          tool_path_planner::flipPointOrder(paths_[static_cast<std::size_t>(next_index)]);
+          tool_path_planner::flipPointOrder(path_[static_cast<std::size_t>(next_index)]);
         }
       }
     }
   }
 }
 
-long SimplePathSequencePlanner::findNextNearestPath(tool_path_planner::ToolPaths paths,
+long SimplePathSequencePlanner::findNextNearestPath(tool_path_planner::ToolPath paths,
                                                     std::vector<std::size_t> used_indices,
                                                     std::size_t last_path,
                                                     bool front)

@@ -47,7 +47,7 @@ public:
    * @param show_cutting_meshes If true, will show the cutting meshes used to calculate the path points
    * @param show_derivatives If true, will show the derivatives for each point in the path
    */
-  void addPathDisplay(std::vector<tool_path_planner::ToolPaths>& paths,
+  void addPathDisplay(std::vector<tool_path_planner::ToolPath>& paths,
                       double scale,
                       bool show_path = true,
                       bool show_cutting_meshes = false,
@@ -61,7 +61,7 @@ public:
    * @param show_cutting_meshes If true, will show the cutting meshes used to calculate the path points
    * @param show_derivatives If true, will show the derivatives for each point in the path
    */
-  void addPathDisplay(tool_path_planner::ToolPaths& paths,
+  void addPathDisplay(tool_path_planner::ToolPath& paths,
                       double scale,
                       bool show_path = true,
                       bool show_cutting_meshes = false,

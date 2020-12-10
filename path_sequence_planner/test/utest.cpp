@@ -82,17 +82,17 @@ TEST(IntersectTest, TestCase1)
     viz.addPolyNormalsDisplay(normals_data, color, scale);
   }
 
-  boost::optional<tool_path_planner::ToolPaths> paths = planner.generate();
+  boost::optional<tool_path_planner::ToolPath> paths = planner.generate();
   ASSERT_TRUE(paths);
 
   // Create sequence planner and set the data
   path_sequence_planner::SimplePathSequencePlanner sequence_planner;
-  sequence_planner.setPaths(paths.get());
+  sequence_planner.setPath(paths.get());
   sequence_planner.linkPaths();
 
-  tool_path_planner::ToolPaths paths2 = sequence_planner.getPaths();
+  tool_path_planner::ToolPath paths2 = sequence_planner.getPath();
   std::vector<std::size_t> indices = sequence_planner.getIndices();
-  tool_path_planner::ToolPathsData paths2_data = tool_path_planner::toToolPathsData(paths2);
+  tool_path_planner::ToolPathData paths2_data = tool_path_planner::toToolPathsData(paths2);
 
   vtkSmartPointer<vtkPolyData> connecting_data = vtkSmartPointer<vtkPolyData>::New();
   vtkSmartPointer<vtkPoints> connecting_points = vtkSmartPointer<vtkPoints>::New();

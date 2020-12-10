@@ -95,9 +95,9 @@ void runRasterRotationTest(tool_path_planner::PathGenerator& planner, vtkSmartPo
   }
 
   // Plan paths for given mesh
-  boost::optional<tool_path_planner::ToolPaths> paths = planner.generate();
+  boost::optional<tool_path_planner::ToolPath> paths = planner.generate();
   ASSERT_TRUE(paths);
-  tool_path_planner::ToolPathsData paths_data = tool_path_planner::toToolPathsData(paths.get());
+  tool_path_planner::ToolPathData paths_data = tool_path_planner::toToolPathsData(paths.get());
   for (std::size_t i = 0; i < paths_data.size(); ++i)
   {
     for (std::size_t j = 0; j < paths_data[i].size(); ++j)
@@ -157,9 +157,9 @@ void runTestCase1(tool_path_planner::PathGenerator& planner, vtkSmartPointer<vtk
   }
 
   // Plan paths for given mesh
-  boost::optional<tool_path_planner::ToolPaths> paths = planner.generate();
+  boost::optional<tool_path_planner::ToolPath> paths = planner.generate();
   ASSERT_TRUE(paths);
-  tool_path_planner::ToolPathsData paths_data = tool_path_planner::toToolPathsData(paths.get());
+  tool_path_planner::ToolPathData paths_data = tool_path_planner::toToolPathsData(paths.get());
   for (std::size_t i = 0; i < paths_data.size(); ++i)
   {
     for (std::size_t j = 0; j < paths_data[i].size(); ++j)
@@ -219,9 +219,9 @@ void runTestCaseRansac(tool_path_planner::PathGenerator& planner, vtkSmartPointe
   }
 
   // Plan paths for given mesh
-  boost::optional<tool_path_planner::ToolPaths> paths = planner.generate();
+  boost::optional<tool_path_planner::ToolPath> paths = planner.generate();
   ASSERT_TRUE(paths);
-  tool_path_planner::ToolPathsData paths_data = tool_path_planner::toToolPathsData(paths.get());
+  tool_path_planner::ToolPathData paths_data = tool_path_planner::toToolPathsData(paths.get());
   for (std::size_t i = 0; i < paths_data.size(); ++i)
   {
     for (std::size_t j = 0; j < paths_data[i].size(); ++j)
@@ -262,11 +262,11 @@ void runExtraRasterTest(tool_path_planner::PathGenerator& planner,
   planner_with_extras.setInput(mesh);
 
   // Test on simple surface without extras
-  boost::optional<tool_path_planner::ToolPaths> paths_no_extras = planner.generate();
+  boost::optional<tool_path_planner::ToolPath> paths_no_extras = planner.generate();
   ASSERT_TRUE(paths_no_extras);
 
   // Test on simple surface with extras
-  boost::optional<tool_path_planner::ToolPaths> paths_with_extras = planner_with_extras.generate();
+  boost::optional<tool_path_planner::ToolPath> paths_with_extras = planner_with_extras.generate();
   ASSERT_TRUE(paths_with_extras);
 
   // Check that the number of rasters has increased by 2
@@ -300,7 +300,7 @@ void runExtraRasterTest(tool_path_planner::PathGenerator& planner,
   }
 
   // Display results without extra rasters
-  tool_path_planner::ToolPathsData paths_no_extras_data = tool_path_planner::toToolPathsData(paths_no_extras.get());
+  tool_path_planner::ToolPathData paths_no_extras_data = tool_path_planner::toToolPathsData(paths_no_extras.get());
   for (std::size_t i = 0; i < paths_no_extras_data.size(); ++i)
   {
     for (std::size_t j = 0; j < paths_no_extras_data[i].size(); ++j)
@@ -326,7 +326,7 @@ void runExtraRasterTest(tool_path_planner::PathGenerator& planner,
   viz.renderDisplay();
 
   // Display results with extra rasters
-  tool_path_planner::ToolPathsData paths_with_extras_data = tool_path_planner::toToolPathsData(paths_with_extras.get());
+  tool_path_planner::ToolPathData paths_with_extras_data = tool_path_planner::toToolPathsData(paths_with_extras.get());
   for (std::size_t i = 0; i < paths_with_extras_data.size(); ++i)
   {
     for (std::size_t j = 0; j < paths_with_extras_data[i].size(); ++j)

@@ -86,7 +86,7 @@ public:
 
   vtkSmartPointer<vtkPolyData> getInput() override;
 
-  boost::optional<ToolPaths> generate() override;
+  boost::optional<ToolPath> generate() override;
 
   std::string getName() const override;
 
