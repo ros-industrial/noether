@@ -88,7 +88,7 @@ static vtkSmartPointer<vtkTransform> toVtkMatrix(const Eigen::Affine3d& t)
 
 double computeLength(const vtkSmartPointer<vtkPoints>& points)
 {
-  std::size_t num_points = points->GetNumberOfPoints();
+  const vtkIdType num_points = points->GetNumberOfPoints();
   double total_length = 0.0;
   if (num_points < 2)
   {
@@ -96,7 +96,7 @@ double computeLength(const vtkSmartPointer<vtkPoints>& points)
   }
 
   Eigen::Vector3d p0, pf;
-  for (std::size_t i = 1; i < num_points; i++)
+  for (vtkIdType i = 1; i < num_points; i++)
   {
     points->GetPoint(i - 1, p0.data());
     points->GetPoint(i, pf.data());
@@ -124,11 +124,10 @@ static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vt
   new_points->InsertNextPoint(pt_prev.data());
 
   // adding remaining points by evaluating spline
-  double incr = point_spacing / total_length;
-  std::size_t num_points = std::ceil(total_length / point_spacing) + 1;
+  unsigned num_points = static_cast<unsigned>(std::ceil(total_length / point_spacing) + 1);
   double du[9];
   Eigen::Vector3d u, pt;
-  for (std::size_t i = 1; i < num_points; i++)
+  for (unsigned i = 1; i < num_points; i++)
   {
     double interv = static_cast<double>(i) / static_cast<double>(num_points - 1);
     interv = interv > 1.0 ? 1.0 : interv;
@@ -514,7 +513,7 @@ boost::optional<ToolPath> PlaneSlicerRasterGenerator::generate()
   double min_coeff = dist.minCoeff();
 
   // Calculate the number of planes to cover the bounding box along the direction vector
-  auto num_planes = static_cast<std::size_t>(std::ceil((max_coeff - min_coeff) / config_.raster_spacing));
+  std::size_t num_planes = static_cast<std::size_t>(std::ceil((max_coeff - min_coeff) / config_.raster_spacing));
 
   // Calculate the start location
   Vector3d start_loc = center + (min_coeff * raster_dir);
@@ -576,7 +575,6 @@ boost::optional<ToolPath> PlaneSlicerRasterGenerator::generate()
     vtkIdType* indices;
     vtkIdType num_points;
     vtkIdType num_lines = raster_lines->GetNumberOfLines();
-    vtkPoints* points = raster_lines->GetPoints();
     vtkCellArray* cells = raster_lines->GetLines();
 
     CONSOLE_BRIDGE_logDebug("%s raster %i has %i lines and %i points",
@@ -728,13 +726,10 @@ bool PlaneSlicerRasterGenerator::insertNormals(const double search_radius, vtkSm
     // compute normal average
     normal_vect = Eigen::Vector3d::Zero();
     std::size_t num_normals = 0;
-    for (std::size_t p = 0; p < id_list->GetNumberOfIds(); p++)
+    for (auto p = 0; p < id_list->GetNumberOfIds(); p++)
     {
       Eigen::Vector3d temp_normal, query_point, closest_point;
       vtkIdType p_id = id_list->GetId(p);
-      vtkIdType cell_id;
-      int sub_index;
-      double dist;
 
       if (p_id < 0)
       {
