@@ -52,7 +52,7 @@ private:
                            bool front);
 
   tool_path_planner::ToolPath path_; /**< The input path to operate on */
-  std::vector<std::size_t> indices_;   /**< The list of indices specifying the order in which to execute the paths_ */
+  std::vector<std::size_t> indices_; /**< The list of indices specifying the order in which to execute the paths_ */
 };
 
 }  // namespace path_sequence_planner
