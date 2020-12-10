@@ -469,10 +469,9 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
 
   // computing transformation matrix
   Affine3d t = Translation3d(origin) * AngleAxisd(computeRotation(x_dir, y_dir, z_dir));
-  Affine3d t_inv = t.inverse();
 
   // transforming data
-  vtkSmartPointer<vtkTransform> vtk_transform = toVtkMatrix(t_inv);
+  vtkSmartPointer<vtkTransform> vtk_transform = toVtkMatrix(t);
 
   vtkSmartPointer<vtkTransformFilter> transform_filter = vtkSmartPointer<vtkTransformFilter>::New();
   transform_filter->SetInputData(mesh_data_);
@@ -633,7 +632,7 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
     {
       Vector3d ref_point;
       rasters_data_vec.back().raster_segments.front()->GetPoint(0, ref_point.data());  // first point in previous raster
-      rectifyDirection(raster_lines->GetPoints(), t_inv * ref_point, raster_ids);
+      rectifyDirection(raster_lines->GetPoints(), t * ref_point, raster_ids);
     }
 
     for (auto& rpoint_ids : raster_ids)
@@ -660,7 +659,7 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
         // transforming to original coordinate system
         transform_filter = vtkSmartPointer<vtkTransformFilter>::New();
         transform_filter->SetInputData(segment_data);
-        transform_filter->SetTransform(toVtkMatrix(t));
+        transform_filter->SetTransform(toVtkMatrix(t.inverse()));
         transform_filter->Update();
         segment_data = transform_filter->GetPolyDataOutput();
 
