@@ -370,7 +370,6 @@ TEST(IntersectTest, SurfaceWalkRasterRotationTest)
     tool.intersection_plane_height = 0.2;  // 0.5 works best, not sure if this should be included in the tool
     tool.min_hole_size = 0.1;
     tool.raster_rot_offset = direction;
-    tool.raster_wrt_global_axes = false;
     tool.debug = false;
     planner.setConfiguration(tool);
     runRasterRotationTest(planner, mesh);
@@ -393,7 +392,6 @@ TEST(IntersectTest, PlaneSlicerRasterRotationTest)
     //    tool.tool_offset = 0.0;                // currently unused
     tool.min_hole_size = 0.1;
     tool.raster_rot_offset = direction;
-    //    tool.raster_wrt_global_axes = false;
     //    tool.debug = false;
     planner.setConfiguration(tool);
     runRasterRotationTest(planner, mesh);
@@ -532,7 +530,6 @@ TEST(IntersectTest, SurfaceWalkExtraRasterTest)
   tool.intersection_plane_height = 0.2;  // 0.5 works best, not sure if this should be included in the tool
   tool.min_hole_size = 0.1;
   tool.raster_rot_offset = 0.0;
-  tool.raster_wrt_global_axes = false;
   tool.generate_extra_rasters = false;
   tool.debug = false;
 

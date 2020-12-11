@@ -152,8 +152,11 @@ bool toSurfaceWalkConfigMsg(noether_msgs::SurfaceWalkRasterGeneratorConfig& conf
   config_msg.min_hole_size = config.min_hole_size;
   config_msg.min_segment_size = config.min_segment_size;
   config_msg.raster_rot_offset = config.raster_rot_offset;
-  config_msg.raster_wrt_global_axes = config.raster_wrt_global_axes;
   config_msg.generate_extra_rasters = config.generate_extra_rasters;
+
+  config_msg.cut_direction.x = config.cut_direction[0];
+  config_msg.cut_direction.y = config.cut_direction[1];
+  config_msg.cut_direction.z = config.cut_direction[2];
   return true;
 }
 
@@ -208,8 +211,12 @@ bool toSurfaceWalkConfig(SurfaceWalkRasterGenerator::Config& config,
   config.min_hole_size = config_msg.min_hole_size;
   config.min_segment_size = config_msg.min_segment_size;
   config.raster_rot_offset = config_msg.raster_rot_offset;
-  config.raster_wrt_global_axes = config_msg.raster_wrt_global_axes;
   config.generate_extra_rasters = config_msg.generate_extra_rasters;
+
+  config.cut_direction[0] = config_msg.cut_direction.x;
+  config.cut_direction[1] = config_msg.cut_direction.y;
+  config.cut_direction[2] = config_msg.cut_direction.z;
+
   return true;
 }
 
