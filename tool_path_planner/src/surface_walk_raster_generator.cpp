@@ -1198,19 +1198,19 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createStartCurve()
   vtkSmartPointer<vtkCellArray> cell_ids = mesh_data_->GetPolys();
   cell_ids->InitTraversal();
 
-  Eigen::Vector3d avg_center(Eigen::Vector3d::Zero());
-  Eigen::Vector3d avg_norm(Eigen::Vector3d::Zero());
+  Eigen::Vector3d avg_center{ Eigen::Vector3d::Zero() };
+  Eigen::Vector3d avg_norm{ Eigen::Vector3d::Zero() };
 
-  double avg_area = 0;
-  long num_cells = cell_ids->GetNumberOfCells();
+  double avg_area{ 0.0 };
+  long num_cells{ cell_ids->GetNumberOfCells() };
 
   // iterate through all cells to find averages
   for (int i = 0; i < num_cells; ++i)
   {
-    Eigen::Vector3d center(Eigen::Vector3d::Zero());
-    Eigen::Vector3d norm(Eigen::Vector3d::Zero());
+    Eigen::Vector3d center{ Eigen::Vector3d::Zero() };
+    Eigen::Vector3d norm{ Eigen::Vector3d::Zero() };
 
-    double area = 0;
+    double area{ 0.0 };
     if (getCellCentroidData(i, center.data(), norm.data(), area))
     {
       avg_center += center * area;
@@ -1239,7 +1239,7 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createStartCurve()
     obb_tree->ComputeOBB(mesh_data_->GetPoints(), corner.data(), max.data(), mid.data(), min.data(), norm_size.data());
 
     // Use the specified cut direction if it is not [0, 0, 0]
-    Eigen::Vector3d cut_dir(config_.cut_direction);
+    Eigen::Vector3d cut_dir{ config_.cut_direction };
     if (!cut_dir.isApprox(Eigen::Vector3d::Zero()))
     {
       max = cut_dir.normalized() * max.norm();
@@ -1256,24 +1256,13 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createStartCurve()
     }
   }
 
-  // Create additional points for the starting curve
-  Eigen::Vector3d raster_axis;
-  if (!config_.raster_wrt_global_axes)
-  {
-    // Principal axis is longest axis of the bounding box
-    Eigen::Vector3d principal_axis(max);
-    Eigen::Vector3d rotation_axis(min);
-    rotation_axis.normalize();
-    // Form rotation by specified angle about smallest axis of the bounding box
-    Eigen::Quaterniond rot(Eigen::AngleAxisd(config_.raster_rot_offset, Eigen::Vector3d(rotation_axis)));
-    rot.normalize();
-    // Rotate principal axis by quaternion to get raster axis
-    raster_axis = rot.toRotationMatrix() * principal_axis;
-  }
-  else
-  {
-    // TODO: Add the ability to define a rotation in mesh coordinates that is then projected onto the mesh plane
-  }
+  // Rotate the largest principal axis around the smallest principal axis by the specified angle
+  Eigen::Vector3d raster_axis = Eigen::AngleAxisd(config_.raster_rot_offset, min.normalized()) * max;
+
+  // TODO: Add the ability to define a rotation in mesh coordinates that is then projected onto the mesh plane
+  //  if (config_.raster_wrt_global_axes)
+  //  {
+  //  }
 
   // Use raster_axis to create additional points for the starting curve
   {
