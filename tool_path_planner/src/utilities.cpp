@@ -165,10 +165,14 @@ bool toPlaneSlicerConfigMsg(noether_msgs::PlaneSlicerRasterGeneratorConfig& conf
 {
   config_msg.point_spacing = config.point_spacing;
   config_msg.raster_spacing = config.raster_spacing;
-  // config_msg.tool_offset = config.tool_offset;
   config_msg.min_hole_size = config.min_hole_size;
   config_msg.min_segment_size = config.min_segment_size;
   config_msg.raster_rot_offset = config.raster_rot_offset;
+  config_msg.raster_wrt_global_axes = config.raster_wrt_global_axes;
+
+  config_msg.raster_direction.x = config.raster_direction.x();
+  config_msg.raster_direction.y = config.raster_direction.y();
+  config_msg.raster_direction.z = config.raster_direction.z();
 
   return true;
 }
@@ -225,10 +229,22 @@ bool toPlaneSlicerConfig(PlaneSlicerRasterGenerator::Config& config,
 {
   config.point_spacing = config_msg.point_spacing;
   config.raster_spacing = config_msg.raster_spacing;
-  // config.tool_offset = config_msg.tool_offset;
   config.min_hole_size = config_msg.min_hole_size;
   config.min_segment_size = config_msg.min_segment_size;
   config.raster_rot_offset = config_msg.raster_rot_offset;
+  config.raster_wrt_global_axes = config_msg.raster_wrt_global_axes;
+
+  // Check that the raster direction was set; we are not interested in direction [0,0,0]
+  double norm_squared =
+      config_msg.raster_direction.x * config_msg.raster_direction.x +
+      config_msg.raster_direction.y * config_msg.raster_direction.y +
+      config_msg.raster_direction.z * config_msg.raster_direction.z;
+  if (norm_squared > 0.000001)
+  {
+    config.raster_direction.x() = config_msg.raster_direction.x;
+    config.raster_direction.y() = config_msg.raster_direction.y;
+    config.raster_direction.z() = config_msg.raster_direction.z;
+  }
 
   return true;
 }

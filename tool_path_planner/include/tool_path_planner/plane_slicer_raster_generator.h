@@ -26,6 +26,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 #include <boost/optional.hpp>
+#include <Eigen/Dense>
 #include <pcl/PolygonMesh.h>
 #include <shape_msgs/Mesh.h>
 #include <vtkCellLocator.h>
@@ -45,6 +46,7 @@ class PlaneSlicerRasterGenerator : public PathGenerator
   static constexpr double DEFAULT_MIN_SEGMENT_SIZE = 0.01;
   static constexpr double DEFAULT_SEARCH_RADIUS = 0.01;
   static constexpr double DEFAULT_MIN_HOLE_SIZE = 1e-2;
+  static constexpr bool DEFAULT_RASTER_WRT_GLOBAL_AXES = false;
 
 public:
   struct Config
@@ -55,6 +57,8 @@ public:
     double min_segment_size{ DEFAULT_MIN_SEGMENT_SIZE };
     double search_radius{ DEFAULT_SEARCH_RADIUS };
     double min_hole_size{ DEFAULT_MIN_HOLE_SIZE };
+    bool raster_wrt_global_axes{ DEFAULT_RASTER_WRT_GLOBAL_AXES };
+    Eigen::Vector3d raster_direction{ Eigen::Vector3d::UnitY() };
 
     Json::Value toJson() const
     {
