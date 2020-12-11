@@ -1229,40 +1229,41 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createStartCurve()
   vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
   line->SetPoints(pts);
 
-  Eigen::Vector3d max, min;
+  Eigen::Vector3d raster_axis, rotation_axis;
   {
     // Calculate the object-oriented bounding box to determine how wide a cutting plane should be
     vtkSmartPointer<vtkOBBTree> obb_tree = vtkSmartPointer<vtkOBBTree>::New();
     obb_tree->SetTolerance(0.001);
     obb_tree->SetLazyEvaluation(0);
-    Eigen::Vector3d mid, corner, norm_size;
+    Eigen::Vector3d min, max, mid, corner, norm_size;
     obb_tree->ComputeOBB(mesh_data_->GetPoints(), corner.data(), max.data(), mid.data(), min.data(), norm_size.data());
 
     // Use the specified cut direction if it is not [0, 0, 0]
     Eigen::Vector3d cut_dir{ config_.cut_direction };
     if (!cut_dir.isApprox(Eigen::Vector3d::Zero()))
     {
-      max = cut_dir.normalized() * max.norm();
+      // Project the cut direction onto the plane of the mesh defined by the average normal at [0, 0, 0]
+      Eigen::Hyperplane<double, 3> plane(avg_norm, 0.0);
+      raster_axis = plane.projection(cut_dir).normalized() * max.norm();
+      rotation_axis = avg_norm.normalized();
+    }
+    else if (norm_size[1] / norm_size[0] > 0.99)
+    {
+      // ComputeOBB uses PCA to find the principle axes, thus for square objects it returns the diagonals instead
+      // of the minimum bounding box.  If the first and second axes are within 1% of each other, average max and mid
+      // to get the desired axes of the object
+      raster_axis = (max.normalized() + mid.normalized()) * max.norm();
     }
     else
     {
-      // ComputeOBB uses PCA to find the principle axes, thus for square objects it returns the diagonals instead
-      // of the minimum bounding box.  Compare the first and second axes to see if they are within 1% of each other
-      if (norm_size[1] / norm_size[0] > 0.99)
-      {
-        // if object is square, need to average max and mid in order to get the correct axes of the object
-        max = (max.normalized() + mid.normalized()) * max.norm();
-      }
+      // Simply use the max OBB axis as the raster axis and the min OBB axis as the rotation axis
+      raster_axis = max;
+      rotation_axis = min;
     }
   }
 
   // Rotate the largest principal axis around the smallest principal axis by the specified angle
-  Eigen::Vector3d raster_axis = Eigen::AngleAxisd(config_.raster_rot_offset, min.normalized()) * max;
-
-  // TODO: Add the ability to define a rotation in mesh coordinates that is then projected onto the mesh plane
-  //  if (config_.raster_wrt_global_axes)
-  //  {
-  //  }
+  raster_axis = Eigen::AngleAxisd(config_.raster_rot_offset, rotation_axis.normalized()) * raster_axis;
 
   // Use raster_axis to create additional points for the starting curve
   {
