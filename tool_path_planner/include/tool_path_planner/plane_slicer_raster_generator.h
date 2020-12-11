@@ -126,7 +126,6 @@ public:
   };
 
   PlaneSlicerRasterGenerator() = default;
-  virtual ~PlaneSlicerRasterGenerator() = default;
 
   /**
    * @brief Set the generator configuration

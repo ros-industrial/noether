@@ -135,7 +135,6 @@ public:
                                    jv["generate_extra_rasters"].asBool() :
                                    DEFAULT_GENERATE_EXTRA_RASTERS;
       return true;
-      return true;
     }
 
     bool fromJson(const std::string& jv_string)
@@ -163,7 +162,6 @@ public:
   };
 
   SurfaceWalkRasterGenerator() = default;
-  virtual ~SurfaceWalkRasterGenerator() = default;
 
   /**
    * @brief Set the generator configuration

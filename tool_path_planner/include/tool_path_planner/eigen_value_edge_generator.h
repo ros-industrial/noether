@@ -102,7 +102,6 @@ public:
   };
 
   EigenValueEdgeGenerator() = default;
-  virtual ~EigenValueEdgeGenerator() = default;
 
   /**
    * @brief Set the generator configuration
