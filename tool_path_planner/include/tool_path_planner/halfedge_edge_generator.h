@@ -69,7 +69,6 @@ public:
   };
 
   HalfedgeEdgeGenerator() = default;
-  virtual ~HalfedgeEdgeGenerator() = default;
 
   /**
    * @brief Set the generator configuration

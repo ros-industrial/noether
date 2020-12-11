@@ -88,7 +88,7 @@ static vtkSmartPointer<vtkTransform> toVtkMatrix(const Eigen::Affine3d& t)
 
 double computeLength(const vtkSmartPointer<vtkPoints>& points)
 {
-  std::size_t num_points = points->GetNumberOfPoints();
+  const vtkIdType num_points = points->GetNumberOfPoints();
   double total_length = 0.0;
   if (num_points < 2)
   {
@@ -96,7 +96,7 @@ double computeLength(const vtkSmartPointer<vtkPoints>& points)
   }
 
   Eigen::Vector3d p0, pf;
-  for (std::size_t i = 1; i < num_points; i++)
+  for (vtkIdType i = 1; i < num_points; i++)
   {
     points->GetPoint(i - 1, p0.data());
     points->GetPoint(i, pf.data());
@@ -124,11 +124,10 @@ static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vt
   new_points->InsertNextPoint(pt_prev.data());
 
   // adding remaining points by evaluating spline
-  double incr = point_spacing / total_length;
-  std::size_t num_points = std::ceil(total_length / point_spacing) + 1;
+  std::size_t num_points = static_cast<std::size_t>(std::ceil(total_length / point_spacing) + 1);
   double du[9];
   Eigen::Vector3d u, pt;
-  for (std::size_t i = 1; i < num_points; i++)
+  for (unsigned i = 1; i < num_points; i++)
   {
     double interv = static_cast<double>(i) / static_cast<double>(num_points - 1);
     interv = interv > 1.0 ? 1.0 : interv;
@@ -276,7 +275,7 @@ static void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points,
         {
           CONSOLE_BRIDGE_logDebug("Merged segment %lu onto segment %lu", j, i);
           current_list = merged_list;
-          merged_list_ids.push_back(j);
+          merged_list_ids.push_back(static_cast<vtkIdType>(j));
           seek_adjacent = true;
           continue;
         }
@@ -286,7 +285,7 @@ static void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points,
         {
           CONSOLE_BRIDGE_logDebug("Merged segment %lu onto segment %lu", j, i);
           current_list = merged_list;
-          merged_list_ids.push_back(j);
+          merged_list_ids.push_back(static_cast<vtkIdType>(j));
           seek_adjacent = true;
           continue;
         }
@@ -562,7 +561,7 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
 
   // collect rasters and set direction
   raster_data->Update();
-  std::size_t num_slices = raster_data->GetTotalNumberOfInputConnections();
+  vtkIdType num_slices = raster_data->GetTotalNumberOfInputConnections();
   std::vector<RasterConstructData> rasters_data_vec;
   std::vector<IDVec> raster_ids;
   boost::optional<Vector3d> ref_dir;
@@ -575,7 +574,6 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
     vtkIdType* indices;
     vtkIdType num_points;
     vtkIdType num_lines = raster_lines->GetNumberOfLines();
-    vtkPoints* points = raster_lines->GetPoints();
     vtkCellArray* cells = raster_lines->GetLines();
 
     CONSOLE_BRIDGE_logDebug("%s raster %i has %i lines and %i points",
@@ -727,13 +725,10 @@ bool PlaneSlicerRasterGenerator::insertNormals(const double search_radius, vtkSm
     // compute normal average
     normal_vect = Eigen::Vector3d::Zero();
     std::size_t num_normals = 0;
-    for (std::size_t p = 0; p < id_list->GetNumberOfIds(); p++)
+    for (auto p = 0; p < id_list->GetNumberOfIds(); p++)
     {
       Eigen::Vector3d temp_normal, query_point, closest_point;
       vtkIdType p_id = id_list->GetId(p);
-      vtkIdType cell_id;
-      int sub_index;
-      double dist;
 
       if (p_id < 0)
       {

@@ -27,6 +27,9 @@ namespace path_sequence_planner
 class PathSequencePlanner
 {
 public:
+  PathSequencePlanner() = default;
+  virtual ~PathSequencePlanner() = default;
+
   /** @brief linkPaths Connects all of the paths_ into a single path and flips paths as necessary */
   virtual void linkPaths() = 0;
 
@@ -40,7 +43,7 @@ public:
    * @brief getPaths Get the list of paths currently stored (some paths may be flipped after linking)
    * @return The set of paths currently stored
    */
-  virtual tool_path_planner::ToolPaths getPaths() = 0;
+  virtual tool_path_planner::ToolPaths getPaths() const = 0;
 
   /**
    * @brief getIndices Get the list of path indices denoting the order in which paths should be executed

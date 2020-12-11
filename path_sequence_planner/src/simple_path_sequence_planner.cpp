@@ -17,7 +17,7 @@ void SimplePathSequencePlanner::setPaths(tool_path_planner::ToolPaths paths)
   indices_.clear();
 }
 
-tool_path_planner::ToolPaths SimplePathSequencePlanner::getPaths() { return paths_; }
+tool_path_planner::ToolPaths SimplePathSequencePlanner::getPaths() const { return paths_; }
 
 std::vector<std::size_t> SimplePathSequencePlanner::getIndices() const { return indices_; }
 
