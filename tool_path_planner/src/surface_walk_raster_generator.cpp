@@ -1198,94 +1198,66 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createStartCurve()
   vtkSmartPointer<vtkCellArray> cell_ids = mesh_data_->GetPolys();
   cell_ids->InitTraversal();
 
-  double avg_center[3] = { 0, 0, 0 };
-  double avg_norm[3] = { 0, 0, 0 };
+  Eigen::Vector3d avg_center(Eigen::Vector3d::Zero());
+  Eigen::Vector3d avg_norm(Eigen::Vector3d::Zero());
+
   double avg_area = 0;
   long num_cells = cell_ids->GetNumberOfCells();
 
   // iterate through all cells to find averages
   for (int i = 0; i < num_cells; ++i)
   {
-    double center[3] = { 0, 0, 0 };
-    double norm[3] = { 0, 0, 0 };
+    Eigen::Vector3d center(Eigen::Vector3d::Zero());
+    Eigen::Vector3d norm(Eigen::Vector3d::Zero());
+
     double area = 0;
-    if (getCellCentroidData(i, &center[0], &norm[0], area))
+    if (getCellCentroidData(i, center.data(), norm.data(), area))
     {
-      avg_center[0] += center[0] * area;
-      avg_center[1] += center[1] * area;
-      avg_center[2] += center[2] * area;
-      avg_norm[0] += norm[0] * area;
-      avg_norm[1] += norm[1] * area;
-      avg_norm[2] += norm[2] * area;
+      avg_center += center * area;
+      avg_norm += norm * area;
       avg_area += area;
     }
   }
 
   // calculate the averages; since we are calculating a weighted sum (based on area),
   // divide by the total area in order to get the weighted average
-  avg_center[0] /= avg_area;
-  avg_center[1] /= avg_area;
-  avg_center[2] /= avg_area;
-  avg_norm[0] /= avg_area;
-  avg_norm[1] /= avg_area;
-  avg_norm[2] /= avg_area;
+  avg_center /= avg_area;
+  avg_norm /= avg_area;
 
   // Compute Object Oriented Bounding Box and use the max vector for aligning starting curve
   vtkSmartPointer<vtkPolyData> line = vtkSmartPointer<vtkPolyData>::New();
   vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
   line->SetPoints(pts);
-  double corner[3];
-  double max[3];
-  double mid[3];
-  double min[3];
-  double size[3];
 
-  if (config_.cut_direction[0] || config_.cut_direction[1] || config_.cut_direction[2])
+  Eigen::Vector3d max, min;
   {
-    max[0] = config_.cut_direction[0];
-    max[1] = config_.cut_direction[1];
-    max[2] = config_.cut_direction[2];
-    avg_center[0] = config_.cut_centroid[0];
-    avg_center[1] = config_.cut_centroid[1];
-    avg_center[2] = config_.cut_centroid[2];
-  }
-  else
-  {
+    // Calculate the object-oriented bounding box to determine how wide a cutting plane should be
     vtkSmartPointer<vtkOBBTree> obb_tree = vtkSmartPointer<vtkOBBTree>::New();
     obb_tree->SetTolerance(0.001);
     obb_tree->SetLazyEvaluation(0);
-    obb_tree->ComputeOBB(mesh_data_->GetPoints(), corner, max, mid, min, size);
+    Eigen::Vector3d mid, corner, norm_size;
+    obb_tree->ComputeOBB(mesh_data_->GetPoints(), corner.data(), max.data(), mid.data(), min.data(), norm_size.data());
 
-    // size gives the length of each vector (max, mid, min) in order, normalize the size vector by the max size for
-    // comparison
-    double m = size[0];
-    size[0] /= m;
-    size[1] /= m;
-    size[2] /= m;
-
-    // ComputeOBB uses PCA to find the principle axes, thus for square objects it returns the diagonals instead
-    // of the minimum bounding box.  Compare the first and second axes to see if they are within 1% of each other
-    if (size[0] - size[1] < 0.01)
+    // Use the specified cut direction if it is not [0, 0, 0]
+    Eigen::Vector3d cut_dir(config_.cut_direction);
+    if (!cut_dir.isApprox(Eigen::Vector3d::Zero()))
     {
-      // if object is square, need to average max and mid in order to get the correct axes of the object
-      m = sqrt(max[0] * max[0] + max[1] * max[1] + max[2] * max[2]);
-      double temp_max = m;
-      max[0] /= m;
-      max[1] /= m;
-      max[2] /= m;
-      m = sqrt(mid[0] * mid[0] + mid[1] * mid[1] + mid[2] * mid[2]);
-      mid[0] /= m;
-      mid[1] /= m;
-      mid[2] /= m;
-
-      max[0] = (max[0] + mid[0]) * temp_max;
-      max[1] = (max[1] + mid[1]) * temp_max;
-      max[2] = (max[2] + mid[2]) * temp_max;
+      max = cut_dir;
+    }
+    else
+    {
+      // ComputeOBB uses PCA to find the principle axes, thus for square objects it returns the diagonals instead
+      // of the minimum bounding box.  Compare the first and second axes to see if they are within 1% of each other
+      if (norm_size[1] / norm_size[0] > 0.99)
+      {
+        // if object is square, need to average max and mid in order to get the correct axes of the object
+        max = (max.normalized() + mid.normalized()) * max.norm();
+      }
     }
   }
+
   // Create additional points for the starting curve
-  double pt[3];
-  double raster_axis[3];
+  Eigen::Vector3d raster_axis;
   if (!config_.raster_wrt_global_axes)
   {
     // Principal axis is longest axis of the bounding box
@@ -1296,11 +1268,7 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createStartCurve()
     Eigen::Quaterniond rot(Eigen::AngleAxisd(config_.raster_rot_offset, Eigen::Vector3d(rotation_axis)));
     rot.normalize();
     // Rotate principal axis by quaternion to get raster axis
-    Eigen::Vector3d raster_axis_eigen = rot.toRotationMatrix() * principal_axis;
-    // Copy out the resuts
-    raster_axis[0] = raster_axis_eigen.x();
-    raster_axis[1] = raster_axis_eigen.y();
-    raster_axis[2] = raster_axis_eigen.z();
+    raster_axis = rot.toRotationMatrix() * principal_axis;
   }
   else
   {
@@ -1308,29 +1276,22 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createStartCurve()
   }
 
   // Use raster_axis to create additional points for the starting curve
-  pt[0] = avg_center[0] + raster_axis[0];
-  pt[1] = avg_center[1] + raster_axis[1];
-  pt[2] = avg_center[2] + raster_axis[2];
-  line->GetPoints()->InsertNextPoint(pt);
+  {
+    Eigen::Vector3d start = avg_center + raster_axis;
+    line->GetPoints()->InsertNextPoint(start.data());
 
-  line->GetPoints()->InsertNextPoint(avg_center);
+    line->GetPoints()->InsertNextPoint(avg_center.data());
 
-  pt[0] = avg_center[0] - raster_axis[0];
-  pt[1] = avg_center[1] - raster_axis[1];
-  pt[2] = avg_center[2] - raster_axis[2];
-  line->GetPoints()->InsertNextPoint(pt);
+    Eigen::Vector3d end = avg_center - raster_axis;
+    line->GetPoints()->InsertNextPoint(end.data());
+  }
 
   // set the normal for all points inserted
   vtkSmartPointer<vtkDoubleArray> norms = vtkSmartPointer<vtkDoubleArray>::New();
   norms->SetNumberOfComponents(3);
   for (int i = 0; i < line->GetPoints()->GetNumberOfPoints(); ++i)
   {
-    Eigen::Vector3d m(avg_norm[0], avg_norm[1], avg_norm[2]);
-    m.normalize();
-
-    double n[3] = { m[0], m[1], m[2] };
-
-    norms->InsertNextTuple(n);
+    norms->InsertNextTuple(avg_norm.normalized().data());
   }
   line->GetPointData()->SetNormals(norms);
 
