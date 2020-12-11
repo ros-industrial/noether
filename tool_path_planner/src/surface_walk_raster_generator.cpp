@@ -1242,7 +1242,7 @@ vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::createStartCurve()
     Eigen::Vector3d cut_dir(config_.cut_direction);
     if (!cut_dir.isApprox(Eigen::Vector3d::Zero()))
     {
-      max = cut_dir;
+      max = cut_dir.normalized() * max.norm();
     }
     else
     {
