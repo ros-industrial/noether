@@ -79,7 +79,6 @@ public:
     bool generate_extra_rasters{ DEFAULT_GENERATE_EXTRA_RASTERS };
     bool raster_wrt_global_axes{ DEFAULT_RASTER_WRT_GLOBAL_AXIS };
     double cut_direction[3]{ 0, 0, 0 };
-    double cut_centroid[3]{ 0, 0, 0 };
     bool debug{ false };
 
     Json::Value toJson() const
