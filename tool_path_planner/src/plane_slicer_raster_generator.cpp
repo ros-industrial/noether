@@ -461,9 +461,12 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
     VectorXd bounds(6);
     std::vector<Vector3d> extents;
     mesh_data_->GetBounds(bounds.data());
-    extents.push_back(Vector3d::UnitX() * (bounds[1] - bounds[0]));  // Extent in x-direction of supplied mesh coordinate frame
-    extents.push_back(Vector3d::UnitY() * (bounds[3] - bounds[2]));  // Extent in y-direction of supplied mesh coordinate frame
-    extents.push_back(Vector3d::UnitZ() * (bounds[5] - bounds[4]));  // Extent in z-direction of supplied mesh coordinate frame
+    extents.push_back(Vector3d::UnitX() * (bounds[1] - bounds[0]));  // Extent in x-direction of supplied mesh
+                                                                     // coordinate frame
+    extents.push_back(Vector3d::UnitY() * (bounds[3] - bounds[2]));  // Extent in y-direction of supplied mesh
+                                                                     // coordinate frame
+    extents.push_back(Vector3d::UnitZ() * (bounds[5] - bounds[4]));  // Extent in z-direction of supplied mesh
+                                                                     // coordinate frame
 
     // find min and max magnitude.
     int max = 0;
@@ -485,7 +488,7 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   {
     // computing major axes using oob and assign to x_dir, y_dir, z_dir
     vtkSmartPointer<vtkOBBTree> oob = vtkSmartPointer<vtkOBBTree>::New();
-    oob->ComputeOBB(mesh_data_,corner.data(), x_dir.data(), y_dir.data(), z_dir.data(), sizes.data());
+    oob->ComputeOBB(mesh_data_, corner.data(), x_dir.data(), y_dir.data(), z_dir.data(), sizes.data());
   }
 
   // Compute the center of mass

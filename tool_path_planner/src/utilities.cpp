@@ -235,15 +235,13 @@ bool toPlaneSlicerConfig(PlaneSlicerRasterGenerator::Config& config,
   config.raster_wrt_global_axes = config_msg.raster_wrt_global_axes;
 
   // Check that the raster direction was set; we are not interested in direction [0,0,0]
-  double norm_squared =
-      config_msg.raster_direction.x * config_msg.raster_direction.x +
-      config_msg.raster_direction.y * config_msg.raster_direction.y +
-      config_msg.raster_direction.z * config_msg.raster_direction.z;
-  if (norm_squared > 0.000001)
+  Eigen::Vector3d test_raster_direction;
+  test_raster_direction.x() = config_msg.raster_direction.x;
+  test_raster_direction.y() = config_msg.raster_direction.y;
+  test_raster_direction.z() = config_msg.raster_direction.z;
+  if (!test_raster_direction.isApprox(Eigen::Vector3d::Zero()))
   {
-    config.raster_direction.x() = config_msg.raster_direction.x;
-    config.raster_direction.y() = config_msg.raster_direction.y;
-    config.raster_direction.z() = config_msg.raster_direction.z;
+    config.raster_direction = test_raster_direction;
   }
 
   return true;
