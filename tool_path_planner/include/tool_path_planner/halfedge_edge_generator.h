@@ -68,7 +68,7 @@ public:
     double point_dist = 0.01;
 
     /** @brief maximum segment length */
-    double max_segment_lenth = 1.0;
+    double max_segment_length = 1.0;
   };
 
   HalfedgeEdgeGenerator() = default;

@@ -580,8 +580,14 @@ boost::optional<ToolPaths> HalfedgeEdgeGenerator::generate()
     return boost::none;
   }
 
+  if (config_.max_segment_length > 0)
+  {
+    edge_paths = tool_path_planner::splitSegments(edge_paths, config_.max_segment_length);
+  }
+
   CONSOLE_BRIDGE_logInform("Found %lu valid edge segments", edge_paths.size());
-  return tool_path_planner::splitSegments(edge_paths, config_.max_segment_lenth);
+
+  return edge_paths;
 }
 
 } /* namespace tool_path_planner */

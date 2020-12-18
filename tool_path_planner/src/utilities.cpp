@@ -139,7 +139,7 @@ bool toEigenValueConfigMsg(noether_msgs::EigenValueEdgeGeneratorConfig& config_m
   config_msg.min_projection_dist = config.min_projection_dist;
   config_msg.max_intersecting_voxels = config.max_intersecting_voxels;
   config_msg.merge_dist = config.merge_dist;
-  config_msg.max_segment_length = config.max_segment_lenth;
+  config_msg.max_segment_length = config.max_segment_length;
   return true;
 }
 
