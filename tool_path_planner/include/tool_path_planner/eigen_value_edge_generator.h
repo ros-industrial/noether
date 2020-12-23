@@ -99,10 +99,11 @@ public:
 
     double merge_dist =
         0.01; /** @brief any two consecutive points with a shortest distance smaller than this value are merged */
+
+    double max_segment_length = 1.0; /** @brief maximum segment length */
   };
 
   EigenValueEdgeGenerator() = default;
-  virtual ~EigenValueEdgeGenerator() = default;
 
   /**
    * @brief Set the generator configuration

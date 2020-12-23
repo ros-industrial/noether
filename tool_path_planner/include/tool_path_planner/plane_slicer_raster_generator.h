@@ -26,6 +26,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 #include <boost/optional.hpp>
+#include <Eigen/Dense>
 #include <pcl/PolygonMesh.h>
 #include <shape_msgs/Mesh.h>
 #include <vtkCellLocator.h>
@@ -45,6 +46,7 @@ class PlaneSlicerRasterGenerator : public PathGenerator
   static constexpr double DEFAULT_MIN_SEGMENT_SIZE = 0.01;
   static constexpr double DEFAULT_SEARCH_RADIUS = 0.01;
   static constexpr double DEFAULT_MIN_HOLE_SIZE = 1e-2;
+  static constexpr bool DEFAULT_RASTER_WRT_GLOBAL_AXES = false;
 
 public:
   struct Config
@@ -55,6 +57,8 @@ public:
     double min_segment_size{ DEFAULT_MIN_SEGMENT_SIZE };
     double search_radius{ DEFAULT_SEARCH_RADIUS };
     double min_hole_size{ DEFAULT_MIN_HOLE_SIZE };
+    bool raster_wrt_global_axes{ DEFAULT_RASTER_WRT_GLOBAL_AXES };
+    Eigen::Vector3d raster_direction{ Eigen::Vector3d::UnitY() };
 
     Json::Value toJson() const
     {
@@ -65,6 +69,12 @@ public:
       jv["min_segment_size"] = min_segment_size;
       jv["search_radius"] = search_radius;
       jv["min_hole_size"] = min_hole_size;
+      jv["raster_wrt_global_axes"] = raster_wrt_global_axes;
+      Json::Value raster_dir(Json::ValueType::objectValue);
+      raster_dir["x"] = raster_direction.x();
+      raster_dir["y"] = raster_direction.y();
+      raster_dir["z"] = raster_direction.z();
+      jv["raster_direction"] = raster_dir;
 
       return jv;
     }
@@ -100,6 +110,26 @@ public:
                                                                                   DEFAULT_SEARCH_RADIUS;
       min_hole_size = validate(jv, "min_hole_size", Json::ValueType::realValue) ? jv["min_hole_size"].asDouble() :
                                                                                   DEFAULT_MIN_HOLE_SIZE;
+      raster_wrt_global_axes = validate(jv, "raster_wrt_global_axes", Json::ValueType::booleanValue) ?
+                                   jv["raster_wrt_global_axes"].asBool() :
+                                   DEFAULT_RASTER_WRT_GLOBAL_AXES;
+      if (jv["raster_direction"].isNull() || jv["raster_direction"].type() != Json::ValueType::objectValue)
+      {
+        ROS_ERROR("Malformed Raster Direction in Json value");
+        return false;
+      }
+      if (validate(jv["raster_direction"], "x", Json::ValueType::objectValue) &&
+          validate(jv["raster_direction"], "y", Json::ValueType::objectValue) &&
+          validate(jv["raster_direction"], "z", Json::ValueType::objectValue))
+      {
+        raster_direction.x() = jv["raster_direction"]["x"].asDouble();
+        raster_direction.y() = jv["raster_direction"]["y"].asDouble();
+        raster_direction.z() = jv["raster_direction"]["z"].asDouble();
+      }
+      else
+      {
+        raster_direction = Eigen::Vector3d::UnitY();
+      }
       return true;
     }
 
@@ -121,12 +151,16 @@ public:
       ss << "raster_rot_offset: " << raster_rot_offset << std::endl;
       ss << "min_segment_size: " << min_segment_size << std::endl;
       ss << "search_radius: " << search_radius << std::endl;
+      ss << "raster_wrt_global_axes: " << raster_wrt_global_axes << std::endl;
+      ss << "raster_direction: " << std::endl;
+      ss << "  x: " << raster_direction.x() << std::endl;
+      ss << "  y: " << raster_direction.y() << std::endl;
+      ss << "  z: " << raster_direction.z() << std::endl;
       return ss.str();
     }
   };
 
   PlaneSlicerRasterGenerator() = default;
-  virtual ~PlaneSlicerRasterGenerator() = default;
 
   /**
    * @brief Set the generator configuration

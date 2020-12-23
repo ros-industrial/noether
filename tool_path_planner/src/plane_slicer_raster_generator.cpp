@@ -88,7 +88,7 @@ static vtkSmartPointer<vtkTransform> toVtkMatrix(const Eigen::Affine3d& t)
 
 double computeLength(const vtkSmartPointer<vtkPoints>& points)
 {
-  std::size_t num_points = points->GetNumberOfPoints();
+  const vtkIdType num_points = points->GetNumberOfPoints();
   double total_length = 0.0;
   if (num_points < 2)
   {
@@ -96,7 +96,7 @@ double computeLength(const vtkSmartPointer<vtkPoints>& points)
   }
 
   Eigen::Vector3d p0, pf;
-  for (std::size_t i = 1; i < num_points; i++)
+  for (vtkIdType i = 1; i < num_points; i++)
   {
     points->GetPoint(i - 1, p0.data());
     points->GetPoint(i, pf.data());
@@ -124,11 +124,10 @@ static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vt
   new_points->InsertNextPoint(pt_prev.data());
 
   // adding remaining points by evaluating spline
-  double incr = point_spacing / total_length;
-  std::size_t num_points = std::ceil(total_length / point_spacing) + 1;
+  std::size_t num_points = static_cast<std::size_t>(std::ceil(total_length / point_spacing) + 1);
   double du[9];
   Eigen::Vector3d u, pt;
-  for (std::size_t i = 1; i < num_points; i++)
+  for (unsigned i = 1; i < num_points; i++)
   {
     double interv = static_cast<double>(i) / static_cast<double>(num_points - 1);
     interv = interv > 1.0 ? 1.0 : interv;
@@ -276,7 +275,7 @@ static void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points,
         {
           CONSOLE_BRIDGE_logDebug("Merged segment %lu onto segment %lu", j, i);
           current_list = merged_list;
-          merged_list_ids.push_back(j);
+          merged_list_ids.push_back(static_cast<vtkIdType>(j));
           seek_adjacent = true;
           continue;
         }
@@ -286,7 +285,7 @@ static void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points,
         {
           CONSOLE_BRIDGE_logDebug("Merged segment %lu onto segment %lu", j, i);
           current_list = merged_list;
-          merged_list_ids.push_back(j);
+          merged_list_ids.push_back(static_cast<vtkIdType>(j));
           seek_adjacent = true;
           continue;
         }
@@ -454,10 +453,43 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   {
     CONSOLE_BRIDGE_logDebug("%s No mesh data has been provided", getName().c_str());
   }
-  // computing mayor axis using oob
-  vtkSmartPointer<vtkOBBTree> oob = vtkSmartPointer<vtkOBBTree>::New();
-  Vector3d corner, x_dir, y_dir, z_dir, sizes;  // x is longest, y is mid and z is smallest
-  oob->ComputeOBB(mesh_data_, corner.data(), x_dir.data(), y_dir.data(), z_dir.data(), sizes.data());
+  // Assign the longest axis of the bounding box to x, middle to y, and shortest to z.
+  Vector3d corner, x_dir, y_dir, z_dir, sizes;
+  if (config_.raster_wrt_global_axes)
+  {
+    // Determine extent of mesh along axes of current coordinate frame
+    VectorXd bounds(6);
+    std::vector<Vector3d> extents;
+    mesh_data_->GetBounds(bounds.data());
+    extents.push_back(Vector3d::UnitX() * (bounds[1] - bounds[0]));  // Extent in x-direction of supplied mesh
+                                                                     // coordinate frame
+    extents.push_back(Vector3d::UnitY() * (bounds[3] - bounds[2]));  // Extent in y-direction of supplied mesh
+                                                                     // coordinate frame
+    extents.push_back(Vector3d::UnitZ() * (bounds[5] - bounds[4]));  // Extent in z-direction of supplied mesh
+                                                                     // coordinate frame
+
+    // find min and max magnitude.
+    int max = 0;
+    int min = 0;
+    for (std::size_t i = 1; i < extents.size(); ++i)
+    {
+      if (extents[max].squaredNorm() < extents[i].squaredNorm())
+        max = i;
+      else if (extents[min].squaredNorm() > extents[i].squaredNorm())
+        min = i;
+    }
+
+    // Assign the axes in order.  Computing y saves comparisons and guarantees right-handedness.
+    x_dir = extents[max].normalized();
+    z_dir = extents[min].normalized();
+    y_dir = z_dir.cross(x_dir).normalized();
+  }
+  else
+  {
+    // computing major axes using oob and assign to x_dir, y_dir, z_dir
+    vtkSmartPointer<vtkOBBTree> oob = vtkSmartPointer<vtkOBBTree>::New();
+    oob->ComputeOBB(mesh_data_, corner.data(), x_dir.data(), y_dir.data(), z_dir.data(), sizes.data());
+  }
 
   // Compute the center of mass
   Vector3d origin;
@@ -469,10 +501,9 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
 
   // computing transformation matrix
   Affine3d t = Translation3d(origin) * AngleAxisd(computeRotation(x_dir, y_dir, z_dir));
-  Affine3d t_inv = t.inverse();
 
   // transforming data
-  vtkSmartPointer<vtkTransform> vtk_transform = toVtkMatrix(t_inv);
+  vtkSmartPointer<vtkTransform> vtk_transform = toVtkMatrix(t);
 
   vtkSmartPointer<vtkTransformFilter> transform_filter = vtkSmartPointer<vtkTransformFilter>::New();
   transform_filter->SetInputData(mesh_data_);
@@ -494,10 +525,11 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   half_ext = sizes / 2.0;
   center = Eigen::Vector3d(bounds[0], bounds[2], bounds[3]) + half_ext;
 
-  // now cutting the mesh with planes along the y axis
-  // @todo This should be calculated instead of being fixed along the y-axis
+  // Apply the rotation offset about the short direction (new Z axis) of the bounding box
   Isometry3d rotation_offset = Isometry3d::Identity() * AngleAxisd(config_.raster_rot_offset, Vector3d::UnitZ());
-  Vector3d raster_dir = (rotation_offset * Vector3d::UnitY()).normalized();
+
+  // Calculate direction of raster strokes, rotated by the above-specified amount
+  Vector3d raster_dir = (rotation_offset * config_.raster_direction).normalized();
 
   // Calculate all 8 corners projected onto the raster direction vector
   Eigen::VectorXd dist(8);
@@ -563,7 +595,7 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
 
   // collect rasters and set direction
   raster_data->Update();
-  std::size_t num_slices = raster_data->GetTotalNumberOfInputConnections();
+  vtkIdType num_slices = raster_data->GetTotalNumberOfInputConnections();
   std::vector<RasterConstructData> rasters_data_vec;
   std::vector<IDVec> raster_ids;
   boost::optional<Vector3d> ref_dir;
@@ -576,7 +608,6 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
     vtkIdType* indices;
     vtkIdType num_points;
     vtkIdType num_lines = raster_lines->GetNumberOfLines();
-    vtkPoints* points = raster_lines->GetPoints();
     vtkCellArray* cells = raster_lines->GetLines();
 
     CONSOLE_BRIDGE_logDebug("%s raster %i has %i lines and %i points",
@@ -633,7 +664,7 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
     {
       Vector3d ref_point;
       rasters_data_vec.back().raster_segments.front()->GetPoint(0, ref_point.data());  // first point in previous raster
-      rectifyDirection(raster_lines->GetPoints(), t_inv * ref_point, raster_ids);
+      rectifyDirection(raster_lines->GetPoints(), t * ref_point, raster_ids);
     }
 
     for (auto& rpoint_ids : raster_ids)
@@ -660,7 +691,7 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
         // transforming to original coordinate system
         transform_filter = vtkSmartPointer<vtkTransformFilter>::New();
         transform_filter->SetInputData(segment_data);
-        transform_filter->SetTransform(toVtkMatrix(t));
+        transform_filter->SetTransform(toVtkMatrix(t.inverse()));
         transform_filter->Update();
         segment_data = transform_filter->GetPolyDataOutput();
 
@@ -728,13 +759,10 @@ bool PlaneSlicerRasterGenerator::insertNormals(const double search_radius, vtkSm
     // compute normal average
     normal_vect = Eigen::Vector3d::Zero();
     std::size_t num_normals = 0;
-    for (std::size_t p = 0; p < id_list->GetNumberOfIds(); p++)
+    for (auto p = 0; p < id_list->GetNumberOfIds(); p++)
     {
       Eigen::Vector3d temp_normal, query_point, closest_point;
       vtkIdType p_id = id_list->GetId(p);
-      vtkIdType cell_id;
-      int sub_index;
-      double dist;
 
       if (p_id < 0)
       {

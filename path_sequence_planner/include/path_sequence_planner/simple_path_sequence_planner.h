@@ -31,7 +31,7 @@ public:
 
   void setPaths(tool_path_planner::ToolPaths paths) override;
 
-  tool_path_planner::ToolPaths getPaths() override;
+  tool_path_planner::ToolPaths getPaths() const override;
 
   std::vector<std::size_t> getIndices() const override;
 

@@ -64,7 +64,6 @@ class SurfaceWalkRasterGenerator : public PathGenerator
   static constexpr double DEFAULT_INTERSECTION_PLANE_HEIGHT = 0;
   static constexpr double DEFAULT_TOOL_OFFSET = 0;
   static constexpr bool DEFAULT_GENERATE_EXTRA_RASTERS = false;
-  static constexpr bool DEFAULT_RASTER_WRT_GLOBAL_AXIS = false;
 
 public:
   struct Config
@@ -77,9 +76,7 @@ public:
     double intersection_plane_height{ DEFAULT_INTERSECTION_PLANE_HEIGHT };
     double tool_offset{ DEFAULT_TOOL_OFFSET };
     bool generate_extra_rasters{ DEFAULT_GENERATE_EXTRA_RASTERS };
-    bool raster_wrt_global_axes{ DEFAULT_RASTER_WRT_GLOBAL_AXIS };
     double cut_direction[3]{ 0, 0, 0 };
-    double cut_centroid[3]{ 0, 0, 0 };
     bool debug{ false };
 
     Json::Value toJson() const
@@ -135,7 +132,6 @@ public:
                                    jv["generate_extra_rasters"].asBool() :
                                    DEFAULT_GENERATE_EXTRA_RASTERS;
       return true;
-      return true;
     }
 
     bool fromJson(const std::string& jv_string)
@@ -163,7 +159,6 @@ public:
   };
 
   SurfaceWalkRasterGenerator() = default;
-  virtual ~SurfaceWalkRasterGenerator() = default;
 
   /**
    * @brief Set the generator configuration
