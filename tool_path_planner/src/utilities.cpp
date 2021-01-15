@@ -317,9 +317,9 @@ ToolPaths splitSegments(ToolPaths tool_paths, double max_segment_length)
     {
       // calculate total segment length
       double total_segment_length = 0.0;
-      for (std::size_t point_i = 0; point_i < seg.size()-1; ++point_i)
+      for (std::size_t point_i = 0; point_i < seg.size() - 1; ++point_i)
       {
-        total_segment_length += getDistance(seg[point_i], seg[point_i+1]);
+        total_segment_length += getDistance(seg[point_i], seg[point_i + 1]);
       }
       int num_cuts = int(ceil(total_segment_length / max_segment_length));
       double segment_length = total_segment_length / num_cuts;
@@ -328,11 +328,11 @@ ToolPaths splitSegments(ToolPaths tool_paths, double max_segment_length)
       for (int cut_i = 0; cut_i < num_cuts; ++cut_i)
       {
         ToolPathSegment new_seg;
-        new_seg.push_back(seg[point_i-1]);
-        while (dist_from_start < segment_length * (cut_i+1) && point_i < seg.size())
+        new_seg.push_back(seg[point_i - 1]);
+        while (dist_from_start < segment_length * (cut_i + 1) && point_i < seg.size())
         {
           new_seg.push_back(seg[point_i]);
-          dist_from_start += getDistance(seg[point_i-1], seg[point_i]);
+          dist_from_start += getDistance(seg[point_i - 1], seg[point_i]);
           point_i += 1;
         }
         new_tool_path.push_back(new_seg);
@@ -346,63 +346,66 @@ ToolPaths splitSegments(ToolPaths tool_paths, double max_segment_length)
 ToolPaths addExtraPaths(ToolPaths tool_paths, double offset_distance)
 {
   ToolPaths new_tool_paths;
-  ToolPath first_dup_tool_path;// this tool path mimics first tool_path, but offset by -y and in reverse order
+  ToolPath first_dup_tool_path;  // this tool path mimics first tool_path, but offset by -y and in reverse order
   ToolPath temp_path = tool_paths[0];
   double offset_sign = 1;
 
   // determine offset sign to point away from next path
-  if(tool_paths.size()>1)
+  if (tool_paths.size() > 1)
+  {
+    ToolPath tp1 = tool_paths[0];
+    ToolPath tp2 = tool_paths[1];
+    ToolPathSegment s1 = tp1[0];
+    ToolPathSegment s2 = tp2[0];
+    Eigen::Isometry3d waypoint1 = s1[0];
+    Eigen::Isometry3d waypoint2 = s2[s2.size() - 1];
+    Eigen::Vector3d v =
+        waypoint2.translation() - waypoint1.translation();  // vector between first waypoint in each path
+    Eigen::Matrix4d H = waypoint1.matrix();
+    double dot_product = v.x() * H(0, 1) + v.y() * H(1, 1) + v.z() * H(2, 1);
+    if (dot_product > 0.0)
+      offset_sign = -1;
+  }
+  for (ToolPathSegment seg : temp_path)
+  {
+    ToolPathSegment new_segment;
+    for (int i = seg.size() - 1; i >= 0; i--)
     {
-      ToolPath tp1 = tool_paths[0];
-      ToolPath tp2 = tool_paths[1];
-      ToolPathSegment s1 = tp1[0];
-      ToolPathSegment s2 = tp2[0];
-      Eigen::Isometry3d waypoint1 = s1[0];
-      Eigen::Isometry3d waypoint2 = s2[s2.size()-1];
-      Eigen::Vector3d v = waypoint2.translation() - waypoint1.translation(); // vector between first waypoint in each path
-      Eigen::Matrix4d H = waypoint1.matrix();
-      double dot_product = v.x()*H(0,1) + v.y()*H(1,1) + v.z()*H(2,1);
-      if(dot_product > 0.0) offset_sign = -1;
+      Eigen::Isometry3d waypoint = seg[i];
+      Eigen::Matrix4d H = waypoint.matrix();
+      waypoint.translation().x() += offset_sign * offset_distance * H(0, 1);
+      waypoint.translation().y() += offset_sign * offset_distance * H(1, 1);
+      waypoint.translation().z() += offset_sign * offset_distance * H(2, 1);
+      new_segment.push_back(waypoint);
     }
-  for(ToolPathSegment seg : temp_path)
-    {
-      ToolPathSegment new_segment;
-      for(int i=seg.size()-1; i>=0; i--)
-	{
-	  Eigen::Isometry3d waypoint = seg[i];
-	  Eigen::Matrix4d H = waypoint.matrix();
-	  waypoint.translation().x() += offset_sign * offset_distance * H(0,1);
-	  waypoint.translation().y() += offset_sign * offset_distance * H(1,1);
-	  waypoint.translation().z() += offset_sign * offset_distance * H(2,1);
-	  new_segment.push_back(waypoint);
-	}
-      first_dup_tool_path.push_back(new_segment);
-    }
+    first_dup_tool_path.push_back(new_segment);
+  }
   new_tool_paths.push_back(first_dup_tool_path);
   for (auto tool_path : tool_paths)
   {
     new_tool_paths.push_back(tool_path);
   }
-  ToolPath last_dup_tool_path;// this tool path mimics last tool_path, but offset by +y and in reverse order
+  ToolPath last_dup_tool_path;  // this tool path mimics last tool_path, but offset by +y and in reverse order
 
   // even numbers of paths require flipping offset direction
-  if(tool_paths.size()%2) offset_sign = offset_sign * -1;
+  if (tool_paths.size() % 2)
+    offset_sign = offset_sign * -1;
 
-  temp_path = tool_paths[tool_paths.size()-1];
-  for(ToolPathSegment seg : temp_path)
+  temp_path = tool_paths[tool_paths.size() - 1];
+  for (ToolPathSegment seg : temp_path)
+  {
+    ToolPathSegment new_segment;
+    for (int i = seg.size() - 1; i >= 0; i--)
     {
-      ToolPathSegment new_segment;
-      for(int i=seg.size()-1; i>=0; i--)
-	{
-	  Eigen::Isometry3d waypoint = seg[i];
-	  Eigen::Matrix4d H = waypoint.matrix();
-	  waypoint.translation().x() += offset_sign * offset_distance * H(0,1);
-	  waypoint.translation().y() += offset_sign * offset_distance * H(1,1);
-	  waypoint.translation().z() += offset_sign * offset_distance * H(2,1);
-	  new_segment.push_back(waypoint);
-	}
-      last_dup_tool_path.push_back(new_segment);
+      Eigen::Isometry3d waypoint = seg[i];
+      Eigen::Matrix4d H = waypoint.matrix();
+      waypoint.translation().x() += offset_sign * offset_distance * H(0, 1);
+      waypoint.translation().y() += offset_sign * offset_distance * H(1, 1);
+      waypoint.translation().z() += offset_sign * offset_distance * H(2, 1);
+      new_segment.push_back(waypoint);
     }
+    last_dup_tool_path.push_back(new_segment);
+  }
   new_tool_paths.push_back(last_dup_tool_path);
   return new_tool_paths;
 }

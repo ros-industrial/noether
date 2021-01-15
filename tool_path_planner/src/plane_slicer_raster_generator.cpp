@@ -714,12 +714,13 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   }
 
   // converting to poses msg now
-  if(config_.generate_extra_rasters)
-    {
-      ToolPaths temp_rasters = convertToPoses(rasters_data_vec);
-      rasters = addExtraPaths(temp_rasters, config_.raster_spacing);
-    }
-  else{
+  if (config_.generate_extra_rasters)
+  {
+    ToolPaths temp_rasters = convertToPoses(rasters_data_vec);
+    rasters = addExtraPaths(temp_rasters, config_.raster_spacing);
+  }
+  else
+  {
     rasters = convertToPoses(rasters_data_vec);
   }
   return rasters;

@@ -60,7 +60,7 @@ public:
     double min_hole_size{ DEFAULT_MIN_HOLE_SIZE };
     bool raster_wrt_global_axes{ DEFAULT_RASTER_WRT_GLOBAL_AXES };
     Eigen::Vector3d raster_direction{ Eigen::Vector3d::UnitY() };
-    bool generate_extra_rasters{ DEFAULT_GENERATE_EXTRA_RASTERS};
+    bool generate_extra_rasters{ DEFAULT_GENERATE_EXTRA_RASTERS };
     Json::Value toJson() const
     {
       Json::Value jv(Json::ValueType::objectValue);
