@@ -120,6 +120,10 @@ static std::string getClassName()
 
 ToolPaths splitSegments(ToolPaths tool_paths, double max_segment_length);
 
+// duplicates first and last segment of each toolpath in tool_paths offset by the offset distance
+ToolPaths addExtraPaths(ToolPaths tool_paths, double offset_distance);
+  
+  
 }  // namespace tool_path_planner
 
 #endif /* INCLUDE_TOOL_PATH_PLANNER_UTILITIES_H_ */

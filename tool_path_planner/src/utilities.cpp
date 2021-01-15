@@ -343,4 +343,68 @@ ToolPaths splitSegments(ToolPaths tool_paths, double max_segment_length)
   return new_tool_paths;
 }
 
+ToolPaths addExtraPaths(ToolPaths tool_paths, double offset_distance)
+{
+  ToolPaths new_tool_paths;
+  ToolPath first_dup_tool_path;// this tool path mimics first tool_path, but offset by -y and in reverse order
+  ToolPath temp_path = tool_paths[0];
+  double offset_sign = 1;
+
+  // determine offset sign to point away from next path
+  if(tool_paths.size()>1)
+    {
+      ToolPath tp1 = tool_paths[0];
+      ToolPath tp2 = tool_paths[1];
+      ToolPathSegment s1 = tp1[0];
+      ToolPathSegment s2 = tp2[0];
+      Eigen::Isometry3d waypoint1 = s1[0];
+      Eigen::Isometry3d waypoint2 = s2[s2.size()-1];
+      Eigen::Vector3d v = waypoint2.translation() - waypoint1.translation(); // vector between first waypoint in each path
+      Eigen::Matrix4d H = waypoint1.matrix();
+      double dot_product = v.x()*H(0,1) + v.y()*H(1,1) + v.z()*H(2,1);
+      if(dot_product > 0.0) offset_sign = -1;
+    }
+  for(ToolPathSegment seg : temp_path)
+    {
+      ToolPathSegment new_segment;
+      for(int i=seg.size()-1; i>=0; i--)
+	{
+	  Eigen::Isometry3d waypoint = seg[i];
+	  Eigen::Matrix4d H = waypoint.matrix();
+	  waypoint.translation().x() += offset_sign * offset_distance * H(0,1);
+	  waypoint.translation().y() += offset_sign * offset_distance * H(1,1);
+	  waypoint.translation().z() += offset_sign * offset_distance * H(2,1);
+	  new_segment.push_back(waypoint);
+	}
+      first_dup_tool_path.push_back(new_segment);
+    }
+  new_tool_paths.push_back(first_dup_tool_path);
+  for (auto tool_path : tool_paths)
+  {
+    new_tool_paths.push_back(tool_path);
+  }
+  ToolPath last_dup_tool_path;// this tool path mimics last tool_path, but offset by +y and in reverse order
+
+  // even numbers of paths require flipping offset direction
+  if(tool_paths.size()%2) offset_sign = offset_sign * -1;
+
+  temp_path = tool_paths[tool_paths.size()-1];
+  for(ToolPathSegment seg : temp_path)
+    {
+      ToolPathSegment new_segment;
+      for(int i=seg.size()-1; i>=0; i--)
+	{
+	  Eigen::Isometry3d waypoint = seg[i];
+	  Eigen::Matrix4d H = waypoint.matrix();
+	  waypoint.translation().x() += offset_sign * offset_distance * H(0,1);
+	  waypoint.translation().y() += offset_sign * offset_distance * H(1,1);
+	  waypoint.translation().z() += offset_sign * offset_distance * H(2,1);
+	  new_segment.push_back(waypoint);
+	}
+      last_dup_tool_path.push_back(new_segment);
+    }
+  new_tool_paths.push_back(last_dup_tool_path);
+  return new_tool_paths;
+}
+
 }  // namespace tool_path_planner
