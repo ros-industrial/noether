@@ -66,6 +66,9 @@ public:
 
     /**@brief point distance parameter used in conjunction with the spacing method */
     double point_dist = 0.01;
+
+    /** @brief maximum segment length */
+    double max_segment_length = 1.0;
   };
 
   HalfedgeEdgeGenerator() = default;

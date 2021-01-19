@@ -47,6 +47,7 @@ class PlaneSlicerRasterGenerator : public PathGenerator
   static constexpr double DEFAULT_SEARCH_RADIUS = 0.01;
   static constexpr double DEFAULT_MIN_HOLE_SIZE = 1e-2;
   static constexpr bool DEFAULT_RASTER_WRT_GLOBAL_AXES = false;
+  static constexpr bool DEFAULT_GENERATE_EXTRA_RASTERS = true;
 
 public:
   struct Config
@@ -59,7 +60,7 @@ public:
     double min_hole_size{ DEFAULT_MIN_HOLE_SIZE };
     bool raster_wrt_global_axes{ DEFAULT_RASTER_WRT_GLOBAL_AXES };
     Eigen::Vector3d raster_direction{ Eigen::Vector3d::UnitY() };
-
+    bool generate_extra_rasters{ DEFAULT_GENERATE_EXTRA_RASTERS };
     Json::Value toJson() const
     {
       Json::Value jv(Json::ValueType::objectValue);

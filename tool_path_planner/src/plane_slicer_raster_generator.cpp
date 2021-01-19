@@ -409,7 +409,6 @@ void PlaneSlicerRasterGenerator::setInput(vtkSmartPointer<vtkPolyData> mesh)
   }
   else
   {
-    CONSOLE_BRIDGE_logWarn("%s generating normal data", getName().c_str());
     vtkSmartPointer<vtkPolyDataNormals> normal_generator = vtkSmartPointer<vtkPolyDataNormals>::New();
     normal_generator->SetInputData(mesh_data_);
     normal_generator->ComputePointNormalsOn();
@@ -715,7 +714,15 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   }
 
   // converting to poses msg now
-  rasters = convertToPoses(rasters_data_vec);
+  if (config_.generate_extra_rasters)
+  {
+    ToolPaths temp_rasters = convertToPoses(rasters_data_vec);
+    rasters = addExtraPaths(temp_rasters, config_.raster_spacing);
+  }
+  else
+  {
+    rasters = convertToPoses(rasters_data_vec);
+  }
   return rasters;
 }
 
