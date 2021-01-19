@@ -123,6 +123,7 @@ ToolPaths splitSegments(ToolPaths tool_paths, double max_segment_length);
 // duplicates first and last segment of each toolpath in tool_paths offset by the offset distance
 ToolPaths addExtraPaths(ToolPaths tool_paths, double offset_distance);
 
+double computeOffsetSign( const ToolPathSegment& adjusted_segment,  const ToolPathSegment& away_from_segment);
 }  // namespace tool_path_planner
 
 #endif /* INCLUDE_TOOL_PATH_PLANNER_UTILITIES_H_ */
