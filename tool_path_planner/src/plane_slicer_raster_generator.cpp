@@ -454,6 +454,7 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   }
   // Assign the longest axis of the bounding box to x, middle to y, and shortest to z.
   Vector3d corner, x_dir, y_dir, z_dir, sizes;
+  ROS_ERROR_STREAM(config_.raster_wrt_global_axes);
   if (config_.raster_wrt_global_axes)
   {
     // Determine extent of mesh along axes of current coordinate frame
@@ -478,10 +479,16 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
         min = i;
     }
 
-    // Assign the axes in order.  Computing y saves comparisons and guarantees right-handedness.
-    x_dir = extents[max].normalized();
-    z_dir = extents[min].normalized();
-    y_dir = z_dir.cross(x_dir).normalized();
+    // Order the axes.  Computing y saves comparisons and guarantees right-handedness.
+    Eigen::Matrix3d rotation_transform;
+    rotation_transform.col(0) = extents[max].normalized();
+    rotation_transform.col(2) = extents[min].normalized();
+    rotation_transform.col(1) = rotation_transform.col(2).cross(rotation_transform.col(0)).normalized();
+
+    // Extract our axes transfored to align to the major axes of our aabb
+    x_dir = rotation_transform.row(0).normalized();
+    y_dir = rotation_transform.row(1).normalized();
+    z_dir = rotation_transform.row(2).normalized();
   }
   else
   {
@@ -522,7 +529,7 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   sizes.z() = bounds[5] - bounds[4];
 
   half_ext = sizes / 2.0;
-  center = Eigen::Vector3d(bounds[0], bounds[2], bounds[3]) + half_ext;
+  center = Eigen::Vector3d(bounds[0], bounds[2], bounds[4]) + half_ext;
 
   // Apply the rotation offset about the short direction (new Z axis) of the bounding box
   Isometry3d rotation_offset = Isometry3d::Identity() * AngleAxisd(config_.raster_rot_offset, Vector3d::UnitZ());
@@ -752,7 +759,7 @@ bool PlaneSlicerRasterGenerator::insertNormals(const double search_radius, vtkSm
     kd_tree_->FindPointsWithinRadius(search_radius, query_point.data(), id_list);
     if (id_list->GetNumberOfIds() < 1)
     {
-      CONSOLE_BRIDGE_logWarn("%s FindPointsWithinRadius found no points for normal averaging, using closests",
+      CONSOLE_BRIDGE_logWarn("%s FindPointsWithinRadius found no points for normal averaging, using closest",
                              getName().c_str());
       kd_tree_->FindClosestNPoints(1, query_point.data(), id_list);
 
