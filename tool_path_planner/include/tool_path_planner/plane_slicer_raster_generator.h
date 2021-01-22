@@ -182,6 +182,7 @@ public:
 
   std::string getName() const override;
 
+  
 private:
   bool insertNormals(const double search_radius, vtkSmartPointer<vtkPolyData>& data);
 
