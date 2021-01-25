@@ -37,7 +37,6 @@
 
 namespace tool_path_planner
 {
-
 class PlaneSlicerRasterGenerator : public PathGenerator
 {
   static constexpr RasterStyle DEFAULT_RASTER_STYLE = KEEP_ORIENTATION_ON_REVERSE_STROKES;
@@ -49,7 +48,6 @@ class PlaneSlicerRasterGenerator : public PathGenerator
   static constexpr double DEFAULT_MIN_HOLE_SIZE = 1e-2;
   static constexpr bool DEFAULT_RASTER_WRT_GLOBAL_AXES = false;
   static constexpr bool DEFAULT_GENERATE_EXTRA_RASTERS = true;
-
 
 public:
   struct Config
@@ -185,7 +183,6 @@ public:
 
   std::string getName() const override;
 
-  
 private:
   bool insertNormals(const double search_radius, vtkSmartPointer<vtkPolyData>& data);
 
