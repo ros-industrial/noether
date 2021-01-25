@@ -508,7 +508,6 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   using namespace Eigen;
   using IDVec = std::vector<vtkIdType>;
 
-  boost::optional<ToolPaths> rasters = boost::none;
   if (!mesh_data_)
   {
     CONSOLE_BRIDGE_logDebug("%s No mesh data has been provided", getName().c_str());
@@ -780,16 +779,17 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
       rcd = alignRasterCD(rcd);
     }
   
-  // converting to poses msg now
+  // converting to poses msg 
+  ToolPaths rasters = convertToPoses(rasters_data_vec);
+  
   if (config_.generate_extra_rasters)
   {
-    ToolPaths temp_rasters = convertToPoses(rasters_data_vec);
-    rasters = addExtraPaths(temp_rasters, config_.raster_spacing);
+    rasters = addExtraPaths(rasters, config_.raster_spacing);
   }
-  else
-  {
-    rasters = convertToPoses(rasters_data_vec);
-  }
+
+  // switch directions of every other raster
+  rasters = reverseOddRasters(rasters, config_.raster_style);
+
   return rasters;
 }
 

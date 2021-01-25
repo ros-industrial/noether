@@ -43,8 +43,10 @@
 #include <tool_path_planner/plane_slicer_raster_generator.h>
 #include <noether_msgs/PlaneSlicerRasterGeneratorConfig.h>
 
+
 namespace tool_path_planner
 {
+
 /**
  * @brief flipPointOrder Inverts a path
  * @param path The input path to invert
@@ -118,10 +120,14 @@ static std::string getClassName()
   return (status == 0) ? res.get() : mangled_name;
 }
 
-ToolPaths splitSegments(ToolPaths tool_paths, double max_segment_length);
+ToolPaths splitSegments(ToolPaths& tool_paths, double max_segment_length);
 
 // duplicates first and last segment of each toolpath in tool_paths offset by the offset distance
-ToolPaths addExtraPaths(ToolPaths tool_paths, double offset_distance);
+ToolPaths addExtraPaths(ToolPaths& tool_paths, double offset_distance);
+
+// reverse direction of every other raster, flip orientation or not depending on raster style
+ToolPaths reverseOddRasters(ToolPaths& tool_paths, RasterStyle raster_style);
+
 
 double computeOffsetSign( const ToolPathSegment& adjusted_segment,  const ToolPathSegment& away_from_segment);
 }  // namespace tool_path_planner

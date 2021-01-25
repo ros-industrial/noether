@@ -307,10 +307,11 @@ double getDistance(Eigen::Isometry3d t1, Eigen::Isometry3d t2)
   return sqrt(pow(p1.x() - p2.x(), 2) + pow(p1.y() - p2.y(), 2) + pow(p1.z() - p2.z(), 2));
 }
 
-ToolPaths splitSegments(ToolPaths tool_paths, double max_segment_length)
+ToolPaths splitSegments(ToolPaths& tool_paths, double max_segment_length)
 {
+  
   ToolPaths new_tool_paths;
-  for (auto tool_path : tool_paths)
+  for (ToolPath tool_path : tool_paths)
   {
     ToolPath new_tool_path;
     for (auto seg : tool_path)
@@ -343,6 +344,43 @@ ToolPaths splitSegments(ToolPaths tool_paths, double max_segment_length)
   return new_tool_paths;
 }
 
+ToolPaths reverseOddRasters(ToolPaths& tool_paths, RasterStyle raster_style)
+{
+  ToolPaths new_tool_paths;
+  int is_odd=0;
+  int q=0;
+  for (auto tool_path : tool_paths)
+  {
+    ToolPath new_tool_path;
+    if(!is_odd)
+      {
+	for (auto seg : tool_path)
+	  {
+	    new_tool_path.push_back(seg);
+	  }
+      }// end if !is_odd
+    else
+      { // reverse order of segments, 
+	for (long int i=tool_path.size()-1; i>=0; i--)
+	  {
+	    ToolPathSegment new_segment;
+	    for (long int j= tool_path[i].size()-1; j >=0 ; j--)
+	      {
+		// rotate around z-axis of waypoint by 180 degrees (PI)
+		Eigen::Isometry3d waypoint = tool_path[i][j];
+		if(raster_style == FLIP_ORIENTATION_ON_REVERSE_STROKES) 
+		  waypoint.rotate(Eigen::AngleAxisd(4*atan(1), Eigen::Vector3d::UnitZ()));
+		new_segment.push_back(waypoint);
+	      }
+	    new_tool_path.push_back(new_segment);
+	  }
+      }
+    new_tool_paths.push_back(new_tool_path);
+    is_odd = (is_odd+1)%2;
+  }
+  return new_tool_paths;
+}
+
 double computeOffsetSign( const ToolPathSegment& adjusted_segment,  const ToolPathSegment& away_from_segment)
 {
   double offset_sign = 1;
@@ -356,7 +394,7 @@ double computeOffsetSign( const ToolPathSegment& adjusted_segment,  const ToolPa
   return(offset_sign);
 }
 
-ToolPaths addExtraPaths(ToolPaths tool_paths, double offset_distance)
+ToolPaths addExtraPaths(ToolPaths& tool_paths, double offset_distance)
 {
   ToolPaths new_tool_paths;
   ToolPath first_dup_tool_path;  // this tool path mimics first tool_path, but offset by -y and in reverse order
