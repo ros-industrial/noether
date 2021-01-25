@@ -373,7 +373,7 @@ ToolPaths addExtraPaths(ToolPaths tool_paths, double offset_distance)
 	  offset_sign = computeOffsetSign(seg,tp2[0]);
 	}
       ToolPathSegment new_segment;
-      for (int i = seg.size() - 1; i >= 0; i--)
+      for (int i = 0; i < seg.size(); i++)
 	{
 	  Eigen::Isometry3d waypoint = seg[i];
 	  Eigen::Matrix4d H = waypoint.matrix();
@@ -406,7 +406,7 @@ ToolPaths addExtraPaths(ToolPaths tool_paths, double offset_distance)
       }
 
     ToolPathSegment new_segment;
-    for (int i = seg.size() - 1; i >= 0; i--)
+    for (int i = 0; i < seg.size(); i++)
     {
       Eigen::Isometry3d waypoint = seg[i];
       Eigen::Matrix4d H = waypoint.matrix();

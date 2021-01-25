@@ -67,7 +67,6 @@ struct RasterConstructData
 static RasterConstructData alignRasterCD(const RasterConstructData rcd)
 {
   if(rcd.raster_segments.size() == 1) return(rcd); // do nothing if only one segment
-  
   // determine raster direction from 1st segment, and origin as first point in first raster (raster_start)
   Eigen::Vector3d raster_start, raster_end, raster_direction;
   rcd.raster_segments[0]->GetPoint(0,raster_start.data());
@@ -92,8 +91,8 @@ static RasterConstructData alignRasterCD(const RasterConstructData rcd)
       if(seg_dir.dot(raster_direction) < 0.0)
 	{
 	  vtkSmartPointer<vtkPoints> old_points = rcd.raster_segments[i]->GetPoints();
-	  vtkSmartPointer<vtkPoints> new_points;
-	  for(int j=rcd.raster_segments[i]->GetPoints()->GetNumberOfPoints()-1; j>=0; j--)
+	  vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
+	  for(long long int j=old_points->GetNumberOfPoints()-1; j>=0; j--)
 	    {
 	      new_points->InsertNextPoint(old_points->GetPoint(j));
 	    }
