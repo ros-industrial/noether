@@ -389,19 +389,11 @@ static tool_path_planner::ToolPaths convertToPoses(const std::vector<RasterConst
 {
   using namespace Eigen;
   tool_path_planner::ToolPaths rasters_array;
-  bool reverse = true;
   for (const RasterConstructData& rd : rasters_data)
   {
-    reverse = !reverse;
     tool_path_planner::ToolPath raster_path;
     std::vector<PolyDataPtr> raster_segments;
     raster_segments.assign(rd.raster_segments.begin(), rd.raster_segments.end());
-    if (0)
-    // if (reverse)// reverse order of the segments
-    {
-      std::reverse(raster_segments.begin(), raster_segments.end());
-    }
-
     for (const PolyDataPtr& polydata : raster_segments)
     {
       tool_path_planner::ToolPathSegment raster_path_segment;
@@ -427,12 +419,6 @@ static tool_path_planner::ToolPaths convertToPoses(const std::vector<RasterConst
       // adding last pose
       pose.translation() = p_next;  // orientation stays the same as previous
       raster_path_segment.push_back(pose);
-
-      if (0)
-      //      if (reverse) // this reverses the order of the waypoints in this segment without flipping
-      {
-        std::reverse(raster_path_segment.begin(), raster_path_segment.end());
-      }
 
       raster_path.push_back(raster_path_segment);
     }
