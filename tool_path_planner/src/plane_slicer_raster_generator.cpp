@@ -69,9 +69,9 @@ static RasterConstructData alignRasterCD(const RasterConstructData rcd)
   if (rcd.raster_segments.size() <= 1)
     return (rcd);  // do nothing if only one segment
 
-  if(rcd.raster_segments[0]->GetPoints()->GetNumberOfPoints() ==0)
+  if(rcd.raster_segments[0]->GetPoints()->GetNumberOfPoints() <=1)
     {
-      ROS_ERROR("first raster segment has zero points, unable to alignRasterCD()");
+      ROS_ERROR("first raster segment has 0 or 1 points, unable to alignRasterCD()");
       return(rcd);
     }
   
