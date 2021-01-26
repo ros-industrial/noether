@@ -69,12 +69,12 @@ static RasterConstructData alignRasterCD(const RasterConstructData rcd)
   if (rcd.raster_segments.size() <= 1)
     return (rcd);  // do nothing if only one segment
 
-  if(rcd.raster_segments[0]->GetPoints()->GetNumberOfPoints() <=1)
-    {
-      ROS_ERROR("first raster segment has 0 or 1 points, unable to alignRasterCD()");
-      return(rcd);
-    }
-  
+  if (rcd.raster_segments[0]->GetPoints()->GetNumberOfPoints() <= 1)
+  {
+    ROS_ERROR("first raster segment has 0 or 1 points, unable to alignRasterCD()");
+    return (rcd);
+  }
+
   // determine raster direction from 1st segment, and origin as first point in first raster (raster_start)
   Eigen::Vector3d raster_start, raster_end, raster_direction;
   rcd.raster_segments[0]->GetPoint(0, raster_start.data());
