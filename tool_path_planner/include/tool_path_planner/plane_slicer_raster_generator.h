@@ -33,13 +33,13 @@
 #include <vtkKdTreePointLocator.h>
 #include <jsoncpp/json/json.h>
 #include <ros/console.h>
-
 #include <tool_path_planner/path_generator.h>
 
 namespace tool_path_planner
 {
 class PlaneSlicerRasterGenerator : public PathGenerator
 {
+  static constexpr RasterStyle DEFAULT_RASTER_STYLE = KEEP_ORIENTATION_ON_REVERSE_STROKES;
   static constexpr double DEFAULT_RASTER_SPACING = 0.04;
   static constexpr double DEFAULT_POINT_SPACING = 0.01;
   static constexpr double DEFAULT_RASTER_ROT_OFFSET = 0.0;
@@ -61,6 +61,7 @@ public:
     bool raster_wrt_global_axes{ DEFAULT_RASTER_WRT_GLOBAL_AXES };
     Eigen::Vector3d raster_direction{ Eigen::Vector3d::UnitY() };
     bool generate_extra_rasters{ DEFAULT_GENERATE_EXTRA_RASTERS };
+    RasterStyle raster_style{ DEFAULT_RASTER_STYLE };
     Json::Value toJson() const
     {
       Json::Value jv(Json::ValueType::objectValue);

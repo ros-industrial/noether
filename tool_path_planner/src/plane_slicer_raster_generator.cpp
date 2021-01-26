@@ -62,6 +62,72 @@ struct RasterConstructData
   std::vector<double> segment_lengths;
 };
 
+// @brief this function accepts and returns a rasterConstruct where every segment progresses in the same direction and
+// in the right order
+static RasterConstructData alignRasterCD(const RasterConstructData rcd)
+{
+  if (rcd.raster_segments.size() <= 1)
+    return (rcd);  // do nothing if only one segment
+
+  if (rcd.raster_segments[0]->GetPoints()->GetNumberOfPoints() <= 1)
+  {
+    ROS_ERROR("first raster segment has 0 or 1 points, unable to alignRasterCD()");
+    return (rcd);
+  }
+
+  // determine raster direction from 1st segment, and origin as first point in first raster (raster_start)
+  Eigen::Vector3d raster_start, raster_end, raster_direction;
+  rcd.raster_segments[0]->GetPoint(0, raster_start.data());
+  rcd.raster_segments[0]->GetPoint(rcd.raster_segments[0]->GetPoints()->GetNumberOfPoints() - 1, raster_end.data());
+  raster_direction = raster_end - raster_start;
+  raster_direction.normalize();
+
+  // determine location and direction of each successive segement, reverse any mis-directed segments
+  RasterConstructData temp_rcd;
+  std::list<std::tuple<double, size_t> > seg_order;  // once sorted this list will be the order of the segments
+  std::tuple<double, size_t> p(0.0, 0);
+  seg_order.push_back(p);
+  for (size_t i = 1; i < rcd.raster_segments.size(); i++)
+  {
+    // determine i'th segments direction
+    Eigen::Vector3d seg_start, seg_end, seg_dir;
+    rcd.raster_segments[i]->GetPoint(0, seg_start.data());
+    rcd.raster_segments[i]->GetPoint(rcd.raster_segments[i]->GetPoints()->GetNumberOfPoints() - 1, seg_end.data());
+    seg_dir = seg_end - seg_start;
+
+    // if segment direction is opposite raster direction, reverse the segment
+    if (seg_dir.dot(raster_direction) < 0.0)
+    {
+      vtkSmartPointer<vtkPoints> old_points = rcd.raster_segments[i]->GetPoints();
+      vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
+      for (long long int j = old_points->GetNumberOfPoints() - 1; j >= 0; j--)
+      {
+        new_points->InsertNextPoint(old_points->GetPoint(j));
+      }
+      rcd.raster_segments[i]->SetPoints(new_points);
+      Eigen::Vector3d temp = seg_start;
+      seg_start = seg_end;
+      seg_end = temp;
+    }
+
+    // determine location of this segment in raster
+    double seg_loc = (seg_start - raster_start).dot(raster_direction);
+    std::tuple<double, size_t> p(seg_loc, i);
+    seg_order.push_back(p);
+  }
+
+  // sort the segments by location
+  seg_order.sort();
+  RasterConstructData new_rcd;
+  for (std::tuple<double, size_t> p : seg_order)
+  {
+    size_t seg_index = std::get<1>(p);
+    new_rcd.raster_segments.push_back(rcd.raster_segments[seg_index]);
+    new_rcd.segment_lengths.push_back(rcd.segment_lengths[seg_index]);
+  }
+  return (new_rcd);
+}
+
 static Eigen::Matrix3d computeRotation(const Eigen::Vector3d& vx, const Eigen::Vector3d& vy, const Eigen::Vector3d& vz)
 {
   Eigen::Matrix3d m;
@@ -330,18 +396,11 @@ static tool_path_planner::ToolPaths convertToPoses(const std::vector<RasterConst
 {
   using namespace Eigen;
   tool_path_planner::ToolPaths rasters_array;
-  bool reverse = true;
   for (const RasterConstructData& rd : rasters_data)
   {
-    reverse = !reverse;
     tool_path_planner::ToolPath raster_path;
     std::vector<PolyDataPtr> raster_segments;
     raster_segments.assign(rd.raster_segments.begin(), rd.raster_segments.end());
-    if (reverse)
-    {
-      std::reverse(raster_segments.begin(), raster_segments.end());
-    }
-
     for (const PolyDataPtr& polydata : raster_segments)
     {
       tool_path_planner::ToolPathSegment raster_path_segment;
@@ -350,10 +409,6 @@ static tool_path_planner::ToolPaths convertToPoses(const std::vector<RasterConst
       Isometry3d pose;
       std::vector<int> indices(num_points);
       std::iota(indices.begin(), indices.end(), 0);
-      if (reverse)
-      {
-        std::reverse(indices.begin(), indices.end());
-      }
       for (std::size_t i = 0; i < indices.size() - 1; i++)
       {
         int idx = indices[i];
@@ -447,7 +502,6 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   using namespace Eigen;
   using IDVec = std::vector<vtkIdType>;
 
-  boost::optional<ToolPaths> rasters = boost::none;
   if (!mesh_data_)
   {
     CONSOLE_BRIDGE_logDebug("%s No mesh data has been provided", getName().c_str());
@@ -720,16 +774,23 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
     rasters_data_vec.push_back(r);
   }
 
-  // converting to poses msg now
+  // make sure every raster has its segments ordered and aligned correctly
+  for (RasterConstructData rcd : rasters_data_vec)
+  {
+    rcd = alignRasterCD(rcd);
+  }
+
+  // converting to poses msg
+  ToolPaths rasters = convertToPoses(rasters_data_vec);
+
   if (config_.generate_extra_rasters)
   {
-    ToolPaths temp_rasters = convertToPoses(rasters_data_vec);
-    rasters = addExtraPaths(temp_rasters, config_.raster_spacing);
+    rasters = addExtraPaths(rasters, config_.raster_spacing);
   }
-  else
-  {
-    rasters = convertToPoses(rasters_data_vec);
-  }
+
+  // switch directions of every other raster
+  rasters = reverseOddRasters(rasters, config_.raster_style);
+
   return rasters;
 }
 

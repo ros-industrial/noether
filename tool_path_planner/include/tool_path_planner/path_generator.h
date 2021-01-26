@@ -13,6 +13,12 @@
 
 namespace tool_path_planner
 {
+enum RasterStyle : int
+{
+  KEEP_ORIENTATION_ON_REVERSE_STROKES = 0,
+  FLIP_ORIENTATION_ON_REVERSE_STROKES = 1,
+};
+
 /** @brief A set of contiguous waypoints that lie on the same line created by a "slice" through a surface */
 using ToolPathSegment = std::vector<Eigen::Isometry3d, Eigen::aligned_allocator<Eigen::Isometry3d>>;
 /** @brief A set of tool path segments that lie on the same line created by a tool path "slice",
