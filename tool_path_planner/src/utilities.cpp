@@ -307,7 +307,7 @@ double getDistance(Eigen::Isometry3d t1, Eigen::Isometry3d t2)
   return sqrt(pow(p1.x() - p2.x(), 2) + pow(p1.y() - p2.y(), 2) + pow(p1.z() - p2.z(), 2));
 }
 
-ToolPaths splitSegments(ToolPaths& tool_paths, double max_segment_length)
+ToolPaths splitSegments(const ToolPaths& tool_paths, double max_segment_length)
 {
   ToolPaths new_tool_paths;
   for (ToolPath tool_path : tool_paths)
@@ -343,10 +343,10 @@ ToolPaths splitSegments(ToolPaths& tool_paths, double max_segment_length)
   return new_tool_paths;
 }
 
-ToolPaths reverseOddRasters(ToolPaths& tool_paths, RasterStyle raster_style)
+ToolPaths reverseOddRasters(const ToolPaths& tool_paths, RasterStyle raster_style)
 {
   ToolPaths new_tool_paths;
-  int is_odd = 0;
+  bool is_odd = false;
   int q = 0;
   for (auto tool_path : tool_paths)
   {
@@ -375,7 +375,7 @@ ToolPaths reverseOddRasters(ToolPaths& tool_paths, RasterStyle raster_style)
       }
     }
     new_tool_paths.push_back(new_tool_path);
-    is_odd = (is_odd + 1) % 2;
+    is_odd = !is_odd;
   }
   return new_tool_paths;
 }
@@ -393,7 +393,7 @@ double computeOffsetSign(const ToolPathSegment& adjusted_segment, const ToolPath
   return (offset_sign);
 }
 
-ToolPaths addExtraPaths(ToolPaths& tool_paths, double offset_distance)
+ToolPaths addExtraPaths(const ToolPaths& tool_paths, double offset_distance)
 {
   ToolPaths new_tool_paths;
   ToolPath first_dup_tool_path;  // this tool path mimics first tool_path, but offset by -y and in reverse order
