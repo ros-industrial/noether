@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5.0)
 project(vtk_viewer VERSION 0.1.0)
 
-find_package(cmake_common_scripts REQUIRED)
+find_package(ros_industrial_cmake_boilerplate REQUIRED)
 
 find_package(VTK REQUIRED NO_MODULE)
 if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 7.1))
