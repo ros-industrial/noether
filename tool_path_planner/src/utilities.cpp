@@ -139,6 +139,7 @@ bool toEigenValueConfigMsg(noether_msgs::EigenValueEdgeGeneratorConfig& config_m
   config_msg.min_projection_dist = config.min_projection_dist;
   config_msg.max_intersecting_voxels = config.max_intersecting_voxels;
   config_msg.merge_dist = config.merge_dist;
+  config_msg.max_segment_length = config.max_segment_length;
   return true;
 }
 
@@ -165,10 +166,14 @@ bool toPlaneSlicerConfigMsg(noether_msgs::PlaneSlicerRasterGeneratorConfig& conf
 {
   config_msg.point_spacing = config.point_spacing;
   config_msg.raster_spacing = config.raster_spacing;
-  // config_msg.tool_offset = config.tool_offset;
   config_msg.min_hole_size = config.min_hole_size;
   config_msg.min_segment_size = config.min_segment_size;
   config_msg.raster_rot_offset = config.raster_rot_offset;
+  config_msg.raster_wrt_global_axes = config.raster_wrt_global_axes;
+
+  config_msg.raster_direction.x = config.raster_direction.x();
+  config_msg.raster_direction.y = config.raster_direction.y();
+  config_msg.raster_direction.z = config.raster_direction.z();
 
   return true;
 }
@@ -225,10 +230,20 @@ bool toPlaneSlicerConfig(PlaneSlicerRasterGenerator::Config& config,
 {
   config.point_spacing = config_msg.point_spacing;
   config.raster_spacing = config_msg.raster_spacing;
-  // config.tool_offset = config_msg.tool_offset;
   config.min_hole_size = config_msg.min_hole_size;
   config.min_segment_size = config_msg.min_segment_size;
   config.raster_rot_offset = config_msg.raster_rot_offset;
+  config.raster_wrt_global_axes = config_msg.raster_wrt_global_axes;
+
+  // Check that the raster direction was set; we are not interested in direction [0,0,0]
+  Eigen::Vector3d test_raster_direction;
+  test_raster_direction.x() = config_msg.raster_direction.x;
+  test_raster_direction.y() = config_msg.raster_direction.y;
+  test_raster_direction.z() = config_msg.raster_direction.z;
+  if (!test_raster_direction.isApprox(Eigen::Vector3d::Zero()))
+  {
+    config.raster_direction = test_raster_direction;
+  }
 
   return true;
 }
@@ -282,6 +297,165 @@ bool createToolPathSegment(const pcl::PointCloud<pcl::PointNormal>& cloud_normal
   segment.push_back(p);
 
   return true;
+}
+
+// this is a helper function for splitPaths()
+double getDistance(Eigen::Isometry3d t1, Eigen::Isometry3d t2)
+{
+  auto p1 = t1.translation();
+  auto p2 = t2.translation();
+  return sqrt(pow(p1.x() - p2.x(), 2) + pow(p1.y() - p2.y(), 2) + pow(p1.z() - p2.z(), 2));
+}
+
+ToolPaths splitSegments(const ToolPaths& tool_paths, double max_segment_length)
+{
+  ToolPaths new_tool_paths;
+  for (ToolPath tool_path : tool_paths)
+  {
+    ToolPath new_tool_path;
+    for (auto seg : tool_path)
+    {
+      // calculate total segment length
+      double total_segment_length = 0.0;
+      for (std::size_t point_i = 0; point_i < seg.size() - 1; ++point_i)
+      {
+        total_segment_length += getDistance(seg[point_i], seg[point_i + 1]);
+      }
+      int num_cuts = int(ceil(total_segment_length / max_segment_length));
+      double segment_length = total_segment_length / num_cuts;
+      double dist_from_start = 0.0;
+      std::size_t point_i = 1;
+      for (int cut_i = 0; cut_i < num_cuts; ++cut_i)
+      {
+        ToolPathSegment new_seg;
+        new_seg.push_back(seg[point_i - 1]);
+        while (dist_from_start < segment_length * (cut_i + 1) && point_i < seg.size())
+        {
+          new_seg.push_back(seg[point_i]);
+          dist_from_start += getDistance(seg[point_i - 1], seg[point_i]);
+          point_i += 1;
+        }
+        new_tool_path.push_back(new_seg);
+      }
+    }
+    new_tool_paths.push_back(new_tool_path);
+  }
+  return new_tool_paths;
+}
+
+ToolPaths reverseOddRasters(const ToolPaths& tool_paths, RasterStyle raster_style)
+{
+  ToolPaths new_tool_paths;
+  bool is_odd = false;
+  int q = 0;
+  for (auto tool_path : tool_paths)
+  {
+    ToolPath new_tool_path;
+    if (!is_odd)
+    {
+      for (auto seg : tool_path)
+      {
+        new_tool_path.push_back(seg);
+      }
+    }  // end if !is_odd
+    else
+    {  // reverse order of segments,
+      for (long int i = tool_path.size() - 1; i >= 0; i--)
+      {
+        ToolPathSegment new_segment;
+        for (long int j = tool_path[i].size() - 1; j >= 0; j--)
+        {
+          // rotate around z-axis of waypoint by 180 degrees (PI)
+          Eigen::Isometry3d waypoint = tool_path[i][j];
+          if (raster_style == FLIP_ORIENTATION_ON_REVERSE_STROKES)
+            waypoint.rotate(Eigen::AngleAxisd(4 * atan(1), Eigen::Vector3d::UnitZ()));
+          new_segment.push_back(waypoint);
+        }
+        new_tool_path.push_back(new_segment);
+      }
+    }
+    new_tool_paths.push_back(new_tool_path);
+    is_odd = !is_odd;
+  }
+  return new_tool_paths;
+}
+
+double computeOffsetSign(const ToolPathSegment& adjusted_segment, const ToolPathSegment& away_from_segment)
+{
+  double offset_sign = 1;
+  Eigen::Isometry3d waypoint1 = adjusted_segment[0];
+  Eigen::Isometry3d waypoint2 = away_from_segment[0];
+  Eigen::Vector3d v = waypoint2.translation() - waypoint1.translation();
+  Eigen::Matrix4d H = waypoint1.matrix();
+  double dot_product = v.x() * H(0, 1) + v.y() * H(1, 1) + v.z() * H(2, 1);
+  if (dot_product > 0.0)
+    offset_sign = -1;
+  return (offset_sign);
+}
+
+ToolPaths addExtraPaths(const ToolPaths& tool_paths, double offset_distance)
+{
+  ToolPaths new_tool_paths;
+  ToolPath first_dup_tool_path;  // this tool path mimics first tool_path, but offset by -y and in reverse order
+  ToolPath temp_path = tool_paths[0];
+  double offset_sign = 1.0;
+
+  // duplicate first raster with an offset and add as first raster
+  std::reverse(temp_path.begin(), temp_path.end());  // reverse the order of segments first
+  for (ToolPathSegment seg : temp_path)
+  {
+    if (tool_paths.size() > 1)
+    {
+      ToolPath tp2 = tool_paths[1];
+      offset_sign = computeOffsetSign(seg, tp2[0]);
+    }
+    ToolPathSegment new_segment;
+    for (int i = 0; i < seg.size(); i++)
+    {
+      Eigen::Isometry3d waypoint = seg[i];
+      Eigen::Matrix4d H = waypoint.matrix();
+      waypoint.translation().x() += offset_sign * offset_distance * H(0, 1);
+      waypoint.translation().y() += offset_sign * offset_distance * H(1, 1);
+      waypoint.translation().z() += offset_sign * offset_distance * H(2, 1);
+      new_segment.push_back(waypoint);
+    }
+    first_dup_tool_path.push_back(new_segment);
+  }
+  new_tool_paths.push_back(first_dup_tool_path);
+
+  // add all the existing rasters to the new tool_path
+  for (auto tool_path : tool_paths)
+  {
+    new_tool_paths.push_back(tool_path);
+  }
+
+  // duplicate last raster with an offset and add as last raster
+  ToolPath last_dup_tool_path;  // this tool path mimics last tool_path, but offset by +y and in reverse order
+  temp_path = tool_paths[tool_paths.size() - 1];
+  std::reverse(temp_path.begin(), temp_path.end());  // reverse the segment order first
+  for (ToolPathSegment seg : temp_path)
+  {
+    if (tool_paths.size() > 1)
+    {
+      ToolPath tp2 = tool_paths[tool_paths.size() - 2];
+      offset_sign = computeOffsetSign(seg, tp2[0]);
+    }
+
+    ToolPathSegment new_segment;
+    for (int i = 0; i < seg.size(); i++)
+    {
+      Eigen::Isometry3d waypoint = seg[i];
+      Eigen::Matrix4d H = waypoint.matrix();
+      waypoint.translation().x() += offset_sign * offset_distance * H(0, 1);
+      waypoint.translation().y() += offset_sign * offset_distance * H(1, 1);
+      waypoint.translation().z() += offset_sign * offset_distance * H(2, 1);
+      new_segment.push_back(waypoint);
+    }
+    last_dup_tool_path.push_back(new_segment);
+  }
+  new_tool_paths.push_back(last_dup_tool_path);
+
+  return new_tool_paths;
 }
 
 }  // namespace tool_path_planner

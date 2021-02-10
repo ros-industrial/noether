@@ -62,6 +62,72 @@ struct RasterConstructData
   std::vector<double> segment_lengths;
 };
 
+// @brief this function accepts and returns a rasterConstruct where every segment progresses in the same direction and
+// in the right order
+static RasterConstructData alignRasterCD(const RasterConstructData rcd)
+{
+  if (rcd.raster_segments.size() <= 1)
+    return (rcd);  // do nothing if only one segment
+
+  if (rcd.raster_segments[0]->GetPoints()->GetNumberOfPoints() <= 1)
+  {
+    ROS_ERROR("first raster segment has 0 or 1 points, unable to alignRasterCD()");
+    return (rcd);
+  }
+
+  // determine raster direction from 1st segment, and origin as first point in first raster (raster_start)
+  Eigen::Vector3d raster_start, raster_end, raster_direction;
+  rcd.raster_segments[0]->GetPoint(0, raster_start.data());
+  rcd.raster_segments[0]->GetPoint(rcd.raster_segments[0]->GetPoints()->GetNumberOfPoints() - 1, raster_end.data());
+  raster_direction = raster_end - raster_start;
+  raster_direction.normalize();
+
+  // determine location and direction of each successive segement, reverse any mis-directed segments
+  RasterConstructData temp_rcd;
+  std::list<std::tuple<double, size_t> > seg_order;  // once sorted this list will be the order of the segments
+  std::tuple<double, size_t> p(0.0, 0);
+  seg_order.push_back(p);
+  for (size_t i = 1; i < rcd.raster_segments.size(); i++)
+  {
+    // determine i'th segments direction
+    Eigen::Vector3d seg_start, seg_end, seg_dir;
+    rcd.raster_segments[i]->GetPoint(0, seg_start.data());
+    rcd.raster_segments[i]->GetPoint(rcd.raster_segments[i]->GetPoints()->GetNumberOfPoints() - 1, seg_end.data());
+    seg_dir = seg_end - seg_start;
+
+    // if segment direction is opposite raster direction, reverse the segment
+    if (seg_dir.dot(raster_direction) < 0.0)
+    {
+      vtkSmartPointer<vtkPoints> old_points = rcd.raster_segments[i]->GetPoints();
+      vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
+      for (long long int j = old_points->GetNumberOfPoints() - 1; j >= 0; j--)
+      {
+        new_points->InsertNextPoint(old_points->GetPoint(j));
+      }
+      rcd.raster_segments[i]->SetPoints(new_points);
+      Eigen::Vector3d temp = seg_start;
+      seg_start = seg_end;
+      seg_end = temp;
+    }
+
+    // determine location of this segment in raster
+    double seg_loc = (seg_start - raster_start).dot(raster_direction);
+    std::tuple<double, size_t> p(seg_loc, i);
+    seg_order.push_back(p);
+  }
+
+  // sort the segments by location
+  seg_order.sort();
+  RasterConstructData new_rcd;
+  for (std::tuple<double, size_t> p : seg_order)
+  {
+    size_t seg_index = std::get<1>(p);
+    new_rcd.raster_segments.push_back(rcd.raster_segments[seg_index]);
+    new_rcd.segment_lengths.push_back(rcd.segment_lengths[seg_index]);
+  }
+  return (new_rcd);
+}
+
 static Eigen::Matrix3d computeRotation(const Eigen::Vector3d& vx, const Eigen::Vector3d& vy, const Eigen::Vector3d& vz)
 {
   Eigen::Matrix3d m;
@@ -330,18 +396,11 @@ static tool_path_planner::ToolPaths convertToPoses(const std::vector<RasterConst
 {
   using namespace Eigen;
   tool_path_planner::ToolPaths rasters_array;
-  bool reverse = true;
   for (const RasterConstructData& rd : rasters_data)
   {
-    reverse = !reverse;
     tool_path_planner::ToolPath raster_path;
     std::vector<PolyDataPtr> raster_segments;
     raster_segments.assign(rd.raster_segments.begin(), rd.raster_segments.end());
-    if (reverse)
-    {
-      std::reverse(raster_segments.begin(), raster_segments.end());
-    }
-
     for (const PolyDataPtr& polydata : raster_segments)
     {
       tool_path_planner::ToolPathSegment raster_path_segment;
@@ -350,10 +409,6 @@ static tool_path_planner::ToolPaths convertToPoses(const std::vector<RasterConst
       Isometry3d pose;
       std::vector<int> indices(num_points);
       std::iota(indices.begin(), indices.end(), 0);
-      if (reverse)
-      {
-        std::reverse(indices.begin(), indices.end());
-      }
       for (std::size_t i = 0; i < indices.size() - 1; i++)
       {
         int idx = indices[i];
@@ -409,7 +464,6 @@ void PlaneSlicerRasterGenerator::setInput(vtkSmartPointer<vtkPolyData> mesh)
   }
   else
   {
-    CONSOLE_BRIDGE_logWarn("%s generating normal data", getName().c_str());
     vtkSmartPointer<vtkPolyDataNormals> normal_generator = vtkSmartPointer<vtkPolyDataNormals>::New();
     normal_generator->SetInputData(mesh_data_);
     normal_generator->ComputePointNormalsOn();
@@ -448,15 +502,54 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   using namespace Eigen;
   using IDVec = std::vector<vtkIdType>;
 
-  boost::optional<ToolPaths> rasters = boost::none;
   if (!mesh_data_)
   {
     CONSOLE_BRIDGE_logDebug("%s No mesh data has been provided", getName().c_str());
   }
-  // computing mayor axis using oob
-  vtkSmartPointer<vtkOBBTree> oob = vtkSmartPointer<vtkOBBTree>::New();
-  Vector3d corner, x_dir, y_dir, z_dir, sizes;  // x is longest, y is mid and z is smallest
-  oob->ComputeOBB(mesh_data_, corner.data(), x_dir.data(), y_dir.data(), z_dir.data(), sizes.data());
+  // Assign the longest axis of the bounding box to x, middle to y, and shortest to z.
+  Vector3d corner, x_dir, y_dir, z_dir, sizes;
+  ROS_ERROR_STREAM(config_.raster_wrt_global_axes);
+  if (config_.raster_wrt_global_axes)
+  {
+    // Determine extent of mesh along axes of current coordinate frame
+    VectorXd bounds(6);
+    std::vector<Vector3d> extents;
+    mesh_data_->GetBounds(bounds.data());
+    extents.push_back(Vector3d::UnitX() * (bounds[1] - bounds[0]));  // Extent in x-direction of supplied mesh
+                                                                     // coordinate frame
+    extents.push_back(Vector3d::UnitY() * (bounds[3] - bounds[2]));  // Extent in y-direction of supplied mesh
+                                                                     // coordinate frame
+    extents.push_back(Vector3d::UnitZ() * (bounds[5] - bounds[4]));  // Extent in z-direction of supplied mesh
+                                                                     // coordinate frame
+
+    // find min and max magnitude.
+    int max = 0;
+    int min = 0;
+    for (std::size_t i = 1; i < extents.size(); ++i)
+    {
+      if (extents[max].squaredNorm() < extents[i].squaredNorm())
+        max = i;
+      else if (extents[min].squaredNorm() > extents[i].squaredNorm())
+        min = i;
+    }
+
+    // Order the axes.  Computing y saves comparisons and guarantees right-handedness.
+    Eigen::Matrix3d rotation_transform;
+    rotation_transform.col(0) = extents[max].normalized();
+    rotation_transform.col(2) = extents[min].normalized();
+    rotation_transform.col(1) = rotation_transform.col(2).cross(rotation_transform.col(0)).normalized();
+
+    // Extract our axes transfored to align to the major axes of our aabb
+    x_dir = rotation_transform.row(0).normalized();
+    y_dir = rotation_transform.row(1).normalized();
+    z_dir = rotation_transform.row(2).normalized();
+  }
+  else
+  {
+    // computing major axes using oob and assign to x_dir, y_dir, z_dir
+    vtkSmartPointer<vtkOBBTree> oob = vtkSmartPointer<vtkOBBTree>::New();
+    oob->ComputeOBB(mesh_data_, corner.data(), x_dir.data(), y_dir.data(), z_dir.data(), sizes.data());
+  }
 
   // Compute the center of mass
   Vector3d origin;
@@ -490,12 +583,13 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   sizes.z() = bounds[5] - bounds[4];
 
   half_ext = sizes / 2.0;
-  center = Eigen::Vector3d(bounds[0], bounds[2], bounds[3]) + half_ext;
+  center = Eigen::Vector3d(bounds[0], bounds[2], bounds[4]) + half_ext;
 
-  // now cutting the mesh with planes along the y axis
-  // @todo This should be calculated instead of being fixed along the y-axis
+  // Apply the rotation offset about the short direction (new Z axis) of the bounding box
   Isometry3d rotation_offset = Isometry3d::Identity() * AngleAxisd(config_.raster_rot_offset, Vector3d::UnitZ());
-  Vector3d raster_dir = (rotation_offset * Vector3d::UnitY()).normalized();
+
+  // Calculate direction of raster strokes, rotated by the above-specified amount
+  Vector3d raster_dir = (rotation_offset * config_.raster_direction).normalized();
 
   // Calculate all 8 corners projected onto the raster direction vector
   Eigen::VectorXd dist(8);
@@ -680,8 +774,23 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
     rasters_data_vec.push_back(r);
   }
 
-  // converting to poses msg now
-  rasters = convertToPoses(rasters_data_vec);
+  // make sure every raster has its segments ordered and aligned correctly
+  for (RasterConstructData rcd : rasters_data_vec)
+  {
+    rcd = alignRasterCD(rcd);
+  }
+
+  // converting to poses msg
+  ToolPaths rasters = convertToPoses(rasters_data_vec);
+
+  if (config_.generate_extra_rasters)
+  {
+    rasters = addExtraPaths(rasters, config_.raster_spacing);
+  }
+
+  // switch directions of every other raster
+  rasters = reverseOddRasters(rasters, config_.raster_style);
+
   return rasters;
 }
 
@@ -711,7 +820,7 @@ bool PlaneSlicerRasterGenerator::insertNormals(const double search_radius, vtkSm
     kd_tree_->FindPointsWithinRadius(search_radius, query_point.data(), id_list);
     if (id_list->GetNumberOfIds() < 1)
     {
-      CONSOLE_BRIDGE_logWarn("%s FindPointsWithinRadius found no points for normal averaging, using closests",
+      CONSOLE_BRIDGE_logWarn("%s FindPointsWithinRadius found no points for normal averaging, using closest",
                              getName().c_str());
       kd_tree_->FindClosestNPoints(1, query_point.data(), id_list);
 
