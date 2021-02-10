@@ -430,7 +430,6 @@ ToolPaths addExtraPaths(const ToolPaths& tool_paths, double offset_distance)
   }
 
   // duplicate last raster with an offset and add as last raster
-  offset_sign = -offset_sign;
   ToolPath last_dup_tool_path;  // this tool path mimics last tool_path, but offset by +y and in reverse order
   temp_path = tool_paths[tool_paths.size() - 1];
   std::reverse(temp_path.begin(), temp_path.end());  // reverse the segment order first
@@ -438,7 +437,7 @@ ToolPaths addExtraPaths(const ToolPaths& tool_paths, double offset_distance)
   {
     if (tool_paths.size() > 1)
     {
-      ToolPath tp2 = tool_paths[tool_paths.size() - 1];
+      ToolPath tp2 = tool_paths[tool_paths.size() - 2];
       offset_sign = computeOffsetSign(seg, tp2[0]);
     }
 
