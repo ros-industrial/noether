@@ -118,6 +118,8 @@ static std::string getClassName()
   return (status == 0) ? res.get() : mangled_name;
 }
 
+ToolPaths splitSegments(ToolPaths tool_paths, double max_segment_length);
+
 }  // namespace tool_path_planner
 
 #endif /* INCLUDE_TOOL_PATH_PLANNER_UTILITIES_H_ */

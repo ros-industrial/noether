@@ -139,6 +139,7 @@ bool toEigenValueConfigMsg(noether_msgs::EigenValueEdgeGeneratorConfig& config_m
   config_msg.min_projection_dist = config.min_projection_dist;
   config_msg.max_intersecting_voxels = config.max_intersecting_voxels;
   config_msg.merge_dist = config.merge_dist;
+  config_msg.max_segment_length = config.max_segment_length;
   return true;
 }
 
@@ -165,10 +166,14 @@ bool toPlaneSlicerConfigMsg(noether_msgs::PlaneSlicerRasterGeneratorConfig& conf
 {
   config_msg.point_spacing = config.point_spacing;
   config_msg.raster_spacing = config.raster_spacing;
-  // config_msg.tool_offset = config.tool_offset;
   config_msg.min_hole_size = config.min_hole_size;
   config_msg.min_segment_size = config.min_segment_size;
   config_msg.raster_rot_offset = config.raster_rot_offset;
+  config_msg.raster_wrt_global_axes = config.raster_wrt_global_axes;
+
+  config_msg.raster_direction.x = config.raster_direction.x();
+  config_msg.raster_direction.y = config.raster_direction.y();
+  config_msg.raster_direction.z = config.raster_direction.z();
 
   return true;
 }
@@ -225,10 +230,20 @@ bool toPlaneSlicerConfig(PlaneSlicerRasterGenerator::Config& config,
 {
   config.point_spacing = config_msg.point_spacing;
   config.raster_spacing = config_msg.raster_spacing;
-  // config.tool_offset = config_msg.tool_offset;
   config.min_hole_size = config_msg.min_hole_size;
   config.min_segment_size = config_msg.min_segment_size;
   config.raster_rot_offset = config_msg.raster_rot_offset;
+  config.raster_wrt_global_axes = config_msg.raster_wrt_global_axes;
+
+  // Check that the raster direction was set; we are not interested in direction [0,0,0]
+  Eigen::Vector3d test_raster_direction;
+  test_raster_direction.x() = config_msg.raster_direction.x;
+  test_raster_direction.y() = config_msg.raster_direction.y;
+  test_raster_direction.z() = config_msg.raster_direction.z;
+  if (!test_raster_direction.isApprox(Eigen::Vector3d::Zero()))
+  {
+    config.raster_direction = test_raster_direction;
+  }
 
   return true;
 }
@@ -282,6 +297,50 @@ bool createToolPathSegment(const pcl::PointCloud<pcl::PointNormal>& cloud_normal
   segment.push_back(p);
 
   return true;
+}
+
+// this is a helper function for splitPaths()
+double getDistance(Eigen::Isometry3d t1, Eigen::Isometry3d t2)
+{
+  auto p1 = t1.translation();
+  auto p2 = t2.translation();
+  return sqrt(pow(p1.x() - p2.x(), 2) + pow(p1.y() - p2.y(), 2) + pow(p1.z() - p2.z(), 2));
+}
+
+ToolPaths splitSegments(ToolPaths tool_paths, double max_segment_length)
+{
+  ToolPaths new_tool_paths;
+  for (auto tool_path : tool_paths)
+  {
+    ToolPath new_tool_path;
+    for (auto seg : tool_path)
+    {
+      // calculate total segment length
+      double total_segment_length = 0.0;
+      for (std::size_t point_i = 0; point_i < seg.size()-1; ++point_i)
+      {
+        total_segment_length += getDistance(seg[point_i], seg[point_i+1]);
+      }
+      int num_cuts = int(ceil(total_segment_length / max_segment_length));
+      double segment_length = total_segment_length / num_cuts;
+      double dist_from_start = 0.0;
+      std::size_t point_i = 1;
+      for (int cut_i = 0; cut_i < num_cuts; ++cut_i)
+      {
+        ToolPathSegment new_seg;
+        new_seg.push_back(seg[point_i-1]);
+        while (dist_from_start < segment_length * (cut_i+1) && point_i < seg.size())
+        {
+          new_seg.push_back(seg[point_i]);
+          dist_from_start += getDistance(seg[point_i-1], seg[point_i]);
+          point_i += 1;
+        }
+        new_tool_path.push_back(new_seg);
+      }
+    }
+    new_tool_paths.push_back(new_tool_path);
+  }
+  return new_tool_paths;
 }
 
 }  // namespace tool_path_planner

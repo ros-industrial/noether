@@ -102,6 +102,7 @@ protected:
       {
         auto path_gen = std::make_shared<tool_path_planner::SurfaceWalkRasterGenerator>();
         tool_path_planner::SurfaceWalkRasterGenerator::Config path_config;
+
         tool_path_planner::toSurfaceWalkConfig(path_config, config.surface_walk_generator);
         path_gen->setConfiguration(path_config);
         generator = path_gen;
@@ -160,8 +161,8 @@ protected:
             tp.segments.push_back(seg);
           }
           trp.paths.push_back(tp);
+          result.tool_paths[i].paths.push_back(tp);
         }
-
         result.tool_path_validities[i] = true;
 
         std::string ros_info_msg = boost::str(boost::format("Surface %1% processed successfully") % (i + 1));
