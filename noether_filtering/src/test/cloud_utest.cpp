@@ -161,6 +161,7 @@ XmlRpc::XmlRpcValue createManagerConfig(std::string group_name)
   XmlRpc::XmlRpcValue g;
   g[group::GROUP_NAME] = std::move(group_name);
   g[group::CONTINUE_ON_FAILURE] = false;
+  g[group::VERBOSITY_ON] = true;
   g[group::FILTERS] = std::move(filters);
 
   // Create a collection of filter groups
