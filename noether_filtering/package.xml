@@ -10,6 +10,7 @@
   <depend>libconsole-bridge-dev</depend>
   <depend>pluginlib</depend>
   <depend>libpcl-all-dev</depend>
+  <build_depend>ros_industrial_cmake_boilerplate</build_depend>
   <export>
     <build_type>cmake</build_type>
     <noether_filtering plugin="${prefix}/mesh_filter_plugins.xml"/>
