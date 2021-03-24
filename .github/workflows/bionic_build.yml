@@ -20,7 +20,6 @@ jobs:
       ROS_REPO: main
       NOT_TEST_BUILD: true
       UPSTREAM_WORKSPACE: 'dependencies_ros1.rosinstall'
-      ROSDEP_SKIP_KEYS: "iwyu cmake_common_scripts"
       CCACHE_DIR: "/home/runner/work/noether/noether/Bionic-Build/.ccache"
       TARGET_CMAKE_ARGS: "-DNURBS_FOUND=TRUE"
       DOCKER_IMAGE: "rosindustrial/noether:melodic"
