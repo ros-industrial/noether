@@ -785,7 +785,8 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
 
   if (config_.generate_extra_rasters)
   {
-    rasters = addExtraPaths(rasters, config_.raster_spacing);
+    //    rasters = addExtraPaths(rasters, config_.raster_spacing);
+    rasters = addExtraWaypoints(rasters, config_.raster_spacing, config_.point_spacing);
   }
 
   // switch directions of every other raster
