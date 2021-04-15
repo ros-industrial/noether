@@ -131,21 +131,14 @@ catkin build noether
 ### Surface Raster Planner
 The noether package has a *surface raster planner* executable which is able to take in a mesh file (.stl format), and generate raster paths on it, you can run it through the launch file with preconfigured parameters as follows:
 ```
-roslaunch noether_examples surf_raster_planner_demo.launch
+roslaunch noether_examples plane_slicer_rastering_generator_demo.launch
 ```
 
 or with your own mesh file
 ```
-roslaunch noether_examples surf_raster_planner_demo.launch filename:=</absolute/path/to/my/mesh.stl>
+roslaunch noether_examples plane_slicer_rastering_generator_demo.launch mesh_file:=</absolute/path/to/my/mesh.stl>
 ```
 
-Also, the node can be called directly with custom parameters directly:
-```
-rosrun noether surface_raster_planner_application _pt_spacing:=0.05 _line_spacing:=0.15 _intersecting_plane_height:=0.05 _min_hole_size:=0.01 _min_segment_size:=0.01 _debug_on:=False _console_debug_on:=False _file_path:=</absolute/path/to/my/mesh.stl>
-```
-The `debug_on` and `console_debug_on` argurments enable visual and console debugging respectively.  During visual debugging press 'q' on the vtk window in order to step through.
-
-Work is in progress to read in point cloud (.pcd) files, but meshing results are not reliable right now.
 
 ### Mesh Filtering Demo
 The mesh filtering demo applies a bspline smoothing algorithm to a noisy mesh, run the following to see it in action:
