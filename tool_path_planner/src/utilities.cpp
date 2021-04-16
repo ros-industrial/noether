@@ -10,6 +10,7 @@
 #include <limits>
 #include <cmath>
 #include <numeric>
+#include <algorithm> // std::sort
 
 #include <Eigen/Core>
 #include <vtkParametricFunctionSource.h>
@@ -455,6 +456,173 @@ ToolPaths addExtraPaths(const ToolPaths& tool_paths, double offset_distance)
   }
   new_tool_paths.push_back(last_dup_tool_path);
 
+  return new_tool_paths;
+}
+
+ToolPaths segmentByAxes(const ToolPaths& tool_paths, SegmentAxes::SegmentAxes segment_axes)
+{
+  if (tool_paths.size() == 0)
+  {
+    ROS_ERROR_STREAM("Tool paths is empty.");
+    // TODO: throw an exception
+  }
+
+  ToolPaths new_tool_paths;
+
+  double axes_distance = 1000.0;
+  std::vector<Eigen::Vector3d> corner_points;
+
+  Eigen::Vector3d p1, p2, p3, p4;
+  if (segment_axes == SegmentAxes::XY)
+  {
+    p1.x() = -axes_distance;
+    p1.y() = -axes_distance;
+    p1.z() = 0;
+
+    p2.x() = -axes_distance;
+    p2.y() = axes_distance;
+    p2.z() = 0;
+
+    p3.x() = axes_distance;
+    p3.y() = -axes_distance;
+    p3.z() = 0;
+
+    p4.x() = axes_distance;
+    p4.y() = axes_distance;
+    p4.z() = 0;
+  }
+  else if (segment_axes == SegmentAxes::XZ)
+  {
+    p1.x() = -axes_distance;
+    p1.y() = 0;
+    p1.z() = -axes_distance;
+
+    p2.x() = -axes_distance;
+    p2.y() = 0;
+    p2.z() = axes_distance;
+
+    p3.x() = axes_distance;
+    p3.y() = 0;
+    p3.z() = -axes_distance;
+
+    p4.x() = axes_distance;
+    p4.y() = 0;
+    p4.z() = axes_distance;
+  }
+  else // if (segment_axes == SegmentAxes::YZ)
+  {
+    p1.x() = 0;
+    p1.y() = -axes_distance;
+    p1.z() = -axes_distance;
+
+    p2.x() = 0;
+    p2.y() = -axes_distance;
+    p2.z() = axes_distance;
+
+    p3.x() = 0;
+    p3.y() = axes_distance;
+    p3.z() = -axes_distance;
+
+    p4.x() = 0;
+    p4.y() = axes_distance;
+    p4.z() = axes_distance;
+  }
+
+  corner_points.push_back(p1);
+  corner_points.push_back(p2);
+  corner_points.push_back(p3);
+  corner_points.push_back(p4);
+
+  for (std::size_t path_index = 0; path_index < tool_paths.size(); ++path_index)
+  {
+    ToolPath tool_path = tool_paths[path_index];
+    if (tool_path.size() != 1)
+    {
+      ROS_ERROR_STREAM("Tool path " << path_index << " contains " << tool_path.size() <<
+                       " segments. Expected exactly 1.");
+      // TODO: throw an exception
+    }
+    ToolPath new_tool_path;
+    ToolPathSegment tool_path_segment = tool_path[0];
+    if (tool_path_segment.size() == 0)
+    {
+      ROS_ERROR_STREAM("Tool path " << path_index << " segment 0 is empty.");
+      // TODO: throw an exception
+    }
+
+    // get cut indices
+    std::vector<std::size_t> cut_indices;
+    for (Eigen::Vector3d corner_point : corner_points)
+    {
+      double min_distance = axes_distance * 10;
+      int min_index = -1;
+      for (std::size_t point_index = 0; point_index < tool_path_segment.size(); ++ point_index)
+      {
+        Eigen::Vector3d projected_point = tool_path_segment[point_index].translation();
+        if (segment_axes == SegmentAxes::XY)
+        {
+          projected_point.z() = 0;
+        }
+        else if (segment_axes == SegmentAxes::XZ)
+        {
+          projected_point.y() = 0;
+        }
+        else // if (segment_axes == SegmentAxes::YZ)
+        {
+          projected_point.x() = 0;
+        }
+        double distance = (projected_point - corner_point).norm();
+        if (distance < min_distance)
+        {
+          min_distance = distance;
+          min_index = int(point_index);
+        }
+      }
+      // check if we found a closest point
+      if (min_index == -1)
+      {
+        // if this happens, that means that all tool path points were more than (10 * axes_distance) meters from
+        // the origin -- this violates the assumption that tool path points are REASONABLY close to origin
+        ROS_ERROR_STREAM("Could not find closest point to corner point for path " << path_index << " segment 0 "
+                         "for corner point at x:" << corner_point.x() << " y:" << corner_point.y() << " z:" <<
+                         corner_point.z());
+        // TODO: throw a custom exception
+      }
+      // check if the point was also closest to a previous corner (i.e. already in list)
+      bool already_exists = false;
+      for (std::size_t cut_index : cut_indices)
+      {
+        if (cut_index == std::size_t(min_index))
+        {
+          already_exists = true;
+        }
+      }
+      // if this point isn't already in the list, add to cut indices
+      if (!already_exists)
+      {
+        cut_indices.push_back(std::size_t(min_index));
+      }
+    }
+
+    // cut tool path
+    // sort cut indices
+    std::sort(cut_indices.begin(), cut_indices.end());
+    // iterate each cut index
+    for (std::size_t i = 0; i < cut_indices.size(); ++i)
+    {
+      ToolPathSegment new_tool_path_segment;
+      std::size_t index = cut_indices[i];
+      // while index does not equal the next cut index (including going from last index to first index)
+      // add each index after the current cut index, up until the next cut index
+      while (index != cut_indices[(i+1)%cut_indices.size()])
+      {
+        new_tool_path_segment.push_back(tool_path_segment[index]);
+        index = (index + 1) % tool_path_segment.size();
+      }
+      new_tool_path.push_back(new_tool_path_segment);
+    }
+    new_tool_paths.push_back(new_tool_path);
+  }
   return new_tool_paths;
 }
 

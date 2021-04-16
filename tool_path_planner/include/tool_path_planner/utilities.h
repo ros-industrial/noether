@@ -127,6 +127,16 @@ ToolPaths addExtraPaths(const ToolPaths& tool_paths, double offset_distance);
 ToolPaths reverseOddRasters(const ToolPaths& tool_paths, RasterStyle raster_style);
 
 double computeOffsetSign(const ToolPathSegment& adjusted_segment, const ToolPathSegment& away_from_segment);
+
+namespace SegmentAxes {
+  enum SegmentAxes {
+    XY=0,
+    XZ,
+    YZ
+  };
+}
+ToolPaths segmentByAxes(const ToolPaths& tool_paths, SegmentAxes::SegmentAxes segment_axes=SegmentAxes::XY);
+
 }  // namespace tool_path_planner
 
 #endif /* INCLUDE_TOOL_PATH_PLANNER_UTILITIES_H_ */
