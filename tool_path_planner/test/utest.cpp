@@ -18,7 +18,7 @@
 #define DISPLAY_LINES 1
 #define DISPLAY_NORMALS 0
 #define DISPLAY_DERIVATIVES 1
-#define POINT_SPACING 0.5
+#define POINT_SPACING 1.0
 
 vtkSmartPointer<vtkPolyData> createTestMesh1(double sample_spacing = 0.5)
 {
@@ -272,6 +272,47 @@ void runExtraRasterTest(tool_path_planner::PathGenerator& planner,
   // Check that the number of rasters has increased by 2
   ASSERT_EQ(paths_no_extras.get().size() + 2, paths_with_extras.get().size());
 
+  for (tool_path_planner::ToolPath path : *paths_no_extras)
+  {
+    for (tool_path_planner::ToolPathSegment seg : path)
+    {
+      double average_point_spacing = 0.;
+      int n_pts = 0;
+      Eigen::Isometry3d prev_waypoint = seg[0];
+      for (Eigen::Isometry3d waypoint : seg)
+      {
+        Eigen::Vector3d v = waypoint.translation() - prev_waypoint.translation();
+        average_point_spacing += sqrt(v.x() * v.x() + v.y() * v.y() + v.z() * v.z());
+        prev_waypoint = waypoint;
+        n_pts++;
+      }
+      average_point_spacing = average_point_spacing / (n_pts - 1);
+      //	  ASSERT_NEAR(POINT_SPACING, average_point_spacing, POINT_SPACING*.25);
+    }
+  }
+
+  for (tool_path_planner::ToolPath path : *paths_with_extras)
+  {
+    for (tool_path_planner::ToolPathSegment seg : path)
+    {
+      double average_point_spacing = 0.;
+      int n_pts = 0;
+      Eigen::Isometry3d prev_waypoint = seg[0];
+      for (Eigen::Isometry3d waypoint : seg)
+      {
+        Eigen::Vector3d v = waypoint.translation() - prev_waypoint.translation();
+        double dist = sqrt(v.x() * v.x() + v.y() * v.y() + v.z() * v.z());
+        printf("dist = %lf\n", dist);
+        average_point_spacing += dist;
+        prev_waypoint = waypoint;
+        n_pts++;
+      }
+      average_point_spacing = average_point_spacing / (n_pts - 1);
+      printf("average_point_spacing = %lf\n", average_point_spacing);
+      //	  ASSERT_NEAR(POINT_SPACING, average_point_spacing, POINT_SPACING*.25);
+    }
+  }
+
 #ifdef NDEBUG
   // release build stuff goes here
   CONSOLE_BRIDGE_logInform("noether/tool_path_planner test: visualization is only available in debug mode");
@@ -279,6 +320,7 @@ void runExtraRasterTest(tool_path_planner::PathGenerator& planner,
 #else
   // Debug-specific code goes here
   vtk_viewer::VTKViewer viz;
+  vtk_viewer::VTKViewer viz2;
   std::vector<float> color(3);
   double scale = 1.0;
 
@@ -287,6 +329,7 @@ void runExtraRasterTest(tool_path_planner::PathGenerator& planner,
   color[1] = 0.9f;
   color[2] = 0.9f;
   viz.addPolyDataDisplay(mesh, color);
+  viz2.addPolyDataDisplay(mesh, color);
 
   // Display surface normals
   if (DISPLAY_NORMALS)
@@ -336,7 +379,7 @@ void runExtraRasterTest(tool_path_planner::PathGenerator& planner,
         color[0] = 0.2f;
         color[1] = 0.9f;
         color[2] = 0.2f;
-        viz.addPolyNormalsDisplay(paths_with_extras_data[i][j].line, color, scale);
+        viz2.addPolyNormalsDisplay(paths_with_extras_data[i][j].line, color, scale);
       }
 
       if (DISPLAY_DERIVATIVES)  // display derivatives
@@ -344,12 +387,12 @@ void runExtraRasterTest(tool_path_planner::PathGenerator& planner,
         color[0] = 0.9f;
         color[1] = 0.9f;
         color[2] = 0.2f;
-        viz.addPolyNormalsDisplay(paths_with_extras_data[i][j].derivatives, color, scale);
+        viz2.addPolyNormalsDisplay(paths_with_extras_data[i][j].derivatives, color, scale);
       }
     }
   }
 
-  viz.renderDisplay();
+  viz2.renderDisplay();
 #endif
 }
 
@@ -532,6 +575,62 @@ TEST(IntersectTest, SurfaceWalkExtraRasterTest)
   tool.raster_rot_offset = 0.0;
   tool.generate_extra_rasters = false;
   tool.debug = false;
+
+  planner.setConfiguration(tool);
+
+  tool.generate_extra_rasters = true;
+  planner_with_extra.setConfiguration(tool);
+
+  runExtraRasterTest(planner, planner_with_extra, mesh);
+}
+
+TEST(PlaneSlicerTest, PlaneSlicerExtraWaypointTest)
+{
+  vtkSmartPointer<vtkPolyData> mesh = createTestMesh1();
+
+  tool_path_planner::PlaneSlicerRasterGenerator planner;
+  tool_path_planner::PlaneSlicerRasterGenerator planner_with_extra;
+
+  // Set input tool data
+  tool_path_planner::PlaneSlicerRasterGenerator::Config tool;
+  tool.raster_spacing = 1.0;
+  tool.point_spacing = POINT_SPACING;
+  tool.raster_rot_offset = 0.0;
+  tool.min_segment_size = 0.05;
+  tool.search_radius = 0.05;
+  tool.min_hole_size = 0.8;
+  //  tool.raster_wrt_global_axes = use:: tool_path_planner::PlaneSlicerRasterGenerator::DEFAULT_RASTER_WRT_GLOBAL_AXES;
+  tool.raster_direction = Eigen::Vector3d::UnitY();
+  tool.generate_extra_rasters = false;
+  //  tool.raster_style = use:: tool_path_planner::PlaneSlicerRasterGenerator::KEEP_ORIENTATION_ON_REVERSE_STROKES;
+
+  planner.setConfiguration(tool);
+
+  tool.generate_extra_rasters = true;
+  planner_with_extra.setConfiguration(tool);
+
+  runExtraRasterTest(planner, planner_with_extra, mesh);
+}
+
+TEST(PlaneSlicerTest, PlaneSlicerExtraWaypointTest2)
+{
+  vtkSmartPointer<vtkPolyData> mesh = createTestMesh2();
+
+  tool_path_planner::PlaneSlicerRasterGenerator planner;
+  tool_path_planner::PlaneSlicerRasterGenerator planner_with_extra;
+
+  // Set input tool data
+  tool_path_planner::PlaneSlicerRasterGenerator::Config tool;
+  tool.raster_spacing = 1.0;
+  tool.point_spacing = POINT_SPACING;
+  tool.raster_rot_offset = 0.0;
+  tool.min_segment_size = 0.05;
+  tool.search_radius = 0.05;
+  tool.min_hole_size = 0.8;
+  //  tool.raster_wrt_global_axes = use:: tool_path_planner::PlaneSlicerRasterGenerator::DEFAULT_RASTER_WRT_GLOBAL_AXES;
+  tool.raster_direction = Eigen::Vector3d::UnitY();
+  tool.generate_extra_rasters = false;
+  //  tool.raster_style = use:: tool_path_planner::PlaneSlicerRasterGenerator::KEEP_ORIENTATION_ON_REVERSE_STROKES;
 
   planner.setConfiguration(tool);
 
