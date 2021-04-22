@@ -37,6 +37,7 @@
 #include <vtkTriangleFilter.h>
 #include <tool_path_planner/utilities.h>
 #include <console_bridge/console.h>
+#include <pcl/features/moment_of_inertia_estimation.h>
 
 namespace tool_path_planner
 {
@@ -459,7 +460,8 @@ ToolPaths addExtraPaths(const ToolPaths& tool_paths, double offset_distance)
   return new_tool_paths;
 }
 
-ToolPaths segmentByAxes(const ToolPaths& tool_paths, SegmentAxes::SegmentAxes segment_axes)
+//ToolPaths segmentByAxes(const ToolPaths& tool_paths)
+ToolPaths segmentByAxes(const ToolPaths& tool_paths, Eigen::Vector3f& major, Eigen::Vector3f& perp)
 {
   if (tool_paths.size() == 0)
   {
@@ -467,157 +469,92 @@ ToolPaths segmentByAxes(const ToolPaths& tool_paths, SegmentAxes::SegmentAxes se
     // TODO: throw an exception
   }
 
+  using Point = pcl::PointXYZ;
   ToolPaths new_tool_paths;
 
-  double axes_distance = 1000.0;
-  std::vector<Eigen::Vector3d> corner_points;
-
-  Eigen::Vector3d p1, p2, p3, p4;
-  if (segment_axes == SegmentAxes::XY)
+  for (std::size_t tool_path_index = 0; tool_path_index < tool_paths.size(); ++tool_path_index)
   {
-    p1.x() = -axes_distance;
-    p1.y() = -axes_distance;
-    p1.z() = 0;
-
-    p2.x() = -axes_distance;
-    p2.y() = axes_distance;
-    p2.z() = 0;
-
-    p3.x() = axes_distance;
-    p3.y() = -axes_distance;
-    p3.z() = 0;
-
-    p4.x() = axes_distance;
-    p4.y() = axes_distance;
-    p4.z() = 0;
-  }
-  else if (segment_axes == SegmentAxes::XZ)
-  {
-    p1.x() = -axes_distance;
-    p1.y() = 0;
-    p1.z() = -axes_distance;
-
-    p2.x() = -axes_distance;
-    p2.y() = 0;
-    p2.z() = axes_distance;
-
-    p3.x() = axes_distance;
-    p3.y() = 0;
-    p3.z() = -axes_distance;
-
-    p4.x() = axes_distance;
-    p4.y() = 0;
-    p4.z() = axes_distance;
-  }
-  else // if (segment_axes == SegmentAxes::YZ)
-  {
-    p1.x() = 0;
-    p1.y() = -axes_distance;
-    p1.z() = -axes_distance;
-
-    p2.x() = 0;
-    p2.y() = -axes_distance;
-    p2.z() = axes_distance;
-
-    p3.x() = 0;
-    p3.y() = axes_distance;
-    p3.z() = -axes_distance;
-
-    p4.x() = 0;
-    p4.y() = axes_distance;
-    p4.z() = axes_distance;
-  }
-
-  corner_points.push_back(p1);
-  corner_points.push_back(p2);
-  corner_points.push_back(p3);
-  corner_points.push_back(p4);
-
-  for (std::size_t path_index = 0; path_index < tool_paths.size(); ++path_index)
-  {
-    ToolPath tool_path = tool_paths[path_index];
+    ToolPath tool_path = tool_paths[tool_path_index];
+    // Sanity check - tool path must have exactly one segment
     if (tool_path.size() != 1)
     {
-      ROS_ERROR_STREAM("Tool path " << path_index << " contains " << tool_path.size() <<
+      ROS_ERROR_STREAM("Tool path " << tool_path_index << " contains " << tool_path.size() <<
                        " segments. Expected exactly 1.");
       // TODO: throw an exception
     }
     ToolPath new_tool_path;
     ToolPathSegment tool_path_segment = tool_path[0];
+    // Sanity check - tool path segment must not be empty
     if (tool_path_segment.size() == 0)
     {
-      ROS_ERROR_STREAM("Tool path " << path_index << " segment 0 is empty.");
+      ROS_ERROR_STREAM("Tool path " << tool_path_index << " segment 0 is empty.");
       // TODO: throw an exception
     }
 
-    // get cut indices
-    std::vector<std::size_t> cut_indices;
-    for (Eigen::Vector3d corner_point : corner_points)
+    // Get major and middle axis (we don't care about minor axis)
+    pcl::PointCloud<Point>::Ptr cloud = boost::make_shared<pcl::PointCloud<Point>>();
+    for (Eigen::Isometry3d p: tool_path_segment)
     {
-      double min_distance = axes_distance * 10;
-      int min_index = -1;
-      for (std::size_t point_index = 0; point_index < tool_path_segment.size(); ++ point_index)
-      {
-        Eigen::Vector3d projected_point = tool_path_segment[point_index].translation();
-        if (segment_axes == SegmentAxes::XY)
-        {
-          projected_point.z() = 0;
-        }
-        else if (segment_axes == SegmentAxes::XZ)
-        {
-          projected_point.y() = 0;
-        }
-        else // if (segment_axes == SegmentAxes::YZ)
-        {
-          projected_point.x() = 0;
-        }
-        double distance = (projected_point - corner_point).norm();
-        if (distance < min_distance)
-        {
-          min_distance = distance;
-          min_index = int(point_index);
-        }
-      }
-      // check if we found a closest point
-      if (min_index == -1)
-      {
-        // if this happens, that means that all tool path points were more than (10 * axes_distance) meters from
-        // the origin -- this violates the assumption that tool path points are REASONABLY close to origin
-        ROS_ERROR_STREAM("Could not find closest point to corner point for path " << path_index << " segment 0 "
-                         "for corner point at x:" << corner_point.x() << " y:" << corner_point.y() << " z:" <<
-                         corner_point.z());
-        // TODO: throw a custom exception
-      }
-      // check if the point was also closest to a previous corner (i.e. already in list)
-      bool already_exists = false;
-      for (std::size_t cut_index : cut_indices)
-      {
-        if (cut_index == std::size_t(min_index))
-        {
-          already_exists = true;
-        }
-      }
-      // if this point isn't already in the list, add to cut indices
-      if (!already_exists)
-      {
-        cut_indices.push_back(std::size_t(min_index));
-      }
+      Point point(float(p.translation().x()), float(p.translation().y()), float(p.translation().z()));
+      cloud->push_back(point);
     }
-
-    // cut tool path
-    // sort cut indices
-    std::sort(cut_indices.begin(), cut_indices.end());
-    // iterate each cut index
-    for (std::size_t i = 0; i < cut_indices.size(); ++i)
+    pcl::MomentOfInertiaEstimation<Point> moment;
+    moment.setInputCloud(cloud);
+    moment.compute();
+    Eigen::Vector3f major_axis, middle_axis, minor_axis;
+    if(!moment.getEigenVectors(major_axis, middle_axis, minor_axis))
+    {
+      ROS_ERROR_STREAM("Could not compute Eigen Vectors.");
+    }
+//    Eigen::Vector3f perp_axis = major_axis.transpose().cross(middle_axis);//.cross(major_axis);
+    Eigen::Vector3f perp_axis = major_axis.cross(middle_axis).cross(major_axis);
+    perp_axis.normalize();
+    major_axis.normalize();
+    major = major_axis;
+    perp = perp_axis;
+    std::vector<Eigen::Vector3f> vectors = {
+      -1 * major_axis + -1 * perp_axis,
+      -1 * major_axis +      perp_axis,
+           major_axis +      perp_axis,
+           major_axis + -1 * perp_axis
+    };
+    // Get indices to cut tool path at
+    std::set<int> cut_indices;
+    for (Eigen::Vector3f vector : vectors)
+    {
+      float max_dot = std::numeric_limits<float>::min();
+      int max_index = -1;
+      for (std::size_t index = 0; index < tool_path_segment.size(); ++index)
+      {
+        Eigen::Isometry3d p = tool_path_segment[index];
+        Eigen::Vector3f v(float(p.translation().x()), float(p.translation().y()), float(p.translation().z()));
+        float dot = vector.dot(v);
+        if (dot > max_dot)
+        {
+          max_dot = dot;
+          max_index = int(index);
+        }
+      }
+      cut_indices.insert(max_index);
+    }
+    // Cut segment into smaller segments (at cut indices)
+    for (std::set<int>::iterator i = cut_indices.begin(); i != cut_indices.end(); ++i)
     {
       ToolPathSegment new_tool_path_segment;
-      std::size_t index = cut_indices[i];
-      // while index does not equal the next cut index (including going from last index to first index)
-      // add each index after the current cut index, up until the next cut index
-      while (index != cut_indices[(i+1)%cut_indices.size()])
+      int current_index = *i;
+      int next_index;
+      if (std::next(i, 1) == cut_indices.end())
       {
-        new_tool_path_segment.push_back(tool_path_segment[index]);
-        index = (index + 1) % tool_path_segment.size();
+        next_index = *cut_indices.begin();
+      }
+      else
+      {
+        next_index = *std::next(i, 1);
+      }
+      while (current_index != next_index)
+      {
+        new_tool_path_segment.push_back(tool_path_segment[std::size_t(current_index)]);
+        current_index = (current_index + 1) % int(tool_path_segment.size());
       }
       new_tool_path.push_back(new_tool_path_segment);
     }

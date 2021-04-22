@@ -128,14 +128,10 @@ ToolPaths reverseOddRasters(const ToolPaths& tool_paths, RasterStyle raster_styl
 
 double computeOffsetSign(const ToolPathSegment& adjusted_segment, const ToolPathSegment& away_from_segment);
 
-namespace SegmentAxes {
-  enum SegmentAxes {
-    XY=0,
-    XZ,
-    YZ
-  };
-}
-ToolPaths segmentByAxes(const ToolPaths& tool_paths, SegmentAxes::SegmentAxes segment_axes=SegmentAxes::XY);
+//ToolPath segmentByAxes(const ToolPathSegment& tool_path_segment);
+//ToolPath segmentByAxes(const ToolPathSegment& tool_path_segment, const Eigen::Vector3f& axis_1, const Eigen::Vector3f& axis_2);
+
+ToolPaths segmentByAxes(const ToolPaths& tool_paths, Eigen::Vector3f& major, Eigen::Vector3f& perp);
 
 }  // namespace tool_path_planner
 
