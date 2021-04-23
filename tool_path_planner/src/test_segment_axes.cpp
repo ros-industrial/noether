@@ -198,83 +198,33 @@ int main(int argc, char** argv)
   tool_path_planner::ToolPath tool_path;
 
   std::vector<Eigen::Vector3d> points;
-  points = polygon(
-    {
-      Eigen::Vector3d(-1.0 , -0.8 , 0),
-      Eigen::Vector3d(-0.2 ,  0   , 0),
-      Eigen::Vector3d(-1.0 ,  0.5 , 0),
-      Eigen::Vector3d(-0.5 ,  0.5 , 0),
-      Eigen::Vector3d(-0.6 ,  1.0 , 0),
-      Eigen::Vector3d( 0   ,  0.5 , 0),
-      Eigen::Vector3d( 1   ,  0.5 , 0),
-      Eigen::Vector3d( 0.5 ,  0   , 0),
-      Eigen::Vector3d( 0   , -1   , 0)
-    },
-    0.001
-  );
+//  points = polygon(
+//    {
+//      Eigen::Vector3d(-1.0 , -0.8 , 0),
+//      Eigen::Vector3d(-0.2 ,  0   , 0),
+//      Eigen::Vector3d(-1.0 ,  0.5 , 0),
+//      Eigen::Vector3d(-0.5 ,  0.5 , 0),
+//      Eigen::Vector3d(-0.6 ,  1.0 , 0),
+//      Eigen::Vector3d( 0   ,  0.5 , 0),
+//      Eigen::Vector3d( 1   ,  0.5 , 0),
+//      Eigen::Vector3d( 0.5 ,  0   , 0),
+//      Eigen::Vector3d( 0   , -1   , 0)
+//    },
+//    0.001
+//  );
 //  points = rectangle(1, 2, 0.01);
-//  points = circle(1.0, 0.05);
+  points = circle(1.0, 0.01);
 
-  points = projectZToPlane(points, Eigen::Vector3d(1.0, 1.0, 0));
-  points = applySinWaveByInc(points, M_PI/120, 0, Eigen::Vector3d(0.1, 0, 0));
-  points = applySinWaveByInc(points, M_PI/120, M_PI/2, Eigen::Vector3d(0, 0.0, 0.1));
-  points = applySinWaveToZ(points, 0.1, 0.1, Eigen::Vector3d(0.1, 0, 0));
+//  points = projectZToPlane(points, Eigen::Vector3d(1.0, 1.0, 0));
+//  points = applySinWaveByInc(points, M_PI/120, 0, Eigen::Vector3d(0.1, 0, 0));
+//  points = applySinWaveByInc(points, M_PI/120, M_PI/2, Eigen::Vector3d(0, 0.0, 0.1));
+//  points = applySinWaveToZ(points, 0.1, 0.1, Eigen::Vector3d(0.1, 0, 0));
 
   tool_path.push_back(toSegment(points));
 
   tool_paths.push_back(tool_path);
 
-  Eigen::Vector3f major, perp;
-  tool_paths = tool_path_planner::segmentByAxes(tool_paths, major, perp);
-
-
-  visualization_msgs::Marker marker;
-  marker.header.frame_id = "world";
-  marker.header.stamp = ros::Time::now();
-  marker.ns = "";
-  marker.id = 0;
-  marker.color.a = 1.0;
-  marker.color.r = 1;
-  marker.color.g = 0;
-  marker.color.b = 0;
-  marker.pose = tf2::toMsg(Eigen::Isometry3d::Identity());
-  marker.type = visualization_msgs::Marker::LINE_STRIP;
-  marker.scale.x = 0.04;
-  marker.scale.y = 0.04;
-  marker.scale.z = 0.04;
-  geometry_msgs::Point p1;
-  p1.x = 0;
-  p1.y = 0;
-  p1.z = 0;
-  geometry_msgs::Point p2;
-  p2.x = major.x()*5;
-  p2.y = major.y()*5;
-  p2.z = major.z()*5;
-  marker.points.push_back(p1);
-  marker.points.push_back(p2);
-  eigen_pub_1.publish(marker);
-
-  visualization_msgs::Marker marker2;
-  marker2.header.frame_id = "world";
-  marker2.header.stamp = ros::Time::now();
-  marker2.ns = "";
-  marker2.id = 0;
-  marker2.color.a = 1.0;
-  marker2.color.r = 1;
-  marker2.color.g = 0;
-  marker2.color.b = 0;
-  marker2.pose = tf2::toMsg(Eigen::Isometry3d::Identity());
-  marker2.type = visualization_msgs::Marker::LINE_STRIP;
-  marker2.scale.x = 0.04;
-  marker2.scale.y = 0.04;
-  marker2.scale.z = 0.04;
-  geometry_msgs::Point p4;
-  p4.x = perp.x()*5;
-  p4.y = perp.y()*5;
-  p4.z = perp.z()*5;
-  marker.points.push_back(p1);
-  marker.points.push_back(p4);
-  eigen_pub_2.publish(marker);
+  tool_paths = tool_path_planner::segmentByAxes(tool_paths, Eigen::Vector3f(1.0, 0, 0), Eigen::Vector3f(0.0, 1.0, 0.0));
 
   std::size_t n = tool_paths[0].size();
   std::vector<std::vector<float>> colors = {

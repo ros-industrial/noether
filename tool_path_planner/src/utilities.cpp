@@ -56,55 +56,72 @@ void flipPointOrder(ToolPath& path)
       p *= Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ());
 }
 
-tool_path_planner::ToolPathsData toToolPathsData(const tool_path_planner::ToolPaths& paths)
+tool_path_planner::ToolPathSegmentData toToolPathSegmentData(const tool_path_planner::ToolPathSegment& tool_path_segment)
 {
   using namespace Eigen;
 
-  tool_path_planner::ToolPathsData results;
-  for (const auto& path : paths)
+  tool_path_planner::ToolPathSegmentData tool_path_segment_data;
+  tool_path_segment_data.line = vtkSmartPointer<vtkPolyData>::New();
+  tool_path_segment_data.derivatives = vtkSmartPointer<vtkPolyData>::New();
+
+  // set vertex (cell) normals
+  vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+  vtkSmartPointer<vtkDoubleArray> line_normals = vtkSmartPointer<vtkDoubleArray>::New();
+  line_normals->SetNumberOfComponents(3);  // 3d normals (ie x,y,z)
+  line_normals->SetNumberOfTuples(static_cast<long>(tool_path_segment.size()));
+  vtkSmartPointer<vtkDoubleArray> der_normals = vtkSmartPointer<vtkDoubleArray>::New();
+  der_normals->SetNumberOfComponents(3);  // 3d normals (ie x,y,z)
+  der_normals->SetNumberOfTuples(static_cast<long>(tool_path_segment.size()));
+
+  int idx = 0;
+  for (auto& pose : tool_path_segment)
   {
-    tool_path_planner::ToolPathData tp_data;
-    for (const auto& segment : path)
-    {
-      tool_path_planner::ToolPathSegmentData tps_data;
-      tps_data.line = vtkSmartPointer<vtkPolyData>::New();
-      tps_data.derivatives = vtkSmartPointer<vtkPolyData>::New();
+    Vector3d point, vx, vy, vz;
+    point = pose.translation();
+    vx = pose.linear().col(0);
+    vx *= -1.0;
+    vy = pose.linear().col(1);
+    vz = pose.linear().col(2);
+    points->InsertNextPoint(point.data());
+    line_normals->SetTuple(idx, vz.data());
+    der_normals->SetTuple(idx, vx.data());
 
-      // set vertex (cell) normals
-      vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-      vtkSmartPointer<vtkDoubleArray> line_normals = vtkSmartPointer<vtkDoubleArray>::New();
-      line_normals->SetNumberOfComponents(3);  // 3d normals (ie x,y,z)
-      line_normals->SetNumberOfTuples(static_cast<long>(segment.size()));
-      vtkSmartPointer<vtkDoubleArray> der_normals = vtkSmartPointer<vtkDoubleArray>::New();
-      ;
-      der_normals->SetNumberOfComponents(3);  // 3d normals (ie x,y,z)
-      der_normals->SetNumberOfTuples(static_cast<long>(segment.size()));
-
-      int idx = 0;
-      for (auto& pose : segment)
-      {
-        Vector3d point, vx, vy, vz;
-        point = pose.translation();
-        vx = pose.linear().col(0);
-        vx *= -1.0;
-        vy = pose.linear().col(1);
-        vz = pose.linear().col(2);
-        points->InsertNextPoint(point.data());
-        line_normals->SetTuple(idx, vz.data());
-        der_normals->SetTuple(idx, vx.data());
-
-        idx++;
-      }
-      tps_data.line->SetPoints(points);
-      tps_data.line->GetPointData()->SetNormals(line_normals);
-      tps_data.derivatives->GetPointData()->SetNormals(der_normals);
-      tps_data.derivatives->SetPoints(points);
-
-      tp_data.push_back(tps_data);
-    }
-    results.push_back(tp_data);
+    idx++;
   }
-  return results;
+  tool_path_segment_data.line->SetPoints(points);
+  tool_path_segment_data.line->GetPointData()->SetNormals(line_normals);
+  tool_path_segment_data.derivatives->GetPointData()->SetNormals(der_normals);
+  tool_path_segment_data.derivatives->SetPoints(points);
+
+  return tool_path_segment_data;
+}
+
+tool_path_planner::ToolPathData toToolPathData(const tool_path_planner::ToolPath& tool_path)
+{
+  using namespace Eigen;
+
+  tool_path_planner::ToolPathData tool_path_data;
+  for (const auto& tool_path_segment : tool_path)
+  {
+    tool_path_planner::ToolPathSegmentData tool_path_segment_data = toToolPathSegmentData(tool_path_segment);
+    tool_path_data.push_back(tool_path_segment_data);
+  }
+
+  return tool_path_data;
+}
+
+tool_path_planner::ToolPathsData toToolPathsData(const tool_path_planner::ToolPaths& tool_paths)
+{
+  using namespace Eigen;
+
+  tool_path_planner::ToolPathsData tool_paths_data;
+  for (const auto& tool_path : tool_paths)
+  {
+    tool_path_planner::ToolPathData tool_path_data = toToolPathData(tool_path);
+    tool_paths_data.push_back(tool_path_data);
+  }
+
+  return tool_paths_data;
 }
 
 Eigen::Matrix3d toRotationMatrix(const Eigen::Vector3d& vx, const Eigen::Vector3d& vy, const Eigen::Vector3d& vz)
@@ -460,8 +477,100 @@ ToolPaths addExtraPaths(const ToolPaths& tool_paths, double offset_distance)
   return new_tool_paths;
 }
 
-//ToolPaths segmentByAxes(const ToolPaths& tool_paths)
-ToolPaths segmentByAxes(const ToolPaths& tool_paths, Eigen::Vector3f& major, Eigen::Vector3f& perp)
+ToolPath segmentByAxes(const ToolPathSegment& tool_path_segment)
+{
+  using Point = pcl::PointXYZ;
+  // Sanity check - tool path segment must not be empty
+  if (tool_path_segment.size() == 0)
+  {
+    ROS_ERROR_STREAM("Tool path segment 0 is empty.");
+    // TODO: throw an exception
+  }
+
+  // Get major and middle axis (we don't care about minor axis)
+  pcl::PointCloud<Point>::Ptr cloud = boost::make_shared<pcl::PointCloud<Point>>();
+  for (Eigen::Isometry3d p: tool_path_segment)
+  {
+    Point point(float(p.translation().x()), float(p.translation().y()), float(p.translation().z()));
+    cloud->push_back(point);
+  }
+  pcl::MomentOfInertiaEstimation<Point> moment;
+  moment.setInputCloud(cloud);
+  moment.compute();
+  Eigen::Vector3f major_axis, middle_axis, minor_axis;
+  if(!moment.getEigenVectors(major_axis, middle_axis, minor_axis))
+  {
+    ROS_ERROR_STREAM("Could not compute Eigen Vectors.");
+  }
+  // Calculated perpendicular (and parallel to plane) axis using triple product
+  Eigen::Vector3f perp_axis = major_axis.cross(middle_axis).cross(major_axis);
+  // Normalize vectors
+  perp_axis.normalize();
+  major_axis.normalize();
+  // Call base function
+  return segmentByAxes(tool_path_segment, major_axis, perp_axis);
+}
+
+ToolPath segmentByAxes(const ToolPathSegment& tool_path_segment, const Eigen::Vector3f& axis_1, const Eigen::Vector3f& axis_2)
+{
+  // Sanity check - tool path segment must not be empty
+  if (tool_path_segment.size() == 0)
+  {
+    ROS_ERROR_STREAM("Tool path segment 0 is empty.");
+    // TODO: throw an exception
+  }
+
+  ToolPath new_tool_path;
+  std::vector<Eigen::Vector3f> vectors = {
+    -1 * axis_1 + -1 * axis_2,
+    -1 * axis_1 +      axis_2,
+         axis_1 +      axis_2,
+         axis_1 + -1 * axis_2
+  };
+  // Get indices to cut tool path at
+  std::set<int> cut_indices;
+  for (Eigen::Vector3f vector : vectors)
+  {
+    float max_dot = std::numeric_limits<float>::min();
+    int max_index = -1;
+    for (std::size_t index = 0; index < tool_path_segment.size(); ++index)
+    {
+      Eigen::Isometry3d p = tool_path_segment[index];
+      Eigen::Vector3f v(float(p.translation().x()), float(p.translation().y()), float(p.translation().z()));
+      float dot = vector.dot(v);
+      if (dot > max_dot)
+      {
+        max_dot = dot;
+        max_index = int(index);
+      }
+    }
+    cut_indices.insert(max_index);
+  }
+  // Cut segment into smaller segments (at cut indices)
+  for (std::set<int>::iterator i = cut_indices.begin(); i != cut_indices.end(); ++i)
+  {
+    ToolPathSegment new_tool_path_segment;
+    int current_index = *i;
+    int next_index;
+    if (std::next(i, 1) == cut_indices.end())
+    {
+      next_index = *cut_indices.begin();
+    }
+    else
+    {
+      next_index = *std::next(i, 1);
+    }
+    while (current_index != next_index)
+    {
+      new_tool_path_segment.push_back(tool_path_segment[std::size_t(current_index)]);
+      current_index = (current_index + 1) % int(tool_path_segment.size());
+    }
+    new_tool_path.push_back(new_tool_path_segment);
+  }
+  return new_tool_path;
+}
+
+ToolPaths segmentByAxes(const ToolPaths& tool_paths)
 {
   if (tool_paths.size() == 0)
   {
@@ -482,82 +591,34 @@ ToolPaths segmentByAxes(const ToolPaths& tool_paths, Eigen::Vector3f& major, Eig
                        " segments. Expected exactly 1.");
       // TODO: throw an exception
     }
-    ToolPath new_tool_path;
-    ToolPathSegment tool_path_segment = tool_path[0];
-    // Sanity check - tool path segment must not be empty
-    if (tool_path_segment.size() == 0)
+    ToolPath new_tool_path = segmentByAxes(tool_path[0]);
+    new_tool_paths.push_back(new_tool_path);
+  }
+  return new_tool_paths;
+}
+
+ToolPaths segmentByAxes(const ToolPaths& tool_paths, const Eigen::Vector3f& axis_1, const Eigen::Vector3f& axis_2)
+{
+  if (tool_paths.size() == 0)
+  {
+    ROS_ERROR_STREAM("Tool paths is empty.");
+    // TODO: throw an exception
+  }
+
+  using Point = pcl::PointXYZ;
+  ToolPaths new_tool_paths;
+
+  for (std::size_t tool_path_index = 0; tool_path_index < tool_paths.size(); ++tool_path_index)
+  {
+    ToolPath tool_path = tool_paths[tool_path_index];
+    // Sanity check - tool path must have exactly one segment
+    if (tool_path.size() != 1)
     {
-      ROS_ERROR_STREAM("Tool path " << tool_path_index << " segment 0 is empty.");
+      ROS_ERROR_STREAM("Tool path " << tool_path_index << " contains " << tool_path.size() <<
+                       " segments. Expected exactly 1.");
       // TODO: throw an exception
     }
-
-    // Get major and middle axis (we don't care about minor axis)
-    pcl::PointCloud<Point>::Ptr cloud = boost::make_shared<pcl::PointCloud<Point>>();
-    for (Eigen::Isometry3d p: tool_path_segment)
-    {
-      Point point(float(p.translation().x()), float(p.translation().y()), float(p.translation().z()));
-      cloud->push_back(point);
-    }
-    pcl::MomentOfInertiaEstimation<Point> moment;
-    moment.setInputCloud(cloud);
-    moment.compute();
-    Eigen::Vector3f major_axis, middle_axis, minor_axis;
-    if(!moment.getEigenVectors(major_axis, middle_axis, minor_axis))
-    {
-      ROS_ERROR_STREAM("Could not compute Eigen Vectors.");
-    }
-//    Eigen::Vector3f perp_axis = major_axis.transpose().cross(middle_axis);//.cross(major_axis);
-    Eigen::Vector3f perp_axis = major_axis.cross(middle_axis).cross(major_axis);
-    perp_axis.normalize();
-    major_axis.normalize();
-    major = major_axis;
-    perp = perp_axis;
-    std::vector<Eigen::Vector3f> vectors = {
-      -1 * major_axis + -1 * perp_axis,
-      -1 * major_axis +      perp_axis,
-           major_axis +      perp_axis,
-           major_axis + -1 * perp_axis
-    };
-    // Get indices to cut tool path at
-    std::set<int> cut_indices;
-    for (Eigen::Vector3f vector : vectors)
-    {
-      float max_dot = std::numeric_limits<float>::min();
-      int max_index = -1;
-      for (std::size_t index = 0; index < tool_path_segment.size(); ++index)
-      {
-        Eigen::Isometry3d p = tool_path_segment[index];
-        Eigen::Vector3f v(float(p.translation().x()), float(p.translation().y()), float(p.translation().z()));
-        float dot = vector.dot(v);
-        if (dot > max_dot)
-        {
-          max_dot = dot;
-          max_index = int(index);
-        }
-      }
-      cut_indices.insert(max_index);
-    }
-    // Cut segment into smaller segments (at cut indices)
-    for (std::set<int>::iterator i = cut_indices.begin(); i != cut_indices.end(); ++i)
-    {
-      ToolPathSegment new_tool_path_segment;
-      int current_index = *i;
-      int next_index;
-      if (std::next(i, 1) == cut_indices.end())
-      {
-        next_index = *cut_indices.begin();
-      }
-      else
-      {
-        next_index = *std::next(i, 1);
-      }
-      while (current_index != next_index)
-      {
-        new_tool_path_segment.push_back(tool_path_segment[std::size_t(current_index)]);
-        current_index = (current_index + 1) % int(tool_path_segment.size());
-      }
-      new_tool_path.push_back(new_tool_path_segment);
-    }
+    ToolPath new_tool_path = segmentByAxes(tool_path[0], axis_1, axis_2);
     new_tool_paths.push_back(new_tool_path);
   }
   return new_tool_paths;
