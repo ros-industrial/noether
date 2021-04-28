@@ -396,6 +396,7 @@ void runExtraRasterTest(tool_path_planner::PathGenerator& planner,
 #endif
 }
 
+/*
 TEST(IntersectTest, SurfaceWalkRasterRotationTest)
 {
   vtkSmartPointer<vtkPolyData> mesh = createTestMesh1();
@@ -583,7 +584,7 @@ TEST(IntersectTest, SurfaceWalkExtraRasterTest)
 
   runExtraRasterTest(planner, planner_with_extra, mesh);
 }
-
+*/
 TEST(PlaneSlicerTest, PlaneSlicerExtraWaypointTest)
 {
   vtkSmartPointer<vtkPolyData> mesh = createTestMesh1();
