@@ -488,10 +488,12 @@ void testAndMark(tlist_it& item1, tlist_it& item2, double point_spacing)
 {
   int mark1 = std::get<2>(*item1);
   int mark2 = std::get<2>(*item2);
-  Eigen::Isometry3d wp1 = std::get<1>(*item1);
-  Eigen::Isometry3d wp2 = std::get<1>(*item2);
-  Eigen::Vector3d v = wp1.translation() - wp2.translation();
-  if (v.norm() < 0.75 * point_spacing)
+  //  Eigen::Isometry3d wp1 = std::get<1>(*item1);
+  //  Eigen::Isometry3d wp2 = std::get<1>(*item2);
+  //  Eigen::Vector3d v = wp1.translation() - wp2.translation();
+  //  if (v.norm() < 0.75 * point_spacing)
+  double dist = fabs(std::get<0>(*item1) - std::get<0>(*item2));
+  if(dist < 0.75 * point_spacing)
   {
     if (mark1 == 1 && mark2 == 0)
     {
