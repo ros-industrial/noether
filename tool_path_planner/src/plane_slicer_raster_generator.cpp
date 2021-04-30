@@ -47,6 +47,8 @@
 #include <Eigen/StdVector>
 #include <numeric>
 #include <eigen_conversions/eigen_msg.h>
+#include <pcl/common/common.h>
+#include <pcl/common/pca.h>
 #include <pcl/surface/vtk_smoothing/vtk_utils.h>
 #include <console_bridge/console.h>
 #include <noether_conversions/noether_conversions.h>
@@ -70,20 +72,6 @@ static Eigen::Matrix3d computeRotation(const Eigen::Vector3d& vx, const Eigen::V
   m.col(1) = vy.normalized();
   m.col(2) = vz.normalized();
   return m;
-}
-
-static vtkSmartPointer<vtkTransform> toVtkMatrix(const Eigen::Affine3d& t)
-{
-  vtkSmartPointer<vtkTransform> vtk_t = vtkSmartPointer<vtkTransform>::New();
-  vtk_t->PreMultiply();
-  vtk_t->Identity();
-  vtk_t->Translate(t.translation().x(), t.translation().y(), t.translation().z());
-  Eigen::Vector3d rpy = t.rotation().eulerAngles(0, 1, 2);
-  vtk_t->RotateX(vtkMath::DegreesFromRadians(rpy(0)));
-  vtk_t->RotateY(vtkMath::DegreesFromRadians(rpy(1)));
-  vtk_t->RotateZ(vtkMath::DegreesFromRadians(rpy(2)));
-  vtk_t->Scale(1.0, 1.0, 1.0);
-  return vtk_t;
 }
 
 double computeLength(const vtkSmartPointer<vtkPoints>& points)
@@ -160,7 +148,7 @@ static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vt
  *        index remains
  * @param points_lists
  */
-static void removeRedundant(std::vector<std::vector<vtkIdType> >& points_lists)
+static void removeRedundant(std::vector<std::vector<vtkIdType>>& points_lists)
 {
   using IdList = std::vector<vtkIdType>;
   if (points_lists.size() < 2)
@@ -168,7 +156,7 @@ static void removeRedundant(std::vector<std::vector<vtkIdType> >& points_lists)
     return;
   }
 
-  std::vector<std::vector<vtkIdType> > new_points_lists;
+  std::vector<std::vector<vtkIdType>> new_points_lists;
   new_points_lists.push_back(points_lists.front());
   for (std::size_t i = 1; i < points_lists.size(); i++)
   {
@@ -204,7 +192,7 @@ static void removeRedundant(std::vector<std::vector<vtkIdType> >& points_lists)
 
 static void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points,
                                 double merge_dist,
-                                std::vector<std::vector<vtkIdType> >& points_lists)
+                                std::vector<std::vector<vtkIdType>>& points_lists)
 {
   using namespace Eigen;
   using IdList = std::vector<vtkIdType>;
@@ -302,14 +290,12 @@ static void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points,
 
 static void rectifyDirection(const vtkSmartPointer<vtkPoints>& points,
                              const Eigen::Vector3d& ref_point,
-                             std::vector<std::vector<vtkIdType> >& points_lists)
+                             std::vector<std::vector<vtkIdType>>& points_lists)
 {
   using namespace Eigen;
   Vector3d p0, pf;
-  if (points_lists.empty())
-  {
+  if (points_lists.size() < 2)
     return;
-  }
 
   // getting first and last points
   points->GetPoint(points_lists.front().front(), p0.data());
@@ -374,7 +360,9 @@ static tool_path_planner::ToolPaths convertToPoses(const std::vector<RasterConst
 
       raster_path.push_back(raster_path_segment);
     }
-    rasters_array.push_back(raster_path);
+
+    if (!raster_path.empty())
+      rasters_array.push_back(raster_path);
   }
 
   return rasters_array;
@@ -453,69 +441,43 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   {
     CONSOLE_BRIDGE_logDebug("%s No mesh data has been provided", getName().c_str());
   }
-  // computing mayor axis using oob
-  vtkSmartPointer<vtkOBBTree> oob = vtkSmartPointer<vtkOBBTree>::New();
-  Vector3d corner, x_dir, y_dir, z_dir, sizes;  // x is longest, y is mid and z is smallest
-  oob->ComputeOBB(mesh_data_, corner.data(), x_dir.data(), y_dir.data(), z_dir.data(), sizes.data());
 
-  // Compute the center of mass
-  Vector3d origin;
-  vtkSmartPointer<vtkCenterOfMass> cog_filter = vtkSmartPointer<vtkCenterOfMass>::New();
-  cog_filter->SetInputData(mesh_data_);
-  cog_filter->SetUseScalarsAsWeights(false);
-  cog_filter->Update();
-  cog_filter->GetCenter(origin.data());
+  // Use principal component analysis (PCA) to determine the principal axes of the mesh
+  Eigen::Matrix3d pca_vecs;  // Principal axes, scaled to the size of the mesh in each direction
+  Eigen::Vector3d centroid;  // Mesh centroid
+  {
+    // Convert back to PCL point cloud
+    pcl::PolygonMesh mesh;
+    pcl::VTKUtils::vtk2mesh(mesh_data_, mesh);
+    auto cloud = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+    pcl::fromPCLPointCloud2(mesh.cloud, *cloud);
 
-  // computing transformation matrix
-  Affine3d t = Translation3d(origin) * AngleAxisd(computeRotation(x_dir, y_dir, z_dir));
+    // Perform PCA analysis
+    pcl::PCA<pcl::PointXYZ> pca;
+    pca.setInputCloud(cloud);
 
-  // transforming data
-  vtkSmartPointer<vtkTransform> vtk_transform = toVtkMatrix(t);
+    // Get the extents of the point cloud relative to its mean and principal axes
+    pcl::PointCloud<pcl::PointXYZ> proj;
+    pca.project(*cloud, proj);
+    pcl::PointXYZ min, max;
+    pcl::getMinMax3D(proj, min, max);
+    Eigen::Array3f scales = max.getArray3fMap() - min.getArray3fMap();
 
-  vtkSmartPointer<vtkTransformFilter> transform_filter = vtkSmartPointer<vtkTransformFilter>::New();
-  transform_filter->SetInputData(mesh_data_);
-  transform_filter->SetTransform(vtk_transform);
-  transform_filter->Update();
-  vtkSmartPointer<vtkPolyData> transformed_mesh_data = transform_filter->GetPolyDataOutput();
+    centroid = pca.getMean().head<3>().cast<double>();
+    pca_vecs = (pca.getEigenVectors().array().rowwise() * scales.transpose()).cast<double>();
+  }
 
-  // compute bounds
-  VectorXd bounds(6);
-  Vector3d center;
-  Vector3d half_ext;
-  transformed_mesh_data->GetBounds(bounds.data());
+  // The cutting plane should cut along the largest principal axis (arbitrary decision).
+  // Therefore the cutting plane is defined by the direction of the second largest principal axis
+  // We then choose to rotate this plane about the smallest principal axis by a configurable angle
+  Vector3d raster_dir =
+      AngleAxisd(config_.raster_rot_offset, pca_vecs.col(2).normalized()) * pca_vecs.col(1).normalized();
 
-  // calculating size
-  sizes.x() = bounds[1] - bounds[0];
-  sizes.y() = bounds[3] - bounds[2];
-  sizes.z() = bounds[5] - bounds[4];
+  // Calculate the number of planes needed to cover the mesh according to the largest principal dimension
+  auto num_planes = static_cast<std::size_t>(pca_vecs.col(0).norm() / config_.raster_spacing);
 
-  half_ext = sizes / 2.0;
-  center = Eigen::Vector3d(bounds[0], bounds[2], bounds[3]) + half_ext;
-
-  // now cutting the mesh with planes along the y axis
-  // @todo This should be calculated instead of being fixed along the y-axis
-  Isometry3d rotation_offset = Isometry3d::Identity() * AngleAxisd(config_.raster_rot_offset, Vector3d::UnitZ());
-  Vector3d raster_dir = (rotation_offset * Vector3d::UnitY()).normalized();
-
-  // Calculate all 8 corners projected onto the raster direction vector
-  Eigen::VectorXd dist(8);
-  dist(0) = raster_dir.dot(half_ext);
-  dist(1) = raster_dir.dot(Eigen::Vector3d(half_ext.x(), -half_ext.y(), half_ext.z()));
-  dist(2) = raster_dir.dot(Eigen::Vector3d(half_ext.x(), -half_ext.y(), -half_ext.z()));
-  dist(3) = raster_dir.dot(Eigen::Vector3d(half_ext.x(), half_ext.y(), -half_ext.z()));
-  dist(4) = raster_dir.dot(-half_ext);
-  dist(5) = raster_dir.dot(Eigen::Vector3d(-half_ext.x(), -half_ext.y(), half_ext.z()));
-  dist(6) = raster_dir.dot(Eigen::Vector3d(-half_ext.x(), -half_ext.y(), -half_ext.z()));
-  dist(7) = raster_dir.dot(Eigen::Vector3d(-half_ext.x(), half_ext.y(), -half_ext.z()));
-
-  double max_coeff = dist.maxCoeff();
-  double min_coeff = dist.minCoeff();
-
-  // Calculate the number of planes to cover the bounding box along the direction vector
-  auto num_planes = static_cast<std::size_t>(std::ceil((max_coeff - min_coeff) / config_.raster_spacing));
-
-  // Calculate the start location
-  Vector3d start_loc = center + (min_coeff * raster_dir);
+  // Calculate the start location as the centroid less half the largest principal dimension of the mesh
+  Vector3d start_loc = centroid - (pca_vecs.col(0).norm() / 2.0) * raster_dir;
 
   vtkSmartPointer<vtkAppendPolyData> raster_data = vtkSmartPointer<vtkAppendPolyData>::New();
   for (std::size_t i = 0; i < num_planes + 1; i++)
@@ -529,7 +491,7 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
     plane->SetNormal(raster_dir.x(), raster_dir.y(), raster_dir.z());
 
     cutter->SetCutFunction(plane);
-    cutter->SetInputData(transformed_mesh_data);
+    cutter->SetInputData(mesh_data_);
     cutter->SetSortBy(1);
     cutter->SetGenerateTriangles(false);
     cutter->Update();
@@ -626,11 +588,11 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
     mergeRasterSegments(raster_lines->GetPoints(), config_.min_hole_size, raster_ids);
 
     // rectifying
-    if (!rasters_data_vec.empty())
+    if (rasters_data_vec.size() > 1)
     {
       Vector3d ref_point;
       rasters_data_vec.back().raster_segments.front()->GetPoint(0, ref_point.data());  // first point in previous raster
-      rectifyDirection(raster_lines->GetPoints(), t * ref_point, raster_ids);
+      rectifyDirection(raster_lines->GetPoints(), ref_point, raster_ids);
     }
 
     for (auto& rpoint_ids : raster_ids)
@@ -653,13 +615,6 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
         // add points to segment now
         PolyDataPtr segment_data = PolyDataPtr::New();
         segment_data->SetPoints(new_points);
-
-        // transforming to original coordinate system
-        transform_filter = vtkSmartPointer<vtkTransformFilter>::New();
-        transform_filter->SetInputData(segment_data);
-        transform_filter->SetTransform(toVtkMatrix(t.inverse()));
-        transform_filter->Update();
-        segment_data = transform_filter->GetPolyDataOutput();
 
         // inserting normals
         if (!insertNormals(config_.search_radius, segment_data))
