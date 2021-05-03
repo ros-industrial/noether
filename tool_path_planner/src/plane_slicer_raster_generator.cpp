@@ -594,7 +594,18 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   Isometry3d rotation_offset = Isometry3d::Identity() * AngleAxisd(config_.raster_rot_offset, Vector3d::UnitZ());
 
   // Calculate direction of raster strokes, rotated by the above-specified amount
-  Vector3d raster_dir = (rotation_offset * config_.raster_direction).normalized();
+  Vector3d raster_dir;
+  if (config_.raster_direction.isApprox(Eigen::Vector3d::Zero()))
+  {
+    // If no direction was specified, use the middle dimension of the bounding box
+    config_.raster_direction = Eigen::Vector3d::UnitY();
+    raster_dir = (rotation_offset * config_.raster_direction).normalized();
+  }
+  else
+  {
+    // If a direction was specified, transform it into the frame of the bounding box
+    raster_dir = (t * rotation_offset * config_.raster_direction).normalized();
+  }
 
   // Calculate all 8 corners projected onto the raster direction vector
   Eigen::VectorXd dist(8);
