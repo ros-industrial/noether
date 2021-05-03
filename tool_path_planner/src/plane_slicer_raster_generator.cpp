@@ -598,8 +598,8 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   if (config_.raster_direction.isApprox(Eigen::Vector3d::Zero()))
   {
     // If no direction was specified, use the middle dimension of the bounding box
-    config_.raster_direction = Eigen::Vector3d::UnitY();
-    raster_dir = (rotation_offset * config_.raster_direction).normalized();
+    raster_dir = Eigen::Vector3d::UnitY();
+    raster_dir = (rotation_offset * raster_dir).normalized();
   }
   else
   {
