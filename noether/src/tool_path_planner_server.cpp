@@ -2,6 +2,7 @@
 #include <actionlib/server/simple_action_server.h>
 #include <noether_msgs/GenerateToolPathsAction.h>
 #include <eigen_conversions/eigen_msg.h>
+#include <noether_conversions/noether_conversions.h>
 #include <boost/format.hpp>
 #include <mutex>
 #include <thread>
@@ -95,14 +96,16 @@ protected:
 
       tool_path_planner::PathGenerator::Ptr generator = nullptr;
       const noether_msgs::ToolPathConfig& config = goal->path_configs[i];
-      const shape_msgs::Mesh& mesh = goal->surface_meshes[i];
+      pcl::PolygonMesh::Ptr mesh;
+      noether_conversions::convertToPCLMesh(goal->surface_meshes[i], *mesh); //raw pointers are the future
+
       boost::optional<tool_path_planner::ToolPaths> tool_paths = boost::none;
       ROS_INFO("Planning path");
       if (config.type == noether_msgs::ToolPathConfig::SURFACE_WALK_RASTER_GENERATOR)
       {
         auto path_gen = std::make_shared<tool_path_planner::SurfaceWalkRasterGenerator>();
         tool_path_planner::SurfaceWalkRasterGenerator::Config path_config;
-        tool_path_planner::toSurfaceWalkConfig(path_config, config.surface_walk_generator);
+        noether_conversions::toSurfaceWalkConfig(path_config, config.surface_walk_generator);
         path_gen->setConfiguration(path_config);
         generator = path_gen;
       }
@@ -110,7 +113,7 @@ protected:
       {
         auto path_gen = std::make_shared<tool_path_planner::PlaneSlicerRasterGenerator>();
         tool_path_planner::PlaneSlicerRasterGenerator::Config path_config;
-        tool_path_planner::toPlaneSlicerConfig(path_config, config.plane_slicer_generator);
+        noether_conversions::toPlaneSlicerConfig(path_config, config.plane_slicer_generator);
         path_gen->setConfiguration(path_config);
         generator = path_gen;
       }
@@ -118,7 +121,7 @@ protected:
       {
         auto path_gen = std::make_shared<tool_path_planner::EigenValueEdgeGenerator>();
         tool_path_planner::EigenValueEdgeGenerator::Config path_config;
-        tool_path_planner::toEigenValueConfig(path_config, config.eigen_value_generator);
+        noether_conversions::toEigenValueConfig(path_config, config.eigen_value_generator);
         path_gen->setConfiguration(path_config);
         generator = path_gen;
       }
@@ -126,7 +129,7 @@ protected:
       {
         auto path_gen = std::make_shared<tool_path_planner::HalfedgeEdgeGenerator>();
         tool_path_planner::HalfedgeEdgeGenerator::Config path_config;
-        tool_path_planner::toHalfedgeConfig(path_config, config.halfedge_generator);
+        noether_conversions::toHalfedgeConfig(path_config, config.halfedge_generator);
         path_gen->setConfiguration(path_config);
         generator = path_gen;
       }

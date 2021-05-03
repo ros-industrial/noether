@@ -24,18 +24,18 @@ endif()
 find_package(catkin REQUIRED COMPONENTS
   actionlib
   cmake_modules
-  mesh_segmenter
   noether_conversions
   noether_msgs
-  path_sequence_planner
   pcl_conversions
   roscpp
-  tool_path_planner
 )
 
+find_package(mesh_segmenter REQUIRED)
+find_package(noether_filtering)
+find_package(path_sequence_planner REQUIRED)
+find_package(tool_path_planner REQUIRED)
 find_package(vtk_viewer REQUIRED)
 
-find_package(noether_filtering)
 if(NOT noether_filtering_FOUND)
   message(WARNING "noether_filtering not found. mesh_filter_server will not be compiled")
 endif()
@@ -45,16 +45,16 @@ catkin_package(
     mesh_segmenter
   CATKIN_DEPENDS
     actionlib
-    mesh_segmenter
     noether_conversions
     noether_msgs
-    path_sequence_planner
     pcl_conversions
     roscpp
-    tool_path_planner
   DEPENDS
-    VTK
+    mesh_segmenter
+    path_sequence_planner
     PCL
+    tool_path_planner
+    VTK
     vtk_viewer
 )
 
@@ -68,6 +68,7 @@ target_link_libraries(tool_path_planner_server
   ${catkin_LIBRARIES}
   ${VTK_LIBRARIES}
   noether::vtk_viewer
+  noether::tool_path_planner
 )
 
 add_executable(segmentation_server
@@ -77,6 +78,7 @@ target_link_libraries(segmentation_server
   ${catkin_LIBRARIES}
   ${VTK_LIBRARIES}
   noether::vtk_viewer
+  noether::mesh_segmenter
 )
 #There needs to be a better pathing to the library
 add_executable(convex_hull_node
@@ -88,6 +90,7 @@ target_link_libraries(convex_hull_node
   ${catkin_LIBRARIES}
   ${VTK_LIBRARIES}
   noether::vtk_viewer
+  noether::mesh_segmenter
 )
 
 if(noether_filtering_FOUND)
