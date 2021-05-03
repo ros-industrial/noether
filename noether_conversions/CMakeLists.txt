@@ -12,6 +12,9 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
 )
 
+find_package(tool_path_planner REQUIRED)
+
+
 find_package(VTK REQUIRED NO_MODULE)
 if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 7.1))
   message(FATAL_ERROR "The minimum required version of VTK is 7.1, but found ${VTK_VERSION}")
@@ -40,6 +43,7 @@ catkin_package(
     geometry_msgs
     noether_msgs
   DEPENDS
+    tool_path_planner
     EIGEN3
     VTK
     PCL

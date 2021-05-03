@@ -13,6 +13,7 @@
   <depend>eigen_conversions</depend>
   <depend>noether_msgs</depend>
   <depend>libpcl-all-dev</depend>
+  <depend>tool_path_planner</depend>
   <depend>shape_msgs</depend>
   <depend>visualization_msgs</depend>
 

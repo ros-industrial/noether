@@ -406,4 +406,121 @@ convertToDottedLineMarker(const noether_msgs::ToolPaths& toolpaths,
   return markers_msgs;
 }
 
+bool toHalfedgeConfigMsg(noether_msgs::HalfedgeEdgeGeneratorConfig& config_msg,
+                         const tool_path_planner::HalfedgeEdgeGenerator::Config& config)
+{
+  config_msg.min_num_points = config.min_num_points;
+  config_msg.normal_averaging = config.normal_averaging;
+  config_msg.normal_search_radius = config.normal_search_radius;
+  config_msg.normal_influence_weight = config.normal_influence_weight;
+  config_msg.point_spacing_method = static_cast<int>(config.point_spacing_method);
+  config_msg.point_dist = config.point_dist;
+  return true;
+}
+
+bool toEigenValueConfigMsg(noether_msgs::EigenValueEdgeGeneratorConfig& config_msg,
+                           const tool_path_planner::EigenValueEdgeGenerator::Config& config)
+{
+  config_msg.octree_res = config.octree_res;
+  config_msg.search_radius = config.search_radius;
+  config_msg.num_threads = config.num_threads;
+  config_msg.neighbor_tol = config.neighbor_tol;
+  config_msg.edge_cluster_min = config.edge_cluster_min;
+  config_msg.kdtree_epsilon = config.kdtree_epsilon;
+  config_msg.min_projection_dist = config.min_projection_dist;
+  config_msg.max_intersecting_voxels = config.max_intersecting_voxels;
+  config_msg.merge_dist = config.merge_dist;
+  return true;
+}
+
+bool toSurfaceWalkConfigMsg(noether_msgs::SurfaceWalkRasterGeneratorConfig& config_msg,
+                            const tool_path_planner::SurfaceWalkRasterGenerator::Config& config)
+{
+  config_msg.point_spacing = config.point_spacing;
+  config_msg.raster_spacing = config.raster_spacing;
+  config_msg.tool_offset = config.tool_offset;
+  config_msg.intersection_plane_height = config.intersection_plane_height;
+  config_msg.min_hole_size = config.min_hole_size;
+  config_msg.min_segment_size = config.min_segment_size;
+  config_msg.raster_rot_offset = config.raster_rot_offset;
+  config_msg.generate_extra_rasters = config.generate_extra_rasters;
+
+  config_msg.cut_direction.x = config.cut_direction[0];
+  config_msg.cut_direction.y = config.cut_direction[1];
+  config_msg.cut_direction.z = config.cut_direction[2];
+  return true;
+}
+
+bool toPlaneSlicerConfigMsg(noether_msgs::PlaneSlicerRasterGeneratorConfig& config_msg,
+                            const tool_path_planner::PlaneSlicerRasterGenerator::Config& config)
+{
+  config_msg.point_spacing = config.point_spacing;
+  config_msg.raster_spacing = config.raster_spacing;
+  // config_msg.tool_offset = config.tool_offset;
+  config_msg.min_hole_size = config.min_hole_size;
+  config_msg.min_segment_size = config.min_segment_size;
+  config_msg.raster_rot_offset = config.raster_rot_offset;
+
+  return true;
+}
+
+bool toHalfedgeConfig(tool_path_planner::HalfedgeEdgeGenerator::Config& config,
+                      const noether_msgs::HalfedgeEdgeGeneratorConfig& config_msg)
+{
+  config.min_num_points = config_msg.min_num_points;
+  config.normal_averaging = config_msg.normal_averaging;
+  config.normal_search_radius = config_msg.normal_search_radius;
+  config.normal_influence_weight = config_msg.normal_influence_weight;
+  config.point_spacing_method =
+      static_cast<tool_path_planner::HalfedgeEdgeGenerator::PointSpacingMethod>(config_msg.point_spacing_method);
+  config.point_dist = config_msg.point_dist;
+  return true;
+}
+
+bool toEigenValueConfig(tool_path_planner::EigenValueEdgeGenerator::Config& config,
+                        const noether_msgs::EigenValueEdgeGeneratorConfig& config_msg)
+{
+  config.octree_res = config_msg.octree_res;
+  config.search_radius = config_msg.search_radius;
+  config.num_threads = config_msg.num_threads;
+  config.neighbor_tol = config_msg.neighbor_tol;
+  config.edge_cluster_min = config_msg.edge_cluster_min;
+  config.kdtree_epsilon = config_msg.kdtree_epsilon;
+  config.min_projection_dist = config_msg.min_projection_dist;
+  config.max_intersecting_voxels = config_msg.max_intersecting_voxels;
+  config.merge_dist = config_msg.merge_dist;
+  return true;
+}
+
+bool toSurfaceWalkConfig(tool_path_planner::SurfaceWalkRasterGenerator::Config& config,
+                         const noether_msgs::SurfaceWalkRasterGeneratorConfig& config_msg)
+{
+  config.point_spacing = config_msg.point_spacing;
+  config.raster_spacing = config_msg.raster_spacing;
+  config.tool_offset = config_msg.tool_offset;
+  config.intersection_plane_height = config_msg.intersection_plane_height;
+  config.min_hole_size = config_msg.min_hole_size;
+  config.min_segment_size = config_msg.min_segment_size;
+  config.raster_rot_offset = config_msg.raster_rot_offset;
+  config.generate_extra_rasters = config_msg.generate_extra_rasters;
+
+  config.cut_direction[0] = config_msg.cut_direction.x;
+  config.cut_direction[1] = config_msg.cut_direction.y;
+  config.cut_direction[2] = config_msg.cut_direction.z;
+
+  return true;
+}
+
+bool toPlaneSlicerConfig(tool_path_planner::PlaneSlicerRasterGenerator::Config& config,
+                         const noether_msgs::PlaneSlicerRasterGeneratorConfig& config_msg)
+{
+  config.point_spacing = config_msg.point_spacing;
+  config.raster_spacing = config_msg.raster_spacing;
+  // config.tool_offset = config_msg.tool_offset;
+  config.min_hole_size = config_msg.min_hole_size;
+  config.min_segment_size = config_msg.min_segment_size;
+  config.raster_rot_offset = config_msg.raster_rot_offset;
+
+  return true;
+}
 }  // namespace noether_conversions

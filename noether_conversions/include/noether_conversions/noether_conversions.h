@@ -17,6 +17,18 @@
  * limitations under the License.
  */
 
+#ifndef INCLUDE_NOETHER_CONVERSIONS_H_
+#define INCLUDE_NOETHER_CONVERSIONS_H_
+
+#include <tool_path_planner/eigen_value_edge_generator.h>
+#include <tool_path_planner/halfedge_edge_generator.h>
+#include <tool_path_planner/plane_slicer_raster_generator.h>
+#include <tool_path_planner/surface_walk_raster_generator.h>
+#include <noether_msgs/EigenValueEdgeGeneratorConfig.h>
+#include <noether_msgs/HalfedgeEdgeGeneratorConfig.h>
+#include <noether_msgs/PlaneSlicerRasterGeneratorConfig.h>
+#include <noether_msgs/SurfaceWalkRasterGeneratorConfig.h>
+
 #include <geometry_msgs/PoseArray.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <noether_msgs/ToolPaths.h>
@@ -69,10 +81,6 @@ visualization_msgs::Marker createMeshMarker(const std::string& mesh_file,
                                             const std::string& frame_id,
                                             const std::tuple<double, double, double, double>& rgba);
 
-void convertToPointNormals(const pcl::PolygonMesh& mesh,
-                           pcl::PointCloud<pcl::PointNormal>& cloud,
-                           bool flip = false,
-                           bool silent = true);
 
 visualization_msgs::MarkerArray convertToAxisMarkers(
     const noether_msgs::ToolPaths& toolpaths,
@@ -101,4 +109,31 @@ visualization_msgs::MarkerArray convertToDottedLineMarker(
     const float& line_width = 0.001f,
     const float& point_size = 0.005f);
 
-}  // namespace noether_conversions
+
+//conversions to path_planner types
+
+bool toHalfedgeConfigMsg(noether_msgs::HalfedgeEdgeGeneratorConfig& config_msg,
+                         const tool_path_planner::HalfedgeEdgeGenerator::Config& config);
+
+bool toEigenValueConfigMsg(noether_msgs::EigenValueEdgeGeneratorConfig& config_msg,
+                           const tool_path_planner::EigenValueEdgeGenerator::Config& config);
+
+bool toSurfaceWalkConfigMsg(noether_msgs::SurfaceWalkRasterGeneratorConfig& config_msg,
+                            const tool_path_planner::SurfaceWalkRasterGenerator::Config& config);
+
+bool toPlaneSlicerConfigMsg(noether_msgs::PlaneSlicerRasterGeneratorConfig& config_msg,
+                            const tool_path_planner::PlaneSlicerRasterGenerator::Config& config);
+
+bool toHalfedgeConfig(tool_path_planner::HalfedgeEdgeGenerator::Config& config,
+                      const noether_msgs::HalfedgeEdgeGeneratorConfig& config_msg);
+
+bool toEigenValueConfig(tool_path_planner::EigenValueEdgeGenerator::Config& config,
+                        const noether_msgs::EigenValueEdgeGeneratorConfig& config_msg);
+
+bool toSurfaceWalkConfig(tool_path_planner::SurfaceWalkRasterGenerator::Config& config,
+                         const noether_msgs::SurfaceWalkRasterGeneratorConfig& config_msg);
+
+bool toPlaneSlicerConfig(tool_path_planner::PlaneSlicerRasterGenerator::Config& config,
+                         const noether_msgs::PlaneSlicerRasterGeneratorConfig& config_msg);
+}// namespace noether_conversions
+#endif
