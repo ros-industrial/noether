@@ -9,25 +9,22 @@
 
 #include <numeric>
 
-#include <ros/assert.h>
-#include <eigen_conversions/eigen_msg.h>
-#include <vtkPolyDataNormals.h>
-#include <vtkPointData.h>
+#include <boost/make_shared.hpp>
+#include <console_bridge/console.h>
+#include <pcl/surface/vtk_smoothing/vtk_utils.h>
+#include <tool_path_planner/surface_walk_raster_generator.h>
+#include <tool_path_planner/utilities.h>
+#include <vtk_viewer/vtk_utils.h>
 #include <vtkCellData.h>
-#include <vtkGenericCell.h>
 #include <vtkCellLocator.h>
 #include <vtkDoubleArray.h>
+#include <vtkGenericCell.h>
 #include <vtkIntersectionPolyDataFilter.h>
+#include <vtkPolyDataNormals.h>
+#include <vtkPointData.h>
 #include <vtkParametricFunctionSource.h>
 #include <vtkOBBTree.h>
 #include <vtkTriangle.h>
-#include <vtk_viewer/vtk_utils.h>
-#include <pcl/surface/vtk_smoothing/vtk_utils.h>
-#include <boost/make_shared.hpp>
-#include <console_bridge/console.h>
-#include <noether_conversions/noether_conversions.h>
-#include <tool_path_planner/surface_walk_raster_generator.h>
-#include <tool_path_planner/utilities.h>
 
 static const std::size_t MAX_ATTEMPTS = 1000;
 static const double ANGLE_CORRECTION_THRESHOLD = (150.0 / 180.0) * M_PI;
@@ -74,7 +71,7 @@ struct SequencePoint
  * points in. The paths in \e segments are considered to be in the origin frame.
  * @return A sequence of end points in the reference frame of \e ref_rotation
  */
-std::vector<PathEndPoints> toEndPoints(const std::vector<EigenSTL::vector_Affine3d>& segments,
+std::vector<PathEndPoints> toEndPoints(const std::vector<tool_path_planner::vector_Affine3d>& segments,
                                        const Eigen::Quaterniond& ref_rotation)
 {
   // Ref rotation is the Target Frame w.r.t. Origin
@@ -102,20 +99,20 @@ std::vector<PathEndPoints> toEndPoints(const std::vector<EigenSTL::vector_Affine
  * @param end_points The set of end points whose 'id' field reaches into the \e in vector
  * @return A new pose array constructed with the sequence ordering from the \e in trajectory
  */
-std::vector<geometry_msgs::PoseArray> makeSequence(const std::vector<geometry_msgs::PoseArray>& in,
+std::vector<tool_path_planner::vector_Affine3d> makeSequence(const std::vector<tool_path_planner::vector_Affine3d>& in,
                                                    const std::vector<SequencePoint>& seqs,
                                                    const std::vector<PathEndPoints>& end_points)
 {
   assert(in.size() == seqs.size());
-  std::vector<geometry_msgs::PoseArray> rs;
+  std::vector<tool_path_planner::vector_Affine3d> rs;
   rs.reserve(in.size());
 
-  for (const auto& seq : seqs)
+  for (const SequencePoint& seq : seqs)
   {
     rs.push_back(in[end_points[seq.id].id]);  // seq.id points to end_points; end_points.id points to in
     if (!seq.from_a)                          // The 'in' trajectory has segments that are always A to B
     {
-      std::reverse(rs.back().poses.begin(), rs.back().poses.end());
+      std::reverse(rs.back().begin(), rs.back().end());
     }
   }
 
@@ -163,28 +160,28 @@ Eigen::Quaterniond average(const std::vector<Eigen::Quaterniond, Eigen::aligned_
 }
 
 // Helpers to go from pose arrays to Eigen vectors of Poses
-EigenSTL::vector_Affine3d toEigen(const geometry_msgs::PoseArray& p)
-{
-  EigenSTL::vector_Affine3d rs(p.poses.size());
-  std::transform(p.poses.begin(), p.poses.end(), rs.begin(), [](const geometry_msgs::Pose& pose) {
-    Eigen::Affine3d e;
-    tf::poseMsgToEigen(pose, e);
-    return e;
-  });
-  return rs;
-}
+//tool_path_planner::vector_Affine3d toEigen(const geometry_msgs::PoseArray& p)
+//{
+//  tool_path_planner::vector_Affine3d rs(p.poses.size());
+//  std::transform(p.poses.begin(), p.poses.end(), rs.begin(), [](const geometry_msgs::Pose& pose) {
+//    Eigen::Affine3d e;
+//    tf::poseMsgToEigen(pose, e);
+//    return e;
+//  });
+//  return rs;
+//}
 
 // Helpers to go from pose arrays to Eigen vectors of Poses
-std::vector<EigenSTL::vector_Affine3d> toEigen(const std::vector<geometry_msgs::PoseArray>& ps)
-{
-  std::vector<EigenSTL::vector_Affine3d> rs(ps.size());
-  std::transform(
-      ps.begin(), ps.end(), rs.begin(), [](const geometry_msgs::PoseArray& poses) { return toEigen(poses); });
-  return rs;
-}
+//std::vector<tool_path_planner::vector_Affine3d> toEigen(const std::vector<geometry_msgs::PoseArray>& ps)
+//{
+//  std::vector<tool_path_planner::vector_Affine3d> rs(ps.size());
+//  std::transform(
+//      ps.begin(), ps.end(), rs.begin(), [](const geometry_msgs::PoseArray& poses) { return toEigen(poses); });
+//  return rs;
+//}
 
 // Gets the average quaternion rotation of a set of poses
-Eigen::Quaterniond averageQuaternion(const EigenSTL::vector_Affine3d& poses)
+Eigen::Quaterniond averageQuaternion(const tool_path_planner::vector_Affine3d& poses)
 {
   std::vector<Eigen::Quaterniond, Eigen::aligned_allocator<Eigen::Quaterniond>> qs;
   qs.reserve(poses.size());
@@ -203,7 +200,7 @@ Eigen::Quaterniond averageQuaternion(const EigenSTL::vector_Affine3d& poses)
  *
  * We assume that segments is non-empty. Will return 0 in that case.
  */
-std::size_t longestSegment(const std::vector<EigenSTL::vector_Affine3d>& segments)
+std::size_t longestSegment(const std::vector<tool_path_planner::vector_Affine3d>& segments)
 {
   std::size_t max_index = 0;
   double max_dist = 0.0;
@@ -224,22 +221,21 @@ std::size_t longestSegment(const std::vector<EigenSTL::vector_Affine3d>& segment
  * @brief Given \e input, a set of path segments, this algorithm will produce a new set of segments
  * that is the result of re-ordering the points left to right relative to the nominal 'cut' direction.
  */
-std::vector<geometry_msgs::PoseArray> sequence(const std::vector<geometry_msgs::PoseArray>& input)
+std::vector<tool_path_planner::vector_Affine3d> sequence(const std::vector<tool_path_planner::vector_Affine3d>& input)
 {
   if (input.empty())
   {
     return {};
   }
 
-  auto eigen_poses = toEigen(input);
   // We need to compute the 'nominal' cut direction of the surface paths
   // We do that by picking the "largest" cut first
-  auto longest_segment_idx = longestSegment(eigen_poses);
+  auto longest_segment_idx = longestSegment(input);
   // Then we find the average rotation
-  Eigen::Quaterniond avg_quaternion = averageQuaternion(eigen_poses[longest_segment_idx]);
+  Eigen::Quaterniond avg_quaternion = averageQuaternion(input[longest_segment_idx]);
   // And get the end points of the path segments in that rotational frame, such that paths
   // run along the X direction and are spaced out ~ in Y
-  auto end_points = toEndPoints(eigen_poses, avg_quaternion);
+  auto end_points = toEndPoints(input, avg_quaternion);
 
   // Sort end points, -y to y
   std::sort(end_points.begin(), end_points.end(), [](const PathEndPoints& lhs, const PathEndPoints& rhs) {
@@ -278,70 +274,6 @@ std::vector<geometry_msgs::PoseArray> sequence(const std::vector<geometry_msgs::
   // Re-order the original inputs and produce a new segment.
   return makeSequence(input, sequence, end_points);
 }
-
-/////////////////////////////////////////
-/// NEW CODE BELOW
-///////////////////////////////////////////////////
-
-// std::vector<noether_msgs::ToolRasterPath> toPosesMsgs(const std::vector<tool_path_planner::ProcessPath>& paths)
-//{
-//  std::vector<noether_msgs::ToolRasterPath> results;
-
-//  for(std::size_t j = 0; j < paths.size(); ++j)
-//  {
-//     geometry_msgs::PoseArray poses;
-//     poses.header.seq = j;
-//     poses.header.stamp = ros::Time::now();
-//     poses.header.frame_id = "0";
-//     for(int k = 0; k < paths[j].line->GetPoints()->GetNumberOfPoints(); ++k)
-//     {
-//        geometry_msgs::Pose pose;
-//        double pt[3];
-
-//        // Get the point location
-//        paths[j].line->GetPoints()->GetPoint(k, pt);
-//        pose.position.x = pt[0];
-//        pose.position.y = pt[1];
-//        pose.position.z = pt[2];
-
-//        // Get the point normal and derivative for creating the 3x3 transform
-//        double* norm =
-//            paths[j].line->GetPointData()->GetNormals()->GetTuple(k);
-//        double* der =
-//            paths[j].derivatives->GetPointData()->GetNormals()->GetTuple(k);
-
-//        // perform cross product to get the third axis direction
-//        Eigen::Vector3d u(norm[0], norm[1], norm[2]);
-//        Eigen::Vector3d v(der[0], der[1], der[2]);
-//        Eigen::Vector3d w = u.cross(v);
-//        w.normalize();
-
-//        // after first cross product, u and w will be orthogonal.
-//        // Perform cross product one more time to make sure that v is perfectly
-//        // orthogonal to u and w
-//        v = u.cross(w);
-//        v.normalize();
-
-//        Eigen::Affine3d epose = Eigen::Affine3d::Identity();
-//        epose.matrix().col(0).head<3>() = v;
-//        epose.matrix().col(1).head<3>() = -w;
-//        epose.matrix().col(2).head<3>() = u;
-//        epose.matrix().col(3).head<3>() = Eigen::Vector3d(pt[0], pt[1], pt[2]);
-
-//        tf::poseEigenToMsg(epose, pose);
-
-//        // push back new matrix (pose and orientation), this makes one long
-//        // vector may need to break this up more
-//        poses.poses.push_back(pose);
-
-//      }
-//      noether_msgs::ToolRasterPath tool_path;
-//      tool_path.paths.push_back(poses);
-//      results.push_back(tool_path);
-//    }
-
-//  return results;
-//}
 
 void flipPointOrder(ProcessPath& path)
 {
@@ -395,24 +327,17 @@ void flipPointOrder(ProcessPath& path)
   path.spline->SetPoints(points);
 }
 
-std::vector<geometry_msgs::PoseArray> toPosesMsgs(const std::vector<tool_path_planner::ProcessPath>& paths)
+std::vector<tool_path_planner::vector_Affine3d> toEigen(const std::vector<tool_path_planner::ProcessPath>& paths)
 {
-  std::vector<geometry_msgs::PoseArray> poseArrayVector;
+  std::vector<tool_path_planner::vector_Affine3d> eigenPoseVector;
   for (std::size_t j = 0; j < paths.size(); ++j)
   {
-    geometry_msgs::PoseArray poses;
-    poses.header.seq = j;
-    poses.header.frame_id = "0";
+    tool_path_planner::vector_Affine3d eigenPoses;
     for (int k = 0; k < paths[j].line->GetPoints()->GetNumberOfPoints(); ++k)
     {
-      geometry_msgs::Pose pose;
-      double pt[3];
-
       // Get the point location
+      double pt[3];
       paths[j].line->GetPoints()->GetPoint(k, pt);
-      pose.position.x = pt[0];
-      pose.position.y = pt[1];
-      pose.position.z = pt[2];
 
       // Get the point normal and derivative for creating the 3x3 transform
       double* norm = paths[j].line->GetPointData()->GetNormals()->GetTuple(k);
@@ -436,16 +361,15 @@ std::vector<geometry_msgs::PoseArray> toPosesMsgs(const std::vector<tool_path_pl
       epose.matrix().col(2).head<3>() = u;
       epose.matrix().col(3).head<3>() = Eigen::Vector3d(pt[0], pt[1], pt[2]);
 
-      tf::poseEigenToMsg(epose, pose);
 
       // push back new matrix (pose and orientation), this makes one long
       // vector may need to break this up more
-      poses.poses.push_back(pose);
+      eigenPoses.push_back(epose);
     }
-    poseArrayVector.push_back(poses);
+    eigenPoseVector.push_back(eigenPoses);
   }
 
-  return poseArrayVector;
+  return eigenPoseVector;
 }
 
 /**
@@ -567,13 +491,6 @@ void SurfaceWalkRasterGenerator::setInput(vtkSmartPointer<vtkPolyData> mesh)
     color[2] = 0.9f;
     debug_viewer_.addPolyDataDisplay(mesh_data_, color);
   }
-}
-
-void SurfaceWalkRasterGenerator::setInput(const shape_msgs::Mesh& mesh)
-{
-  pcl::PolygonMesh::Ptr pcl_mesh = boost::make_shared<pcl::PolygonMesh>();
-  noether_conversions::convertToPCLMesh(mesh, *pcl_mesh);
-  setInput(pcl_mesh);
 }
 
 vtkSmartPointer<vtkPolyData> SurfaceWalkRasterGenerator::getInput() { return mesh_data_; }
@@ -755,27 +672,28 @@ boost::optional<ToolPaths> SurfaceWalkRasterGenerator::generate()
 
   if (paths_.empty())
   {
-    ROS_ERROR("All tool paths generated are empty");
+    CONSOLE_BRIDGE_logError("All tool paths generated are empty");
     return boost::none;
   }
 
-  ROS_INFO("Found tool paths for input mesh!");
+  CONSOLE_BRIDGE_logInform("Found tool paths for input mesh!");
 
   // converting to pose array
-  std::vector<geometry_msgs::PoseArray> tool_path_poses = toPosesMsgs(paths_);
+  std::vector<tool_path_planner::vector_Affine3d> tool_path_poses = toEigen(paths_);
 
   // rearranging
   tool_path_poses = sequence(tool_path_poses);
 
   // Convert to results struction
   ToolPaths results;
-  for (const auto& rp : tool_path_poses)
+  for (const tool_path_planner::vector_Affine3d& rp : tool_path_poses)
   {
     ToolPathSegment tps;
-    for (const auto& p : rp.poses)
+    for (const Eigen::Affine3d& p : rp)
     {
       Eigen::Isometry3d epose;
-      tf::poseMsgToEigen(p, epose);
+      epose.translation() = p.translation();
+      epose.linear() = p.rotation();
       tps.push_back(epose);
     }
     ToolPath tp;

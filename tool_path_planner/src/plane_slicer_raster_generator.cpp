@@ -46,10 +46,8 @@
 #include <boost/make_shared.hpp>
 #include <Eigen/StdVector>
 #include <numeric>
-#include <eigen_conversions/eigen_msg.h>
 #include <pcl/surface/vtk_smoothing/vtk_utils.h>
 #include <console_bridge/console.h>
-#include <noether_conversions/noether_conversions.h>
 #include <tool_path_planner/utilities.h>
 #include <tool_path_planner/plane_slicer_raster_generator.h>
 
@@ -432,13 +430,6 @@ void PlaneSlicerRasterGenerator::setInput(vtkSmartPointer<vtkPolyData> mesh)
       mesh_data_->GetCellData()->SetNormals(normal_generator->GetOutput()->GetCellData()->GetNormals());
     }
   }
-}
-
-void PlaneSlicerRasterGenerator::setInput(const shape_msgs::Mesh& mesh)
-{
-  pcl::PolygonMesh::Ptr pcl_mesh = boost::make_shared<pcl::PolygonMesh>();
-  noether_conversions::convertToPCLMesh(mesh, *pcl_mesh);
-  setInput(pcl_mesh);
 }
 
 vtkSmartPointer<vtkPolyData> PlaneSlicerRasterGenerator::getInput() { return mesh_data_; }

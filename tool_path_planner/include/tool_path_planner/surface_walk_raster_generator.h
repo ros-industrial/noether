@@ -23,14 +23,13 @@
 #ifndef INCLUDE_TOOL_PATH_PLANNER_RASTER_PATH_GENERATOR_H_
 #define INCLUDE_TOOL_PATH_PLANNER_RASTER_PATH_GENERATOR_H_
 
-#include <shape_msgs/Mesh.h>
+#include <vector>
+
 #include <boost/optional.hpp>
+#include <console_bridge/console.h>
 #include <jsoncpp/json/json.h>
 #include <pcl/PolygonMesh.h>
-#include <vector>
 #include <tool_path_planner/path_generator.h>
-#include <ros/console.h>
-
 #include <vtkPoints.h>
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
@@ -98,12 +97,12 @@ public:
     {
       if (jv.isNull())
       {
-        ROS_ERROR("Json value is null");
+        CONSOLE_BRIDGE_logError("Json value is null");
         return false;
       }
       if (jv.type() != Json::ValueType::objectValue)
       {
-        ROS_ERROR("Json type %i is invalid, only '%i' is allowed",
+        CONSOLE_BRIDGE_logError("Json type %i is invalid, only '%i' is allowed",
                   static_cast<int>(jv.type()),
                   static_cast<int>(Json::ValueType::objectValue));
         return false;
@@ -170,8 +169,6 @@ public:
   void setInput(pcl::PolygonMesh::ConstPtr mesh) override;
 
   void setInput(vtkSmartPointer<vtkPolyData> mesh) override;
-
-  void setInput(const shape_msgs::Mesh& mesh) override;
 
   vtkSmartPointer<vtkPolyData> getInput() override;
 

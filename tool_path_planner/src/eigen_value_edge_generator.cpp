@@ -29,9 +29,7 @@
 #include <pcl/surface/vtk_smoothing/vtk_utils.h>
 #include <Eigen/Geometry>
 #include <Eigen/Eigenvalues>
-#include <noether_conversions/noether_conversions.h>
 #include <console_bridge/console.h>
-#include <eigen_conversions/eigen_msg.h>
 #include <numeric>
 #include <tool_path_planner/utilities.h>
 #include <tool_path_planner/eigen_value_edge_generator.h>
@@ -337,7 +335,7 @@ void EigenValueEdgeGenerator::setup()
 {
   input_cloud_ = boost::make_shared<pcl::PointCloud<pcl::PointNormal>>();
   input_points_ = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
-  noether_conversions::convertToPointNormals(*mesh_, *input_cloud_);
+  tool_path_planner::convertToPointNormals(*mesh_, *input_cloud_);
   pcl::copyPointCloud(*input_cloud_, *input_points_);
 }
 
@@ -366,13 +364,6 @@ void EigenValueEdgeGenerator::setInput(vtkSmartPointer<vtkPolyData> mesh)
   mesh_ = pcl_mesh;
 
   setup();
-}
-
-void EigenValueEdgeGenerator::setInput(const shape_msgs::Mesh& mesh)
-{
-  pcl::PolygonMesh::Ptr pcl_mesh = boost::make_shared<pcl::PolygonMesh>();
-  noether_conversions::convertToPCLMesh(mesh, *pcl_mesh);
-  setInput(pcl_mesh);
 }
 
 vtkSmartPointer<vtkPolyData> EigenValueEdgeGenerator::getInput() { return vtk_mesh_; }

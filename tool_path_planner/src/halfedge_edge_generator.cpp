@@ -32,7 +32,6 @@
 #include <vtkSmartPointer.h>
 #include <vtkPoints.h>
 #include <console_bridge/console.h>
-#include <noether_conversions/noether_conversions.h>
 #include <tool_path_planner/halfedge_edge_generator.h>
 #include <tool_path_planner/utilities.h>
 #include <numeric>
@@ -416,13 +415,6 @@ void HalfedgeEdgeGenerator::setInput(vtkSmartPointer<vtkPolyData> mesh)
   mesh_ = pcl_mesh;
 }
 
-void HalfedgeEdgeGenerator::setInput(const shape_msgs::Mesh& mesh)
-{
-  pcl::PolygonMesh::Ptr pcl_mesh = boost::make_shared<pcl::PolygonMesh>();
-  noether_conversions::convertToPCLMesh(mesh, *pcl_mesh);
-  setInput(pcl_mesh);
-}
-
 vtkSmartPointer<vtkPolyData> HalfedgeEdgeGenerator::getInput() { return vtk_mesh_; }
 
 std::string HalfedgeEdgeGenerator::getName() const { return getClassName<decltype(*this)>(); }
@@ -450,7 +442,7 @@ boost::optional<ToolPaths> HalfedgeEdgeGenerator::generate()
   // initializing octree
   PointCloud<PointNormal>::Ptr input_cloud = boost::make_shared<PointCloud<PointNormal>>();
   PointCloud<PointXYZ>::Ptr input_points = boost::make_shared<PointCloud<PointXYZ>>();
-  noether_conversions::convertToPointNormals(*mesh_, *input_cloud);
+  tool_path_planner::convertToPointNormals(*mesh_, *input_cloud);
   pcl::copyPointCloud(*input_cloud, *input_points);
 
   // traversing half edges list

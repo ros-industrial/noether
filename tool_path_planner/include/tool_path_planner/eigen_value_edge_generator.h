@@ -24,7 +24,6 @@
 
 #include <boost/optional.hpp>
 #include <pcl/PolygonMesh.h>
-#include <shape_msgs/Mesh.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/PointIndices.h>
@@ -113,8 +112,6 @@ public:
   void setInput(pcl::PolygonMesh::ConstPtr mesh) override;
 
   void setInput(vtkSmartPointer<vtkPolyData> mesh) override;
-
-  void setInput(const shape_msgs::Mesh& mesh) override;
 
   vtkSmartPointer<vtkPolyData> getInput() override;
 

@@ -115,124 +115,6 @@ Eigen::Matrix3d toRotationMatrix(const Eigen::Vector3d& vx, const Eigen::Vector3
   return rot;
 }
 
-bool toHalfedgeConfigMsg(noether_msgs::HalfedgeEdgeGeneratorConfig& config_msg,
-                         const HalfedgeEdgeGenerator::Config& config)
-{
-  config_msg.min_num_points = config.min_num_points;
-  config_msg.normal_averaging = config.normal_averaging;
-  config_msg.normal_search_radius = config.normal_search_radius;
-  config_msg.normal_influence_weight = config.normal_influence_weight;
-  config_msg.point_spacing_method = static_cast<int>(config.point_spacing_method);
-  config_msg.point_dist = config.point_dist;
-  return true;
-}
-
-bool toEigenValueConfigMsg(noether_msgs::EigenValueEdgeGeneratorConfig& config_msg,
-                           const EigenValueEdgeGenerator::Config& config)
-{
-  config_msg.octree_res = config.octree_res;
-  config_msg.search_radius = config.search_radius;
-  config_msg.num_threads = config.num_threads;
-  config_msg.neighbor_tol = config.neighbor_tol;
-  config_msg.edge_cluster_min = config.edge_cluster_min;
-  config_msg.kdtree_epsilon = config.kdtree_epsilon;
-  config_msg.min_projection_dist = config.min_projection_dist;
-  config_msg.max_intersecting_voxels = config.max_intersecting_voxels;
-  config_msg.merge_dist = config.merge_dist;
-  return true;
-}
-
-bool toSurfaceWalkConfigMsg(noether_msgs::SurfaceWalkRasterGeneratorConfig& config_msg,
-                            const SurfaceWalkRasterGenerator::Config& config)
-{
-  config_msg.point_spacing = config.point_spacing;
-  config_msg.raster_spacing = config.raster_spacing;
-  config_msg.tool_offset = config.tool_offset;
-  config_msg.intersection_plane_height = config.intersection_plane_height;
-  config_msg.min_hole_size = config.min_hole_size;
-  config_msg.min_segment_size = config.min_segment_size;
-  config_msg.raster_rot_offset = config.raster_rot_offset;
-  config_msg.generate_extra_rasters = config.generate_extra_rasters;
-
-  config_msg.cut_direction.x = config.cut_direction[0];
-  config_msg.cut_direction.y = config.cut_direction[1];
-  config_msg.cut_direction.z = config.cut_direction[2];
-  return true;
-}
-
-bool toPlaneSlicerConfigMsg(noether_msgs::PlaneSlicerRasterGeneratorConfig& config_msg,
-                            const PlaneSlicerRasterGenerator::Config& config)
-{
-  config_msg.point_spacing = config.point_spacing;
-  config_msg.raster_spacing = config.raster_spacing;
-  // config_msg.tool_offset = config.tool_offset;
-  config_msg.min_hole_size = config.min_hole_size;
-  config_msg.min_segment_size = config.min_segment_size;
-  config_msg.raster_rot_offset = config.raster_rot_offset;
-
-  return true;
-}
-
-bool toHalfedgeConfig(HalfedgeEdgeGenerator::Config& config,
-                      const noether_msgs::HalfedgeEdgeGeneratorConfig& config_msg)
-{
-  config.min_num_points = config_msg.min_num_points;
-  config.normal_averaging = config_msg.normal_averaging;
-  config.normal_search_radius = config_msg.normal_search_radius;
-  config.normal_influence_weight = config_msg.normal_influence_weight;
-  config.point_spacing_method =
-      static_cast<tool_path_planner::HalfedgeEdgeGenerator::PointSpacingMethod>(config_msg.point_spacing_method);
-  config.point_dist = config_msg.point_dist;
-  return true;
-}
-
-bool toEigenValueConfig(EigenValueEdgeGenerator::Config& config,
-                        const noether_msgs::EigenValueEdgeGeneratorConfig& config_msg)
-{
-  config.octree_res = config_msg.octree_res;
-  config.search_radius = config_msg.search_radius;
-  config.num_threads = config_msg.num_threads;
-  config.neighbor_tol = config_msg.neighbor_tol;
-  config.edge_cluster_min = config_msg.edge_cluster_min;
-  config.kdtree_epsilon = config_msg.kdtree_epsilon;
-  config.min_projection_dist = config_msg.min_projection_dist;
-  config.max_intersecting_voxels = config_msg.max_intersecting_voxels;
-  config.merge_dist = config_msg.merge_dist;
-  return true;
-}
-
-bool toSurfaceWalkConfig(SurfaceWalkRasterGenerator::Config& config,
-                         const noether_msgs::SurfaceWalkRasterGeneratorConfig& config_msg)
-{
-  config.point_spacing = config_msg.point_spacing;
-  config.raster_spacing = config_msg.raster_spacing;
-  config.tool_offset = config_msg.tool_offset;
-  config.intersection_plane_height = config_msg.intersection_plane_height;
-  config.min_hole_size = config_msg.min_hole_size;
-  config.min_segment_size = config_msg.min_segment_size;
-  config.raster_rot_offset = config_msg.raster_rot_offset;
-  config.generate_extra_rasters = config_msg.generate_extra_rasters;
-
-  config.cut_direction[0] = config_msg.cut_direction.x;
-  config.cut_direction[1] = config_msg.cut_direction.y;
-  config.cut_direction[2] = config_msg.cut_direction.z;
-
-  return true;
-}
-
-bool toPlaneSlicerConfig(PlaneSlicerRasterGenerator::Config& config,
-                         const noether_msgs::PlaneSlicerRasterGeneratorConfig& config_msg)
-{
-  config.point_spacing = config_msg.point_spacing;
-  config.raster_spacing = config_msg.raster_spacing;
-  // config.tool_offset = config_msg.tool_offset;
-  config.min_hole_size = config_msg.min_hole_size;
-  config.min_segment_size = config_msg.min_segment_size;
-  config.raster_rot_offset = config_msg.raster_rot_offset;
-
-  return true;
-}
-
 bool createToolPathSegment(const pcl::PointCloud<pcl::PointNormal>& cloud_normals,
                            const std::vector<int>& indices,
                            ToolPathSegment& segment)
@@ -282,6 +164,66 @@ bool createToolPathSegment(const pcl::PointCloud<pcl::PointNormal>& cloud_normal
   segment.push_back(p);
 
   return true;
+}
+
+void convertToPointNormals(const pcl::PolygonMesh& mesh,
+                           pcl::PointCloud<pcl::PointNormal>& cloud_normals,
+                           bool flip,
+                           bool silent)
+{
+  using namespace pcl;
+  using namespace Eigen;
+  using PType = std::remove_reference<decltype(cloud_normals)>::type::PointType;
+  PointCloud<PointXYZ> points;
+  pcl::fromPCLPointCloud2(mesh.cloud, points);
+  pcl::copyPointCloud(points, cloud_normals);
+
+  // computing the normals by walking the vertices
+  Vector3f a, b, c;
+  Vector3f dir, v1, v2;
+  std::size_t ill_formed = 0;
+  for (std::size_t i = 0; i < mesh.polygons.size(); i++)
+  {
+    const std::vector<uint32_t>& vert = mesh.polygons[i].vertices;
+    a = points[vert[0]].getVector3fMap();
+    b = points[vert[1]].getVector3fMap();
+    c = points[vert[2]].getVector3fMap();
+
+    v1 = (b - a).normalized();
+    v2 = (c - a).normalized();
+    dir = (v1.cross(v2)).normalized();
+    dir = flip ? (-1.0 * dir) : dir;
+
+    if (std::isnan(dir.norm()) || std::isinf(dir.norm()))
+    {
+      if (!silent)
+      {
+        CONSOLE_BRIDGE_logWarn(
+            "The normal for polygon %lu (%lu, %lu, %lu) is ill formed", i, vert[0], vert[1], vert[2]);
+        std::cout << std::setprecision(6) << "p1: " << points[vert[0]].getVector3fMap().transpose() << std::endl;
+        std::cout << std::setprecision(6) << "p2: " << points[vert[1]].getVector3fMap().transpose() << std::endl;
+        std::cout << std::setprecision(6) << "p3: " << points[vert[2]].getVector3fMap().transpose() << std::endl;
+      }
+      ill_formed++;
+      continue;
+    }
+
+    // assigning to points
+    for (const uint32_t& v : vert)
+    {
+      PointNormal& p = cloud_normals[v];
+      p.normal_x = dir.x();
+      p.normal_y = dir.y();
+      p.normal_z = dir.z();
+    }
+  }
+
+  if (ill_formed > 0)
+  {
+    CONSOLE_BRIDGE_logWarn("Found %lu ill formed polygons while converting to point normals", ill_formed);
+  }
+
+  return;
 }
 
 }  // namespace tool_path_planner

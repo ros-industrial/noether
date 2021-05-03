@@ -1,21 +1,11 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5.0)
 
-## Compile as C++14, 
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+find_package(ros_industrial_cmake_boilerplate REQUIRED)
+extract_package_metadata(pkg)
 
-project(tool_path_planner)
-find_package(catkin REQUIRED COMPONENTS
-  cmake_modules
-  eigen_conversions
-  eigen_stl_containers
-  noether_conversions
-  geometry_msgs
-  noether_msgs
-  rosconsole
-  roslib
-  shape_msgs
-)
+project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES CXX)
+
+find_package(cmake_modules REQUIRED)
 
 find_package(jsoncpp REQUIRED)
 find_package(vtk_viewer REQUIRED)
@@ -37,77 +27,57 @@ else()
 endif()
 find_package(Eigen3 REQUIRED)
 
-catkin_package(
-  INCLUDE_DIRS
-    include
-  LIBRARIES
-    ${PROJECT_NAME}
-  CATKIN_DEPENDS
-    eigen_conversions
-    eigen_stl_containers
-    geometry_msgs
-    noether_msgs
-    rosconsole
-    shape_msgs
-  DEPENDS
-    EIGEN3
-    PCL
-    VTK
-    vtk_viewer
-    jsoncpp
-)
-
 include_directories(
   include
-  ${catkin_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
 )
 
-add_library(${PROJECT_NAME}
+add_library(${PROJECT_NAME} SHARED
   src/surface_walk_raster_generator.cpp
   src/plane_slicer_raster_generator.cpp
   src/eigen_value_edge_generator.cpp
   src/halfedge_edge_generator.cpp
   src/utilities.cpp
 )
-target_link_libraries(${PROJECT_NAME}
-    ${catkin_LIBRARIES}
+target_link_libraries(${PROJECT_NAME} PUBLIC
     ${PCL_LIBRARIES}
     ${VTK_LIBRARIES}
     noether::vtk_viewer
-    jsoncpp_lib
+    #jsoncpp_lib
 )
-add_dependencies(${PROJECT_NAME}
-  ${catkin_EXPORTED_TARGETS}
+target_include_directories(${PROJECT_NAME} PUBLIC
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:include>"
 )
+target_cxx_version(${PROJECT_NAME} PUBLIC VERSION 14)
+set_target_properties(${PROJECT_NAME} PROPERTIES NO_SYSTEM_FROM_IMPORTED 1)
 
 #############
 ## Install ##
 #############
-install(TARGETS ${PROJECT_NAME}
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+list(APPEND PACKAGE_LIBRARIES ${PROJECT_NAME})
 
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  PATTERN ".svn" EXCLUDE
-)
+configure_package(NAMESPACE noether TARGETS ${PACKAGE_LIBRARIES})
 
+install(DIRECTORY include/${PROJECT_NAME} DESTINATION include)
 #############
 ## Testing ##
 #############
-if(CATKIN_ENABLE_TESTING)
-  catkin_add_gtest(raster_tool_path_planner-test
-    test/utest.cpp
-  )
-  target_link_libraries(raster_tool_path_planner-test
-    ${catkin_LIBRARIES}
+if(${ENABLE_TESTS})
+  enable_testing()
+  find_gtest()
+
+  add_run_tests_target()
+
+  add_executable(raster_tool_path_planner-test test/utest.cpp)
+  target_link_libraries(raster_tool_path_planner-test PUBLIC
     ${PROJECT_NAME}
     ${VTK_LIBRARIES}
+    GTest::GTest
+    GTest::Main
   )
-  add_dependencies(${PROJECT_NAME}
-    ${catkin_EXPORTED_TARGETS}
-  )
+  target_cxx_version(raster_tool_path_planner-tes PUBLIC VERSION 14)
+  set_target_properties(raster_tool_path_planner-tes PROPERTIES NO_SYSTEM_FROM_IMPORTED 1)
+  add_gtest_discover_tests(raster_tool_path_planner-tes)
+  add_dependencies(run_tests ${PROJECT_NAME})
 endif()

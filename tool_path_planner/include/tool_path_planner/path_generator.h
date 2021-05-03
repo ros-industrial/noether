@@ -3,7 +3,6 @@
 
 #include <boost/optional.hpp>
 #include <pcl/PolygonMesh.h>
-#include <shape_msgs/Mesh.h>
 #include <Eigen/Geometry>
 #include <string>
 #include <vector>
@@ -57,12 +56,6 @@ public:
    * @param mesh The mesh input
    */
   virtual void setInput(vtkSmartPointer<vtkPolyData> mesh) = 0;
-
-  /**
-   * @brief sets the input mesh from which raster paths are to be generated
-   * @param mesh The mesh input
-   */
-  virtual void setInput(const shape_msgs::Mesh& mesh) = 0;
 
   /**
    * @brief Get the input mesh
