@@ -24,17 +24,17 @@ endif()
 find_package(catkin REQUIRED COMPONENTS
   actionlib
   cmake_modules
-  mesh_segmenter
   noether_conversions
   noether_msgs
-  path_sequence_planner
   pcl_conversions
   roscpp
   roslib
-  tool_path_planner
 )
 
 find_package(vtk_viewer REQUIRED)
+find_package(mesh_segmenter REQUIRED)
+find_package(tool_path_planner REQUIRED)
+find_package(path_sequence_planner REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS
@@ -43,15 +43,15 @@ catkin_package(
     ${PROJECT_NAME}
   CATKIN_DEPENDS
     actionlib
-    mesh_segmenter
-    path_sequence_planner
     pcl_conversions
     roscpp
     roslib
-    tool_path_planner
   DEPENDS
-    VTK
+    mesh_segmenter
+    path_sequence_planner
     PCL
+    tool_path_planner
+    VTK
     vtk_viewer
 )
 
@@ -66,7 +66,7 @@ target_link_libraries(mesh_segmenter_client_node ${catkin_LIBRARIES} ${VTK_LIBRA
 list (APPEND PACKAGE_TARGETS mesh_segmenter_client_node)
 
 add_executable(mesh_segmenter_node src/mesh_segmenter_node.cpp)
-target_link_libraries(mesh_segmenter_node ${catkin_LIBRARIES} ${VTK_LIBRARIES} noether::vtk_viewer)
+target_link_libraries(mesh_segmenter_node ${catkin_LIBRARIES} ${VTK_LIBRARIES} noether::vtk_viewer noether::mesh_segmenter)
 list (APPEND PACKAGE_TARGETS mesh_segmenter_node)
 
 add_executable(mesh_filtering_client src/mesh_filtering_client.cpp)

@@ -150,7 +150,7 @@ public:
     noether_msgs::GenerateToolPathsGoal goal;
     noether_msgs::ToolPathConfig config_msg;
     config_msg.type = noether_msgs::ToolPathConfig::PLANE_SLICER_RASTER_GENERATOR;
-    tool_path_planner::toPlaneSlicerConfigMsg(config_msg.plane_slicer_generator, config);
+    noether_conversions::toPlaneSlicerConfigMsg(config_msg.plane_slicer_generator, config);
 
     goal.path_configs.push_back(config_msg);
     goal.surface_meshes.push_back(mesh_msg);

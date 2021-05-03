@@ -107,7 +107,7 @@ public:
     noether_msgs::GenerateToolPathsGoal goal;
     noether_msgs::ToolPathConfig config;
     config.type = noether_msgs::ToolPathConfig::HALFEDGE_EDGE_GENERATOR;
-    tool_path_planner::toHalfedgeConfigMsg(config.halfedge_generator,
+    noether_conversions::toHalfedgeConfigMsg(config.halfedge_generator,
                                            tool_path_planner::HalfedgeEdgeGenerator::Config());
 
     goal.path_configs.push_back(config);

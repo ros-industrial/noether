@@ -107,7 +107,7 @@ public:
     noether_msgs::GenerateToolPathsGoal goal;
     noether_msgs::ToolPathConfig config;
     config.type = noether_msgs::ToolPathConfig::EIGEN_VALUE_EDGE_GENERATOR;
-    tool_path_planner::toEigenValueConfigMsg(config.eigen_value_generator,
+    noether_conversions::toEigenValueConfigMsg(config.eigen_value_generator,
                                              tool_path_planner::EigenValueEdgeGenerator::Config());
 
     goal.path_configs.push_back(config);
