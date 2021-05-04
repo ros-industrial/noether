@@ -597,6 +597,7 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   Vector3d raster_dir;
   if (config_.raster_direction.isApprox(Eigen::Vector3d::Zero()))
   {
+    ROS_ERROR("APPROX ZERO");
     // If no direction was specified, use the middle dimension of the bounding box
     raster_dir = Eigen::Vector3d::UnitY();
     raster_dir = (rotation_offset * raster_dir).normalized();
@@ -604,7 +605,7 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   else
   {
     // If a direction was specified, transform it into the frame of the bounding box
-    raster_dir = (t * rotation_offset * config_.raster_direction).normalized();
+    raster_dir = (rotation_offset * t * config_.raster_direction).normalized();
   }
 
   // Calculate all 8 corners projected onto the raster direction vector
