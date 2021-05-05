@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 #include <vtk_viewer/vtk_utils.h>
 #include <vtk_viewer/vtk_viewer.h>
+#include <pcl/io/vtk_lib_io.h>
 #include <vtkIdTypeArray.h>
 #include <tool_path_planner/surface_walk_raster_generator.h>
 #include <tool_path_planner/plane_slicer_raster_generator.h>
@@ -19,6 +20,17 @@
 #define DISPLAY_NORMALS 0
 #define DISPLAY_DERIVATIVES 1
 #define POINT_SPACING 1.0
+
+vtkSmartPointer<vtkPolyData> loadTempMesh()
+{
+  vtkSmartPointer<vtkPolyData> polydata;
+  vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New ();
+  reader->SetFileName ("/tmp/test_mesh.ply");
+  reader->Update ();
+  polydata = reader->GetOutput ();
+  printf("Loaded /tmp/test_mesh.ply with %ld points/vertices.\n", polydata->GetNumberOfPoints ());
+  return polydata;
+}
 
 vtkSmartPointer<vtkPolyData> createTestMesh1(double sample_spacing = 0.5)
 {
@@ -255,7 +267,8 @@ void runTestCaseRansac(tool_path_planner::PathGenerator& planner, vtkSmartPointe
 
 void runExtraRasterTest(tool_path_planner::PathGenerator& planner,
                         tool_path_planner::PathGenerator& planner_with_extras,
-                        vtkSmartPointer<vtkPolyData> mesh)
+                        vtkSmartPointer<vtkPolyData> mesh,
+			double scale = 1.0)
 {
   // Set input mesh
   planner.setInput(mesh);
@@ -322,7 +335,6 @@ void runExtraRasterTest(tool_path_planner::PathGenerator& planner,
   vtk_viewer::VTKViewer viz;
   vtk_viewer::VTKViewer viz2;
   std::vector<float> color(3);
-  double scale = 1.0;
 
   // Display mesh results
   color[0] = 0.9f;
@@ -628,7 +640,7 @@ TEST(PlaneSlicerTest, PlaneSlicerExtraWaypointTest2)
   tool.min_segment_size = 0.05;
   tool.search_radius = 0.05;
   tool.min_hole_size = 0.8;
-  //  tool.raster_wrt_global_axes = use:: tool_path_planner::PlaneSlicerRasterGenerator::DEFAULT_RASTER_WRT_GLOBAL_AXES;
+
   tool.raster_direction = Eigen::Vector3d::UnitY();
   tool.generate_extra_rasters = false;
   //  tool.raster_style = use:: tool_path_planner::PlaneSlicerRasterGenerator::KEEP_ORIENTATION_ON_REVERSE_STROKES;
@@ -639,6 +651,25 @@ TEST(PlaneSlicerTest, PlaneSlicerExtraWaypointTest2)
   planner_with_extra.setConfiguration(tool);
 
   runExtraRasterTest(planner, planner_with_extra, mesh);
+
+  mesh = loadTempMesh();
+
+  tool.raster_spacing = .1;
+  tool.point_spacing = .025;
+  tool.raster_rot_offset = 0.0;
+  tool.min_segment_size = 0.05;
+  tool.search_radius = 0.05;
+  tool.min_hole_size = 0.008;
+  tool.raster_direction = Eigen::Vector3d::UnitY();
+  tool.generate_extra_rasters = false;
+  //  tool.raster_wrt_global_axes = use:: tool_path_planner::PlaneSlicerRasterGenerator::DEFAULT_RASTER_WRT_GLOBAL_AXES;
+  //  tool.raster_style = use:: tool_path_planner::PlaneSlicerRasterGenerator::KEEP_ORIENTATION_ON_REVERSE_STROKES;
+  planner.setConfiguration(tool);
+
+  tool.generate_extra_rasters = true;
+  planner_with_extra.setConfiguration(tool);
+
+  runExtraRasterTest(planner, planner_with_extra, mesh, 0.1);
 }
 
 int main(int argc, char** argv)

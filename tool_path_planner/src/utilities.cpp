@@ -564,34 +564,39 @@ ToolPath sortAndSegment(std::list<std::tuple<double, Eigen::Isometry3d, int> >& 
     // spacing computed using dot-distance is close to the point spacing AND
     // spacing computed using cartesian distance is close to point spacing
     // then add add to segment
-    if (dot_spacing  > .75 * point_spacing && dot_spacing  <= 1.25 * point_spacing &&
-	cart_spacing > .75 * point_spacing && cart_spacing <= 1.25 * point_spacing ||
-	mark == 1)
+    if (dot_spacing  > .7 * point_spacing && dot_spacing  <= 1.3 * point_spacing &&
+	cart_spacing > .7 * point_spacing && cart_spacing <= 1.3 * point_spacing ||
+	(mark == 1 && dot_spacing >0.0 && cart_spacing< 1.3 * point_spacing))
     {
       seg.push_back(waypoint);
       last_wp = waypoint;
       last_dot = std::get<0>(waypoint_tuple);
     }
-    else if (dot_spacing > 1.25 * point_spacing) // only add extra if dot spacing is large
+    else if (dot_spacing > 1.3 * point_spacing && cart_spacing > 1.3 * point_spacing) // only add extra if dot spacing is large
     {  // start a new segment
-      new_tool_path.push_back(seg);
+      if(seg.size()>3)
+	{
+	  new_tool_path.push_back(seg); // throw away very short segments
+	}
       seg.clear();
-      seg.push_back(last_wp);
+      seg.push_back(waypoint);
       last_wp = waypoint;
       last_dot = std::get<0>(waypoint_tuple);
     }
     else
-    {  // skip unless last in list
-      if (q == waypoint_list.size() - 1 && dot_spacing > .25 * point_spacing)
+    {  // skip unless last in list, significantly spaced from last waypoint, but not too far
+      if (q == waypoint_list.size() - 1 && dot_spacing > .3 * point_spacing && cart_spacing < 1.3*point_spacing)
       {
-        seg.push_back(waypoint);  // keep the last on regardless of distance to proces up to the defined edges
+	//        seg.push_back(waypoint);  // keep the last on regardless of distance to proces up to the defined edges
         last_dot = std::get<0>(waypoint_tuple);
       }
     }
     q++;
   }  // end for every waypoint in waypoint_list
-  new_tool_path.push_back(seg);
-
+  if(seg.size()>3)
+    {
+      new_tool_path.push_back(seg);
+    }
   return (new_tool_path);
 }
 
