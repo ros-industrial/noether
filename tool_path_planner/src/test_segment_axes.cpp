@@ -224,7 +224,7 @@ int main(int argc, char** argv)
 
   tool_paths.push_back(tool_path);
 
-  tool_paths = tool_path_planner::segmentByAxes(tool_paths, Eigen::Vector3f(1.0, 0, 0), Eigen::Vector3f(0.0, 1.0, 0.0));
+  tool_paths = tool_path_planner::splitByAxes(tool_paths, Eigen::Vector3f(1.0, 0, 0), Eigen::Vector3f(0.0, 1.0, 0.0));
 
   std::size_t n = tool_paths[0].size();
   std::vector<std::vector<float>> colors = {

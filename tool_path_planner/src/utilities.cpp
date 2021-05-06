@@ -158,7 +158,7 @@ bool toEigenValueConfigMsg(noether_msgs::EigenValueEdgeGeneratorConfig& config_m
   config_msg.min_projection_dist = config.min_projection_dist;
   config_msg.max_intersecting_voxels = config.max_intersecting_voxels;
   config_msg.merge_dist = config.merge_dist;
-  config_msg.segment_by_axes = config.segment_by_axes;
+  config_msg.split_by_axes = config.split_by_axes;
   return true;
 }
 
@@ -477,7 +477,7 @@ ToolPaths addExtraPaths(const ToolPaths& tool_paths, double offset_distance)
   return new_tool_paths;
 }
 
-ToolPath segmentByAxes(const ToolPathSegment& tool_path_segment)
+ToolPath splitByAxes(const ToolPathSegment& tool_path_segment)
 {
   using Point = pcl::PointXYZ;
   // Sanity check - tool path segment must not be empty
@@ -508,10 +508,10 @@ ToolPath segmentByAxes(const ToolPathSegment& tool_path_segment)
   perp_axis.normalize();
   major_axis.normalize();
   // Call base function
-  return segmentByAxes(tool_path_segment, major_axis, perp_axis);
+  return splitByAxes(tool_path_segment, major_axis, perp_axis);
 }
 
-ToolPath segmentByAxes(const ToolPathSegment& tool_path_segment, const Eigen::Vector3f& axis_1, const Eigen::Vector3f& axis_2)
+ToolPath splitByAxes(const ToolPathSegment& tool_path_segment, const Eigen::Vector3f& axis_1, const Eigen::Vector3f& axis_2)
 {
   // Sanity check - tool path segment must not be empty
   if (tool_path_segment.size() == 0)
@@ -582,7 +582,7 @@ ToolPath segmentByAxes(const ToolPathSegment& tool_path_segment, const Eigen::Ve
   return new_tool_path;
 }
 
-ToolPaths segmentByAxes(const ToolPaths& tool_paths)
+ToolPaths splitByAxes(const ToolPaths& tool_paths)
 {
   if (tool_paths.size() == 0)
   {
@@ -603,13 +603,13 @@ ToolPaths segmentByAxes(const ToolPaths& tool_paths)
                        " segments. Expected exactly 1.");
       // TODO: throw an exception
     }
-    ToolPath new_tool_path = segmentByAxes(tool_path[0]);
+    ToolPath new_tool_path = splitByAxes(tool_path[0]);
     new_tool_paths.push_back(new_tool_path);
   }
   return new_tool_paths;
 }
 
-ToolPaths segmentByAxes(const ToolPaths& tool_paths, const Eigen::Vector3f& axis_1, const Eigen::Vector3f& axis_2)
+ToolPaths splitByAxes(const ToolPaths& tool_paths, const Eigen::Vector3f& axis_1, const Eigen::Vector3f& axis_2)
 {
   if (tool_paths.size() == 0)
   {
@@ -630,7 +630,7 @@ ToolPaths segmentByAxes(const ToolPaths& tool_paths, const Eigen::Vector3f& axis
                        " segments. Expected exactly 1.");
       // TODO: throw an exception
     }
-    ToolPath new_tool_path = segmentByAxes(tool_path[0], axis_1, axis_2);
+    ToolPath new_tool_path = splitByAxes(tool_path[0], axis_1, axis_2);
     new_tool_paths.push_back(new_tool_path);
   }
   return new_tool_paths;

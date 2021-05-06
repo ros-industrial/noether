@@ -357,7 +357,7 @@ void runSegmentByAxesTest(const tool_path_planner::ToolPathSegment& tool_path_se
                           const Eigen::Vector3f& axis_1, const Eigen::Vector3f& axis_2)
 {
   vtk_viewer::VTKViewer viz;
-  tool_path_planner::ToolPath tool_path = tool_path_planner::segmentByAxes(tool_path_segment, axis_1, axis_2);
+  tool_path_planner::ToolPath tool_path = tool_path_planner::splitByAxes(tool_path_segment, axis_1, axis_2);
   tool_path_planner::ToolPathData tool_path_data = tool_path_planner::toToolPathData(tool_path);
   std::cerr << "n_points_in_data: " << tool_path_data[0].line->GetNumberOfPoints() << std::endl;
   double scale = 1.0;
