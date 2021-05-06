@@ -23,3 +23,6 @@ float64 point_dist
 
 # maximum segment length
 float64 max_segment_length
+
+# flag to break edge paths by diagonal axes
+bool segment_by_axes

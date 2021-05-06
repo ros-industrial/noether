@@ -529,6 +529,19 @@ ToolPath segmentByAxes(const ToolPathSegment& tool_path_segment, const Eigen::Ve
   };
   // Get indices to cut tool path at
   std::set<int> cut_indices;
+
+  Eigen::Vector3f path_center(0.0, 0.0, 0.0);
+  for (std::size_t index = 0; index < tool_path_segment.size(); ++index)
+  {
+    Eigen::Isometry3d p = tool_path_segment[index];
+    path_center[0] += p.translation().x();
+    path_center[1] += p.translation().y();
+    path_center[2] += p.translation().z();
+  }
+
+  path_center = path_center / tool_path_segment.size();
+
+  std::vector<Eigen::Vector3f> translated_points;
   for (Eigen::Vector3f vector : vectors)
   {
     float max_dot = std::numeric_limits<float>::min();
@@ -536,7 +549,8 @@ ToolPath segmentByAxes(const ToolPathSegment& tool_path_segment, const Eigen::Ve
     for (std::size_t index = 0; index < tool_path_segment.size(); ++index)
     {
       Eigen::Isometry3d p = tool_path_segment[index];
-      Eigen::Vector3f v(float(p.translation().x()), float(p.translation().y()), float(p.translation().z()));
+      Eigen::Vector3f v(float(p.translation().x() - path_center[0]), float(p.translation().y() - path_center[1]), float(p.translation().z() - path_center[2]));
+      translated_points.push_back(v);
       float dot = vector.dot(v);
       if (dot > max_dot)
       {
