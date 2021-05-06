@@ -541,7 +541,6 @@ ToolPath segmentByAxes(const ToolPathSegment& tool_path_segment, const Eigen::Ve
 
   path_center = path_center / tool_path_segment.size();
 
-  std::vector<Eigen::Vector3f> translated_points;
   for (Eigen::Vector3f vector : vectors)
   {
     float max_dot = std::numeric_limits<float>::min();
@@ -550,7 +549,6 @@ ToolPath segmentByAxes(const ToolPathSegment& tool_path_segment, const Eigen::Ve
     {
       Eigen::Isometry3d p = tool_path_segment[index];
       Eigen::Vector3f v(float(p.translation().x() - path_center[0]), float(p.translation().y() - path_center[1]), float(p.translation().z() - path_center[2]));
-      translated_points.push_back(v);
       float dot = vector.dot(v);
       if (dot > max_dot)
       {
