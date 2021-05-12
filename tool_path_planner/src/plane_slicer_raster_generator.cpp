@@ -607,10 +607,11 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   else
   {
     // If a direction was specified, transform it into the frame of the bounding box
-    raster_dir =
-        (rotation_offset *                                  // Rotation about short axis of bounding box
-         AngleAxisd(computeRotation(x_dir, y_dir, z_dir)) * // Rotation part of 't' (recalculated because Eigen makes it hard to access)
-         config_.raster_direction).normalized();            // Raster direction specified by user
+    raster_dir = (rotation_offset *                                   // Rotation about short axis of bounding box
+                  AngleAxisd(computeRotation(x_dir, y_dir, z_dir)) *  // Rotation part of 't' (recalculated because
+                                                                      // Eigen makes it hard to access)
+                  config_.raster_direction)                           // Raster direction specified by user
+                     .normalized();
   }
 
   // Calculate all 8 corners projected onto the raster direction vector

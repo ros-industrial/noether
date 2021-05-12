@@ -493,7 +493,7 @@ void testAndMark(tlist_it& item1, tlist_it& item2, double point_spacing)
   //  Eigen::Vector3d v = wp1.translation() - wp2.translation();
   //  if (v.norm() < 0.75 * point_spacing)
   double dist = fabs(std::get<0>(*item1) - std::get<0>(*item2));
-  if(dist < 0.75 * point_spacing)
+  if (dist < 0.75 * point_spacing)
   {
     if (mark1 == 1 && mark2 == 0)
     {
@@ -564,20 +564,22 @@ ToolPath sortAndSegment(std::list<std::tuple<double, Eigen::Isometry3d, int> >& 
     // spacing computed using dot-distance is close to the point spacing AND
     // spacing computed using cartesian distance is close to point spacing
     // then add add to segment
-    if (dot_spacing  > .7 * point_spacing && dot_spacing  <= 1.3 * point_spacing &&
-	cart_spacing > .7 * point_spacing && cart_spacing <= 1.3 * point_spacing ||
-	(mark == 1 && dot_spacing >0.0 && cart_spacing< 1.3 * point_spacing))
+    if (dot_spacing > .7 * point_spacing && dot_spacing <= 1.3 * point_spacing && cart_spacing > .7 * point_spacing &&
+            cart_spacing <= 1.3 * point_spacing ||
+        (mark == 1 && dot_spacing > 0.0 && cart_spacing < 1.3 * point_spacing))
     {
       seg.push_back(waypoint);
       last_wp = waypoint;
       last_dot = std::get<0>(waypoint_tuple);
     }
-    else if (dot_spacing > 1.3 * point_spacing && cart_spacing > 1.3 * point_spacing) // only add extra if dot spacing is large
-    {  // start a new segment
-      if(seg.size()>3)
-	{
-	  new_tool_path.push_back(seg); // throw away very short segments
-	}
+    // only add extra if dot spacing is large
+    else if (dot_spacing > 1.3 * point_spacing && cart_spacing > 1.3 * point_spacing)
+    {
+      // start a new segment
+      if (seg.size() > 3)
+      {
+        new_tool_path.push_back(seg);  // throw away very short segments
+      }
       seg.clear();
       seg.push_back(waypoint);
       last_wp = waypoint;
@@ -585,18 +587,18 @@ ToolPath sortAndSegment(std::list<std::tuple<double, Eigen::Isometry3d, int> >& 
     }
     else
     {  // skip unless last in list, significantly spaced from last waypoint, but not too far
-      if (q == waypoint_list.size() - 1 && dot_spacing > .3 * point_spacing && cart_spacing < 1.3*point_spacing)
+      if (q == waypoint_list.size() - 1 && dot_spacing > .3 * point_spacing && cart_spacing < 1.3 * point_spacing)
       {
-	//        seg.push_back(waypoint);  // keep the last on regardless of distance to proces up to the defined edges
+        // seg.push_back(waypoint);  // keep the last on regardless of distance to proces up to the defined edges
         last_dot = std::get<0>(waypoint_tuple);
       }
     }
     q++;
   }  // end for every waypoint in waypoint_list
-  if(seg.size()>3)
-    {
-      new_tool_path.push_back(seg);
-    }
+  if (seg.size() > 3)
+  {
+    new_tool_path.push_back(seg);
+  }
   return (new_tool_path);
 }
 

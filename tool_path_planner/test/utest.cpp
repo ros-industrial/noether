@@ -25,11 +25,11 @@
 vtkSmartPointer<vtkPolyData> loadTempMesh()
 {
   vtkSmartPointer<vtkPolyData> polydata;
-  vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New ();
-  reader->SetFileName ("/tmp/test_mesh.ply");
-  reader->Update ();
-  polydata = reader->GetOutput ();
-  printf("Loaded /tmp/test_mesh.ply with %ld points/vertices.\n", polydata->GetNumberOfPoints ());
+  vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
+  reader->SetFileName("/tmp/test_mesh.ply");
+  reader->Update();
+  polydata = reader->GetOutput();
+  printf("Loaded /tmp/test_mesh.ply with %ld points/vertices.\n", polydata->GetNumberOfPoints());
   return polydata;
 }
 
@@ -269,7 +269,7 @@ void runTestCaseRansac(tool_path_planner::PathGenerator& planner, vtkSmartPointe
 void runExtraRasterTest(tool_path_planner::PathGenerator& planner,
                         tool_path_planner::PathGenerator& planner_with_extras,
                         vtkSmartPointer<vtkPolyData> mesh,
-      double scale = 1.0)
+                        double scale = 1.0)
 {
   // Set input mesh
   planner.setInput(mesh);
@@ -409,7 +409,6 @@ void runExtraRasterTest(tool_path_planner::PathGenerator& planner,
 #endif
 }
 
-/*
 TEST(IntersectTest, SurfaceWalkRasterRotationTest)
 {
   vtkSmartPointer<vtkPolyData> mesh = createTestMesh1();
@@ -480,7 +479,7 @@ TEST(IntersectTest, PlaneSlicerRasterSpecificDirectionTest)
   tool.min_hole_size = 0.1;
   tool.raster_rot_offset = 0.0;
   tool.raster_wrt_global_axes = false;
-  tool.raster_direction = Eigen::Vector3d::UnitY();
+  tool.raster_direction = Eigen::Vector3d::UnitX();
   //    tool.debug = false;
   planner.setConfiguration(tool);
   runRasterRotationTest(planner, mesh);
@@ -628,7 +627,7 @@ TEST(IntersectTest, SurfaceWalkExtraRasterTest)
 
   runExtraRasterTest(planner, planner_with_extra, mesh);
 }
-*/
+
 TEST(PlaneSlicerTest, PlaneSlicerExtraWaypointTest)
 {
   vtkSmartPointer<vtkPolyData> mesh = createTestMesh1();
