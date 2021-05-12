@@ -13,7 +13,6 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   noether_msgs
   rosconsole
-  roscpp
   roslib
   shape_msgs
 )
