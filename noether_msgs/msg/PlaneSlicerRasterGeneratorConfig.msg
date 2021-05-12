@@ -12,7 +12,6 @@ bool generate_extra_rasters  # Whether an extra raster stroke should be added to
 bool raster_wrt_global_axes
 
 # Normal of the cutting planes.  Points from the first raster to the second raster, not the
-# direction from the first point in one raster to the second point of the same raster.  X is the
-# longest direction of the bounding box, Z is the shortest, Y is middle, following right hand rule.
-# If left as 0 (magnitude < 0.000001), defaults to [0,1,0], the mid direction of the bounding box.
+# direction from the first point in one raster to the second point of the same raster.  Specified
+# in the frame of the input mesh.  Overrides raster_wrt_global_axes
 geometry_msgs/Vector3 raster_direction

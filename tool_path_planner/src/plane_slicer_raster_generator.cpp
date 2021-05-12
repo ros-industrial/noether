@@ -507,6 +507,8 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   using namespace Eigen;
   using IDVec = std::vector<vtkIdType>;
 
+  console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_ERROR);
+
   if (!mesh_data_)
   {
     CONSOLE_BRIDGE_logDebug("%s No mesh data has been provided", getName().c_str());
@@ -594,7 +596,23 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   Isometry3d rotation_offset = Isometry3d::Identity() * AngleAxisd(config_.raster_rot_offset, Vector3d::UnitZ());
 
   // Calculate direction of raster strokes, rotated by the above-specified amount
-  Vector3d raster_dir = (rotation_offset * config_.raster_direction).normalized();
+  Vector3d raster_dir;
+  if (config_.raster_direction.isApprox(Eigen::Vector3d::Zero()))
+  {
+    ROS_ERROR("APPROX ZERO");
+    // If no direction was specified, use the middle dimension of the bounding box
+    raster_dir = Eigen::Vector3d::UnitY();
+    raster_dir = (rotation_offset * raster_dir).normalized();
+  }
+  else
+  {
+    // If a direction was specified, transform it into the frame of the bounding box
+    raster_dir = (rotation_offset *                                   // Rotation about short axis of bounding box
+                  AngleAxisd(computeRotation(x_dir, y_dir, z_dir)) *  // Rotation part of 't' (recalculated because
+                                                                      // Eigen makes it hard to access)
+                  config_.raster_direction)                           // Raster direction specified by user
+                     .normalized();
+  }
 
   // Calculate all 8 corners projected onto the raster direction vector
   Eigen::VectorXd dist(8);

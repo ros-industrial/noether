@@ -59,7 +59,7 @@ public:
     double search_radius{ DEFAULT_SEARCH_RADIUS };
     double min_hole_size{ DEFAULT_MIN_HOLE_SIZE };
     bool raster_wrt_global_axes{ DEFAULT_RASTER_WRT_GLOBAL_AXES };
-    Eigen::Vector3d raster_direction{ Eigen::Vector3d::UnitY() };
+    Eigen::Vector3d raster_direction{ Eigen::Vector3d::Zero() };
     bool generate_extra_rasters{ DEFAULT_GENERATE_EXTRA_RASTERS };
     RasterStyle raster_style{ DEFAULT_RASTER_STYLE };
     Json::Value toJson() const
