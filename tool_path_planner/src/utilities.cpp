@@ -505,22 +505,23 @@ ToolPaths addExtraPaths(const ToolPaths& tool_paths, double offset_distance)
 
 ToolPath splitByAxes(const ToolPathSegment& tool_path_segment)
 {
-  using Point = pcl::PointXYZ;
   // Sanity check - tool path segment must not be empty
   if (tool_path_segment.size() == 0)
   {
-    ROS_ERROR_STREAM("Tool path segment 0 is empty.");
-    // TODO: throw an exception
+    ROS_WARN_STREAM("Tool path segment 0 is empty.");
+    ToolPath tp;
+    tp.push_back(tool_path_segment);
+    return tp;
   }
 
   // Get major and middle axis (we don't care about minor axis)
-  pcl::PointCloud<Point>::Ptr cloud = boost::make_shared<pcl::PointCloud<Point>>();
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
   for (Eigen::Isometry3d p: tool_path_segment)
   {
-    Point point(float(p.translation().x()), float(p.translation().y()), float(p.translation().z()));
+    pcl::PointXYZ point(float(p.translation().x()), float(p.translation().y()), float(p.translation().z()));
     cloud->push_back(point);
   }
-  pcl::MomentOfInertiaEstimation<Point> moment;
+  pcl::MomentOfInertiaEstimation<pcl::PointXYZ> moment;
   moment.setInputCloud(cloud);
   moment.compute();
   Eigen::Vector3f major_axis, middle_axis, minor_axis;
@@ -542,8 +543,10 @@ ToolPath splitByAxes(const ToolPathSegment& tool_path_segment, const Eigen::Vect
   // Sanity check - tool path segment must not be empty
   if (tool_path_segment.size() == 0)
   {
-    ROS_ERROR_STREAM("Tool path segment 0 is empty.");
-    // TODO: throw an exception
+    ROS_WARN_STREAM("Tool path segment 0 is empty.");
+    ToolPath tp;
+    tp.push_back(tool_path_segment);
+    return tp;
   }
 
   ToolPath new_tool_path;
@@ -612,11 +615,10 @@ ToolPaths splitByAxes(const ToolPaths& tool_paths)
 {
   if (tool_paths.size() == 0)
   {
-    ROS_ERROR_STREAM("Tool paths is empty.");
-    // TODO: throw an exception
+    ROS_WARN_STREAM("Tool paths is empty.");
+    return tool_paths;
   }
 
-  using Point = pcl::PointXYZ;
   ToolPaths new_tool_paths;
 
   for (std::size_t tool_path_index = 0; tool_path_index < tool_paths.size(); ++tool_path_index)
@@ -625,12 +627,15 @@ ToolPaths splitByAxes(const ToolPaths& tool_paths)
     // Sanity check - tool path must have exactly one segment
     if (tool_path.size() != 1)
     {
-      ROS_ERROR_STREAM("Tool path " << tool_path_index << " contains " << tool_path.size() <<
+      ROS_WARN_STREAM("Tool path " << tool_path_index << " contains " << tool_path.size() <<
                        " segments. Expected exactly 1.");
-      // TODO: throw an exception
+      new_tool_paths.push_back(tool_path);
     }
-    ToolPath new_tool_path = splitByAxes(tool_path[0]);
-    new_tool_paths.push_back(new_tool_path);
+    else
+    {
+      ToolPath new_tool_path = splitByAxes(tool_path[0]);
+      new_tool_paths.push_back(new_tool_path);
+    }
   }
   return new_tool_paths;
 }
@@ -639,11 +644,10 @@ ToolPaths splitByAxes(const ToolPaths& tool_paths, const Eigen::Vector3f& axis_1
 {
   if (tool_paths.size() == 0)
   {
-    ROS_ERROR_STREAM("Tool paths is empty.");
-    // TODO: throw an exception
+    ROS_WARN_STREAM("Tool paths is empty.");
+    return tool_paths;
   }
 
-  using Point = pcl::PointXYZ;
   ToolPaths new_tool_paths;
 
   for (std::size_t tool_path_index = 0; tool_path_index < tool_paths.size(); ++tool_path_index)
@@ -652,12 +656,14 @@ ToolPaths splitByAxes(const ToolPaths& tool_paths, const Eigen::Vector3f& axis_1
     // Sanity check - tool path must have exactly one segment
     if (tool_path.size() != 1)
     {
-      ROS_ERROR_STREAM("Tool path " << tool_path_index << " contains " << tool_path.size() <<
+      ROS_WARN_STREAM("Tool path " << tool_path_index << " contains " << tool_path.size() <<
                        " segments. Expected exactly 1.");
-      // TODO: throw an exception
+      new_tool_paths.push_back(tool_path);
     }
-    ToolPath new_tool_path = splitByAxes(tool_path[0], axis_1, axis_2);
-    new_tool_paths.push_back(new_tool_path);
+    else {
+      ToolPath new_tool_path = splitByAxes(tool_path[0], axis_1, axis_2);
+      new_tool_paths.push_back(new_tool_path);
+    }
   }
   return new_tool_paths;
 }
