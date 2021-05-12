@@ -624,18 +624,15 @@ ToolPaths splitByAxes(const ToolPaths& tool_paths)
   for (std::size_t tool_path_index = 0; tool_path_index < tool_paths.size(); ++tool_path_index)
   {
     ToolPath tool_path = tool_paths[tool_path_index];
-    // Sanity check - tool path must have exactly one segment
-    if (tool_path.size() != 1)
+    ToolPath new_tool_path;
+    for (ToolPathSegment tool_path_segment : tool_path)
     {
-      ROS_WARN_STREAM("Tool path " << tool_path_index << " contains " << tool_path.size() <<
-                       " segments. Expected exactly 1.");
-      new_tool_paths.push_back(tool_path);
+      // Split segement into multiple sub-segments
+      ToolPath tool_path_to_merge = splitByAxes(tool_path_segment);
+      // Merge sub-segments with the other sub-segments (for this tool path)
+      new_tool_path.insert(new_tool_path.end(), tool_path_to_merge.begin(), tool_path_to_merge.end());
     }
-    else
-    {
-      ToolPath new_tool_path = splitByAxes(tool_path[0]);
-      new_tool_paths.push_back(new_tool_path);
-    }
+    new_tool_paths.push_back(new_tool_path);
   }
   return new_tool_paths;
 }
@@ -653,17 +650,15 @@ ToolPaths splitByAxes(const ToolPaths& tool_paths, const Eigen::Vector3f& axis_1
   for (std::size_t tool_path_index = 0; tool_path_index < tool_paths.size(); ++tool_path_index)
   {
     ToolPath tool_path = tool_paths[tool_path_index];
-    // Sanity check - tool path must have exactly one segment
-    if (tool_path.size() != 1)
+    ToolPath new_tool_path;
+    for (ToolPathSegment tool_path_segment : tool_path)
     {
-      ROS_WARN_STREAM("Tool path " << tool_path_index << " contains " << tool_path.size() <<
-                       " segments. Expected exactly 1.");
-      new_tool_paths.push_back(tool_path);
+      // Split segement into multiple sub-segments
+      ToolPath tool_path_to_merge = splitByAxes(tool_path_segment, axis_1, axis_2);
+      // Merge sub-segments with the other sub-segments (for this tool path)
+      new_tool_path.insert(new_tool_path.end(), tool_path_to_merge.begin(), tool_path_to_merge.end());
     }
-    else {
-      ToolPath new_tool_path = splitByAxes(tool_path[0], axis_1, axis_2);
-      new_tool_paths.push_back(new_tool_path);
-    }
+    new_tool_paths.push_back(new_tool_path);
   }
   return new_tool_paths;
 }
