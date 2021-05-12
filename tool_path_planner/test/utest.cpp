@@ -5,6 +5,7 @@
  *
  */
 
+#include <console_bridge/console.h>
 #include <gtest/gtest.h>
 #include <vtk_viewer/vtk_utils.h>
 #include <vtk_viewer/vtk_viewer.h>
@@ -452,6 +453,37 @@ TEST(IntersectTest, PlaneSlicerRasterRotationTest)
     planner.setConfiguration(tool);
     runRasterRotationTest(planner, mesh);
   }
+}
+
+TEST(IntersectTest, PlaneSlicerRasterSpecificDirectionTest)
+{
+  vtkSmartPointer<vtkPolyData> mesh = createTestMesh1();
+
+  // First, run wrt_global_axes, using default axis
+  // Set input tool data
+  tool_path_planner::PlaneSlicerRasterGenerator planner;
+  tool_path_planner::PlaneSlicerRasterGenerator::Config tool;
+  tool.point_spacing = POINT_SPACING;
+  tool.raster_spacing = 0.75;
+  //    tool.tool_offset = 0.0;                // currently unused
+  tool.min_hole_size = 0.1;
+  tool.raster_rot_offset = 0.0;
+  tool.raster_wrt_global_axes = true;
+  //    tool.debug = false;
+  planner.setConfiguration(tool);
+  runRasterRotationTest(planner, mesh);
+
+  // Second, run with specified axis
+  tool.point_spacing = POINT_SPACING;
+  tool.raster_spacing = 0.75;
+  //    tool.tool_offset = 0.0;                // currently unused
+  tool.min_hole_size = 0.1;
+  tool.raster_rot_offset = 0.0;
+  tool.raster_wrt_global_axes = false;
+  tool.raster_direction = Eigen::Vector3d::UnitY();
+  //    tool.debug = false;
+  planner.setConfiguration(tool);
+  runRasterRotationTest(planner, mesh);
 }
 
 TEST(IntersectTest, HalfedgeEdgeGeneratorTestCase0)
