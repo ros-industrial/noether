@@ -123,6 +123,9 @@ ToolPaths splitSegments(const ToolPaths& tool_paths, double max_segment_length);
 // duplicates first and last segment of each toolpath in tool_paths offset by the offset distance
 ToolPaths addExtraPaths(const ToolPaths& tool_paths, double offset_distance);
 
+// fills in waypoints to ensure double coverage when adjacent rasters are different lengths
+ToolPaths addExtraWaypoints(const ToolPaths& tool_paths, double raster_spacing, double point_spacing);
+
 // reverse direction of every other raster, flip orientation or not depending on raster style
 ToolPaths reverseOddRasters(const ToolPaths& tool_paths, RasterStyle raster_style);
 

@@ -39,6 +39,10 @@
 
 namespace tool_path_planner
 {
+typedef std::tuple<double, Eigen::Isometry3d, int> wp_tuple;
+typedef std::list<wp_tuple> tlist;
+typedef std::list<wp_tuple>::iterator tlist_it;
+
 void flipPointOrder(ToolPath& path)
 {
   // Reverse the order of the segments
@@ -393,6 +397,28 @@ double computeOffsetSign(const ToolPathSegment& adjusted_segment, const ToolPath
   return (offset_sign);
 }
 
+Eigen::Vector3d computePathDirection(const ToolPath& path)
+{
+  // TODO check for zero waypoints in either 1st or last segment and do something reasonable
+  Eigen::Vector3d v;
+  ToolPathSegment seg = path[0];
+  Eigen::Isometry3d waypoint1 = seg[0];  // first waypoint in path
+  seg = path[path.size() - 1];
+  Eigen::Isometry3d waypoint2 = seg[seg.size() - 1];  // last waypoint in path
+  v = waypoint2.translation() - waypoint1.translation();
+  v.normalize();
+  return (v);
+}
+
+double computePathDistance(const ToolPath& path, const Eigen::Isometry3d waypoint)
+{
+  double dist;
+
+  return (dist);
+}
+
+bool compare_tuple(wp_tuple& first, wp_tuple& second) { return (std::get<0>(first) < std::get<0>(second)); }
+
 ToolPaths addExtraPaths(const ToolPaths& tool_paths, double offset_distance)
 {
   ToolPaths new_tool_paths;
@@ -454,6 +480,238 @@ ToolPaths addExtraPaths(const ToolPaths& tool_paths, double offset_distance)
     last_dup_tool_path.push_back(new_segment);
   }
   new_tool_paths.push_back(last_dup_tool_path);
+
+  return new_tool_paths;
+}
+
+void testAndMark(tlist_it& item1, tlist_it& item2, double point_spacing)
+{
+  int mark1 = std::get<2>(*item1);
+  int mark2 = std::get<2>(*item2);
+  //  Eigen::Isometry3d wp1 = std::get<1>(*item1);
+  //  Eigen::Isometry3d wp2 = std::get<1>(*item2);
+  //  Eigen::Vector3d v = wp1.translation() - wp2.translation();
+  //  if (v.norm() < 0.75 * point_spacing)
+  double dist = fabs(std::get<0>(*item1) - std::get<0>(*item2));
+  if(dist < 0.75 * point_spacing)
+  {
+    if (mark1 == 1 && mark2 == 0)
+    {
+      std::get<2>(*item2) = -1;
+    }
+    else if (mark2 == 1 && mark1 == 0)
+    {
+      std::get<2>(*item1) = -1;
+    }
+  }
+}
+
+tlist pruneList(tlist& waypoint_list, double point_spacing)
+{
+  // mark any shifted waypoint for deletion if its got an original neighbor close by
+  tlist_it first = waypoint_list.begin();
+  tlist_it second = std::next(waypoint_list.begin(), 1);
+  tlist_it third = std::next(waypoint_list.begin(), 2);
+  testAndMark(first, second, point_spacing);
+  testAndMark(first, third, point_spacing);
+  testAndMark(second, third, point_spacing);
+  for (tlist_it it = std::next(waypoint_list.begin(), 2); it != waypoint_list.end(); it++)
+  {
+    tlist_it it2 = std::next(it, -2);
+    tlist_it it1 = std::next(it, -1);
+    testAndMark(it2, it1, point_spacing);
+    testAndMark(it2, it, point_spacing);
+    testAndMark(it1, it, point_spacing);
+  }
+
+  tlist new_list;
+  for (tlist_it it = waypoint_list.begin(); it != waypoint_list.end(); it++)
+  {
+    if (std::get<2>(*it) != -1)
+    {
+      new_list.push_back(*it);
+    }
+  }
+  return (new_list);
+}
+
+ToolPath sortAndSegment(std::list<std::tuple<double, Eigen::Isometry3d, int> >& waypoint_list, double point_spacing)
+{
+  ToolPath new_tool_path;
+  ToolPathSegment seg;
+
+  waypoint_list.sort(compare_tuple);
+  // we now have a sorted list including all points offset from adjacent rasters but marked with a 0 and originals
+  // marked with a 1
+
+  // next, we prune those marked with 0 if they are close to those marked with 1
+  waypoint_list = pruneList(waypoint_list, point_spacing);
+
+  // next, we prune those simply too close to one another
+  Eigen::Isometry3d last_wp = std::get<1>(waypoint_list.front());
+  double last_dot = std::get<0>(waypoint_list.front());
+  seg.push_back(last_wp);
+  int q = 0;
+  for (wp_tuple waypoint_tuple : waypoint_list)
+  {
+    Eigen::Isometry3d waypoint = std::get<1>(waypoint_tuple);
+    int mark = std::get<2>(waypoint_tuple);
+    Eigen::Vector3d v = waypoint.translation() - last_wp.translation();
+    double cart_spacing = v.norm();
+    double dot_spacing = std::get<0>(waypoint_tuple) - last_dot;
+
+    // complex if statement
+    // spacing computed using dot-distance is close to the point spacing AND
+    // spacing computed using cartesian distance is close to point spacing
+    // then add add to segment
+    if (dot_spacing  > .7 * point_spacing && dot_spacing  <= 1.3 * point_spacing &&
+	cart_spacing > .7 * point_spacing && cart_spacing <= 1.3 * point_spacing ||
+	(mark == 1 && dot_spacing >0.0 && cart_spacing< 1.3 * point_spacing))
+    {
+      seg.push_back(waypoint);
+      last_wp = waypoint;
+      last_dot = std::get<0>(waypoint_tuple);
+    }
+    else if (dot_spacing > 1.3 * point_spacing && cart_spacing > 1.3 * point_spacing) // only add extra if dot spacing is large
+    {  // start a new segment
+      if(seg.size()>3)
+	{
+	  new_tool_path.push_back(seg); // throw away very short segments
+	}
+      seg.clear();
+      seg.push_back(waypoint);
+      last_wp = waypoint;
+      last_dot = std::get<0>(waypoint_tuple);
+    }
+    else
+    {  // skip unless last in list, significantly spaced from last waypoint, but not too far
+      if (q == waypoint_list.size() - 1 && dot_spacing > .3 * point_spacing && cart_spacing < 1.3*point_spacing)
+      {
+	//        seg.push_back(waypoint);  // keep the last on regardless of distance to proces up to the defined edges
+        last_dot = std::get<0>(waypoint_tuple);
+      }
+    }
+    q++;
+  }  // end for every waypoint in waypoint_list
+  if(seg.size()>3)
+    {
+      new_tool_path.push_back(seg);
+    }
+  return (new_tool_path);
+}
+
+ToolPaths addExtraWaypoints(const ToolPaths& tool_paths, double raster_spacing, double point_spacing)
+{
+  ToolPaths new_tool_paths;
+  double offset_sign = 1;
+
+  if (tool_paths.size() > 1)
+  {
+    ToolPath tool_path1 = tool_paths[0];
+    ToolPath tool_path2 = tool_paths[1];
+    offset_sign = computeOffsetSign(tool_path1[0], tool_path2[0]);
+  }
+
+  for (size_t i = 0; i < tool_paths.size(); i++)
+  {
+    // create a list of tuple containing the waypoints in this tool_path and its distance along the path
+    // add to this list the waypoints and distances of the previous and next path offset into this path
+    // sort the list
+    // using sorted list, create new_tool_path by:
+    // add a new point if it is approximately point_spacing from the previous point
+    // end the old and start a new segment when the new point is significantly more than the point_spacing from previous
+    // waypoint
+    ToolPath tool_path = tool_paths[i];
+    std::list<std::tuple<double, Eigen::Isometry3d, int> > waypoint_list;  // once sorted this list will be the order of
+                                                                           // the segments
+    Eigen::Vector3d path_dir = computePathDirection(tool_path);
+    ToolPathSegment sseg = tool_path[0];
+    Eigen::Vector3d path_start = sseg[0].translation();
+
+    if (i == 0)  // duplicate first tool_path but offset
+    {
+      for (ToolPathSegment seg : tool_path)  // add tool_path's waypoints to the list
+      {
+        for (Eigen::Isometry3d waypoint : seg)
+        {
+          Eigen::Matrix4d H = waypoint.matrix();
+          waypoint.translation().x() += offset_sign * raster_spacing * H(0, 1);
+          waypoint.translation().y() += offset_sign * raster_spacing * H(1, 1);
+          waypoint.translation().z() += offset_sign * raster_spacing * H(2, 1);
+          Eigen::Vector3d v = waypoint.translation() - path_start;
+          std::tuple<double, Eigen::Isometry3d, int> p(path_dir.dot(v), waypoint, 0);
+          waypoint_list.push_back(p);
+        }  // end for every waypoint in segment
+      }    // end for every segment in path
+      new_tool_paths.push_back(sortAndSegment(waypoint_list, point_spacing));
+      waypoint_list.clear();
+    }  // end duplication of fist tool_path but offset
+
+    for (ToolPathSegment seg : tool_path)  // add tool_path's waypoints to the list
+    {
+      for (Eigen::Isometry3d waypoint : seg)
+      {
+        Eigen::Vector3d v = waypoint.translation() - path_start;
+        std::tuple<double, Eigen::Isometry3d, int> p(path_dir.dot(v), waypoint, 1);
+        waypoint_list.push_back(p);
+      }  // end for every waypoint in segment
+    }    // end for every segment in path
+    if (i > 0)
+    {
+      ToolPath prev_tool_path = tool_paths[i - 1];
+      for (ToolPathSegment seg : prev_tool_path)  // add previous tool_path's waypoints to the list
+      {
+        for (Eigen::Isometry3d waypoint : seg)
+        {
+          Eigen::Matrix4d H = waypoint.matrix();
+          waypoint.translation().x() -= offset_sign * raster_spacing * H(0, 1);
+          waypoint.translation().y() -= offset_sign * raster_spacing * H(1, 1);
+          waypoint.translation().z() -= offset_sign * raster_spacing * H(2, 1);
+          Eigen::Vector3d v = waypoint.translation() - path_start;
+          std::tuple<double, Eigen::Isometry3d, int> p(path_dir.dot(v), waypoint, 0);
+          waypoint_list.push_back(p);
+        }  // end for every waypoint in segment
+      }    // end for every segment in path
+    }
+    if (i < tool_paths.size() - 1)
+    {
+      ToolPath next_tool_path = tool_paths[i + 1];
+      for (ToolPathSegment seg : next_tool_path)  // add next tool_path's waypoints to the list
+      {
+        for (Eigen::Isometry3d waypoint : seg)
+        {
+          Eigen::Matrix4d H = waypoint.matrix();
+          waypoint.translation().x() += offset_sign * raster_spacing * H(0, 1);
+          waypoint.translation().y() += offset_sign * raster_spacing * H(1, 1);
+          waypoint.translation().z() += offset_sign * raster_spacing * H(2, 1);
+          Eigen::Vector3d v = waypoint.translation() - path_start;
+          std::tuple<double, Eigen::Isometry3d, int> p(path_dir.dot(v), waypoint, 0);
+          waypoint_list.push_back(p);
+        }  // end for every waypoint in segment
+      }    // end for every segment in path
+    }
+    new_tool_paths.push_back(sortAndSegment(waypoint_list, point_spacing));
+    waypoint_list.clear();
+    // duplicate last tool_path but offset
+    if (i == tool_paths.size() - 1)
+    {
+      for (ToolPathSegment seg : tool_path)  // add tool_path's waypoints to the list
+      {
+        for (Eigen::Isometry3d waypoint : seg)
+        {
+          Eigen::Matrix4d H = waypoint.matrix();
+          waypoint.translation().x() -= offset_sign * raster_spacing * H(0, 1);
+          waypoint.translation().y() -= offset_sign * raster_spacing * H(1, 1);
+          waypoint.translation().z() -= offset_sign * raster_spacing * H(2, 1);
+          Eigen::Vector3d v = waypoint.translation() - path_start;
+          std::tuple<double, Eigen::Isometry3d, int> p(path_dir.dot(v), waypoint, 1);
+          waypoint_list.push_back(p);
+        }  // end for every waypoint in segment
+
+      }  // end for every segment in path
+      new_tool_paths.push_back(sortAndSegment(waypoint_list, point_spacing));
+    }  // end duplication of last tool_path but offset
+  }    // end for every path in tool_paths
 
   return new_tool_paths;
 }

@@ -62,64 +62,67 @@ struct RasterConstructData
   std::vector<double> segment_lengths;
 };
 
+static Eigen::Vector3d getSegDir(PolyDataPtr seg)
+{
+  if (seg->GetPoints()->GetNumberOfPoints() < 1)
+  {
+    ROS_ERROR("can't get direction from a segment with fewer than 2 points");
+  }
+  Eigen::Vector3d seg_start, seg_end;
+  seg->GetPoint(0, seg_start.data());
+  seg->GetPoint(seg->GetPoints()->GetNumberOfPoints() - 1, seg_end.data());
+  return (seg_end - seg_start);
+}
+
+static bool compare_ds_pair(std::pair<double, size_t>& first, std::pair<double, size_t>& second)
+{
+  return (first.first < second.first);
+}
+
 // @brief this function accepts and returns a rasterConstruct where every segment progresses in the same direction and
 // in the right order
-static RasterConstructData alignRasterCD(const RasterConstructData rcd)
+static RasterConstructData alignRasterCD(RasterConstructData& rcd, Eigen::Vector3d& raster_direction)
 {
-  if (rcd.raster_segments.size() <= 1)
-    return (rcd);  // do nothing if only one segment
-
   if (rcd.raster_segments[0]->GetPoints()->GetNumberOfPoints() <= 1)
   {
     ROS_ERROR("first raster segment has 0 or 1 points, unable to alignRasterCD()");
     return (rcd);
   }
 
-  // determine raster direction from 1st segment, and origin as first point in first raster (raster_start)
-  Eigen::Vector3d raster_start, raster_end, raster_direction;
+  Eigen::Vector3d raster_start;
   rcd.raster_segments[0]->GetPoint(0, raster_start.data());
-  rcd.raster_segments[0]->GetPoint(rcd.raster_segments[0]->GetPoints()->GetNumberOfPoints() - 1, raster_end.data());
-  raster_direction = raster_end - raster_start;
-  raster_direction.normalize();
 
   // determine location and direction of each successive segement, reverse any mis-directed segments
   RasterConstructData temp_rcd;
-  std::list<std::tuple<double, size_t> > seg_order;  // once sorted this list will be the order of the segments
-  std::tuple<double, size_t> p(0.0, 0);
-  seg_order.push_back(p);
-  for (size_t i = 1; i < rcd.raster_segments.size(); i++)
+  std::list<std::pair<double, size_t> > seg_order;  // once sorted this list will be the order of the segments
+  for (size_t i = 0; i < rcd.raster_segments.size(); i++)
   {
     // determine i'th segments direction
-    Eigen::Vector3d seg_start, seg_end, seg_dir;
+    Eigen::Vector3d seg_dir = getSegDir(rcd.raster_segments[i]);
+    Eigen::Vector3d seg_start;
     rcd.raster_segments[i]->GetPoint(0, seg_start.data());
-    rcd.raster_segments[i]->GetPoint(rcd.raster_segments[i]->GetPoints()->GetNumberOfPoints() - 1, seg_end.data());
-    seg_dir = seg_end - seg_start;
-
     // if segment direction is opposite raster direction, reverse the segment
     if (seg_dir.dot(raster_direction) < 0.0)
     {
       vtkSmartPointer<vtkPoints> old_points = rcd.raster_segments[i]->GetPoints();
       vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
-      for (long long int j = old_points->GetNumberOfPoints() - 1; j >= 0; j--)
+      for (long int j = static_cast<long int>(old_points->GetNumberOfPoints() - 1); j >= 0; j--)
       {
         new_points->InsertNextPoint(old_points->GetPoint(j));
       }
       rcd.raster_segments[i]->SetPoints(new_points);
-      Eigen::Vector3d temp = seg_start;
-      seg_start = seg_end;
-      seg_end = temp;
+      rcd.raster_segments[i]->GetPoint(0, seg_start.data());
     }
 
     // determine location of this segment in raster
     double seg_loc = (seg_start - raster_start).dot(raster_direction);
-    std::tuple<double, size_t> p(seg_loc, i);
+    std::pair<double, size_t> p(seg_loc, i);
     seg_order.push_back(p);
   }
-
   // sort the segments by location
-  seg_order.sort();
+  seg_order.sort(compare_ds_pair);
   RasterConstructData new_rcd;
-  for (std::tuple<double, size_t> p : seg_order)
+  for (std::pair<double, size_t> p : seg_order)
   {
     size_t seg_index = std::get<1>(p);
     new_rcd.raster_segments.push_back(rcd.raster_segments[seg_index]);
@@ -207,7 +210,9 @@ static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vt
     spline->Evaluate(u.data(), pt.data(), du);
 
     // check distance
-    if ((pt - pt_prev).norm() >= point_spacing)
+    if (1)
+    // TODO Figure out why this reduces the number of points by half and makes them twice the point spacing
+    //    if ((pt - pt_prev).norm() >= point_spacing)
     {
       new_points->InsertNextPoint(pt.data());
       pt_prev = pt;
@@ -610,7 +615,6 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
 
   // Calculate the start location
   Vector3d start_loc = center + (min_coeff * raster_dir);
-
   vtkSmartPointer<vtkAppendPolyData> raster_data = vtkSmartPointer<vtkAppendPolyData>::New();
   for (std::size_t i = 0; i < num_planes + 1; i++)
   {
@@ -643,7 +647,6 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
       raster_data->AddInputData(stripper->GetOutput(r));
     }
   }
-
   // build cell locator and kd_tree to recover normals later on
   kd_tree_ = vtkSmartPointer<vtkKdTreePointLocator>::New();
   kd_tree_->SetDataSet(mesh_data_);
@@ -718,7 +721,6 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
 
     // merging segments
     mergeRasterSegments(raster_lines->GetPoints(), config_.min_hole_size, raster_ids);
-
     // rectifying
     if (!rasters_data_vec.empty())
     {
@@ -775,9 +777,10 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   }
 
   // make sure every raster has its segments ordered and aligned correctly
+  Eigen::Vector3d raster_direction = getSegDir(rasters_data_vec[0].raster_segments[0]);
   for (RasterConstructData rcd : rasters_data_vec)
   {
-    rcd = alignRasterCD(rcd);
+    rcd = alignRasterCD(rcd, raster_direction);
   }
 
   // converting to poses msg
@@ -785,7 +788,7 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
 
   if (config_.generate_extra_rasters)
   {
-    rasters = addExtraPaths(rasters, config_.raster_spacing);
+    rasters = addExtraWaypoints(rasters, config_.raster_spacing, config_.point_spacing);
   }
 
   // switch directions of every other raster
