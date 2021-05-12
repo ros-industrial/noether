@@ -19,7 +19,7 @@
 #define DISPLAY_LINES 1
 #define DISPLAY_NORMALS 0
 #define DISPLAY_DERIVATIVES 1
-#define POINT_SPACING 1.0
+#define POINT_SPACING 0.5
 
 vtkSmartPointer<vtkPolyData> loadTempMesh()
 {
@@ -268,7 +268,7 @@ void runTestCaseRansac(tool_path_planner::PathGenerator& planner, vtkSmartPointe
 void runExtraRasterTest(tool_path_planner::PathGenerator& planner,
                         tool_path_planner::PathGenerator& planner_with_extras,
                         vtkSmartPointer<vtkPolyData> mesh,
-			double scale = 1.0)
+      double scale = 1.0)
 {
   // Set input mesh
   planner.setInput(mesh);
