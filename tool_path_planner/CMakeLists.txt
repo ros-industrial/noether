@@ -83,19 +83,10 @@ add_dependencies(${PROJECT_NAME}
   ${catkin_EXPORTED_TARGETS}
 )
 
-add_executable(test_segment_axes
-  src/test_segment_axes.cpp
-)
-target_link_libraries(test_segment_axes
-  ${catkin_LIBRARIES}
-  ${PROJECT_NAME}
-)
-
 #############
 ## Install ##
 #############
 install(TARGETS ${PROJECT_NAME}
-    test_segment_axes
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
