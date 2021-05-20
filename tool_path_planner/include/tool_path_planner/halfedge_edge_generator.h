@@ -67,8 +67,8 @@ public:
     /**@brief point distance parameter used in conjunction with the spacing method */
     double point_dist = 0.01;
 
-    /** @brief maximum segment length */
-    double max_segment_length = 1.0;
+    /** @brief flag indicating whether returned toolpaths should be split along the major and middle axis */
+    bool split_by_axes = true;
   };
 
   HalfedgeEdgeGenerator() = default;

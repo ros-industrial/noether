@@ -48,6 +48,7 @@ catkin_package(
     geometry_msgs
     noether_msgs
     rosconsole
+    roscpp
     shape_msgs
   DEPENDS
     EIGEN3

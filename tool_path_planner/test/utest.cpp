@@ -409,6 +409,208 @@ void runExtraRasterTest(tool_path_planner::PathGenerator& planner,
 #endif
 }
 
+void runSegmentByAxesTest(const tool_path_planner::ToolPathSegment& tool_path_segment,
+                          const Eigen::Vector3f& axis_1, const Eigen::Vector3f& axis_2)
+{
+  vtk_viewer::VTKViewer viz;
+  tool_path_planner::ToolPath tool_path = tool_path_planner::splitByAxes(tool_path_segment, axis_1, axis_2);
+  tool_path_planner::ToolPathData tool_path_data = tool_path_planner::toToolPathData(tool_path);
+  std::cerr << "n_points_in_data: " << tool_path_data[0].line->GetNumberOfPoints() << std::endl;
+  double scale = 1.0;
+
+  std::vector<std::vector<float>> colors = {
+    {1, 0, 0},
+    {0, 1, 0},
+    {0, 0, 1},
+    {1, 1, 0},
+  };
+
+  // Display surface normals
+  if (DISPLAY_NORMALS)
+  {
+    std::cerr << "Displayin'" << std::endl;
+    for (std::size_t i = 0; i < tool_path.size(); ++i)
+    {
+      viz.addPolyNormalsDisplay(tool_path_data[i].line, colors[i], scale);
+    }
+  }
+#ifdef NDEBUG
+  // release build stuff goes here
+  CONSOLE_BRIDGE_logError("noether/tool_path_planner test: visualization is only available in debug mode");
+#else
+  // Debug-specific code goes here
+  std::cerr << "We vizin'" << std::endl;
+  viz.renderDisplay();
+#endif
+}
+
+/**
+ * @brief Convert a list of points into a ToolPathSegment object
+ * @param points A vector of points
+ * @return A ToolPathSegment object generated from the points vector
+ */
+tool_path_planner::ToolPathSegment toSegment(std::vector<Eigen::Vector3d> points)
+{
+  tool_path_planner::ToolPathSegment tool_path_segment;
+  for (auto p : points)
+  {
+    Eigen::Isometry3d point;
+    point.translation().x() = p.x();
+    point.translation().y() = p.y();
+    point.translation().z() = p.z();
+    tool_path_segment.push_back(point);
+  }
+  return tool_path_segment;
+}
+
+/**
+ * @brief Generates a list of points forming a circle
+ * @param radius The radius of the generated circle
+ * @param angle_inc Increment degree for generated points around the circle
+ * @return Points of circle
+ */
+std::vector<Eigen::Vector3d> getCircle(
+    double radius = 1.0,
+    double angle_inc = DEG2RAD(5))
+{
+  std::vector<Eigen::Vector3d> points;
+
+  for (int i = 0; i < int(std::round(2 * M_PI / angle_inc)); ++i)
+  {
+    Eigen::Vector3d p;
+    double angle = i * angle_inc;
+    if (abs(angle - DEG2RAD(0.0)) < 0.001)
+    {
+      p.x() = radius;
+      p.y() = 0;
+    }
+    else if (abs(angle - DEG2RAD(90.0)) < 0.001)
+    {
+      p.x() = 0;
+      p.y() = radius;
+    }
+    else if (abs(angle - DEG2RAD(180.0)) < 0.001)
+    {
+      p.x() = -radius;
+      p.y() = 0;
+    }
+    else if (abs(angle - DEG2RAD(270.0)) < 0.001)
+    {
+      p.x() = 0;
+      p.y() = -radius;
+    }
+    else
+    {
+      double theta = angle;
+      int y_sign = 1;
+      int x_sign = 1;
+      if (DEG2RAD(90.0) < angle < DEG2RAD(180.0))
+      {
+        theta = DEG2RAD(180.0) - angle;
+        x_sign = -1;
+      }
+      else if (DEG2RAD(180.0) < angle < DEG2RAD(270.0))
+      {
+        theta = angle - DEG2RAD(180.0);
+        y_sign = -1;
+        x_sign = -1;
+      }
+      else if (DEG2RAD(270.0) < angle < DEG2RAD(360.0))
+      {
+        theta = DEG2RAD(360.0) - angle;
+        y_sign = -1;
+      }
+      p.x() = x_sign * radius * cos(theta);
+      p.y() = y_sign * radius * sin(theta);
+    }
+    points.push_back(p);
+  }
+  return points;
+}
+
+/**
+ * @brief Generates a list of points forming a polygon (from the provided vertices)
+ * @param vertices A list of vertices defining a polygon. Last point does NOT need to
+ * be equal to first points (the algorithm interpolated between last and first point
+ * automatically)
+ * @param inc Increment length for interpolated points
+ * @return Points of polygon
+ */
+std::vector<Eigen::Vector3d> getPolygon(
+    std::vector<Eigen::Vector3d> vertices,
+    double inc = 0.05)
+{
+  std::vector<Eigen::Vector3d> points;
+  for (std::size_t point_index = 0; point_index < vertices.size(); ++point_index)
+  {
+    double x1 = vertices[point_index].x();
+    double y1 = vertices[point_index].y();
+    double z1 = vertices[point_index].z();
+    double x2 = vertices[(point_index+1)%vertices.size()].x();
+    double y2 = vertices[(point_index+1)%vertices.size()].y();
+    double z2 = vertices[(point_index+1)%vertices.size()].z();
+    double dist = std::sqrt(std::pow(x1 - x2, 2) + std::pow(y1 - y2, 2) + std::pow(z1 - z2, 2));
+    int n = int(std::round(dist / inc));
+    double x_inc = (x2 - x1)/n;
+    double y_inc = (y2 - y1)/n;
+    double z_inc = (z2 - z1)/n;
+    for (int i = 0; i < n; ++i)
+    {
+      Eigen::Vector3d point(
+        x1 + (i * x_inc),
+        y1 + (i * y_inc),
+        z1 + (i * z_inc)
+      );
+      points.push_back(point);
+    }
+  }
+  return points;
+}
+
+/**
+ * @brief Generates a list of points forming a rectangle
+ * @param length Length of rectangle
+ * @param width Width of rectangle
+ * @return Points of rectangle
+ */
+std::vector<Eigen::Vector3d> getRectangle(
+    double length=1.0,
+    double width=2.0,
+    double inc=0.05)
+{
+  return getPolygon(
+    {
+      Eigen::Vector3d(-length/2, -width/2, 0),
+      Eigen::Vector3d(-length/2,  width/2, 0),
+      Eigen::Vector3d( length/2,  width/2, 0),
+      Eigen::Vector3d( length/2, -width/2, 0)
+    },
+    inc
+  );
+}
+
+/**
+ * @brief project points to plane along z-axis
+ * @param points_in Points to project
+ * @param plane_coeff Coefficients of homogeneous plane equation: <A, B, C> for 0 = Ax + By + Cz
+ * @return Projected points
+ */
+std::vector<Eigen::Vector3d> projectZToPlane(
+    std::vector<Eigen::Vector3d> points_in,
+    Eigen::Vector3d plane_coeff)
+{
+  std::vector<Eigen::Vector3d> points_out;
+  for (auto p : points_in)
+  {
+    double x = plane_coeff.x();
+    double y = plane_coeff.y();
+    // Project z value onto plane  -->  z = (-Ax - By) / C
+    p.z() = (-1*x*p.x() + -1*y*p.y())/p.z();
+    points_out.push_back(p);
+  }
+  return points_out;
+}
+
 TEST(IntersectTest, SurfaceWalkRasterRotationTest)
 {
   vtkSmartPointer<vtkPolyData> mesh = createTestMesh1();
@@ -626,6 +828,17 @@ TEST(IntersectTest, SurfaceWalkExtraRasterTest)
   planner_with_extra.setConfiguration(tool);
 
   runExtraRasterTest(planner, planner_with_extra, mesh);
+}
+
+TEST(ProvidedAxes1Test, SegmentByAxesTest)
+{
+  std::vector<Eigen::Vector3d> points = getCircle(1.0, DEG2RAD(1.0));
+  std::cerr << "n_points: " << points.size() << std::endl;
+  points = projectZToPlane(points, Eigen::Vector3d(1, 1, 1));
+  tool_path_planner::ToolPathSegment tool_path_segment = toSegment(points);
+  std::cerr << "n_points_in_seg: " << tool_path_segment.size() << std::endl;
+
+  runSegmentByAxesTest(tool_path_segment, Eigen::Vector3f(1.0, 1.0, 0), Eigen::Vector3f(0, 1.0, 1.0));
 }
 
 TEST(PlaneSlicerTest, PlaneSlicerExtraWaypointTest)

@@ -10,6 +10,7 @@
   <build_depend>cmake_modules</build_depend>
   <build_depend>roslib</build_depend>
 
+  <depend>roscpp</depend>
   <depend>eigen_conversions</depend>
   <depend>eigen_stl_containers</depend>
   <depend>noether_conversions</depend>

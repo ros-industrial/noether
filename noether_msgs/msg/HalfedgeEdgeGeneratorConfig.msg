@@ -21,5 +21,5 @@ int32 point_spacing_method
 # Point distance parameter used in conjunction with the spacing method
 float64 point_dist
 
-# maximum segment length
-float64 max_segment_length
+# flag to break edge paths by diagonal axes
+bool split_by_axes

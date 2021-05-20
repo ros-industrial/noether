@@ -100,7 +100,7 @@ public:
     double merge_dist =
         0.01; /** @brief any two consecutive points with a shortest distance smaller than this value are merged */
 
-    double max_segment_length = 1.0; /** @brief maximum segment length */
+    bool split_by_axes = true; /** @brief flag indicating whether returned toolpaths should be split along the major and middle axis */
   };
 
   EigenValueEdgeGenerator() = default;

@@ -53,10 +53,24 @@ void flipPointOrder(ToolPath& path);
 
 /**
  * @brief conversion function. Not well tested yet
- * @param paths The toolpaths within a raster
- * @return A vector of tool path data
+ * @param tool_path_segment A vector of Eigen::Isometry objects describing a segment of tool path poses
+ * @return A structure of vtk objects describing a segment of tool path poses
  */
-ToolPathsData toToolPathsData(const ToolPaths& paths);
+ToolPathSegmentData toToolPathSegmentData(const ToolPathSegment& tool_path_segment);
+
+/**
+ * @brief conversion function. Not well tested yet
+ * @param tool_path A vector of ToolPathSegment objects
+ * @return A vector of ToolPathSegementData obects
+ */
+ToolPathData toToolPathData(const ToolPath& tool_path);
+
+/**
+ * @brief conversion function. Not well tested yet
+ * @param tool_paths A vector of ToolPath objects
+ * @return A vector of ToolPathData objects
+ */
+ToolPathsData toToolPathsData(const ToolPaths& tool_paths);
 
 /**
  * @details creates a rotation matrix from the column vectors; it can then be assigned to a Isometry3d pose
@@ -130,6 +144,12 @@ ToolPaths addExtraWaypoints(const ToolPaths& tool_paths, double raster_spacing, 
 ToolPaths reverseOddRasters(const ToolPaths& tool_paths, RasterStyle raster_style);
 
 double computeOffsetSign(const ToolPathSegment& adjusted_segment, const ToolPathSegment& away_from_segment);
+
+ToolPath splitByAxes(const ToolPathSegment& tool_path_segment);
+ToolPath splitByAxes(const ToolPathSegment& tool_path_segment, const Eigen::Vector3f& axis_1, const Eigen::Vector3f& axis_2);
+ToolPaths splitByAxes(const ToolPaths& tool_paths);
+ToolPaths splitByAxes(const ToolPaths& tool_paths, const Eigen::Vector3f& axis_1, const Eigen::Vector3f& axis_2);
+
 }  // namespace tool_path_planner
 
 #endif /* INCLUDE_TOOL_PATH_PLANNER_UTILITIES_H_ */

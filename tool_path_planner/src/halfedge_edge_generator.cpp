@@ -580,9 +580,9 @@ boost::optional<ToolPaths> HalfedgeEdgeGenerator::generate()
     return boost::none;
   }
 
-  if (config_.max_segment_length > 0)
+  if (config_.split_by_axes)
   {
-    edge_paths = tool_path_planner::splitSegments(edge_paths, config_.max_segment_length);
+    edge_paths = tool_path_planner::splitByAxes(edge_paths);
   }
 
   CONSOLE_BRIDGE_logInform("Found %lu valid edge segments", edge_paths.size());

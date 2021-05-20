@@ -28,5 +28,5 @@ int32 max_intersecting_voxels
 # Any two consecutive points with a shortest distance smaller than this value are merged
 float64 merge_dist
 
-# maximum segment length
-float64 max_segment_length
+# flag to break edge paths by diagonal axes
+bool split_by_axes
