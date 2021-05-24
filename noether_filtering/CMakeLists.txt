@@ -26,7 +26,7 @@ find_package(pluginlib REQUIRED)
 find_package(xmlrpcpp REQUIRED)
 
 # Check if PCL was compiled with OpenNURBS
-if(NOT DEFINED NURBS_FOUND)
+if(NOT DEFINED NURBS_FOUND AND ${CMAKE_VERSION} VERSION_GREATER 3.15)
     try_compile(
         NURBS_FOUND
         ${CMAKE_CURRENT_BINARY_DIR}/pcl_nurbs_try_compile
