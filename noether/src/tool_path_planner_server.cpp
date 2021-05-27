@@ -144,7 +144,6 @@ protected:
 
       if (tool_paths.is_initialized())
       {
-        noether_msgs::ToolPaths trp;
         for (const auto& tool_path : tool_paths.get())
         {
           noether_msgs::ToolPath tp;
@@ -159,7 +158,7 @@ protected:
             }
             tp.segments.push_back(seg);
           }
-          trp.paths.push_back(tp);
+	  result.tool_paths[i].paths.push_back(tp);
         }
 
         result.tool_path_validities[i] = true;
