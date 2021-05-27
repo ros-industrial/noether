@@ -752,10 +752,9 @@ ToolPath sortAndSegment(std::list<std::tuple<double, Eigen::Isometry3d, int> >& 
       last_wp = waypoint;
       last_dot = std::get<0>(waypoint_tuple);
     }
-    // only add extra if dot spacing is large
-    else if (dot_spacing > 1.3 * point_spacing && cart_spacing > 1.3 * point_spacing)
-    {
-      // start a new segment
+    else if (dot_spacing > 1.3 * point_spacing && cart_spacing > 1.3 * point_spacing)  // only add extra if dot spacing
+                                                                                       // is large
+    {                                                                                  // start a new segment
       if (seg.size() > 3)
       {
         new_tool_path.push_back(seg);  // throw away very short segments

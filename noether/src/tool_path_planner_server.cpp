@@ -158,7 +158,7 @@ protected:
             }
             tp.segments.push_back(seg);
           }
-	  result.tool_paths[i].paths.push_back(tp);
+          result.tool_paths[i].paths.push_back(tp);
         }
 
         result.tool_path_validities[i] = true;

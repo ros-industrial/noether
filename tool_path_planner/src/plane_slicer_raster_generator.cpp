@@ -401,12 +401,12 @@ static tool_path_planner::ToolPaths convertToPoses(const std::vector<RasterConst
 {
   using namespace Eigen;
   tool_path_planner::ToolPaths rasters_array;
-  for (const RasterConstructData& rd : rasters_data) // for every raster
+  for (const RasterConstructData& rd : rasters_data)  // for every raster
   {
     tool_path_planner::ToolPath raster_path;
     std::vector<PolyDataPtr> raster_segments;
     raster_segments.assign(rd.raster_segments.begin(), rd.raster_segments.end());
-    for (const PolyDataPtr& polydata : raster_segments) // for every segment
+    for (const PolyDataPtr& polydata : raster_segments)  // for every segment
     {
       tool_path_planner::ToolPathSegment raster_path_segment;
       std::size_t num_points = polydata->GetNumberOfPoints();
@@ -418,7 +418,7 @@ static tool_path_planner::ToolPaths convertToPoses(const std::vector<RasterConst
       // its normal uses the mesh normal
       // its x axis points toward next waypoint
       // its y is z cross x
-      for (std::size_t i = 0; i < indices.size() - 1; i++) 
+      for (std::size_t i = 0; i < indices.size() - 1; i++)
       {
         int idx = indices[i];
         int idx_next = indices[i + 1];
@@ -430,16 +430,16 @@ static tool_path_planner::ToolPaths convertToPoses(const std::vector<RasterConst
         vz = vx.cross(vy).normalized();
         pose = Translation3d(p) * AngleAxisd(computeRotation(vx, vy, vz));
         raster_path_segment.push_back(pose);
-      } // end for every waypoint
+      }  // end for every waypoint
 
       // adding last pose
       pose.translation() = p_next;  // orientation stays the same as previous
       raster_path_segment.push_back(pose);
 
       raster_path.push_back(raster_path_segment);
-    } // end for every segment
+    }  // end for every segment
     rasters_array.push_back(raster_path);
-  } // end for every raster
+  }  // end for every raster
 
   return rasters_array;
 }
