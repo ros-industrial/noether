@@ -21,10 +21,6 @@ find_package(vtk_viewer REQUIRED)
 
 find_package(tool_path_planner REQUIRED)
 
-include_directories(
-include
-)
-
 add_library(simple_path_sequence_planner
   src/simple_path_sequence_planner.cpp
 )
@@ -32,6 +28,10 @@ target_link_libraries(simple_path_sequence_planner
   ${VTK_LIBRARIES}
   noether::tool_path_planner
   noether::vtk_viewer
+)
+target_include_directories(simple_path_sequence_planner PUBLIC
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:include>"
 )
 target_cxx_version(simple_path_sequence_planner PUBLIC VERSION 14)
 set_target_properties(simple_path_sequence_planner PROPERTIES NO_SYSTEM_FROM_IMPORTED 1)
@@ -43,9 +43,7 @@ list(APPEND PACKAGE_LIBRARIES simple_path_sequence_planner)
 
 configure_package(NAMESPACE noether TARGETS ${PACKAGE_LIBRARIES})
 
-
 install(DIRECTORY include/${PROJECT_NAME} DESTINATION include)
-
 
 #############
 ## Testing ##

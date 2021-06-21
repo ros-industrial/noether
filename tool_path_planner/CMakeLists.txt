@@ -6,7 +6,6 @@ extract_package_metadata(pkg)
 project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES CXX)
 
 find_package(cmake_modules REQUIRED)
-
 find_package(jsoncpp REQUIRED)
 find_package(vtk_viewer REQUIRED)
 
@@ -27,11 +26,6 @@ else()
 endif()
 find_package(Eigen3 REQUIRED)
 
-include_directories(
-  include
-  ${PCL_INCLUDE_DIRS}
-)
-
 add_library(${PROJECT_NAME} SHARED
   src/surface_walk_raster_generator.cpp
   src/plane_slicer_raster_generator.cpp
@@ -43,7 +37,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
     ${PCL_LIBRARIES}
     ${VTK_LIBRARIES}
     noether::vtk_viewer
-    #jsoncpp_lib
+    ${jsoncpp_LIBRARIES}
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
