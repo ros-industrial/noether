@@ -43,8 +43,6 @@ catkin_package(
     geometry_msgs
     noether_msgs
   DEPENDS
-    tool_path_planner
-    EIGEN3
     VTK
     PCL
 )
@@ -62,6 +60,8 @@ target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
   ${VTK_LIBRARIES}
   ${PCL_LIBRARIES}
+  #The followng line errors w/ a problem linking to VTK viewer
+#  noether::tool_path_planner
 )
 
 #############

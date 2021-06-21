@@ -50,13 +50,12 @@ catkin_package(
     pcl_conversions
     roscpp
   DEPENDS
-    mesh_segmenter
-    path_sequence_planner
     PCL
-    tool_path_planner
     VTK
-    vtk_viewer
+  CFG_EXTRAS
+  ${PROJECT_NAME}-extras.cmake
 )
+
 
 include_directories(${catkin_INCLUDE_DIRS})
 

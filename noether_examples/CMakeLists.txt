@@ -47,12 +47,10 @@ catkin_package(
     roscpp
     roslib
   DEPENDS
-    mesh_segmenter
-    path_sequence_planner
     PCL
-    tool_path_planner
     VTK
-    vtk_viewer
+  CFG_EXTRAS
+    ${PROJECT_NAME}-extras.cmake
 )
 
 include_directories(

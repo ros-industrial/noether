@@ -1,0 +1,1 @@
+find_package(tool_path_planner REQUIRED)
