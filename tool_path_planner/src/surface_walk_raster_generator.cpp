@@ -159,27 +159,6 @@ Eigen::Quaterniond average(const std::vector<Eigen::Quaterniond, Eigen::aligned_
   return avg_quat;
 }
 
-// Helpers to go from pose arrays to Eigen vectors of Poses
-//tool_path_planner::vector_Affine3d toEigen(const geometry_msgs::PoseArray& p)
-//{
-//  tool_path_planner::vector_Affine3d rs(p.poses.size());
-//  std::transform(p.poses.begin(), p.poses.end(), rs.begin(), [](const geometry_msgs::Pose& pose) {
-//    Eigen::Affine3d e;
-//    tf::poseMsgToEigen(pose, e);
-//    return e;
-//  });
-//  return rs;
-//}
-
-// Helpers to go from pose arrays to Eigen vectors of Poses
-//std::vector<tool_path_planner::vector_Affine3d> toEigen(const std::vector<geometry_msgs::PoseArray>& ps)
-//{
-//  std::vector<tool_path_planner::vector_Affine3d> rs(ps.size());
-//  std::transform(
-//      ps.begin(), ps.end(), rs.begin(), [](const geometry_msgs::PoseArray& poses) { return toEigen(poses); });
-//  return rs;
-//}
-
 // Gets the average quaternion rotation of a set of poses
 Eigen::Quaterniond averageQuaternion(const tool_path_planner::vector_Affine3d& poses)
 {
