@@ -417,6 +417,51 @@ TEST(IntersectTest, SurfaceWalkExtraRasterTest)
   runExtraRasterTest(planner, planner_with_extra, mesh);
 }
 
+TEST(ToolPathPlanner, PCAPrecisionCheck)
+{
+  // There is some concern that principal component analysis breaks down for floating point numbers vs doubles.
+  // This test performs PCA with floats and doubles and compares the results for a random cloud of uniform size that
+  // gets scaled both exponentially larger and smaller
+
+  auto cloud = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+  cloud->resize(1000);
+  // Fill the cloud with random numbers on [-1, 1]
+  cloud->getMatrixXfMap(3, 4, 0) = Eigen::Matrix3Xf::Random(3, 1000);
+
+  int max_exponent = 6;
+  std::vector<int> exponents(static_cast<std::size_t>(2 * max_exponent + 1));
+  std::iota(exponents.begin(), exponents.end(), -max_exponent);
+  for (int exponent : exponents)
+  {
+    float scale = std::pow(10.0f, static_cast<float>(exponent));
+
+    auto scaled_cloud = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+    scaled_cloud->resize(cloud->size());
+    scaled_cloud->getMatrixXfMap(3, 4, 0) = cloud->getMatrixXfMap(3, 4, 0) * scale;
+
+    // Perform PCA manually using doubles
+    const Eigen::MatrixXd points = scaled_cloud->getMatrixXfMap(3, 4, 0).cast<double>();
+    Eigen::MatrixXd centered = points.colwise() - points.rowwise().mean();
+    Eigen::MatrixXd cov = centered * centered.transpose();
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eig(cov);
+    Eigen::Matrix3d eigenvectors_eig = eig.eigenvectors().rowwise().reverse();
+
+    // Perform PCA with PCL using floats
+    pcl::PCA<pcl::PointXYZ> pca;
+    pca.setInputCloud(scaled_cloud);
+    Eigen::Matrix3f eigenvectors = pca.getEigenVectors();
+
+    // Eigen PCA doesn't always generate the vectors in the same direction as PCL PCA, so only compare absolute values
+    Eigen::Array33d diff = eigenvectors_eig.array().abs() - eigenvectors.cast<double>().array().abs();
+    double rmse = std::sqrt(diff.square().mean());
+    EXPECT_TRUE(eigenvectors_eig.array().abs().isApprox(eigenvectors.cast<double>().array().abs(), 1.0e-5));
+    EXPECT_LT(rmse, 1.0e-5);
+
+    std::cout << "Scale: " << scale << std::endl;
+    std::cout << "Eigenvectors RMSE: " << rmse << std::endl;
+  }
+}
+
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
