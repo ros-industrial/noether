@@ -1,19 +1,20 @@
-
 /*
  * Copyright (c) 2016, Southwest Research Institute
  * All rights reserved.
  *
  */
-
-#include <gtest/gtest.h>
-#include <vtk_viewer/vtk_utils.h>
-#include <vtk_viewer/vtk_viewer.h>
-#include <vtkIdTypeArray.h>
 #include <tool_path_planner/surface_walk_raster_generator.h>
 #include <tool_path_planner/plane_slicer_raster_generator.h>
 #include <tool_path_planner/eigen_value_edge_generator.h>
 #include <tool_path_planner/halfedge_edge_generator.h>
 #include <tool_path_planner/utilities.h>
+
+#include <gtest/gtest.h>
+#include <numeric>
+#include <pcl/common/pca.h>
+#include <vtk_viewer/vtk_utils.h>
+#include <vtk_viewer/vtk_viewer.h>
+#include <vtkIdTypeArray.h>
 
 #define DISPLAY_LINES 1
 #define DISPLAY_NORMALS 0
@@ -67,131 +68,7 @@ vtkSmartPointer<vtkPolyData> createTestMesh2(double sample_spacing = 0.5)
   return data2;
 }
 
-void runRasterRotationTest(tool_path_planner::PathGenerator& planner, vtkSmartPointer<vtkPolyData> mesh)
-{
-  // Set input mesh
-  planner.setInput(mesh);
-
-  vtk_viewer::VTKViewer viz;
-  std::vector<float> color(3);
-
-  double scale = 1.0;
-
-  // Display mesh results
-  color[0] = 0.9f;
-  color[1] = 0.9f;
-  color[2] = 0.9f;
-  viz.addPolyDataDisplay(mesh, color);
-
-  // Display surface normals
-  if (DISPLAY_NORMALS)
-  {
-    color[0] = 0.9f;
-    color[1] = 0.1f;
-    color[2] = 0.1f;
-    vtkSmartPointer<vtkPolyData> normals_data = vtkSmartPointer<vtkPolyData>::New();
-    normals_data = planner.getInput();
-    viz.addPolyNormalsDisplay(normals_data, color, scale);
-  }
-
-  // Plan paths for given mesh
-  boost::optional<tool_path_planner::ToolPaths> paths = planner.generate();
-  ASSERT_TRUE(paths);
-  tool_path_planner::ToolPathsData paths_data = tool_path_planner::toToolPathsData(paths.get());
-  for (std::size_t i = 0; i < paths_data.size(); ++i)
-  {
-    for (std::size_t j = 0; j < paths_data[i].size(); ++j)
-    {
-      if (DISPLAY_LINES)  // display line
-      {
-        color[0] = 0.2f;
-        color[1] = 0.9f;
-        color[2] = 0.2f;
-        viz.addPolyNormalsDisplay(paths_data[i][j].line, color, scale);
-      }
-
-      if (DISPLAY_DERIVATIVES)  // display derivatives
-      {
-        color[0] = 0.9f;
-        color[1] = 0.9f;
-        color[2] = 0.2f;
-        viz.addPolyNormalsDisplay(paths_data[i][j].derivatives, color, scale);
-      }
-    }
-  }
-
-#ifdef NDEBUG
-  // release build stuff goes here
-  CONSOLE_BRIDGE_logError("noether/tool_path_planner test: visualization is only available in debug mode");
-#else
-  // Debug-specific code goes here
-  viz.renderDisplay();
-#endif
-}
-
-void runTestCase1(tool_path_planner::PathGenerator& planner, vtkSmartPointer<vtkPolyData> mesh)
-{
-  // Set input mesh
-  planner.setInput(mesh);
-
-  vtk_viewer::VTKViewer viz;
-  std::vector<float> color(3);
-
-  double scale = 1.0;
-
-  // Display mesh results
-  color[0] = 0.9f;
-  color[1] = 0.9f;
-  color[2] = 0.9f;
-  viz.addPolyDataDisplay(mesh, color);
-
-  // Display surface normals
-  if (DISPLAY_NORMALS)
-  {
-    color[0] = 0.9f;
-    color[1] = 0.1f;
-    color[2] = 0.1f;
-    vtkSmartPointer<vtkPolyData> normals_data = vtkSmartPointer<vtkPolyData>::New();
-    normals_data = planner.getInput();
-    viz.addPolyNormalsDisplay(normals_data, color, scale);
-  }
-
-  // Plan paths for given mesh
-  boost::optional<tool_path_planner::ToolPaths> paths = planner.generate();
-  ASSERT_TRUE(paths);
-  tool_path_planner::ToolPathsData paths_data = tool_path_planner::toToolPathsData(paths.get());
-  for (std::size_t i = 0; i < paths_data.size(); ++i)
-  {
-    for (std::size_t j = 0; j < paths_data[i].size(); ++j)
-    {
-      if (DISPLAY_LINES)  // display line
-      {
-        color[0] = 0.2f;
-        color[1] = 0.9f;
-        color[2] = 0.2f;
-        viz.addPolyNormalsDisplay(paths_data[i][j].line, color, scale);
-      }
-
-      if (DISPLAY_DERIVATIVES)  // display derivatives
-      {
-        color[0] = 0.9f;
-        color[1] = 0.9f;
-        color[2] = 0.2f;
-        viz.addPolyNormalsDisplay(paths_data[i][j].derivatives, color, scale);
-      }
-    }
-  }
-
-#ifdef NDEBUG
-  // release build stuff goes here
-  CONSOLE_BRIDGE_logError("noether/tool_path_planner test: visualization is only available in debug mode");
-#else
-  // Debug-specific code goes here
-  viz.renderDisplay();
-#endif
-}
-
-void runTestCaseRansac(tool_path_planner::PathGenerator& planner, vtkSmartPointer<vtkPolyData> mesh)
+void runTest(tool_path_planner::PathGenerator& planner, vtkSmartPointer<vtkPolyData> mesh)
 {
   // Set input mesh
   planner.setInput(mesh);
@@ -372,7 +249,7 @@ TEST(IntersectTest, SurfaceWalkRasterRotationTest)
     tool.raster_rot_offset = direction;
     tool.debug = false;
     planner.setConfiguration(tool);
-    runRasterRotationTest(planner, mesh);
+    runTest(planner, mesh);
   }
 }
 
@@ -394,7 +271,7 @@ TEST(IntersectTest, PlaneSlicerRasterRotationTest)
     tool.raster_rot_offset = direction;
     //    tool.debug = false;
     planner.setConfiguration(tool);
-    runRasterRotationTest(planner, mesh);
+    runTest(planner, mesh);
   }
 }
 
@@ -406,7 +283,7 @@ TEST(IntersectTest, HalfedgeEdgeGeneratorTestCase0)
   config.min_num_points = 20;
   config.point_dist = 0.1;
   planner.setConfiguration(config);
-  runRasterRotationTest(planner, mesh);
+  runTest(planner, mesh);
 }
 
 TEST(IntersectTest, EigenValueEdgeGeneratorTestCase0)
@@ -418,7 +295,7 @@ TEST(IntersectTest, EigenValueEdgeGeneratorTestCase0)
   config.search_radius = 0.5;
   config.neighbor_tol = 0.9;
   planner.setConfiguration(config);
-  runRasterRotationTest(planner, mesh);
+  runTest(planner, mesh);
 }
 
 // This test shows the results of the tool path planner on a square grid that has a sinusoidal
@@ -441,8 +318,7 @@ TEST(IntersectTest, SurfaceWalkTestCase1)
   tool.min_hole_size = 0.1;
   tool.debug = false;
   planner.setConfiguration(tool);
-
-  runTestCase1(planner, mesh);
+  runTest(planner, mesh);
 }
 
 TEST(IntersectTest, PlaneSlicerTestCase1)
@@ -459,7 +335,7 @@ TEST(IntersectTest, PlaneSlicerTestCase1)
   //  tool.debug = false;
   planner.setConfiguration(tool);
 
-  runTestCase1(planner, mesh);
+  runTest(planner, mesh);
 }
 
 TEST(IntersectTest, SurfaceWalkTestCaseRansac)
@@ -476,7 +352,7 @@ TEST(IntersectTest, SurfaceWalkTestCaseRansac)
   tool.min_hole_size = 0.1;
   tool.debug = false;
   planner.setConfiguration(tool);
-  runTestCaseRansac(planner, mesh);
+  runTest(planner, mesh);
 }
 
 TEST(IntersectTest, PlaneSlicerTestCaseRansac)
@@ -492,7 +368,7 @@ TEST(IntersectTest, PlaneSlicerTestCaseRansac)
   tool.min_hole_size = 0.1;
   //  tool.debug = false;
   planner.setConfiguration(tool);
-  runTestCaseRansac(planner, mesh);
+  runTest(planner, mesh);
 }
 
 TEST(IntersectTest, HalfedgeEdgeGeneratorTestRansac)
@@ -503,7 +379,7 @@ TEST(IntersectTest, HalfedgeEdgeGeneratorTestRansac)
   config.min_num_points = 20;
   config.point_dist = 0.1;
   planner.setConfiguration(config);
-  runTestCase1(planner, mesh);
+  runTest(planner, mesh);
 }
 
 TEST(IntersectTest, EigenValueEdgeGeneratorTestRansac)
@@ -512,7 +388,7 @@ TEST(IntersectTest, EigenValueEdgeGeneratorTestRansac)
   tool_path_planner::EigenValueEdgeGenerator planner;
   //  tool_path_planner::PlaneSlicerRasterGenerator::Config tool;
   //  planner.setConfiguration(tool);
-  runTestCase1(planner, mesh);
+  runTest(planner, mesh);
 }
 
 TEST(IntersectTest, SurfaceWalkExtraRasterTest)
