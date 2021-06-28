@@ -43,6 +43,9 @@
 #include <tool_path_planner/plane_slicer_raster_generator.h>
 #include <noether_msgs/PlaneSlicerRasterGeneratorConfig.h>
 
+#include <noether_msgs/ToolPaths.h>
+#include <noether_msgs/ToolPath.h>
+
 namespace tool_path_planner
 {
 /**
@@ -149,6 +152,13 @@ ToolPath splitByAxes(const ToolPathSegment& tool_path_segment);
 ToolPath splitByAxes(const ToolPathSegment& tool_path_segment, const Eigen::Vector3f& axis_1, const Eigen::Vector3f& axis_2);
 ToolPaths splitByAxes(const ToolPaths& tool_paths);
 ToolPaths splitByAxes(const ToolPaths& tool_paths, const Eigen::Vector3f& axis_1, const Eigen::Vector3f& axis_2);
+
+/**
+ * @brief Appends an interleaved set tool_paths to the provided tool_paths
+ * @param tool_paths The input trajectory to interleave
+ * @param raster_spacing
+ */
+void InterleavePoseTraj(noether_msgs::ToolPaths& tool_paths, double raster_spacing);
 
 }  // namespace tool_path_planner
 

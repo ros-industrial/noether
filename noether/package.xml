@@ -20,5 +20,5 @@
   <depend>actionlib</depend>
   <depend>noether_conversions</depend>
   <depend>noether_filtering</depend>
-
+  <depend>smooth_pose_traj</depend>
 </package>
