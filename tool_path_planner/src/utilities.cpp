@@ -193,8 +193,8 @@ bool toPlaneSlicerConfigMsg(noether_msgs::PlaneSlicerRasterGeneratorConfig& conf
   config_msg.min_hole_size = config.min_hole_size;
   config_msg.min_segment_size = config.min_segment_size;
   config_msg.raster_rot_offset = config.raster_rot_offset;
-  config_msg.raster_wrt_global_axes = config.raster_wrt_global_axes;
-
+  config_msg.search_radius = config.search_radius;
+  config_msg.raster_wrt_global_axes = config.raster_wrt_global_axes; 
   config_msg.raster_direction.x = config.raster_direction.x();
   config_msg.raster_direction.y = config.raster_direction.y();
   config_msg.raster_direction.z = config.raster_direction.z();
@@ -241,7 +241,6 @@ bool toSurfaceWalkConfig(SurfaceWalkRasterGenerator::Config& config,
   config.min_segment_size = config_msg.min_segment_size;
   config.raster_rot_offset = config_msg.raster_rot_offset;
   config.generate_extra_rasters = config_msg.generate_extra_rasters;
-
   config.cut_direction[0] = config_msg.cut_direction.x;
   config.cut_direction[1] = config_msg.cut_direction.y;
   config.cut_direction[2] = config_msg.cut_direction.z;
@@ -257,6 +256,7 @@ bool toPlaneSlicerConfig(PlaneSlicerRasterGenerator::Config& config,
   config.min_hole_size = config_msg.min_hole_size;
   config.min_segment_size = config_msg.min_segment_size;
   config.raster_rot_offset = config_msg.raster_rot_offset;
+  config.search_radius = config_msg.search_radius;
   config.raster_wrt_global_axes = config_msg.raster_wrt_global_axes;
 
   // Check that the raster direction was set; we are not interested in direction [0,0,0]
