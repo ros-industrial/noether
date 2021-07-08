@@ -9,13 +9,13 @@
       raster_rot_offset: 0.0
       min_hole_size: 0.02
       min_segment_size: 0.01
-      intersection_plane_height: 0.0
+      intersection_plane_height: 0.05
       tool_offset: 0.0
-      generate_extra_rasters: false
-      cut_direction_x: 0.0
-      cut_direction_y: 0.0
+      generate_extra_rasters: False
+      cut_direction_x: -1.0
+      cut_direction_y: 1.0
       cut_direction_z: 0.0
-      debug: false
+      debug: False
     </rosparam>
   </node>
   <include file="$(find noether)/launch/tool_path_planner_server.launch"/>

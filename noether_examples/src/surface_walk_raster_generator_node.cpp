@@ -72,8 +72,10 @@ public:
             config.intersection_plane_height = static_cast<double>(cfg[field_names[idx++]]);
             config.tool_offset = static_cast<double>(cfg[field_names[idx++]]);
             config.generate_extra_rasters = static_cast<bool>(cfg[field_names[idx++]]);
-            config.cut_direction = static_cast<double[3]>(cfg[field_names[idx++]], cfg[field_names[idx++]],
-                                                          cfg[field_names[idx++]]);
+            for(int i=0; i < 3; i++)
+            {
+                config.cut_direction[i] = static_cast<double>(cfg[field_names[idx++]]);
+            }
             config.debug = static_cast<bool>(cfg[field_names[idx++]]);
         }
         catch (XmlRpc::XmlRpcException& e)
@@ -191,7 +193,7 @@ private:
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "surface_walk_example");
+    ros::init(argc, argv, "surface_walk_example_node");
     console_bridge::setLogLevel(console_bridge::LogLevel::CONSOLE_BRIDGE_LOG_DEBUG);
     ros::NodeHandle nh;
     ros::AsyncSpinner spinner(2);
