@@ -18,5 +18,6 @@
       debug: False
     </rosparam>
   </node>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find noether_examples)/config/tool_path_server_examples.rviz"/>
   <include file="$(find noether)/launch/tool_path_planner_server.launch"/>
 </launch>
