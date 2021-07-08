@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="mesh_file" default="$(find noether_examples)/data/raw_mesh.ply"/>
+  <node launch-prefix="" name="surface_walk_generator_node" pkg="noether_examples" type="surface_walk_example_node" output="screen">
+    <param name="mesh_file" value="$(arg mesh_file)"/>
+    <rosparam ns="surface_walk_rastering">
+      raster_spacing: 0.05
+      point_spacing: 0.02
+      raster_rot_offset: 0.0
+      min_hole_size: 0.02
+      min_segment_size: 0.01
+      search_radius: 0.02
+      intersection_plane_height: TODO
+      tool_offset: TODO
+      generate_extra_rasters: TODO
+      cut_direction_x: TODO
+      cut_direction_y: TODO
+      cut_direction_z: TODO
+      debug: TODO
+    </rosparam>
+  </node>
+  <include file="$(find noether)/launch/tool_path_planner_server.launch"/>
+</launch>
