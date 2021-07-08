@@ -85,6 +85,10 @@ add_executable(plane_slicer_example_node  src/plane_slicer_raster_generator_node
 target_link_libraries(plane_slicer_example_node ${catkin_LIBRARIES} noether::vtk_viewer)
 list (APPEND PACKAGE_TARGETS plane_slicer_example_node)
 
+add_executable(surface_walk_example_node src/surface_walk_raster_generator_node.cpp)
+target_link_libraries(surface_walk_example_node ${catkin_LIBRARIES} noether::vtk_viewer)
+list (APPEND PACKAGE_TARGETS surface_walk_example_node)
+
 #############
 ## Install ##
 #############
