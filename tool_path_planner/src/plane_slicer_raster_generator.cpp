@@ -67,6 +67,11 @@ static Eigen::Vector3d getSegDir(PolyDataPtr seg)
   if (seg->GetPoints()->GetNumberOfPoints() < 1)
   {
     ROS_ERROR("can't get direction from a segment with fewer than 2 points");
+    Eigen::Vector3d v;
+    v.x() = 1.0;
+    v.y() = 0.0;
+    v.z() = 0.0;
+    return(v);
   }
   Eigen::Vector3d seg_start, seg_end;
   seg->GetPoint(0, seg_start.data());
@@ -88,7 +93,6 @@ static RasterConstructData alignRasterCD(RasterConstructData& rcd, Eigen::Vector
     ROS_ERROR("first raster segment has 0 or 1 points, unable to alignRasterCD()");
     return (rcd);
   }
-
   Eigen::Vector3d raster_start;
   rcd.raster_segments[0]->GetPoint(0, raster_start.data());
 
@@ -120,7 +124,10 @@ static RasterConstructData alignRasterCD(RasterConstructData& rcd, Eigen::Vector
     seg_order.push_back(p);
   }
   // sort the segments by location
-  seg_order.sort(compare_ds_pair);
+  if(seg_order.size()>=1)
+    {
+      seg_order.sort(compare_ds_pair);
+    }
   RasterConstructData new_rcd;
   for (std::pair<double, size_t> p : seg_order)
   {
@@ -389,12 +396,29 @@ static void rectifyDirection(const vtkSmartPointer<vtkPoints>& points,
   bool reverse = (ref_point - p0).norm() > (ref_point - pf).norm();
   if (reverse)
   {
-    for (auto& s : points_lists)
+    for (auto& s : points_lists) // reverse points in segments
     {
       std::reverse(s.begin(), s.end());
     }
     std::reverse(points_lists.begin(), points_lists.end());
   }
+}
+
+static void computePoseData(const PolyDataPtr& polydata, int idx, Eigen::Vector3d& p, Eigen::Vector3d& vx, Eigen::Vector3d& vy, Eigen::Vector3d& vz)
+{
+  Eigen::Vector3d p_next;
+  Eigen::Vector3d p_start;
+  //  polydata->GetPoint(idx, p.data());
+  //  polydata->GetPoint(idx + 1, p_next.data());
+  polydata->GetPoint(0, p_start.data());
+  polydata->GetPoint(idx, p.data());
+  polydata->GetPoint(polydata->GetNumberOfPoints()-1, p_next.data());
+  polydata->GetPointData()->GetNormals()->GetTuple(idx, vz.data());
+  vz = vz.normalized();
+  //  vx = p_next - p;
+  vx = p_next - p_start;
+  vx = (vx - vx.dot(vz)*vz).normalized();
+  vy = vz.cross(vx).normalized();
 }
 
 static tool_path_planner::ToolPaths convertToPoses(const std::vector<RasterConstructData>& rasters_data)
@@ -410,32 +434,60 @@ static tool_path_planner::ToolPaths convertToPoses(const std::vector<RasterConst
     {
       tool_path_planner::ToolPathSegment raster_path_segment;
       std::size_t num_points = polydata->GetNumberOfPoints();
-      Vector3d p, p_next, vx, vy, vz;
+      Vector3d p, next_p;
+      Vector3d prev_vx, prev_vy, prev_vz;
+      Vector3d vx, vy, vz;
+      Vector3d next_vx, next_vy, next_vz;
       Isometry3d pose;
       std::vector<int> indices(num_points);
       std::iota(indices.begin(), indices.end(), 0);
       // for every waypoint MAKE A POSE such that
       // its normal uses the mesh normal
-      // its x axis points toward next waypoint
-      // its y is z cross x
-      for (std::size_t i = 0; i < indices.size() - 1; i++)
+      // its x axis points along path
+      // its y is z cross x via right hand rule
+      // average 3 x-vectors to smooth out chatter caused by triangles
+      computePoseData(polydata, 0, p, vx, vy, vz);
+      prev_vx = vx;
+      prev_vy = vy;
+      prev_vz = vz;
+      int q=0;
+      for (std::size_t i = 0; i < indices.size() - 2; i++)
       {
-        int idx = indices[i];
-        int idx_next = indices[i + 1];
-        polydata->GetPoint(idx, p.data());
-        polydata->GetPoint(idx_next, p_next.data());
-        polydata->GetPointData()->GetNormals()->GetTuple(idx, vz.data());
-        vx = (p_next - p).normalized();
+	computePoseData(polydata, i+1, next_p, next_vx, next_vy, next_vz);
+	vx = (prev_vx + vx + next_vx).normalized();
         vy = vz.cross(vx).normalized();
-        vz = vx.cross(vy).normalized();
         pose = Translation3d(p) * AngleAxisd(computeRotation(vx, vy, vz));
         raster_path_segment.push_back(pose);
+	q++;
+	//	ROS_ERROR("vx: %6.3lf  %6.3lf  %6.3lf p(%d, :) = [ %6.3lf  %6.3lf  %6.3lf ];", vx.x(), vx.y(), vx.z(), q, p.x(), p.y(), p.z());
+	prev_vx = vx;
+	prev_vy = vy;
+	prev_vz = vz;
+	vx = next_vx;
+	vy = next_vy;
+	vz = next_vz;
+	p = next_p;
       }  // end for every waypoint
 
-      // adding last pose
-      pose.translation() = p_next;  // orientation stays the same as previous
-      raster_path_segment.push_back(pose);
+      if(indices.size() >= 2) // this throws away short segments
+      {
+	// adding next to last pose
+	computePoseData(polydata, indices.size()-2, p, vx, vy, vz);
+	vx = (prev_vx + vx).normalized();
+	pose = Translation3d(p) * AngleAxisd(computeRotation(vx, vy, vz));
+	raster_path_segment.push_back(pose);
+	q++;
+	//	ROS_ERROR("vx: %6.3lf  %6.3lf  %6.3lf p(%d, :) = [ %6.3lf  %6.3lf  %6.3lf ];", vx.x(), vx.y(), vx.z(), q, p.x(), p.y(), p.z());
 
+
+	// adding last pose
+	polydata->GetPoint(indices.size()-1, p.data());
+	pose = Translation3d(p) * AngleAxisd(computeRotation(vx, vy, vz));
+	raster_path_segment.push_back(pose);
+	q++;
+	//	ROS_ERROR("vx: %6.3lf  %6.3lf  %6.3lf p(%d, :) = [ %6.3lf  %6.3lf  %6.3lf ];", vx.x(), vx.y(), vx.z(), q, p.x(), p.y(), p.z());
+      }
+      //      ROS_ERROR("raster has %d poses", q);
       raster_path.push_back(raster_path_segment);
     }  // end for every segment
     rasters_array.push_back(raster_path);
@@ -519,7 +571,7 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   }
   // Assign the longest axis of the bounding box to x, middle to y, and shortest to z.
   Vector3d corner, x_dir, y_dir, z_dir, sizes;
-  ROS_ERROR_STREAM(config_.raster_wrt_global_axes);
+
   if (config_.raster_wrt_global_axes)
   {
     // Determine extent of mesh along axes of current coordinate frame
@@ -743,8 +795,9 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
 
     // merging segments
     mergeRasterSegments(raster_lines->GetPoints(), config_.min_hole_size, raster_ids);
+
     // rectifying
-    if (!rasters_data_vec.empty())
+    if (!rasters_data_vec.empty() && !rasters_data_vec.back().raster_segments.empty())
     {
       Vector3d ref_point;
       rasters_data_vec.back().raster_segments.front()->GetPoint(0, ref_point.data());  // first point in previous raster
@@ -790,14 +843,23 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
         }
 
         // saving into raster
-        r.raster_segments.push_back(segment_data);
-        r.segment_lengths.push_back(line_length);
+	if(segment_data->GetPoints()->GetNumberOfPoints()>0)
+	  {
+	    r.raster_segments.push_back(segment_data);
+	    r.segment_lengths.push_back(line_length);
+	  }
       }
     }
 
-    rasters_data_vec.push_back(r);
+    if(r.raster_segments.size()>0)
+      rasters_data_vec.push_back(r);
   }
-
+  if(rasters_data_vec.size() == 0)
+    {
+      ROS_ERROR("no rasters found");
+      ToolPaths rasters;
+      return(rasters);
+    }
   // make sure every raster has its segments ordered and aligned correctly
   Eigen::Vector3d raster_direction = getSegDir(rasters_data_vec[0].raster_segments[0]);
   for (RasterConstructData rcd : rasters_data_vec)

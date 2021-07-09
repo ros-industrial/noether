@@ -24,7 +24,7 @@ using GenPathActionServer = actionlib::SimpleActionServer<noether_msgs::Generate
 class TppServer
 {
 public:
-  TppServer(ros::NodeHandle nh, std::string action_name) : as_(nh, action_name, false), smooth_pose_arrays_(false), interleave_pose_arrays_(true) {}
+  TppServer(ros::NodeHandle nh, std::string action_name) : as_(nh, action_name, false), smooth_pose_arrays_(false), interleave_pose_arrays_(false) {}
 
   ~TppServer() {}
 
