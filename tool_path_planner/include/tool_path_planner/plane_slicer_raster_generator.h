@@ -45,6 +45,8 @@ class PlaneSlicerRasterGenerator : public PathGenerator
   static constexpr double DEFAULT_RASTER_ROT_OFFSET = 0.0;
   static constexpr double DEFAULT_MIN_SEGMENT_SIZE = 0.01;
   static constexpr double DEFAULT_SEARCH_RADIUS = 0.01;
+  static constexpr bool DEFAULT_INTERLEAVE_RASTERS = false;
+  static constexpr bool DEFAULT_SMOOTH_RASTERS = false;
   static constexpr double DEFAULT_MIN_HOLE_SIZE = 1e-2;
   static constexpr bool DEFAULT_RASTER_WRT_GLOBAL_AXES = false;
   static constexpr bool DEFAULT_GENERATE_EXTRA_RASTERS = true;
@@ -58,9 +60,12 @@ public:
     double min_segment_size{ DEFAULT_MIN_SEGMENT_SIZE };
     double search_radius{ DEFAULT_SEARCH_RADIUS };
     double min_hole_size{ DEFAULT_MIN_HOLE_SIZE };
+    bool interleave_rasters{ DEFAULT_INTERLEAVE_RASTERS };
+    bool smooth_rasters{ DEFAULT_SMOOTH_RASTERS };
     bool raster_wrt_global_axes{ DEFAULT_RASTER_WRT_GLOBAL_AXES };
     Eigen::Vector3d raster_direction{ Eigen::Vector3d::Zero() };
     bool generate_extra_rasters{ DEFAULT_GENERATE_EXTRA_RASTERS };
+    Eigen::Vector3d raster_direction{ Eigen::Vector3d::UnitY() };
     RasterStyle raster_style{ DEFAULT_RASTER_STYLE };
     Json::Value toJson() const
     {
@@ -70,6 +75,8 @@ public:
       jv["raster_rot_offset"] = raster_rot_offset;
       jv["min_segment_size"] = min_segment_size;
       jv["search_radius"] = search_radius;
+      jv["interleave_rasters"] = interleave_rasters;
+      jv["smooth_rasters"] = smooth_rasters;
       jv["min_hole_size"] = min_hole_size;
       jv["raster_wrt_global_axes"] = raster_wrt_global_axes;
       Json::Value raster_dir(Json::ValueType::objectValue);
@@ -110,6 +117,10 @@ public:
                              DEFAULT_MIN_SEGMENT_SIZE;
       search_radius = validate(jv, "search_radius", Json::ValueType::realValue) ? jv["search_radius"].asDouble() :
                                                                                   DEFAULT_SEARCH_RADIUS;
+      interleave_rasters = validate(jv, "interleave_rasters", Json::ValueType::booleanValue) ? jv["interleave_rasters"].asBool() :
+                                                                                  DEFAULT_INTERLEAVE_RASTERS;
+      smooth_rasters = validate(jv, "smooth_rasters", Json::ValueType::booleanValue) ? jv["smooth_rasters"].asBool() :
+                                                                                  DEFAULT_SMOOTH_RASTERS;
       min_hole_size = validate(jv, "min_hole_size", Json::ValueType::realValue) ? jv["min_hole_size"].asDouble() :
                                                                                   DEFAULT_MIN_HOLE_SIZE;
       raster_wrt_global_axes = validate(jv, "raster_wrt_global_axes", Json::ValueType::booleanValue) ?
@@ -153,6 +164,8 @@ public:
       ss << "raster_rot_offset: " << raster_rot_offset << std::endl;
       ss << "min_segment_size: " << min_segment_size << std::endl;
       ss << "search_radius: " << search_radius << std::endl;
+      ss << "interleave_rasters: " << interleave_rasters << std::endl;
+      ss << "smooth_rasters: " << smooth_rasters << std::endl;
       ss << "raster_wrt_global_axes: " << raster_wrt_global_axes << std::endl;
       ss << "raster_direction: " << std::endl;
       ss << "  x: " << raster_direction.x() << std::endl;

@@ -24,7 +24,7 @@ using GenPathActionServer = actionlib::SimpleActionServer<noether_msgs::Generate
 class TppServer
 {
 public:
-  TppServer(ros::NodeHandle nh, std::string action_name) : as_(nh, action_name, false), smooth_pose_arrays_(false), interleave_pose_arrays_(false) {}
+  TppServer(ros::NodeHandle nh, std::string action_name) : as_(nh, action_name, false) {}
 
   ~TppServer() {}
 
@@ -120,6 +120,7 @@ protected:
         generator = path_gen;
 	pt_spacing = path_config.point_spacing;
 	raster_spacing = path_config.raster_spacing;
+	smooth_pose_arrays_ = path_config.smooth_rasters;
       }
       else if (config.type == noether_msgs::ToolPathConfig::EIGEN_VALUE_EDGE_GENERATOR)
       {
@@ -176,14 +177,6 @@ protected:
 
           result.tool_paths[i].paths.push_back(tp);
         }
-
-	if(interleave_pose_arrays_)
-	  {
-	    for(size_t i=0; i<result.tool_paths.size(); i++)
-	      {
-		tool_path_planner::InterleavePoseTraj(result.tool_paths[i], raster_spacing);
-	      }
-	  }
 
         result.tool_path_validities[i] = true;
 
@@ -253,7 +246,6 @@ protected:
   GenPathActionServer as_;
   std::mutex goal_process_mutex_;
   bool smooth_pose_arrays_;
-  bool interleave_pose_arrays_;
 };
 
 }  // namespace tpp_path_gen

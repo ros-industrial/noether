@@ -194,6 +194,9 @@ bool toPlaneSlicerConfigMsg(noether_msgs::PlaneSlicerRasterGeneratorConfig& conf
   config_msg.min_segment_size = config.min_segment_size;
   config_msg.raster_rot_offset = config.raster_rot_offset;
   config_msg.search_radius = config.search_radius;
+  config_msg.interleave_rasters = config.interleave_rasters;
+  config_msg.smooth_rasters = config.smooth_rasters;
+  config_msg.generate_extra_rasters = config.generate_extra_rasters;
   config_msg.raster_wrt_global_axes = config.raster_wrt_global_axes; 
   config_msg.raster_direction.x = config.raster_direction.x();
   config_msg.raster_direction.y = config.raster_direction.y();
@@ -257,6 +260,9 @@ bool toPlaneSlicerConfig(PlaneSlicerRasterGenerator::Config& config,
   config.min_segment_size = config_msg.min_segment_size;
   config.raster_rot_offset = config_msg.raster_rot_offset;
   config.search_radius = config_msg.search_radius;
+  config.interleave_rasters = config_msg.interleave_rasters;
+  config.smooth_rasters = config_msg.smooth_rasters;
+  config.generate_extra_rasters = config_msg.generate_extra_rasters;
   config.raster_wrt_global_axes = config_msg.raster_wrt_global_axes;
 
   // Check that the raster direction was set; we are not interested in direction [0,0,0]
@@ -896,36 +902,5 @@ ToolPaths addExtraWaypoints(const ToolPaths& tool_paths, double raster_spacing, 
   return new_tool_paths;
 }
 
-void InterleavePoseTraj(noether_msgs::ToolPaths& tool_paths, double raster_spacing)
-{
-  double half_raster = raster_spacing/2.0;
-  printf("half raster = %lf\n", half_raster);
-  size_t total = tool_paths.paths.size()-1;
-  for (size_t i=0; i<total; i++) // for each tool path, but the last on
-  {
-    noether_msgs::ToolPath tool_path = tool_paths.paths[i];
-    noether_msgs::ToolPath new_tool_path;
-    for (geometry_msgs::PoseArray seg : tool_path.segments) // for each segement of the tool path
-    {
-      geometry_msgs::PoseArray new_seg;
-      new_seg.header = seg.header;
-      for(geometry_msgs::Pose P: seg.poses) // for each pose in the segment
-	{
-	  geometry_msgs::Pose IP = P;
-	  // offset xyz position along y-axis by half the raster_spacing
-	  Eigen::Quaterniond Q(P.orientation.w, P.orientation.x, P.orientation.y, P.orientation.z);
-	  Eigen::Matrix3d R = Q.toRotationMatrix();
-	  Eigen::Vector3d y_axis(R.col(1));
-	  IP.position.x += half_raster * y_axis.x();
-	  IP.position.y += half_raster * y_axis.y();
-	  IP.position.z += half_raster * y_axis.z();
-	  new_seg.poses.push_back(IP);
-	}// end for each pose in segment
-      new_tool_path.segments.push_back(new_seg);
-    }// end for each segment
-    tool_paths.paths.push_back(new_tool_path);
-  }// end for each path
-  
-}// end of function interleave_pose_traj()
 
 }  // namespace tool_path_planner

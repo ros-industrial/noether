@@ -6,6 +6,8 @@ float64 min_hole_size 	     # A path may pass over holes smaller than this, but 
 float64 tool_offset 	     # How far off the surface the tool needs to be
 float64 search_radius        # radius over which the normals are averaged
 bool generate_extra_rasters  # Whether an extra raster stroke should be added to the beginning and end of the raster pattern
+bool interleave_rasters      # create a second set of rasters interleaved inbetween first set
+bool smooth_rasters          # post process poses by fitting a cubic b-spline and re-sampling
 
 # When set to TRUE: initial cuts are determined using an axis-aligned bounding box. (global axes)
 # When set to FALSE: initial cuts are determined using an object-oriented bounding box and the

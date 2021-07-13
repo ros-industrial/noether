@@ -867,13 +867,32 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
     rcd = alignRasterCD(rcd, raster_direction);
   }
 
+  if(config_.interleave_rasters)
+    {
+      std::vector<RasterConstructData> tmp_rasters_data_vec;
+      // evens
+      for (size_t i=0; i<rasters_data_vec.size(); i +=2)
+	{
+	  tmp_rasters_data_vec.push_back(rasters_data_vec[i]);
+	}
+      // odds
+      for(size_t i=1; i<rasters_data_vec.size(); i +=2)
+	{
+	  tmp_rasters_data_vec.push_back(rasters_data_vec[i]);
+	}
+      // clear and copy new order
+      rasters_data_vec.clear();
+      for (size_t i=0; i<tmp_rasters_data_vec.size(); i++)
+	{
+	  rasters_data_vec.push_back(tmp_rasters_data_vec[i]);
+	}
+    }
   // converting to poses msg
   ToolPaths rasters = convertToPoses(rasters_data_vec);
 
   if (config_.generate_extra_rasters)
   {
-    //    ROS_ERROR("it did it anyway");
-    //    rasters = addExtraWaypoints(rasters, config_.raster_spacing, config_.point_spacing);
+    rasters = addExtraWaypoints(rasters, config_.raster_spacing, config_.point_spacing);
   }
 
   // switch directions of every other raster without rotating
