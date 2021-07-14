@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.5)
 
 find_package(ros_industrial_cmake_boilerplate REQUIRED)
 extract_package_metadata(pkg)
@@ -33,15 +33,15 @@ add_library(${PROJECT_NAME} SHARED
   src/halfedge_edge_generator.cpp
   src/utilities.cpp
 )
+target_include_directories(${PROJECT_NAME} PUBLIC
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:include>"
+)
 target_link_libraries(${PROJECT_NAME} PUBLIC
     ${PCL_LIBRARIES}
     ${VTK_LIBRARIES}
     noether::vtk_viewer
     ${jsoncpp_LIBRARIES}
-)
-target_include_directories(${PROJECT_NAME} PUBLIC
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-    "$<INSTALL_INTERFACE:include>"
 )
 target_cxx_version(${PROJECT_NAME} PUBLIC VERSION 14)
 set_target_properties(${PROJECT_NAME} PROPERTIES NO_SYSTEM_FROM_IMPORTED 1)

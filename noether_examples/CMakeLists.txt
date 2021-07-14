@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 
 ## Compile as C++14,
 add_compile_options(-std=c++14)
@@ -49,8 +49,6 @@ catkin_package(
   DEPENDS
     PCL
     VTK
-  CFG_EXTRAS
-    ${PROJECT_NAME}-extras.cmake
 )
 
 include_directories(
@@ -60,27 +58,57 @@ include_directories(
 )
 
 add_executable(mesh_segmenter_client_node src/mesh_segmenter_client.cpp)
-target_link_libraries(mesh_segmenter_client_node ${catkin_LIBRARIES} ${VTK_LIBRARIES} noether::vtk_viewer)
+target_link_libraries(mesh_segmenter_client_node
+    ${catkin_LIBRARIES}
+    ${VTK_LIBRARIES}
+    noether::vtk_viewer
+    noether::tool_path_planner
+    noether::mesh_segmenter
+    noether::simple_path_sequence_planner
+)
 list (APPEND PACKAGE_TARGETS mesh_segmenter_client_node)
 
 add_executable(mesh_segmenter_node src/mesh_segmenter_node.cpp)
-target_link_libraries(mesh_segmenter_node ${catkin_LIBRARIES} ${VTK_LIBRARIES} noether::vtk_viewer noether::mesh_segmenter)
+target_link_libraries(mesh_segmenter_node
+    ${catkin_LIBRARIES}
+    ${VTK_LIBRARIES}
+    noether::vtk_viewer
+    noether::mesh_segmenter
+    noether::simple_path_sequence_planner
+)
 list (APPEND PACKAGE_TARGETS mesh_segmenter_node)
 
 add_executable(mesh_filtering_client src/mesh_filtering_client.cpp)
-target_link_libraries(mesh_filtering_client ${catkin_LIBRARIES} ${PCL_LIBRARIES} noether::vtk_viewer)
+target_link_libraries(mesh_filtering_client
+    ${catkin_LIBRARIES}
+    ${PCL_LIBRARIES}
+    noether::vtk_viewer
+    noether::tool_path_planner
+)
 list (APPEND PACKAGE_TARGETS mesh_filtering_client)
 
 add_executable(eigen_value_example_node src/eigen_value_edge_generator_node.cpp)
-target_link_libraries(eigen_value_example_node ${catkin_LIBRARIES} noether::vtk_viewer)
+target_link_libraries(eigen_value_example_node
+    ${catkin_LIBRARIES}
+    noether::vtk_viewer
+    noether::tool_path_planner
+)
 list (APPEND PACKAGE_TARGETS eigen_value_example_node)
 
 add_executable(halfedge_example_node  src/halfedge_edge_generator_node.cpp)
-target_link_libraries(halfedge_example_node ${catkin_LIBRARIES} noether::vtk_viewer)
+target_link_libraries(halfedge_example_node
+    ${catkin_LIBRARIES}
+    noether::vtk_viewer
+    noether::tool_path_planner
+)
 list (APPEND PACKAGE_TARGETS halfedge_example_node)
 
-add_executable(plane_slicer_example_node  src/plane_slicer_raster_generator_node.cpp)
-target_link_libraries(plane_slicer_example_node ${catkin_LIBRARIES} noether::vtk_viewer)
+add_executable(plane_slicer_example_node src/plane_slicer_raster_generator_node.cpp)
+target_link_libraries(plane_slicer_example_node
+    ${catkin_LIBRARIES}
+    noether::vtk_viewer
+    noether::tool_path_planner
+)
 list (APPEND PACKAGE_TARGETS plane_slicer_example_node)
 
 #############
