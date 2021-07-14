@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(noether_conversions)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -45,6 +45,8 @@ catkin_package(
   DEPENDS
     VTK
     PCL
+  CFG_EXTRAS
+    ${PROJECT_NAME}-extras.cmake
 )
 
 include_directories(
@@ -56,12 +58,11 @@ include_directories(
 add_library(${PROJECT_NAME}
   src/${PROJECT_NAME}.cpp
 )
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME} PUBLIC
   ${catkin_LIBRARIES}
   ${VTK_LIBRARIES}
   ${PCL_LIBRARIES}
-  #The followng line errors w/ a problem linking to VTK viewer
-#  noether::tool_path_planner
+  noether::tool_path_planner
 )
 
 #############

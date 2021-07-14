@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 
 ## Compile as C++14,
 add_compile_options(-std=c++14)
@@ -52,8 +52,6 @@ catkin_package(
   DEPENDS
     PCL
     VTK
-  CFG_EXTRAS
-  ${PROJECT_NAME}-extras.cmake
 )
 
 
@@ -100,6 +98,7 @@ if(noether_filtering_FOUND)
     ${catkin_LIBRARIES}
     noether_filtering::noether_filtering
     noether::vtk_viewer
+    noether::tool_path_planner
   )
 endif()
 
