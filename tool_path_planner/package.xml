@@ -3,7 +3,7 @@
   <name>tool_path_planner</name>
   <version>0.0.0</version>
   <description>The path_planner package</description>
- <maintainer email="jrgnichodevel@gmail.com">Jorge Nicho</maintainer>
+  <maintainer email="jrgnichodevel@gmail.com">Jorge Nicho</maintainer>
   <license>Apache 2.0</license>
 
   <build_depend>cmake_modules</build_depend>
@@ -11,5 +11,9 @@
   <depend>vtk_viewer</depend>
   <depend>libpcl-all-dev</depend>
   <depend>libjsoncpp-dev</depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
 
 </package>

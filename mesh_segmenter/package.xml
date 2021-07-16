@@ -3,11 +3,15 @@
   <name>mesh_segmenter</name>
   <version>0.0.0</version>
   <description>The mesh_segmenter package</description>
- <maintainer email="jrgnichodevel@gmail.com">Jorge Nicho</maintainer>
- <maintainer email="colin.lewis@swri.org">Colin Lewis</maintainer>
+  <maintainer email="jrgnichodevel@gmail.com">Jorge Nicho</maintainer>
+  <maintainer email="colin.lewis@swri.org">Colin Lewis</maintainer>
   <license>Apache 2.0</license>
 
   <build_depend>ros_industrial_cmake_boilerplate</build_depend>
   <depend>vtk_viewer</depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
 
 </package>

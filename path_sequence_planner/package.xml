@@ -3,11 +3,15 @@
   <name>path_sequence_planner</name>
   <version>0.0.0</version>
   <description>The path_sequence_planner package</description>
- <maintainer email="jrgnichodevel@gmail.com">Jorge Nicho</maintainer>
+  <maintainer email="jrgnichodevel@gmail.com">Jorge Nicho</maintainer>
   <license>Apache 2.0</license>
 
+  <build_depend>ros_industrial_cmake_boilerplate</build_depend>
   <depend>vtk_viewer</depend>
   <depend>tool_path_planner</depend>
-  <build_depend>ros_industrial_cmake_boilerplate</build_depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
 
 </package>
