@@ -1,19 +1,20 @@
-
 /*
  * Copyright (c) 2016, Southwest Research Institute
  * All rights reserved.
  *
  */
-
-#include <gtest/gtest.h>
-#include <vtk_viewer/vtk_utils.h>
-#include <vtk_viewer/vtk_viewer.h>
-#include <vtkIdTypeArray.h>
 #include <tool_path_planner/surface_walk_raster_generator.h>
 #include <tool_path_planner/plane_slicer_raster_generator.h>
 #include <tool_path_planner/eigen_value_edge_generator.h>
 #include <tool_path_planner/halfedge_edge_generator.h>
 #include <tool_path_planner/utilities.h>
+
+#include <gtest/gtest.h>
+#include <numeric>
+#include <pcl/common/pca.h>
+#include <vtk_viewer/vtk_utils.h>
+#include <vtk_viewer/vtk_viewer.h>
+#include <vtkIdTypeArray.h>
 
 #define DISPLAY_LINES 1
 #define DISPLAY_NORMALS 0
@@ -67,131 +68,7 @@ vtkSmartPointer<vtkPolyData> createTestMesh2(double sample_spacing = 0.5)
   return data2;
 }
 
-void runRasterRotationTest(tool_path_planner::PathGenerator& planner, vtkSmartPointer<vtkPolyData> mesh)
-{
-  // Set input mesh
-  planner.setInput(mesh);
-
-  vtk_viewer::VTKViewer viz;
-  std::vector<float> color(3);
-
-  double scale = 1.0;
-
-  // Display mesh results
-  color[0] = 0.9f;
-  color[1] = 0.9f;
-  color[2] = 0.9f;
-  viz.addPolyDataDisplay(mesh, color);
-
-  // Display surface normals
-  if (DISPLAY_NORMALS)
-  {
-    color[0] = 0.9f;
-    color[1] = 0.1f;
-    color[2] = 0.1f;
-    vtkSmartPointer<vtkPolyData> normals_data = vtkSmartPointer<vtkPolyData>::New();
-    normals_data = planner.getInput();
-    viz.addPolyNormalsDisplay(normals_data, color, scale);
-  }
-
-  // Plan paths for given mesh
-  boost::optional<tool_path_planner::ToolPaths> paths = planner.generate();
-  ASSERT_TRUE(paths);
-  tool_path_planner::ToolPathsData paths_data = tool_path_planner::toToolPathsData(paths.get());
-  for (std::size_t i = 0; i < paths_data.size(); ++i)
-  {
-    for (std::size_t j = 0; j < paths_data[i].size(); ++j)
-    {
-      if (DISPLAY_LINES)  // display line
-      {
-        color[0] = 0.2f;
-        color[1] = 0.9f;
-        color[2] = 0.2f;
-        viz.addPolyNormalsDisplay(paths_data[i][j].line, color, scale);
-      }
-
-      if (DISPLAY_DERIVATIVES)  // display derivatives
-      {
-        color[0] = 0.9f;
-        color[1] = 0.9f;
-        color[2] = 0.2f;
-        viz.addPolyNormalsDisplay(paths_data[i][j].derivatives, color, scale);
-      }
-    }
-  }
-
-#ifdef NDEBUG
-  // release build stuff goes here
-  CONSOLE_BRIDGE_logError("noether/tool_path_planner test: visualization is only available in debug mode");
-#else
-  // Debug-specific code goes here
-  viz.renderDisplay();
-#endif
-}
-
-void runTestCase1(tool_path_planner::PathGenerator& planner, vtkSmartPointer<vtkPolyData> mesh)
-{
-  // Set input mesh
-  planner.setInput(mesh);
-
-  vtk_viewer::VTKViewer viz;
-  std::vector<float> color(3);
-
-  double scale = 1.0;
-
-  // Display mesh results
-  color[0] = 0.9f;
-  color[1] = 0.9f;
-  color[2] = 0.9f;
-  viz.addPolyDataDisplay(mesh, color);
-
-  // Display surface normals
-  if (DISPLAY_NORMALS)
-  {
-    color[0] = 0.9f;
-    color[1] = 0.1f;
-    color[2] = 0.1f;
-    vtkSmartPointer<vtkPolyData> normals_data = vtkSmartPointer<vtkPolyData>::New();
-    normals_data = planner.getInput();
-    viz.addPolyNormalsDisplay(normals_data, color, scale);
-  }
-
-  // Plan paths for given mesh
-  boost::optional<tool_path_planner::ToolPaths> paths = planner.generate();
-  ASSERT_TRUE(paths);
-  tool_path_planner::ToolPathsData paths_data = tool_path_planner::toToolPathsData(paths.get());
-  for (std::size_t i = 0; i < paths_data.size(); ++i)
-  {
-    for (std::size_t j = 0; j < paths_data[i].size(); ++j)
-    {
-      if (DISPLAY_LINES)  // display line
-      {
-        color[0] = 0.2f;
-        color[1] = 0.9f;
-        color[2] = 0.2f;
-        viz.addPolyNormalsDisplay(paths_data[i][j].line, color, scale);
-      }
-
-      if (DISPLAY_DERIVATIVES)  // display derivatives
-      {
-        color[0] = 0.9f;
-        color[1] = 0.9f;
-        color[2] = 0.2f;
-        viz.addPolyNormalsDisplay(paths_data[i][j].derivatives, color, scale);
-      }
-    }
-  }
-
-#ifdef NDEBUG
-  // release build stuff goes here
-  CONSOLE_BRIDGE_logError("noether/tool_path_planner test: visualization is only available in debug mode");
-#else
-  // Debug-specific code goes here
-  viz.renderDisplay();
-#endif
-}
-
-void runTestCaseRansac(tool_path_planner::PathGenerator& planner, vtkSmartPointer<vtkPolyData> mesh)
+void runTest(tool_path_planner::PathGenerator& planner, vtkSmartPointer<vtkPolyData> mesh)
 {
   // Set input mesh
   planner.setInput(mesh);
@@ -372,7 +249,7 @@ TEST(IntersectTest, SurfaceWalkRasterRotationTest)
     tool.raster_rot_offset = direction;
     tool.debug = false;
     planner.setConfiguration(tool);
-    runRasterRotationTest(planner, mesh);
+    runTest(planner, mesh);
   }
 }
 
@@ -394,7 +271,7 @@ TEST(IntersectTest, PlaneSlicerRasterRotationTest)
     tool.raster_rot_offset = direction;
     //    tool.debug = false;
     planner.setConfiguration(tool);
-    runRasterRotationTest(planner, mesh);
+    runTest(planner, mesh);
   }
 }
 
@@ -406,7 +283,7 @@ TEST(IntersectTest, HalfedgeEdgeGeneratorTestCase0)
   config.min_num_points = 20;
   config.point_dist = 0.1;
   planner.setConfiguration(config);
-  runRasterRotationTest(planner, mesh);
+  runTest(planner, mesh);
 }
 
 TEST(IntersectTest, EigenValueEdgeGeneratorTestCase0)
@@ -418,7 +295,7 @@ TEST(IntersectTest, EigenValueEdgeGeneratorTestCase0)
   config.search_radius = 0.5;
   config.neighbor_tol = 0.9;
   planner.setConfiguration(config);
-  runRasterRotationTest(planner, mesh);
+  runTest(planner, mesh);
 }
 
 // This test shows the results of the tool path planner on a square grid that has a sinusoidal
@@ -441,8 +318,7 @@ TEST(IntersectTest, SurfaceWalkTestCase1)
   tool.min_hole_size = 0.1;
   tool.debug = false;
   planner.setConfiguration(tool);
-
-  runTestCase1(planner, mesh);
+  runTest(planner, mesh);
 }
 
 TEST(IntersectTest, PlaneSlicerTestCase1)
@@ -459,7 +335,7 @@ TEST(IntersectTest, PlaneSlicerTestCase1)
   //  tool.debug = false;
   planner.setConfiguration(tool);
 
-  runTestCase1(planner, mesh);
+  runTest(planner, mesh);
 }
 
 TEST(IntersectTest, SurfaceWalkTestCaseRansac)
@@ -476,7 +352,7 @@ TEST(IntersectTest, SurfaceWalkTestCaseRansac)
   tool.min_hole_size = 0.1;
   tool.debug = false;
   planner.setConfiguration(tool);
-  runTestCaseRansac(planner, mesh);
+  runTest(planner, mesh);
 }
 
 TEST(IntersectTest, PlaneSlicerTestCaseRansac)
@@ -492,7 +368,7 @@ TEST(IntersectTest, PlaneSlicerTestCaseRansac)
   tool.min_hole_size = 0.1;
   //  tool.debug = false;
   planner.setConfiguration(tool);
-  runTestCaseRansac(planner, mesh);
+  runTest(planner, mesh);
 }
 
 TEST(IntersectTest, HalfedgeEdgeGeneratorTestRansac)
@@ -503,7 +379,7 @@ TEST(IntersectTest, HalfedgeEdgeGeneratorTestRansac)
   config.min_num_points = 20;
   config.point_dist = 0.1;
   planner.setConfiguration(config);
-  runTestCase1(planner, mesh);
+  runTest(planner, mesh);
 }
 
 TEST(IntersectTest, EigenValueEdgeGeneratorTestRansac)
@@ -512,7 +388,7 @@ TEST(IntersectTest, EigenValueEdgeGeneratorTestRansac)
   tool_path_planner::EigenValueEdgeGenerator planner;
   //  tool_path_planner::PlaneSlicerRasterGenerator::Config tool;
   //  planner.setConfiguration(tool);
-  runTestCase1(planner, mesh);
+  runTest(planner, mesh);
 }
 
 TEST(IntersectTest, SurfaceWalkExtraRasterTest)
@@ -539,6 +415,51 @@ TEST(IntersectTest, SurfaceWalkExtraRasterTest)
   planner_with_extra.setConfiguration(tool);
 
   runExtraRasterTest(planner, planner_with_extra, mesh);
+}
+
+TEST(ToolPathPlanner, PCAPrecisionCheck)
+{
+  // There is some concern that principal component analysis breaks down for floating point numbers vs doubles.
+  // This test performs PCA with floats and doubles and compares the results for a random cloud of uniform size that
+  // gets scaled both exponentially larger and smaller
+
+  auto cloud = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+  cloud->resize(1000);
+  // Fill the cloud with random numbers on [-1, 1]
+  cloud->getMatrixXfMap(3, 4, 0) = Eigen::Matrix3Xf::Random(3, 1000);
+
+  int max_exponent = 6;
+  std::vector<int> exponents(static_cast<std::size_t>(2 * max_exponent + 1));
+  std::iota(exponents.begin(), exponents.end(), -max_exponent);
+  for (int exponent : exponents)
+  {
+    float scale = std::pow(10.0f, static_cast<float>(exponent));
+
+    auto scaled_cloud = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+    scaled_cloud->resize(cloud->size());
+    scaled_cloud->getMatrixXfMap(3, 4, 0) = cloud->getMatrixXfMap(3, 4, 0) * scale;
+
+    // Perform PCA manually using doubles
+    const Eigen::MatrixXd points = scaled_cloud->getMatrixXfMap(3, 4, 0).cast<double>();
+    Eigen::MatrixXd centered = points.colwise() - points.rowwise().mean();
+    Eigen::MatrixXd cov = centered * centered.transpose();
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eig(cov);
+    Eigen::Matrix3d eigenvectors_eig = eig.eigenvectors().rowwise().reverse();
+
+    // Perform PCA with PCL using floats
+    pcl::PCA<pcl::PointXYZ> pca;
+    pca.setInputCloud(scaled_cloud);
+    Eigen::Matrix3f eigenvectors = pca.getEigenVectors();
+
+    // Eigen PCA doesn't always generate the vectors in the same direction as PCL PCA, so only compare absolute values
+    Eigen::Array33d diff = eigenvectors_eig.array().abs() - eigenvectors.cast<double>().array().abs();
+    double rmse = std::sqrt(diff.square().mean());
+    EXPECT_TRUE(eigenvectors_eig.array().abs().isApprox(eigenvectors.cast<double>().array().abs(), 1.0e-5));
+    EXPECT_LT(rmse, 1.0e-5);
+
+    std::cout << "Scale: " << scale << std::endl;
+    std::cout << "Eigenvectors RMSE: " << rmse << std::endl;
+  }
 }
 
 int main(int argc, char** argv)
