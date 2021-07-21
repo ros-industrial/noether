@@ -46,4 +46,4 @@ public:
   virtual ToolPaths modify(ToolPaths tool_paths) const = 0;
 };
 
-} // namespace noether_tpp
+}  // namespace noether_tpp

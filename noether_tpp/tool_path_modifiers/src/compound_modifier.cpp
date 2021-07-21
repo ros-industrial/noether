@@ -17,7 +17,8 @@ ToolPaths CompoundModifier::modify(ToolPaths paths) const
   return paths;
 }
 
-OneTimeCompoundModifier::OneTimeCompoundModifier(std::vector<std::unique_ptr<const OneTimeToolPathModifier>>&& modifiers)
+OneTimeCompoundModifier::OneTimeCompoundModifier(
+    std::vector<std::unique_ptr<const OneTimeToolPathModifier>>&& modifiers)
   : modifiers_(std::move(modifiers))
 {
 }
@@ -32,4 +33,4 @@ ToolPaths OneTimeCompoundModifier::modify(ToolPaths paths) const
   return paths;
 }
 
-} // namespace noether_tpp
+}  // namespace noether_tpp

@@ -34,4 +34,4 @@ public:
   virtual ToolPaths plan(const pcl::PolygonMesh& mesh) const = 0;
 };
 
-} // namespac noether_tpp
+}  // namespace noether_tpp

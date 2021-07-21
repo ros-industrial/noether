@@ -5,11 +5,8 @@ namespace noether_tpp
 ToolPathPlannerPipeline::ToolPathPlannerPipeline(std::unique_ptr<MeshModifier>&& mesh_mod,
                                                  std::unique_ptr<ToolPathPlanner>&& planner,
                                                  std::unique_ptr<ToolPathModifier>&& tool_path_mod)
-  : mesh_modifier_(std::move(mesh_mod))
-  , planner_(std::move(planner))
-  , tool_path_modifier_(std::move(tool_path_mod))
+  : mesh_modifier_(std::move(mesh_mod)), planner_(std::move(planner)), tool_path_modifier_(std::move(tool_path_mod))
 {
-
 }
 
 std::vector<ToolPaths> ToolPathPlannerPipeline::plan(pcl::PolygonMesh mesh) const
@@ -27,4 +24,4 @@ std::vector<ToolPaths> ToolPathPlannerPipeline::plan(pcl::PolygonMesh mesh) cons
   return output;
 }
 
-} // namespace noether_tpp
+}  // namespace noether_tpp

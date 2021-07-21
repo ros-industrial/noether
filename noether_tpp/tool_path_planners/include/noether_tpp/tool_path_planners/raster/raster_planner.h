@@ -27,7 +27,6 @@
 
 namespace noether_tpp
 {
-
 /**
  * @brief The RasterPlanner class - A specification of the tool path planner for covering surfaces
  * in repeating, evenly spaced path lines.  By default, a raster planner will produce a path with
@@ -64,4 +63,4 @@ private:
   std::unique_ptr<const OneTimeToolPathModifier> modifier_;
 };
 
-} // namespace noether_tpp
+}  // namespace noether_tpp

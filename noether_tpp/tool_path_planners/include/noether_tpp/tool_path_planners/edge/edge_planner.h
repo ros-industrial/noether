@@ -60,4 +60,4 @@ private:
   std::unique_ptr<const OneTimeToolPathModifier> modifier_;
 };
 
-} // namespace noether_tpp
+}  // namespace noether_tpp

@@ -110,7 +110,10 @@ std::string print2(testing::TestParamInfo<std::shared_ptr<const OneTimeToolPathM
 std::shared_ptr<OneTimeToolPathModifier> create() { return std::make_shared<NoOpToolPathModifier>(); }
 
 INSTANTIATE_TEST_SUITE_P(ToolPathModifierTests, ToolPathModifierTestFixture, testing::Values(create()), print);
-INSTANTIATE_TEST_SUITE_P(OneTimeToolPathModifierTests, OneTimeToolPathModifierTestFixture, testing::Values(create()), print2);
+INSTANTIATE_TEST_SUITE_P(OneTimeToolPathModifierTests,
+                         OneTimeToolPathModifierTestFixture,
+                         testing::Values(create()),
+                         print2);
 
 int main(int argc, char** argv)
 {

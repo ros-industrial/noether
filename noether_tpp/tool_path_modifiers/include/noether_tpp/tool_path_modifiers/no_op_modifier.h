@@ -15,4 +15,4 @@ public:
   inline ToolPaths modify(ToolPaths tool_paths) const override final { return tool_paths; };
 };
 
-} // namespace noether_tpp
+}  // namespace noether_tpp

@@ -36,4 +36,4 @@ public:
   virtual std::vector<pcl::PolygonMesh> modify(const pcl::PolygonMesh& mesh) const = 0;
 };
 
-} // namespace noether_tpp
+}  // namespace noether_tpp

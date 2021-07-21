@@ -34,4 +34,4 @@ public:
   virtual Eigen::Vector3d generate(const pcl::PolygonMesh& mesh) const = 0;
 };
 
-} // namespace noether_tpp
+}  // namespace noether_tpp

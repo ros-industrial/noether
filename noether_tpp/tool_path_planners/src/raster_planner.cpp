@@ -8,14 +8,8 @@ RasterPlanner::RasterPlanner(std::unique_ptr<DirectionGenerator>&& dir_gen,
 {
 }
 
-std::unique_ptr<const OneTimeToolPathModifier> RasterPlanner::createDefaultModifier()
-{
-  return nullptr;
-}
+std::unique_ptr<const OneTimeToolPathModifier> RasterPlanner::createDefaultModifier() { return nullptr; }
 
-ToolPaths RasterPlanner::plan(const pcl::PolygonMesh& mesh) const
-{
-  return modifier_->modify(planImpl(mesh));
-}
+ToolPaths RasterPlanner::plan(const pcl::PolygonMesh& mesh) const { return modifier_->modify(planImpl(mesh)); }
 
-} // namespace noether_tpp
+}  // namespace noether_tpp
