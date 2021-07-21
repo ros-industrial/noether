@@ -28,9 +28,8 @@ namespace noether_tpp
  * use.  A special interface exists for modifiers that do not cause additional changes on repeat.
  * Since a tool path modifier, by definition, modifies a path, a ToolPaths is passed by value.
  */
-class ToolPathModifier
+struct ToolPathModifier
 {
-public:
   virtual ~ToolPathModifier() = default;
   virtual ToolPaths modify(ToolPaths toolpaths) const = 0;
 };
@@ -40,9 +39,8 @@ public:
  * requires a modifier to not cause additional changes if run again.  This will be enforced via
  * unit test.  New modifiers should be implemented as OneTimeToolPathModifiers if possible.
  */
-class OneTimeToolPathModifier : public ToolPathModifier
+struct OneTimeToolPathModifier : public ToolPathModifier
 {
-public:
   virtual ToolPaths modify(ToolPaths tool_paths) const = 0;
 };
 

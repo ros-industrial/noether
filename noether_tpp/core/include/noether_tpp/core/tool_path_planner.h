@@ -25,11 +25,10 @@
 namespace noether_tpp
 {
 /**
- * @brief The ToolPathPlanner class - generic interface for a planner that operates on a mesh.
+ * @brief Interface for a tool path planner that operates on a mesh.
  */
-class ToolPathPlanner
+struct ToolPathPlanner
 {
-public:
   virtual ~ToolPathPlanner() = default;
   virtual ToolPaths plan(const pcl::PolygonMesh& mesh) const = 0;
 };

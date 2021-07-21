@@ -29,9 +29,8 @@ namespace noether_tpp
  * meshes.  Since the return value is a list, this interface (unlike the tool path modifier) takes
  * the input by reference.
  */
-class MeshModifier
+struct MeshModifier
 {
-public:
   virtual ~MeshModifier() = default;
   virtual std::vector<pcl::PolygonMesh> modify(const pcl::PolygonMesh& mesh) const = 0;
 };
