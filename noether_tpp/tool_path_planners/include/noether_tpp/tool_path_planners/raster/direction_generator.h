@@ -1,5 +1,5 @@
 /**
- * @file edge_planner.h
+ * @file direction_generator.h
  * @copyright Copyright (c) 2021, Southwest Research Institute
  *
  * @par License
@@ -16,32 +16,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #pragma once
 
+#include <Eigen/Core>
 #include <pcl/PolygonMesh.h>
-
-#include <noether_tpp/core/tool_path_planner.h>
-#include <noether_tpp/core/types.h>
-#include <noether_tpp/tool_path_modifiers/default_edge_mod.h>
 
 namespace noether_tpp
 {
-
 /**
- * @brief The EdgePlanner class - A specification of the tool path planner interface for generating
- * paths around the edges of surfaces.  Each edge planner will return a list of closed-loop edges.
- * Segments will be in sequential order in the ToolPath.  The ToolPaths (closed loops) are ordered
- * by descending length of the closed loops.  All loops will start near a specified point, and all
- * loops will process in the same direction.
+ * @brief The DirectionGenerator class - Provides a common interface for various methods to
+ * generate the direction of raster paths.  The direction generated will move along the line from
+ * the first point to the second, then third, etc.
  */
-class EdgePlanner : public ToolPathPlanner
+class DirectionGenerator
 {
 public:
-private:
-  virtual ToolPaths planImpl(const pcl::PolygonMesh& mesh) = 0;
-
-  DefaultEdgeMod modifier_;
+  virtual ~DirectionGenerator() = 0;
+  virtual Eigen::Vector3d generate(const pcl::PolygonMesh& mesh) const = 0;
 };
 
 } // namespace noether_tpp
