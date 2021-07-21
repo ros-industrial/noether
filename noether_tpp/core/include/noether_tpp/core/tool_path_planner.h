@@ -1,5 +1,5 @@
 /**
- * @file pipeline.h
+ * @file tool_path_planner.h
  * @copyright Copyright (c) 2021, Southwest Research Institute
  *
  * @par License
@@ -16,34 +16,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #pragma once
 
-#include <vector>
+#include <noether_tpp/core/types.h>
 
 #include <pcl/PolygonMesh.h>
 
-#include <noether_tpp/core/mesh_modifier.h>
-#include <noether_tpp/core/tool_path_modifier.h>
-#include <noether_tpp/core/tool_path_planner.h>
-#include <noether_tpp/core/types.h>
-
 namespace noether_tpp
 {
-
 /**
- * @brief The ToolPathPlannerPipeline class - Collects together a set of mesh modifiers, a planner,
- * and a set of tool path modifiers. These sub-units then can be called using a single line to
- * pre-process meshes, plan paths, and operate on the paths.
+ * @brief The ToolPathPlanner class - generic interface for a planner that operates on a mesh.
  */
-class ToolPathPlannerPipeline
+class ToolPathPlanner
 {
 public:
-std::vector<ToolPaths> plan(pcl::PolygonMesh mesh);
-
-std::vector<MeshModifier> mesh_modifiers;
-std::vector<ToolPathPlanner> planner;
-std::vector<ToolPathModifier> modifiers;
+  virtual ~ToolPathPlanner() = default;
+  virtual ToolPaths plan(const pcl::PolygonMesh& mesh) const = 0;
 };
 
-} // namespace noether_tpp
+} // namespac noether_tpp

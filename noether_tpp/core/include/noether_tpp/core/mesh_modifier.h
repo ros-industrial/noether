@@ -1,5 +1,5 @@
 /**
- * @file tool_path_planner.h
+ * @file mesh_modifier.h
  * @copyright Copyright (c) 2021, Southwest Research Institute
  *
  * @par License
@@ -16,24 +16,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #pragma once
 
 #include <pcl/PolygonMesh.h>
-
-#include <noether_tpp/core/tool_path_modifier.h>
-#include <noether_tpp/core/types.h>
+#include <vector>
 
 namespace noether_tpp
 {
-
 /**
- * @brief The ToolPathPlanner class - generic interface for a planner that operates on a mesh.
+ * @brief A common interface for mesh modifications.  Since some
+ * modifications, such as segmentation, output multiple meshes, the function returns a list of
+ * meshes.  Since the return value is a list, this interface (unlike the tool path modifier) takes
+ * the input by reference.
  */
-class ToolPathPlanner
+class MeshModifier
 {
 public:
-  virtual ToolPaths plan(const pcl::PolygonMesh& mesh) = 0;
+  virtual ~MeshModifier() = default;
+  virtual std::vector<pcl::PolygonMesh> modify(const pcl::PolygonMesh& mesh) const = 0;
 };
 
-} // namespac noether_tpp
+} // namespace noether_tpp
