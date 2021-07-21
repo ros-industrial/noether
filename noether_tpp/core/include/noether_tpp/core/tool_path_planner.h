@@ -20,6 +20,7 @@
 
 #include <noether_tpp/core/types.h>
 
+#include <memory>
 #include <pcl/PolygonMesh.h>
 
 namespace noether_tpp
@@ -31,6 +32,15 @@ struct ToolPathPlanner
 {
   virtual ~ToolPathPlanner() = default;
   virtual ToolPaths plan(const pcl::PolygonMesh& mesh) const = 0;
+};
+
+/**
+ * @brief Interface for creating implementations of the tool path planner interface
+ */
+struct ToolPathPlannerFactory
+{
+  virtual ~ToolPathPlannerFactory() = default;
+  virtual std::unique_ptr<const ToolPathPlanner> create() const = 0;
 };
 
 }  // namespace noether_tpp

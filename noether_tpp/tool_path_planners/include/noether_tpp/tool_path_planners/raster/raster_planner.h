@@ -63,4 +63,19 @@ private:
   std::unique_ptr<const OneTimeToolPathModifier> modifier_;
 };
 
+/**
+ * @brief Interface for creating implementations of raster tool path planners.
+ * @details This class contains the generic parameters for configuring raster tool path planners
+ */
+struct RasterPlannerFactory : public ToolPathPlannerFactory
+{
+  /** @brief Distance between waypoints on the same raster line (m) */
+  double point_spacing;
+  /** @brief Distance between raster lines */
+  double line_spacing;
+  /** @brief Minimum size of hole in a mesh for which the planner should split a raster line that crosses over the hole
+   * into multiple segments */
+  double min_hole_size;
+};
+
 }  // namespace noether_tpp
