@@ -1,0 +1,3 @@
+{
+    "hooks": ["share/mesh_segmenter/hook/ament_prefix_path.dsv", "share/mesh_segmenter/hook/ros_package_path.dsv"]
+}
