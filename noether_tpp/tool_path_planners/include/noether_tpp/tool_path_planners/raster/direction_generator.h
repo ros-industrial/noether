@@ -24,13 +24,10 @@
 namespace noether_tpp
 {
 /**
- * @brief The DirectionGenerator class - Provides a common interface for various methods to
- * generate the direction of raster paths.  The direction generated will move along the line from
- * the first point to the second, then third, etc.
+ * @brief Interface for various methods to generate the direction of raster paths.  The direction generated will move along the line from the first point to the second, then third, etc.
  */
-class DirectionGenerator
+struct DirectionGenerator
 {
-public:
   virtual ~DirectionGenerator() = 0;
   virtual Eigen::Vector3d generate(const pcl::PolygonMesh& mesh) const = 0;
 };

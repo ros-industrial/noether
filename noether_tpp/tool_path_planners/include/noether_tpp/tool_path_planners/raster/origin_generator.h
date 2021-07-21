@@ -24,12 +24,10 @@
 namespace noether_tpp
 {
 /**
- * @brief The OriginGenerator class - Provides a common interface for various methods to set the
- * start point from which to generate toolpaths.
+ * @brief Interface for setting the start point from which to generate toolpaths
  */
-class OriginGenerator
+struct OriginGenerator
 {
-public:
   virtual ~OriginGenerator() = default;
   virtual Eigen::Vector3d generate(const pcl::PolygonMesh& mesh) const = 0;
 };
