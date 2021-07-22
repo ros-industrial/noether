@@ -895,9 +895,11 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
     rasters = addExtraWaypoints(rasters, config_.raster_spacing, config_.point_spacing);
   }
 
-  // switch directions of every other raster without rotating
-  rasters = reverseOddRasters(rasters, config_.raster_style);
-
+  if((config_.raster_style != PROCESS_FORWARD_DIRECTION_ONLY))
+    {
+      // switch directions of every other raster, using either flipping orientation or not depending on style selected
+      rasters = reverseOddRasters(rasters, config_.raster_style);
+    }
   return rasters;
 }
 

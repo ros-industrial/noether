@@ -46,6 +46,9 @@ typedef std::tuple<double, Eigen::Isometry3d, int> wp_tuple;
 typedef std::list<wp_tuple> tlist;
 typedef std::list<wp_tuple>::iterator tlist_it;
 
+static const double MIN_POINT_DIST_ALLOWED = 1e-8;
+static const double EPSILON = 1e-3;
+  
 void flipPointOrder(ToolPath& path)
 {
   // Reverse the order of the segments
@@ -196,6 +199,7 @@ bool toPlaneSlicerConfigMsg(noether_msgs::PlaneSlicerRasterGeneratorConfig& conf
   config_msg.search_radius = config.search_radius;
   config_msg.interleave_rasters = config.interleave_rasters;
   config_msg.smooth_rasters = config.smooth_rasters;
+  config_msg.raster_style = config.raster_style;
   config_msg.generate_extra_rasters = config.generate_extra_rasters;
   config_msg.raster_wrt_global_axes = config.raster_wrt_global_axes; 
   config_msg.raster_direction.x = config.raster_direction.x();
@@ -262,6 +266,7 @@ bool toPlaneSlicerConfig(PlaneSlicerRasterGenerator::Config& config,
   config.search_radius = config_msg.search_radius;
   config.interleave_rasters = config_msg.interleave_rasters;
   config.smooth_rasters = config_msg.smooth_rasters;
+  config.raster_style = static_cast<tool_path_planner::RasterStyle>(config_msg.raster_style);
   config.generate_extra_rasters = config_msg.generate_extra_rasters;
   config.raster_wrt_global_axes = config_msg.raster_wrt_global_axes;
 
@@ -289,16 +294,19 @@ bool createToolPathSegment(const pcl::PointCloud<pcl::PointNormal>& cloud_normal
   Vector3d x_dir, z_dir, y_dir;
   std::vector<int> cloud_indices;
   if (indices.empty())
-  {
-    cloud_indices.resize(cloud_normals.size());
-    std::iota(cloud_indices.begin(), cloud_indices.end(), 0);
-  }
+    {
+      cloud_indices.reserve(cloud_normals.size());
+      for(int i=0; i<cloud_normals.points.size(); i++)
+	{
+	  cloud_indices.push_back(i);
+	}
+    }
   else
-  {
-    cloud_indices.assign(indices.begin(), indices.end());
-  }
+    {
+      cloud_indices.assign(indices.begin(), indices.end());
+    }
 
-  for (std::size_t i = 0; i < cloud_indices.size() - 1; i++)
+  for (std::size_t i = 0; i < cloud_indices.size() - 2; i++)
   {
     std::size_t idx_current = cloud_indices[i];
     std::size_t idx_next = cloud_indices[i + 1];
@@ -325,7 +333,6 @@ bool createToolPathSegment(const pcl::PointCloud<pcl::PointNormal>& cloud_normal
   p.translation().y() = cloud_normals[cloud_indices.back()].y;
   p.translation().z() = cloud_normals[cloud_indices.back()].z;
   segment.push_back(p);
-
   return true;
 }
 
@@ -902,5 +909,263 @@ ToolPaths addExtraWaypoints(const ToolPaths& tool_paths, double raster_spacing, 
   return new_tool_paths;
 }
 
+// computes the normal vectors to a mesh at every vertex
+pcl::PointCloud<pcl::PointNormal> computeMLSMeshNormals(const pcl::PointCloud<pcl::PointXYZ>::Ptr& mesh_cloud, double normal_search_radius)
+{
+  // initialize the MLSNE object
+  pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal> MLS;
+  MLS.setInputCloud(mesh_cloud);
+  MLS.setComputeNormals(true);
+  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
+  MLS.setSearchMethod(tree);
+  MLS.setPolynomialOrder(2);
+  MLS.setSearchRadius(normal_search_radius);
+  MLS.setUpsamplingMethod(pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal>::UpsamplingMethod::NONE);
+  MLS.setCacheMLSResults(true);
+  // NONE, DISTINCT_CLOUD, SAMPLE_LOCAL_PLANE, RANDOM_UNIFORM_DENSITY, VOXEL_GRID_DILATION
+  // unused initialization methods here to help future developers
+  // MLS.setUpsamplingRadius(), MLS.setUpsamplingStepSize(), MLS.setDistinctCloud()
 
+  // process the cloud
+  pcl::PointCloud<pcl::PointNormal> mls_mesh_cloud_normals;
+  MLS.process(mls_mesh_cloud_normals);
+  std::vector<pcl::MLSResult> R = MLS.getMLSResults();
+  
+  pcl::PointCloud<pcl::PointNormal> mesh_cloud_normals;
+  mesh_cloud_normals.reserve(mesh_cloud->points.size());
+  for(size_t i=0; i<mesh_cloud->points.size(); i++)
+    {
+      pcl::PointNormal new_pn;
+      new_pn.x = mesh_cloud->points[i].x;
+      new_pn.y = mesh_cloud->points[i].y;
+      new_pn.z = mesh_cloud->points[i].z;
+      new_pn.normal_x = R[i].plane_normal.x();
+      new_pn.normal_y = R[i].plane_normal.y();
+      new_pn.normal_z = R[i].plane_normal.z();
+      mesh_cloud_normals.push_back(new_pn);
+    }
+  return(mesh_cloud_normals);
+}
+
+/**
+ * @brief forces the required point spacing by computing new points along the curve
+ * @param in    The input cloud
+ * @param out   The output cloud
+ * @param dist  The required point spacing distance
+ * @return True on success, False otherwise
+ */
+bool applyEqualDistance(const std::vector<int>& pnt_indices,
+			const pcl::PointCloud<pcl::PointXYZ>& mesh_cloud,
+                        pcl::PointCloud<pcl::PointNormal>& path_cloud,
+                        double dist)
+{
+  using namespace pcl;
+  using namespace Eigen;
+
+  PointNormal new_pt;
+  PointXYZ p_start, p_mid, p_end;
+  Vector3f v_1, v_2, unitv_2, v_next;
+  if(pnt_indices.size()<3)
+    {
+      CONSOLE_BRIDGE_logError("pnt_indices must have at least 3");
+      return false;
+    }
+  PointXYZ pt = mesh_cloud.points[pnt_indices[0]];
+  p_start.x = pt.x;
+  p_start.y = pt.y;
+  p_start.z = pt.z;
+  pt = mesh_cloud.points[pnt_indices[1]];
+  p_mid.x = pt.x;
+  p_mid.y = pt.y;
+  p_mid.z = pt.z;
+  v_1 = p_mid.getVector3fMap() - p_start.getVector3fMap();
+  new_pt.x = mesh_cloud[pnt_indices[0]].x;
+  new_pt.y = mesh_cloud[pnt_indices[0]].y;
+  new_pt.z = mesh_cloud[pnt_indices[0]].z;
+  path_cloud.push_back(new_pt);  // add first point
+  for (std::size_t i = 2; i < pnt_indices.size(); i++)
+  {
+    pt = mesh_cloud[pnt_indices[i]];
+    p_end.x = pt.x;
+    p_end.y = pt.y;
+    p_end.z = pt.z;
+    while (dist < v_1.norm())
+    {
+      p_start.getVector3fMap() = p_start.getVector3fMap() + dist * v_1.normalized();
+      std::tie(new_pt.x, new_pt.y, new_pt.z) = std::make_tuple(p_start.x, p_start.y, p_start.z);
+      path_cloud.push_back(new_pt);
+      v_1 = p_mid.getVector3fMap() - p_start.getVector3fMap();
+    }
+
+    v_2 = p_end.getVector3fMap() - p_mid.getVector3fMap();
+    if (dist < (v_1 + v_2).norm())
+    {
+      // solve for x such that " x^2 + 2 * x * dot(v_1, unitv_2) + norm(v_1)^2 - d^2 = 0"
+      unitv_2 = v_2.normalized();
+      double b = 2 * v_1.dot(unitv_2);
+      double c = std::pow(v_1.norm(), 2) - std::pow(dist, 2);
+      double sqrt_term = std::sqrt(std::pow(b, 2) - 4 * c);
+      double x = 0.5 * (-b + sqrt_term);
+      x = (x > 0.0 && x < dist) ? x : 0.5 * (-b - sqrt_term);
+      if (x > dist)
+      {
+        return false;
+      }
+      v_next = v_1 + x * unitv_2;
+
+      // computing next point at distance "dist" from previous that lies on the curve
+      p_start.getVector3fMap() = p_start.getVector3fMap() + v_next;
+      std::tie(new_pt.x, new_pt.y, new_pt.z) = std::make_tuple(p_start.x, p_start.y, p_start.z);
+      path_cloud.push_back(new_pt);
+    }
+
+    // computing values for next iter
+    p_mid = p_end;
+    v_1 = p_mid.getVector3fMap() - p_start.getVector3fMap();
+  }
+
+  // add last point if not already there
+  if ((path_cloud.back().getVector3fMap() - mesh_cloud[pnt_indices.back()].getVector3fMap()).norm() > MIN_POINT_DIST_ALLOWED)
+  {
+    new_pt.x = mesh_cloud[pnt_indices[pnt_indices.size()-1]].x;
+    new_pt.y = mesh_cloud[pnt_indices[pnt_indices.size()-1]].y;
+    new_pt.z = mesh_cloud[pnt_indices[pnt_indices.size()-1]].z;
+    path_cloud.push_back(new_pt);
+  }
+
+  if (path_cloud.size() < 2)
+  {
+    CONSOLE_BRIDGE_logError("Points in curve segment are too close together");
+    return false;
+  }
+
+  return true;
+}
+
+bool insertPointNormals(const pcl::PointCloud<pcl::PointNormal>::Ptr& mesh_cloud,
+			  pcl::PointCloud<pcl::PointNormal>& path_cloud)
+{
+  //recovering normals using kd-treek
+  pcl::PointCloud<pcl::PointXYZ>::Ptr in_points (new pcl::PointCloud<pcl::PointXYZ> ());
+  for(pcl::PointNormal p : mesh_cloud->points)
+    {
+      pcl::PointXYZ pt(p.x, p.y,p.z);
+      in_points->points.push_back(pt);
+    }
+  pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
+  kdtree.setInputCloud(in_points);
+  kdtree.setEpsilon(EPSILON);
+
+  std::vector<int> k_indices;
+  std::vector<float> k_sqr_distances;
+  pcl::PointXYZ query_point;
+  for (auto& p : path_cloud)
+  {
+    k_indices.resize(1);
+    k_sqr_distances.resize(1);
+    std::tie(query_point.x, query_point.y, query_point.z) = std::make_tuple(p.x, p.y, p.z);
+    if (kdtree.nearestKSearch(query_point, 1, k_indices, k_sqr_distances) < 1)
+    {
+      CONSOLE_BRIDGE_logError("No nearest points found");
+      return false;
+    }
+
+    int idx = k_indices[0];
+    if(idx < mesh_cloud->points.size())
+      {
+	std::tie(p.normal_x, p.normal_y, p.normal_z) =
+	  std::make_tuple(mesh_cloud->points[idx].normal_x, mesh_cloud->points[idx].normal_y, mesh_cloud->points[idx].normal_z);
+      }
+      else
+	{
+	  ROS_ERROR("what is wrong %ld", idx);
+	}
+  }
+
+  return true;
+}
+
+void shapeMsgToPclPointXYZ( const shape_msgs::Mesh& mesh, pcl::PointCloud<pcl::PointXYZ>& mesh_cloud)
+{
+  mesh_cloud.points.clear();
+  for(int i=0; i<mesh.vertices.size(); i++)
+    {
+      pcl::PointXYZ p(mesh.vertices[i].x, mesh.vertices[i].y, mesh.vertices[i].z);
+      mesh_cloud.points.push_back(p);
+    }
+}
+
+void computeFaceNormals(const shape_msgs::Mesh& mesh, std::vector<Eigen::Vector3d>& face_normals)
+{
+  face_normals.clear();
+  face_normals.reserve(mesh.triangles.size());
+  for(size_t i=0; i<mesh.triangles.size(); i++)
+    {
+      size_t idx1 = mesh.triangles[i].vertex_indices[0];
+      size_t idx2 = mesh.triangles[i].vertex_indices[1];
+      size_t idx3 = mesh.triangles[i].vertex_indices[3];
+      Eigen::Vector3d v1(mesh.vertices[idx1].x, mesh.vertices[idx1].y, mesh.vertices[idx1].z);
+      Eigen::Vector3d v2(mesh.vertices[idx2].x, mesh.vertices[idx2].y, mesh.vertices[idx2].z);
+      Eigen::Vector3d v3(mesh.vertices[idx3].x, mesh.vertices[idx3].y, mesh.vertices[idx3].z);
+      Eigen::Vector3d normal = v1.cross(v2) + v2.cross(v3) + v3.cross(v1);
+      normal.normalize();
+      face_normals.push_back(normal);
+    }
+}
+
+void computeMeshNormals(const shape_msgs::Mesh& mesh, std::vector<Eigen::Vector3d>& face_normals, std::vector<Eigen::Vector3d>& vertex_normals)
+{
+  computeFaceNormals(mesh, face_normals);
+
+  // populate a structure for each vertex containing a list of adjoining faces
+  std::vector<size_t> vertex_faces[mesh.vertices.size()];
+  for(size_t i=0; i<mesh.triangles.size(); i++) // find every face adjoining each vertex
+    {
+      vertex_faces[mesh.triangles[i].vertex_indices[0]].push_back(i);
+      vertex_faces[mesh.triangles[i].vertex_indices[1]].push_back(i);
+      vertex_faces[mesh.triangles[i].vertex_indices[2]].push_back(i);
+    }
+  // average the adjoining face normals
+  vertex_normals.clear();
+  vertex_normals.reserve(mesh.vertices.size());
+  for(size_t i=-0; i<mesh.vertices.size(); i++) // for each vertex averages all adjoining face normals
+    {
+      Eigen::Vector3d vertex_normal;
+      if(vertex_faces[i].size() == 0)
+	{
+	  vertex_normal.z() = 1;
+	}
+      else
+	{
+	  for(size_t j=0; j<vertex_faces[i].size(); j++)
+	    {
+	      size_t face_index = vertex_faces[i][j];
+	      vertex_normal += face_normals[face_index];
+	    }
+	}
+      vertex_normal.normalize();
+      vertex_normals.push_back(vertex_normal);
+    }
+}  
+bool alignToVertexNormals(pcl::PointCloud<pcl::PointNormal>& mesh_cloud, std::vector<Eigen::Vector3d>& vertex_normals)
+{
+  if(mesh_cloud.points.size() != vertex_normals.size())
+    {
+      ROS_ERROR("mesh_cloud and vertex_normals have different number of points %ld vs %ld", mesh_cloud.points.size(), vertex_normals.size());
+      return(false);
+    }
+  int num_flipped=0;
+  for(size_t i=0; i<mesh_cloud.points.size(); i++)
+    {
+      Eigen::Vector3d n(mesh_cloud.points[i].normal_x, mesh_cloud.points[i].normal_y, mesh_cloud.points[i].normal_z);
+      if(vertex_normals[i].dot(n)<0)
+	{
+	  mesh_cloud.points[i].normal_x = -mesh_cloud.points[i].normal_x;
+	  mesh_cloud.points[i].normal_y = -mesh_cloud.points[i].normal_y;
+	  mesh_cloud.points[i].normal_z = -mesh_cloud.points[i].normal_z; 
+	  num_flipped++;
+	}
+    }
+  return true;
+}
 }  // namespace tool_path_planner

@@ -155,7 +155,7 @@ bool applyMinPointDistance(const pcl::PointCloud<pcl::PointNormal>& in,
  * @param dist  The required point spacing distance
  * @return True on success, False otherwise
  */
-bool applyEqualDistance(const pcl::PointCloud<pcl::PointNormal>& in,
+bool applyEqualDistance1(const pcl::PointCloud<pcl::PointNormal>& in,
                         pcl::PointCloud<pcl::PointNormal>& out,
                         double dist)
 {
@@ -215,7 +215,7 @@ bool applyEqualDistance(const pcl::PointCloud<pcl::PointNormal>& in,
   }
 
   // add last point if not already there
-  if ((out.back().getVector3fMap() - in.back().getNormalVector3fMap()).norm() > MIN_POINT_DIST_ALLOWED)
+  if ((out.back().getVector3fMap() - in.back().getVector3fMap()).norm() > MIN_POINT_DIST_ALLOWED)
   {
     out.push_back(in.back());
   }
@@ -500,9 +500,9 @@ boost::optional<ToolPaths> HalfedgeEdgeGenerator::generate()
           break;
 
         case PointSpacingMethod::EQUAL_SPACING:
-          if (!applyEqualDistance(bound_segment_points, decimated_points, config_.point_dist))
+          if (!applyEqualDistance1(bound_segment_points, decimated_points, config_.point_dist))
           {
-            CONSOLE_BRIDGE_logError("applyEqualDistance point spacing method failed");
+            CONSOLE_BRIDGE_logError("applyEqualDistance1 point spacing method failed");
             return boost::none;
           }
           break;

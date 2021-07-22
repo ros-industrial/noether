@@ -3,6 +3,9 @@ uint8 PLANE_SLICER_RASTER_GENERATOR=1
 uint8 HEAT_RASTER_GENERATOR=2
 uint8 EIGEN_VALUE_EDGE_GENERATOR=3 # This does not have a config
 uint8 HALFEDGE_EDGE_GENERATOR=4
+uint8 PAINT_RASTER_STYLE=0
+uint8 MOW_RASTER_STYLE=1
+uint8 READ_RASTER_STYLE=2
 
 uint8 type
 noether_msgs/SurfaceWalkRasterGeneratorConfig surface_walk_generator
