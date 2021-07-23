@@ -306,8 +306,28 @@ bool createToolPathSegment(const pcl::PointCloud<pcl::PointNormal>& cloud_normal
       cloud_indices.assign(indices.begin(), indices.end());
     }
 
-  for (std::size_t i = 0; i < cloud_indices.size() - 2; i++)
+  if(cloud_indices.size() < 3)
+    {
+      // TODO, covering the 2 point case is straight forward
+      ROS_ERROR("A valid path must have at least 3 points");
+      return false;
+    }
+
+  // compute first pose with x-axis using vector from first point to third point
+  const PointNormal& p1 = cloud_normals[cloud_indices[0]];
+  const PointNormal& p2 = cloud_normals[cloud_indices[2]];
+  x_dir = (p2.getVector3fMap() - p1.getVector3fMap()).normalized().cast<double>();
+  z_dir = Vector3d(p1.normal_x, p1.normal_y, p1.normal_z).normalized();
+  x_dir = (x_dir - x_dir.dot(z_dir)*z_dir).normalized();// remove component of x along z
+  y_dir = z_dir.cross(x_dir).normalized();
+  
+  pose = Translation3d(p1.getVector3fMap().cast<double>());
+  pose.matrix().block<3, 3>(0, 0) = tool_path_planner::toRotationMatrix(x_dir, y_dir, z_dir);
+  segment.push_back(pose);
+  
+  for (std::size_t i = 1; i < cloud_indices.size() - 2; i++)
   {
+    std::size_t idx_prev = cloud_indices[i - 1];
     std::size_t idx_current = cloud_indices[i];
     std::size_t idx_next = cloud_indices[i + 1];
     if (idx_current >= cloud_normals.size() || idx_next >= cloud_normals.size())
@@ -316,10 +336,12 @@ bool createToolPathSegment(const pcl::PointCloud<pcl::PointNormal>& cloud_normal
           "Invalid indices (current: %lu, next: %lu) for point cloud were passed", idx_current, idx_next);
       return false;
     }
+    const PointNormal& p0 = cloud_normals[idx_prev];
     const PointNormal& p1 = cloud_normals[idx_current];
     const PointNormal& p2 = cloud_normals[idx_next];
-    x_dir = (p2.getVector3fMap() - p1.getVector3fMap()).normalized().cast<double>();
+    x_dir = (p2.getVector3fMap() - p0.getVector3fMap()).normalized().cast<double>();
     z_dir = Vector3d(p1.normal_x, p1.normal_y, p1.normal_z).normalized();
+    x_dir = (x_dir - x_dir.dot(z_dir)*z_dir).normalized();// remove component of x along z
     y_dir = z_dir.cross(x_dir).normalized();
 
     pose = Translation3d(p1.getVector3fMap().cast<double>());
@@ -327,12 +349,15 @@ bool createToolPathSegment(const pcl::PointCloud<pcl::PointNormal>& cloud_normal
     segment.push_back(pose);
   }
 
-  // last pose
-  Eigen::Isometry3d p = segment.back();
-  p.translation().x() = cloud_normals[cloud_indices.back()].x;
-  p.translation().y() = cloud_normals[cloud_indices.back()].y;
-  p.translation().z() = cloud_normals[cloud_indices.back()].z;
-  segment.push_back(p);
+  // compute last pose with last computed x-axis (corrected for change in z
+  const PointNormal&  p_last = cloud_normals[cloud_indices[cloud_indices.size() -1]];
+  z_dir = Vector3d(p_last.normal_x, p_last.normal_y, p_last.normal_z).normalized();
+  x_dir = (x_dir - x_dir.dot(z_dir)*z_dir).normalized();
+  y_dir = z_dir.cross(x_dir).normalized();
+  pose = Translation3d(p_last.getVector3fMap().cast<double>());
+  pose.matrix().block<3, 3>(0, 0) = tool_path_planner::toRotationMatrix(x_dir, y_dir, z_dir);
+  segment.push_back(pose);
+
   return true;
 }
 
