@@ -1,5 +1,7 @@
 #include <noether_tpp/core/tool_path_planner_pipeline.h>
 
+#include <utility>  // std::move()
+
 namespace noether_tpp
 {
 ToolPathPlannerPipeline::ToolPathPlannerPipeline(std::unique_ptr<MeshModifier>&& mesh_mod,

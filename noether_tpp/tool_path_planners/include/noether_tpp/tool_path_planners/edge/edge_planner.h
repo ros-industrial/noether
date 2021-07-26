@@ -19,10 +19,10 @@
 
 #pragma once
 
-#include <noether_tpp/core/tool_path_planner.h>
-#include <noether_tpp/core/tool_path_modifier.h>
-
 #include <memory>
+
+#include <noether_tpp/core/tool_path_modifier.h>
+#include <noether_tpp/core/tool_path_planner.h>
 
 namespace noether_tpp
 {
@@ -58,6 +58,19 @@ protected:
 
 private:
   std::unique_ptr<const OneTimeToolPathModifier> modifier_;
+
+  /** @brief Distance between waypoints on the same raster line (m) */
+  double point_spacing;
+};
+
+/**
+ * @brief Interface for creating instances of edge tool path planners.
+ * @details This class contains the generic parameters for configuring edge tool path planners
+ */
+struct EdgePlannerFactory : public ToolPathPlannerFactory
+{
+  /** @brief Distance between waypoints on the same raster line (m) */
+  double point_spacing;
 };
 
 }  // namespace noether_tpp

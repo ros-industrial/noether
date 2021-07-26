@@ -1,5 +1,7 @@
 #include <noether_tpp/tool_path_modifiers/compound_modifier.h>
 
+#include <utility>  // std::move()
+
 namespace noether_tpp
 {
 CompoundModifier::CompoundModifier(std::vector<std::unique_ptr<const ToolPathModifier>>&& modifiers)

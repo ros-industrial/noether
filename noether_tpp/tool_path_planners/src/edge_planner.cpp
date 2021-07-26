@@ -1,7 +1,10 @@
 #include <noether_tpp/tool_path_planners/edge/edge_planner.h>
 
+#include <utility>  // std::move()
+
 namespace noether_tpp
 {
+
 EdgePlanner::EdgePlanner() : modifier_(std::move(createDefaultModifier())) {}
 
 std::unique_ptr<const OneTimeToolPathModifier> EdgePlanner::createDefaultModifier() { return nullptr; }

@@ -1,5 +1,7 @@
 #include <noether_tpp/tool_path_planners/raster/raster_planner.h>
 
+#include <utility>  // std::move()
+
 namespace noether_tpp
 {
 RasterPlanner::RasterPlanner(std::unique_ptr<DirectionGenerator>&& dir_gen,

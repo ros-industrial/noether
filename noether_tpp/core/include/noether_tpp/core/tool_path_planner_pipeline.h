@@ -18,13 +18,14 @@
  */
 #pragma once
 
+#include <memory>
+#include <vector>
+
 #include <noether_tpp/core/mesh_modifier.h>
 #include <noether_tpp/core/tool_path_modifier.h>
 #include <noether_tpp/core/tool_path_planner.h>
 
-#include <memory>
 #include <pcl/PolygonMesh.h>
-#include <vector>
 
 namespace noether_tpp
 {

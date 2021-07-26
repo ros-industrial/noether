@@ -18,8 +18,9 @@
  */
 #pragma once
 
-#include <Eigen/Geometry>
 #include <vector>
+
+#include <Eigen/Geometry>
 
 namespace noether_tpp
 {

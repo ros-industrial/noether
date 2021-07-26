@@ -18,8 +18,9 @@
  */
 #pragma once
 
-#include <pcl/PolygonMesh.h>
 #include <vector>
+
+#include <pcl/PolygonMesh.h>
 
 namespace noether_tpp
 {

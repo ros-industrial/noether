@@ -1,5 +1,5 @@
 /**
- * @file default_edge_mod.h
+ * @file compound_modifier.h
  * @copyright Copyright (c) 2021, Southwest Research Institute
  *
  * @par License
@@ -19,11 +19,11 @@
 
 #pragma once
 
-#include <noether_tpp/core/tool_path_modifier.h>
-#include <noether_tpp/core/types.h>
-
 #include <memory>
 #include <vector>
+
+#include <noether_tpp/core/tool_path_modifier.h>
+#include <noether_tpp/core/types.h>
 
 namespace noether_tpp
 {
@@ -43,7 +43,7 @@ private:
 /**
  * @brief Modifier that chains together one-time style modifiers
  */
-class OneTimeCompoundModifier : public ToolPathModifier
+class OneTimeCompoundModifier : public OneTimeToolPathModifier
 {
 public:
   OneTimeCompoundModifier(std::vector<std::unique_ptr<const OneTimeToolPathModifier>>&& modifiers);

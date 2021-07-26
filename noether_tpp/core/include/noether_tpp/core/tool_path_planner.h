@@ -18,10 +18,11 @@
  */
 #pragma once
 
-#include <noether_tpp/core/types.h>
-
 #include <memory>
+
 #include <pcl/PolygonMesh.h>
+
+#include <noether_tpp/core/types.h>
 
 namespace noether_tpp
 {
