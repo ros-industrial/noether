@@ -177,6 +177,7 @@ void shapeMsgToPclPointXYZ( const shape_msgs::Mesh& mesh, pcl::PointCloud<pcl::P
 void computeFaceNormals(const shape_msgs::Mesh& mesh, std::vector<Eigen::Vector3d>& face_normals);
 
 void computeMeshNormals(const shape_msgs::Mesh& mesh, std::vector<Eigen::Vector3d>& face_normals, std::vector<Eigen::Vector3d>& vertex_normals);
+void computePCLMeshNormals(pcl::PolygonMesh::ConstPtr& mesh, std::vector<Eigen::Vector3d>& face_normals, std::vector<Eigen::Vector3d>& vertex_normals);
 
 bool alignToVertexNormals(pcl::PointCloud<pcl::PointNormal>& mesh_cloud, std::vector<Eigen::Vector3d>& vertex_normals);
 }  // namespace tool_path_planner

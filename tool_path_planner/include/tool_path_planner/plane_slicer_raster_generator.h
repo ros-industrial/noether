@@ -175,6 +175,14 @@ public:
     }
   };
 
+  using PolyDataPtr = vtkSmartPointer<vtkPolyData>;
+
+  struct RasterConstructData
+  {
+    std::vector<PolyDataPtr> raster_segments;
+    std::vector<double> segment_lengths;
+  };
+
   PlaneSlicerRasterGenerator() = default;
 
   /**
@@ -184,11 +192,8 @@ public:
    */
   void setConfiguration(const Config& config);
 
-  void setInput(pcl::PolygonMesh::ConstPtr mesh) override;
-
-  void setInput(vtkSmartPointer<vtkPolyData> mesh) override;
-
   void setInput(const shape_msgs::Mesh& mesh) override;
+  void setInput(pcl::PolygonMesh::ConstPtr mesh) override;
 
   vtkSmartPointer<vtkPolyData> getInput() override;
 
@@ -197,12 +202,21 @@ public:
   std::string getName() const override;
 
 private:
+
+  void setInput(vtkSmartPointer<vtkPolyData> mesh) override;
+
   bool insertNormals(const double search_radius, vtkSmartPointer<vtkPolyData>& data);
 
+  tool_path_planner::ToolPaths convertToPoses(const std::vector<RasterConstructData>& rasters_data);
+  void computePoseData(const PolyDataPtr& polydata, int idx, Eigen::Vector3d& p, Eigen::Vector3d& vx, Eigen::Vector3d& vy, Eigen::Vector3d& vz);
+  
   vtkSmartPointer<vtkPolyData> mesh_data_;
   vtkSmartPointer<vtkKdTreePointLocator> kd_tree_;
   vtkSmartPointer<vtkCellLocator> cell_locator_;
   Config config_;
+  boost::shared_ptr<pcl::PointCloud<pcl::PointNormal> > mls_mesh_normals_ptr_;
+  std::vector<Eigen::Vector3d> vertex_normals_;
+  std::vector<Eigen::Vector3d> face_normals_;
 };
 
 } /* namespace tool_path_planner */
