@@ -2,13 +2,14 @@
 
 #include <utility>  // std::move()
 
+#include <noether_tpp/tool_path_modifiers/default_modifiers.h>
+
 namespace noether_tpp
 {
-
-EdgePlanner::EdgePlanner() : modifier_(std::move(createDefaultModifier())) {}
-
-std::unique_ptr<const OneTimeToolPathModifier> EdgePlanner::createDefaultModifier() { return nullptr; }
-
-ToolPaths EdgePlanner::plan(const pcl::PolygonMesh& mesh) const { return modifier_->modify(planImpl(mesh)); }
+ToolPaths EdgePlanner::plan(const pcl::PolygonMesh& mesh) const
+{
+  DefaultEdgePlannerModifier modifier;
+  return modifier.modify(planImpl(mesh));
+}
 
 }  // namespace noether_tpp

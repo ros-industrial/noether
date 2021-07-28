@@ -3,6 +3,7 @@ find_package(PCL REQUIRED COMPONENTS common)
 # Test Implementation Library
 add_library(${PROJECT_NAME}_modifiers SHARED
   src/compound_modifier.cpp
+  src/default_modifiers.cpp
 )
 target_include_directories(${PROJECT_NAME}_modifiers PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"

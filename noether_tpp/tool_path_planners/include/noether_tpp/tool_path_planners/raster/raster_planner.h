@@ -55,19 +55,11 @@ class RasterPlanner : public ToolPathPlanner
 public:
   RasterPlanner(std::unique_ptr<DirectionGenerator>&& dir_gen, std::unique_ptr<OriginGenerator>&& origin_gen);
 
-  /**
-   * @brief Creates a modifier that enforces the definition of a raster path on the path generated
-   * by a RasterPlanner. It will enforce uniform waypoint orientation, uniform raster direction,
-   * and consistent raster ordering.
-   * @return
-   */
-  static std::unique_ptr<const OneTimeToolPathModifier> createDefaultModifier();
-
   ToolPaths plan(const pcl::PolygonMesh& mesh) const override final;
 
 protected:
   /**
-   * @brief planImpl
+   * @brief Implementation of the tool path planning capability
    * @param mesh
    * @return
    */
@@ -77,8 +69,6 @@ protected:
   std::unique_ptr<OriginGenerator> origin_gen_;
 
 private:
-  std::unique_ptr<const OneTimeToolPathModifier> modifier_;
-
   /** @brief Distance between waypoints on the same raster line (m) */
   double point_spacing;
   /** @brief Distance between raster lines */
