@@ -502,7 +502,7 @@ boost::optional<ToolPaths> HalfedgeEdgeGenerator::generate()
         case PointSpacingMethod::EQUAL_SPACING:
           if (!applyEqualDistancePathCloud(bound_segment_points, decimated_points, config_.point_dist))
           {
-            CONSOLE_BRIDGE_logError("applyEqualDistance1 point spacing method failed");
+            CONSOLE_BRIDGE_logError("applyEqualDistancePathCloud point spacing method failed");
             return boost::none;
           }
           break;
