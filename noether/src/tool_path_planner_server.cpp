@@ -12,7 +12,6 @@
 #include <tool_path_planner/eigen_value_edge_generator.h>
 #include <tool_path_planner/halfedge_edge_generator.h>
 #include <smooth_pose_traj/smooth_pose_traj.hpp>
-#include <smooth_pose_traj/interleave_pose_traj.hpp>
 
 static const double FEEDBACK_PUBLISH_PERIOD = 1.0;  // seconds
 static const std::string GENERATE_TOOL_PATHS_ACTION = "generate_tool_paths";
