@@ -11,9 +11,9 @@
   <license>Apache 2.0</license>
 
   <build_depend>ros_industrial_cmake_boilerplate</build_depend>
-  <depend>libpcl-dev</depend>
-  <depend>libvtk7-dev</depend>
-  <depend>libeigen3-dev</depend>
+  <depend>libpcl-all-dev</depend>
+  <depend>libvtk</depend>
+  <depend>eigen</depend>
 
   <export>
     <build_type>cmake</build_type>
