@@ -161,23 +161,27 @@ ToolPaths splitByAxes(const ToolPaths& tool_paths, const Eigen::Vector3f& axis_1
  */
 void InterleavePoseTraj(noether_msgs::ToolPaths& tool_paths, double raster_spacing);
 
-pcl::PointCloud<pcl::PointNormal> computeMLSMeshNormals(const pcl::PointCloud<pcl::PointXYZ>::Ptr& mesh_cloud, double normal_search_radius);
-  
+pcl::PointCloud<pcl::PointNormal> computeMLSMeshNormals(const pcl::PointCloud<pcl::PointXYZ>::Ptr& mesh_cloud,
+                                                        double normal_search_radius);
+
 bool applyEqualDistance(const std::vector<int>& pnt_indices,
-			const pcl::PointCloud<pcl::PointXYZ>& mesh_cloud,
+                        const pcl::PointCloud<pcl::PointXYZ>& mesh_cloud,
                         pcl::PointCloud<pcl::PointNormal>& path_cloud,
                         double dist);
 
 bool insertPointNormals(const pcl::PointCloud<pcl::PointNormal>::Ptr& mesh_cloud,
-			pcl::PointCloud<pcl::PointNormal>& path_cloud);
+                        pcl::PointCloud<pcl::PointNormal>& path_cloud);
 
-void shapeMsgToPclPointXYZ( const shape_msgs::Mesh& mesh, pcl::PointCloud<pcl::PointXYZ>& mesh_cloud);
-
+void shapeMsgToPclPointXYZ(const shape_msgs::Mesh& mesh, pcl::PointCloud<pcl::PointXYZ>& mesh_cloud);
 
 void computeFaceNormals(const shape_msgs::Mesh& mesh, std::vector<Eigen::Vector3d>& face_normals);
 
-void computeMeshNormals(const shape_msgs::Mesh& mesh, std::vector<Eigen::Vector3d>& face_normals, std::vector<Eigen::Vector3d>& vertex_normals);
-void computePCLMeshNormals(pcl::PolygonMesh::ConstPtr& mesh, std::vector<Eigen::Vector3d>& face_normals, std::vector<Eigen::Vector3d>& vertex_normals);
+void computeMeshNormals(const shape_msgs::Mesh& mesh,
+                        std::vector<Eigen::Vector3d>& face_normals,
+                        std::vector<Eigen::Vector3d>& vertex_normals);
+void computePCLMeshNormals(pcl::PolygonMesh::ConstPtr& mesh,
+                           std::vector<Eigen::Vector3d>& face_normals,
+                           std::vector<Eigen::Vector3d>& vertex_normals);
 
 bool alignToVertexNormals(pcl::PointCloud<pcl::PointNormal>& mesh_cloud, std::vector<Eigen::Vector3d>& vertex_normals);
 }  // namespace tool_path_planner

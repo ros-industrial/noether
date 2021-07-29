@@ -107,8 +107,8 @@ protected:
         tool_path_planner::toSurfaceWalkConfig(path_config, config.surface_walk_generator);
         path_gen->setConfiguration(path_config);
         generator = path_gen;
-	pt_spacing = path_config.point_spacing;
-	raster_spacing = path_config.raster_spacing;
+        pt_spacing = path_config.point_spacing;
+        raster_spacing = path_config.raster_spacing;
       }
       else if (config.type == noether_msgs::ToolPathConfig::PLANE_SLICER_RASTER_GENERATOR)
       {
@@ -117,9 +117,9 @@ protected:
         tool_path_planner::toPlaneSlicerConfig(path_config, config.plane_slicer_generator);
         path_gen->setConfiguration(path_config);
         generator = path_gen;
-	pt_spacing = path_config.point_spacing;
-	raster_spacing = path_config.raster_spacing;
-	smooth_pose_arrays_ = path_config.smooth_rasters;
+        pt_spacing = path_config.point_spacing;
+        raster_spacing = path_config.raster_spacing;
+        smooth_pose_arrays_ = path_config.smooth_rasters;
       }
       else if (config.type == noether_msgs::ToolPathConfig::EIGEN_VALUE_EDGE_GENERATOR)
       {
@@ -128,7 +128,7 @@ protected:
         tool_path_planner::toEigenValueConfig(path_config, config.eigen_value_generator);
         path_gen->setConfiguration(path_config);
         generator = path_gen;
-	pt_spacing = path_config.merge_dist;
+        pt_spacing = path_config.merge_dist;
       }
       else if (config.type == noether_msgs::ToolPathConfig::HALFEDGE_EDGE_GENERATOR)
       {
@@ -137,7 +137,7 @@ protected:
         tool_path_planner::toHalfedgeConfig(path_config, config.halfedge_generator);
         path_gen->setConfiguration(path_config);
         generator = path_gen;
-	pt_spacing = path_config.point_dist;
+        pt_spacing = path_config.point_dist;
       }
       else
       {
@@ -150,7 +150,7 @@ protected:
 
       generator->setInput(mesh);
       tool_paths = generator->generate();
-      
+
       if (tool_paths.is_initialized())
       {
         for (const auto& tool_path : tool_paths.get())
@@ -165,14 +165,13 @@ protected:
               tf::poseEigenToMsg(p, pose);
               seg.poses.push_back(pose);
             }
-	    if(smooth_pose_arrays_)
-	      {
-		smooth_pose_traj::SmoothPoseTraj smoother(seg, pt_spacing, true);
-		smoother.process(seg);
-	      }
+            if (smooth_pose_arrays_)
+            {
+              smooth_pose_traj::SmoothPoseTraj smoother(seg, pt_spacing, true);
+              smoother.process(seg);
+            }
             tp.segments.push_back(seg);
           }
-	  
 
           result.tool_paths[i].paths.push_back(tp);
         }
@@ -258,5 +257,5 @@ int main(int argc, char** argv)
   tpp_path_gen::TppServer tpp_server(nh, GENERATE_TOOL_PATHS_ACTION);
   tpp_server.start();
   ros::waitForShutdown();
-    return 0;
+  return 0;
 }

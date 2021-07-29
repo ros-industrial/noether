@@ -66,7 +66,7 @@ static Eigen::Vector3d getSegDir(PolyDataPtr seg)
     v.x() = 1.0;
     v.y() = 0.0;
     v.z() = 0.0;
-    return(v);
+    return (v);
   }
   Eigen::Vector3d seg_start, seg_end;
   seg->GetPoint(0, seg_start.data());
@@ -81,7 +81,9 @@ static bool compare_ds_pair(std::pair<double, size_t>& first, std::pair<double, 
 
 // @brief this function accepts and returns a rasterConstruct where every segment progresses in the same direction and
 // in the right order
-static tool_path_planner::PlaneSlicerRasterGenerator::RasterConstructData alignRasterCD(tool_path_planner::PlaneSlicerRasterGenerator::RasterConstructData& rcd, Eigen::Vector3d& raster_direction)
+static tool_path_planner::PlaneSlicerRasterGenerator::RasterConstructData
+alignRasterCD(tool_path_planner::PlaneSlicerRasterGenerator::RasterConstructData& rcd,
+              Eigen::Vector3d& raster_direction)
 {
   if (rcd.raster_segments[0]->GetPoints()->GetNumberOfPoints() <= 1)
   {
@@ -119,10 +121,10 @@ static tool_path_planner::PlaneSlicerRasterGenerator::RasterConstructData alignR
     seg_order.push_back(p);
   }
   // sort the segments by location
-  if(seg_order.size()>=1)
-    {
-      seg_order.sort(compare_ds_pair);
-    }
+  if (seg_order.size() >= 1)
+  {
+    seg_order.sort(compare_ds_pair);
+  }
   tool_path_planner::PlaneSlicerRasterGenerator::RasterConstructData new_rcd;
   for (std::pair<double, size_t> p : seg_order)
   {
@@ -391,14 +393,13 @@ static void rectifyDirection(const vtkSmartPointer<vtkPoints>& points,
   bool reverse = (ref_point - p0).norm() > (ref_point - pf).norm();
   if (reverse)
   {
-    for (auto& s : points_lists) // reverse points in segments
+    for (auto& s : points_lists)  // reverse points in segments
     {
       std::reverse(s.begin(), s.end());
     }
     std::reverse(points_lists.begin(), points_lists.end());
   }
 }
-
 
 namespace tool_path_planner
 {
@@ -444,10 +445,8 @@ void PlaneSlicerRasterGenerator::setInput(vtkSmartPointer<vtkPolyData> mesh)
   }
 }
 
-
 void PlaneSlicerRasterGenerator::setInput(pcl::PolygonMesh::ConstPtr mesh)
 {
-  
   auto mesh_data = vtkSmartPointer<vtkPolyData>::New();
   pcl::VTKUtils::mesh2vtk(*mesh, mesh_data);
   mesh_data->BuildLinks();
@@ -455,22 +454,21 @@ void PlaneSlicerRasterGenerator::setInput(pcl::PolygonMesh::ConstPtr mesh)
 
   // compute face and vertex using polygon info
   tool_path_planner::computePCLMeshNormals(mesh, face_normals_, vertex_normals_);
-  
-  // compute vertex normals using Moving Least Squares
-  pcl::PointCloud<pcl::PointXYZ>::Ptr mesh_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>() );
-  pcl::fromPCLPointCloud2(mesh->cloud, *mesh_cloud_ptr);
-  mls_mesh_normals_ptr_ = boost::make_shared<pcl::PointCloud<pcl::PointNormal> > (tool_path_planner::computeMLSMeshNormals(mesh_cloud_ptr, config_.search_radius));
 
+  // compute vertex normals using Moving Least Squares
+  pcl::PointCloud<pcl::PointXYZ>::Ptr mesh_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>());
+  pcl::fromPCLPointCloud2(mesh->cloud, *mesh_cloud_ptr);
+  mls_mesh_normals_ptr_ = boost::make_shared<pcl::PointCloud<pcl::PointNormal> >(
+      tool_path_planner::computeMLSMeshNormals(mesh_cloud_ptr, config_.search_radius));
 
   // align mls_vertex_normals to vertex_normals
-   if(!tool_path_planner::alignToVertexNormals(*mls_mesh_normals_ptr_, vertex_normals_))
-     {
-       ROS_ERROR("alignToVertexNormals failed");
-     }
+  if (!tool_path_planner::alignToVertexNormals(*mls_mesh_normals_ptr_, vertex_normals_))
+  {
+    ROS_ERROR("alignToVertexNormals failed");
+  }
 
   setInput(mesh_data);
 }
-
 
 void PlaneSlicerRasterGenerator::setInput(const shape_msgs::Mesh& mesh)
 {
@@ -480,24 +478,30 @@ void PlaneSlicerRasterGenerator::setInput(const shape_msgs::Mesh& mesh)
 }
 
 vtkSmartPointer<vtkPolyData> PlaneSlicerRasterGenerator::getInput() { return mesh_data_; }
-void PlaneSlicerRasterGenerator::computePoseData(const PolyDataPtr& polydata, int idx, Eigen::Vector3d& p, Eigen::Vector3d& vx, Eigen::Vector3d& vy, Eigen::Vector3d& vz)
+void PlaneSlicerRasterGenerator::computePoseData(const PolyDataPtr& polydata,
+                                                 int idx,
+                                                 Eigen::Vector3d& p,
+                                                 Eigen::Vector3d& vx,
+                                                 Eigen::Vector3d& vy,
+                                                 Eigen::Vector3d& vz)
 {
   Eigen::Vector3d p_next;
   Eigen::Vector3d p_start;
-  
+
   //  polydata->GetPoint(idx, p.data()); // use this and next point to determine x direction
   //  polydata->GetPoint(idx + 1, p_next.data());
-  polydata->GetPoint(0, p_start.data()); // use the first and last point to determine x direction
+  polydata->GetPoint(0, p_start.data());  // use the first and last point to determine x direction
   polydata->GetPoint(idx, p.data());
-  polydata->GetPoint(polydata->GetNumberOfPoints()-1, p_next.data());
+  polydata->GetPoint(polydata->GetNumberOfPoints() - 1, p_next.data());
   polydata->GetPointData()->GetNormals()->GetTuple(idx, vz.data());
   vz = vz.normalized();
   vx = p_next - p_start;
-  vx = (vx - vx.dot(vz)*vz).normalized();
+  vx = (vx - vx.dot(vz) * vz).normalized();
   vy = vz.cross(vx).normalized();
 }
 
-tool_path_planner::ToolPaths PlaneSlicerRasterGenerator::convertToPoses(const std::vector<tool_path_planner::PlaneSlicerRasterGenerator::RasterConstructData>& rasters_data)
+tool_path_planner::ToolPaths PlaneSlicerRasterGenerator::convertToPoses(
+    const std::vector<tool_path_planner::PlaneSlicerRasterGenerator::RasterConstructData>& rasters_data)
 {
   using namespace Eigen;
   tool_path_planner::ToolPaths rasters_array;
@@ -526,39 +530,39 @@ tool_path_planner::ToolPaths PlaneSlicerRasterGenerator::convertToPoses(const st
       prev_vx = vx;
       prev_vy = vy;
       prev_vz = vz;
-      int q=0;
+      int q = 0;
       for (std::size_t i = 0; i < indices.size() - 2; i++)
       {
-	computePoseData(polydata, i+1, next_p, next_vx, next_vy, next_vz);
-	vx = (prev_vx + vx + next_vx).normalized();
+        computePoseData(polydata, i + 1, next_p, next_vx, next_vy, next_vz);
+        vx = (prev_vx + vx + next_vx).normalized();
         vy = vz.cross(vx).normalized();
         pose = Translation3d(p) * AngleAxisd(computeRotation(vx, vy, vz));
         raster_path_segment.push_back(pose);
-	q++;
+        q++;
 
-	prev_vx = vx;
-	prev_vy = vy;
-	prev_vz = vz;
-	vx = next_vx;
-	vy = next_vy;
-	vz = next_vz;
-	p = next_p;
+        prev_vx = vx;
+        prev_vy = vy;
+        prev_vz = vz;
+        vx = next_vx;
+        vy = next_vy;
+        vz = next_vz;
+        p = next_p;
       }  // end for every waypoint
 
-      if(indices.size() >= 2) // this throws away short segments
+      if (indices.size() >= 2)  // this throws away short segments
       {
-	// adding next to last pose
-	computePoseData(polydata, indices.size()-2, p, vx, vy, vz);
-	vx = (prev_vx + vx).normalized();
-	pose = Translation3d(p) * AngleAxisd(computeRotation(vx, vy, vz));
-	raster_path_segment.push_back(pose);
-	q++;
+        // adding next to last pose
+        computePoseData(polydata, indices.size() - 2, p, vx, vy, vz);
+        vx = (prev_vx + vx).normalized();
+        pose = Translation3d(p) * AngleAxisd(computeRotation(vx, vy, vz));
+        raster_path_segment.push_back(pose);
+        q++;
 
-	// adding last pose
-	polydata->GetPoint(indices.size()-1, p.data());
-	pose = Translation3d(p) * AngleAxisd(computeRotation(vx, vy, vz));
-	raster_path_segment.push_back(pose);
-	q++;
+        // adding last pose
+        polydata->GetPoint(indices.size() - 1, p.data());
+        pose = Translation3d(p) * AngleAxisd(computeRotation(vx, vy, vz));
+        raster_path_segment.push_back(pose);
+        q++;
       }
       raster_path.push_back(raster_path_segment);
     }  // end for every segment
@@ -567,7 +571,6 @@ tool_path_planner::ToolPaths PlaneSlicerRasterGenerator::convertToPoses(const st
 
   return rasters_array;
 }
-
 
 boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
 {
@@ -854,23 +857,23 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
         }
 
         // saving into raster
-	if(segment_data->GetPoints()->GetNumberOfPoints()>0)
-	  {
-	    r.raster_segments.push_back(segment_data);
-	    r.segment_lengths.push_back(line_length);
-	  }
+        if (segment_data->GetPoints()->GetNumberOfPoints() > 0)
+        {
+          r.raster_segments.push_back(segment_data);
+          r.segment_lengths.push_back(line_length);
+        }
       }
     }
 
-    if(r.raster_segments.size()>0)
+    if (r.raster_segments.size() > 0)
       rasters_data_vec.push_back(r);
   }
-  if(rasters_data_vec.size() == 0)
-    {
-      ROS_ERROR("no rasters found");
-      ToolPaths rasters;
-      return(rasters);
-    }
+  if (rasters_data_vec.size() == 0)
+  {
+    ROS_ERROR("no rasters found");
+    ToolPaths rasters;
+    return (rasters);
+  }
   // make sure every raster has its segments ordered and aligned correctly
   Eigen::Vector3d raster_direction = getSegDir(rasters_data_vec[0].raster_segments[0]);
   for (tool_path_planner::PlaneSlicerRasterGenerator::RasterConstructData rcd : rasters_data_vec)
@@ -878,26 +881,26 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
     rcd = alignRasterCD(rcd, raster_direction);
   }
 
-  if(config_.interleave_rasters)
+  if (config_.interleave_rasters)
+  {
+    std::vector<tool_path_planner::PlaneSlicerRasterGenerator::RasterConstructData> tmp_rasters_data_vec;
+    // evens
+    for (size_t i = 0; i < rasters_data_vec.size(); i += 2)
     {
-      std::vector<tool_path_planner::PlaneSlicerRasterGenerator::RasterConstructData> tmp_rasters_data_vec;
-      // evens
-      for (size_t i=0; i<rasters_data_vec.size(); i +=2)
-	{
-	  tmp_rasters_data_vec.push_back(rasters_data_vec[i]);
-	}
-      // odds
-      for(size_t i=1; i<rasters_data_vec.size(); i +=2)
-	{
-	  tmp_rasters_data_vec.push_back(rasters_data_vec[i]);
-	}
-      // clear and copy new order
-      rasters_data_vec.clear();
-      for (size_t i=0; i<tmp_rasters_data_vec.size(); i++)
-	{
-	  rasters_data_vec.push_back(tmp_rasters_data_vec[i]);
-	}
+      tmp_rasters_data_vec.push_back(rasters_data_vec[i]);
     }
+    // odds
+    for (size_t i = 1; i < rasters_data_vec.size(); i += 2)
+    {
+      tmp_rasters_data_vec.push_back(rasters_data_vec[i]);
+    }
+    // clear and copy new order
+    rasters_data_vec.clear();
+    for (size_t i = 0; i < tmp_rasters_data_vec.size(); i++)
+    {
+      rasters_data_vec.push_back(tmp_rasters_data_vec[i]);
+    }
+  }
 
   // converting to poses msg
   ToolPaths rasters = convertToPoses(rasters_data_vec);
@@ -907,11 +910,11 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
     rasters = addExtraWaypoints(rasters, config_.raster_spacing, config_.point_spacing);
   }
 
-  if((config_.raster_style != PROCESS_FORWARD_DIRECTION_ONLY))
-    {
-      // switch directions of every other raster, using either flipping orientation or not depending on style selected
-      rasters = reverseOddRasters(rasters, config_.raster_style);
-    }
+  if ((config_.raster_style != PROCESS_FORWARD_DIRECTION_ONLY))
+  {
+    // switch directions of every other raster, using either flipping orientation or not depending on style selected
+    rasters = reverseOddRasters(rasters, config_.raster_style);
+  }
   return rasters;
 }
 
@@ -940,28 +943,28 @@ bool PlaneSlicerRasterGenerator::insertNormals(const double search_radius, vtkSm
     data->GetPoints()->GetPoint(i, query_point.data());
     kd_tree_->FindClosestNPoints(1, query_point.data(), id_list);
     if (id_list->GetNumberOfIds() < 1)
-      {
-        CONSOLE_BRIDGE_logError("%s failed to find closest for normal computation", getName().c_str());
-        return false;
-      }
+    {
+      CONSOLE_BRIDGE_logError("%s failed to find closest for normal computation", getName().c_str());
+      return false;
+    }
 
     // compute normal average
     normal_vect = Eigen::Vector3d::Zero();
     vtkIdType p_id = id_list->GetId(0);
     if (p_id < 0)
-      {
-	CONSOLE_BRIDGE_logError("%s point id is invalid", getName().c_str());
-	continue;
-      }
-	
+    {
+      CONSOLE_BRIDGE_logError("%s point id is invalid", getName().c_str());
+      continue;
+    }
+
     normal_vect.x() = mls_mesh_normals_ptr_->points[p_id].normal_x;
     normal_vect.y() = mls_mesh_normals_ptr_->points[p_id].normal_y;
     normal_vect.z() = mls_mesh_normals_ptr_->points[p_id].normal_z;
     normal_vect.normalize();
-    
+
     // save normal
     new_normals->SetTuple3(i, normal_vect(0), normal_vect(1), normal_vect(2));
-  }// end for every point
+  }  // end for every point
 
   data->GetPointData()->SetNormals(new_normals);
   return true;

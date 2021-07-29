@@ -15,9 +15,9 @@ namespace tool_path_planner
 {
 enum RasterStyle : int
 {
- KEEP_ORIENTATION_ON_REVERSE_STROKES = 0, //  painting style, back and fourth without flipping
- FLIP_ORIENTATION_ON_REVERSE_STROKES = 1, //  mowing style, back and fourth, but flip orientation at turns
- PROCESS_FORWARD_DIRECTION_ONLY  = 2,  // reading style left to right and return
+  KEEP_ORIENTATION_ON_REVERSE_STROKES = 0,  //  painting style, back and fourth without flipping
+  FLIP_ORIENTATION_ON_REVERSE_STROKES = 1,  //  mowing style, back and fourth, but flip orientation at turns
+  PROCESS_FORWARD_DIRECTION_ONLY = 2,       // reading style left to right and return
 };
 
 /** @brief A set of contiguous waypoints that lie on the same line created by a "slice" through a surface */

@@ -47,7 +47,7 @@ typedef std::list<wp_tuple> tlist;
 typedef std::list<wp_tuple>::iterator tlist_it;
 
 static const double EPSILON = 1e-3;
-  
+
 void flipPointOrder(ToolPath& path)
 {
   // Reverse the order of the segments
@@ -200,7 +200,7 @@ bool toPlaneSlicerConfigMsg(noether_msgs::PlaneSlicerRasterGeneratorConfig& conf
   config_msg.smooth_rasters = config.smooth_rasters;
   config_msg.raster_style = config.raster_style;
   config_msg.generate_extra_rasters = config.generate_extra_rasters;
-  config_msg.raster_wrt_global_axes = config.raster_wrt_global_axes; 
+  config_msg.raster_wrt_global_axes = config.raster_wrt_global_axes;
   config_msg.raster_direction.x = config.raster_direction.x();
   config_msg.raster_direction.y = config.raster_direction.y();
   config_msg.raster_direction.z = config.raster_direction.z();
@@ -293,37 +293,37 @@ bool createToolPathSegment(const pcl::PointCloud<pcl::PointNormal>& cloud_normal
   Vector3d x_dir, z_dir, y_dir;
   std::vector<int> cloud_indices;
   if (indices.empty())
+  {
+    cloud_indices.reserve(cloud_normals.size());
+    for (int i = 0; i < cloud_normals.points.size(); i++)
     {
-      cloud_indices.reserve(cloud_normals.size());
-      for(int i=0; i<cloud_normals.points.size(); i++)
-	{
-	  cloud_indices.push_back(i);
-	}
+      cloud_indices.push_back(i);
     }
+  }
   else
-    {
-      cloud_indices.assign(indices.begin(), indices.end());
-    }
+  {
+    cloud_indices.assign(indices.begin(), indices.end());
+  }
 
-  if(cloud_indices.size() < 3)
-    {
-      // TODO, covering the 2 point case is straight forward
-      ROS_ERROR("A valid path must have at least 3 points");
-      return false;
-    }
+  if (cloud_indices.size() < 3)
+  {
+    // TODO, covering the 2 point case is straight forward
+    ROS_ERROR("A valid path must have at least 3 points");
+    return false;
+  }
 
   // compute first pose with x-axis using vector from first point to third point
   const PointNormal& p1 = cloud_normals[cloud_indices[0]];
   const PointNormal& p2 = cloud_normals[cloud_indices[2]];
   x_dir = (p2.getVector3fMap() - p1.getVector3fMap()).normalized().cast<double>();
   z_dir = Vector3d(p1.normal_x, p1.normal_y, p1.normal_z).normalized();
-  x_dir = (x_dir - x_dir.dot(z_dir)*z_dir).normalized();// remove component of x along z
+  x_dir = (x_dir - x_dir.dot(z_dir) * z_dir).normalized();  // remove component of x along z
   y_dir = z_dir.cross(x_dir).normalized();
-  
+
   pose = Translation3d(p1.getVector3fMap().cast<double>());
   pose.matrix().block<3, 3>(0, 0) = tool_path_planner::toRotationMatrix(x_dir, y_dir, z_dir);
   segment.push_back(pose);
-  
+
   for (std::size_t i = 1; i < cloud_indices.size() - 2; i++)
   {
     std::size_t idx_prev = cloud_indices[i - 1];
@@ -340,7 +340,7 @@ bool createToolPathSegment(const pcl::PointCloud<pcl::PointNormal>& cloud_normal
     const PointNormal& p2 = cloud_normals[idx_next];
     x_dir = (p2.getVector3fMap() - p0.getVector3fMap()).normalized().cast<double>();
     z_dir = Vector3d(p1.normal_x, p1.normal_y, p1.normal_z).normalized();
-    x_dir = (x_dir - x_dir.dot(z_dir)*z_dir).normalized();// remove component of x along z
+    x_dir = (x_dir - x_dir.dot(z_dir) * z_dir).normalized();  // remove component of x along z
     y_dir = z_dir.cross(x_dir).normalized();
 
     pose = Translation3d(p1.getVector3fMap().cast<double>());
@@ -349,9 +349,9 @@ bool createToolPathSegment(const pcl::PointCloud<pcl::PointNormal>& cloud_normal
   }
 
   // compute last pose with last computed x-axis (corrected for change in z
-  const PointNormal&  p_last = cloud_normals[cloud_indices[cloud_indices.size() -1]];
+  const PointNormal& p_last = cloud_normals[cloud_indices[cloud_indices.size() - 1]];
   z_dir = Vector3d(p_last.normal_x, p_last.normal_y, p_last.normal_z).normalized();
-  x_dir = (x_dir - x_dir.dot(z_dir)*z_dir).normalized();
+  x_dir = (x_dir - x_dir.dot(z_dir) * z_dir).normalized();
   y_dir = z_dir.cross(x_dir).normalized();
   pose = Translation3d(p_last.getVector3fMap().cast<double>());
   pose.matrix().block<3, 3>(0, 0) = tool_path_planner::toRotationMatrix(x_dir, y_dir, z_dir);
@@ -934,13 +934,14 @@ ToolPaths addExtraWaypoints(const ToolPaths& tool_paths, double raster_spacing, 
 }
 
 // computes the normal vectors to a mesh at every vertex
-pcl::PointCloud<pcl::PointNormal> computeMLSMeshNormals(const pcl::PointCloud<pcl::PointXYZ>::Ptr& mesh_cloud, double normal_search_radius)
+pcl::PointCloud<pcl::PointNormal> computeMLSMeshNormals(const pcl::PointCloud<pcl::PointXYZ>::Ptr& mesh_cloud,
+                                                        double normal_search_radius)
 {
   // initialize the MLSNE object
   pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal> MLS;
   MLS.setInputCloud(mesh_cloud);
   MLS.setComputeNormals(true);
-  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
+  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
   MLS.setSearchMethod(tree);
   MLS.setPolynomialOrder(3);
   MLS.setSearchRadius(normal_search_radius);
@@ -955,21 +956,21 @@ pcl::PointCloud<pcl::PointNormal> computeMLSMeshNormals(const pcl::PointCloud<pc
   pcl::PointCloud<pcl::PointNormal> mls_mesh_cloud_normals;
   MLS.process(mls_mesh_cloud_normals);
   std::vector<pcl::MLSResult> R = MLS.getMLSResults();
-  
+
   pcl::PointCloud<pcl::PointNormal> mesh_cloud_normals;
   mesh_cloud_normals.reserve(mesh_cloud->points.size());
-  for(size_t i=0; i<mesh_cloud->points.size(); i++)
-    {
-      pcl::PointNormal new_pn;
-      new_pn.x = mesh_cloud->points[i].x;
-      new_pn.y = mesh_cloud->points[i].y;
-      new_pn.z = mesh_cloud->points[i].z;
-      new_pn.normal_x = -R[i].plane_normal.x();
-      new_pn.normal_y = -R[i].plane_normal.y();
-      new_pn.normal_z = -R[i].plane_normal.z();
-      mesh_cloud_normals.push_back(new_pn);
-    }
-  return(mesh_cloud_normals);
+  for (size_t i = 0; i < mesh_cloud->points.size(); i++)
+  {
+    pcl::PointNormal new_pn;
+    new_pn.x = mesh_cloud->points[i].x;
+    new_pn.y = mesh_cloud->points[i].y;
+    new_pn.z = mesh_cloud->points[i].z;
+    new_pn.normal_x = -R[i].plane_normal.x();
+    new_pn.normal_y = -R[i].plane_normal.y();
+    new_pn.normal_z = -R[i].plane_normal.z();
+    mesh_cloud_normals.push_back(new_pn);
+  }
+  return (mesh_cloud_normals);
 }
 
 /**
@@ -980,7 +981,7 @@ pcl::PointCloud<pcl::PointNormal> computeMLSMeshNormals(const pcl::PointCloud<pc
  * @return True on success, False otherwise
  */
 bool applyEqualDistance(const std::vector<int>& pnt_indices,
-			const pcl::PointCloud<pcl::PointXYZ>& mesh_cloud,
+                        const pcl::PointCloud<pcl::PointXYZ>& mesh_cloud,
                         pcl::PointCloud<pcl::PointNormal>& path_cloud,
                         double dist)
 {
@@ -990,11 +991,11 @@ bool applyEqualDistance(const std::vector<int>& pnt_indices,
   PointNormal new_pt;
   PointXYZ p_start, p_mid, p_end;
   Vector3f v_1, v_2, unitv_2, v_next;
-  if(pnt_indices.size()<3)
-    {
-      CONSOLE_BRIDGE_logError("pnt_indices must have at least 3");
-      return false;
-    }
+  if (pnt_indices.size() < 3)
+  {
+    CONSOLE_BRIDGE_logError("pnt_indices must have at least 3");
+    return false;
+  }
   PointXYZ pt = mesh_cloud.points[pnt_indices[0]];
   p_start.x = pt.x;
   p_start.y = pt.y;
@@ -1050,11 +1051,11 @@ bool applyEqualDistance(const std::vector<int>& pnt_indices,
   }
 
   // add last point if not already there
-  if ((path_cloud.back().getVector3fMap() - mesh_cloud[pnt_indices.back()].getVector3fMap()).norm() > dist/3.0)
+  if ((path_cloud.back().getVector3fMap() - mesh_cloud[pnt_indices.back()].getVector3fMap()).norm() > dist / 3.0)
   {
-    new_pt.x = mesh_cloud[pnt_indices[pnt_indices.size()-1]].x;
-    new_pt.y = mesh_cloud[pnt_indices[pnt_indices.size()-1]].y;
-    new_pt.z = mesh_cloud[pnt_indices[pnt_indices.size()-1]].z;
+    new_pt.x = mesh_cloud[pnt_indices[pnt_indices.size() - 1]].x;
+    new_pt.y = mesh_cloud[pnt_indices[pnt_indices.size() - 1]].y;
+    new_pt.z = mesh_cloud[pnt_indices[pnt_indices.size() - 1]].z;
     path_cloud.push_back(new_pt);
   }
 
@@ -1068,15 +1069,15 @@ bool applyEqualDistance(const std::vector<int>& pnt_indices,
 }
 
 bool insertPointNormals(const pcl::PointCloud<pcl::PointNormal>::Ptr& mesh_cloud,
-			  pcl::PointCloud<pcl::PointNormal>& path_cloud)
+                        pcl::PointCloud<pcl::PointNormal>& path_cloud)
 {
-  //recovering normals using kd-treek
-  pcl::PointCloud<pcl::PointXYZ>::Ptr in_points (new pcl::PointCloud<pcl::PointXYZ> ());
-  for(pcl::PointNormal p : mesh_cloud->points)
-    {
-      pcl::PointXYZ pt(p.x, p.y,p.z);
-      in_points->points.push_back(pt);
-    }
+  // recovering normals using kd-treek
+  pcl::PointCloud<pcl::PointXYZ>::Ptr in_points(new pcl::PointCloud<pcl::PointXYZ>());
+  for (pcl::PointNormal p : mesh_cloud->points)
+  {
+    pcl::PointXYZ pt(p.x, p.y, p.z);
+    in_points->points.push_back(pt);
+  }
   pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
   kdtree.setInputCloud(in_points);
   kdtree.setEpsilon(EPSILON);
@@ -1096,168 +1097,174 @@ bool insertPointNormals(const pcl::PointCloud<pcl::PointNormal>::Ptr& mesh_cloud
     }
 
     int idx = k_indices[0];
-    if(idx < mesh_cloud->points.size())
-      {
-	std::tie(p.normal_x, p.normal_y, p.normal_z) =
-	  std::make_tuple(mesh_cloud->points[idx].normal_x, mesh_cloud->points[idx].normal_y, mesh_cloud->points[idx].normal_z);
-      }
-      else
-	{
-	  ROS_ERROR("what is wrong %d", idx);
-	}
+    if (idx < mesh_cloud->points.size())
+    {
+      std::tie(p.normal_x, p.normal_y, p.normal_z) = std::make_tuple(
+          mesh_cloud->points[idx].normal_x, mesh_cloud->points[idx].normal_y, mesh_cloud->points[idx].normal_z);
+    }
+    else
+    {
+      ROS_ERROR("what is wrong %d", idx);
+    }
   }
 
   return true;
 }
 
-// TODO, why is this here when noether_conversions::convertToPCLMesh(const shape_msgs::Mesh& mesh_msg, pcl::PolygonMesh& mesh)
-// returns a pcl::PointCloud<> with mesh.cloud being of type pcl::PointCloud<pcl::PointXYZ>
-void shapeMsgToPclPointXYZ( const shape_msgs::Mesh& mesh, pcl::PointCloud<pcl::PointXYZ>& mesh_cloud)
+// TODO, why is this here when noether_conversions::convertToPCLMesh(const shape_msgs::Mesh& mesh_msg, pcl::PolygonMesh&
+// mesh) returns a pcl::PointCloud<> with mesh.cloud being of type pcl::PointCloud<pcl::PointXYZ>
+void shapeMsgToPclPointXYZ(const shape_msgs::Mesh& mesh, pcl::PointCloud<pcl::PointXYZ>& mesh_cloud)
 {
   mesh_cloud.points.clear();
-  for(int i=0; i<mesh.vertices.size(); i++)
-    {
-      pcl::PointXYZ p(mesh.vertices[i].x, mesh.vertices[i].y, mesh.vertices[i].z);
-      mesh_cloud.points.push_back(p);
-    }
+  for (int i = 0; i < mesh.vertices.size(); i++)
+  {
+    pcl::PointXYZ p(mesh.vertices[i].x, mesh.vertices[i].y, mesh.vertices[i].z);
+    mesh_cloud.points.push_back(p);
+  }
 }
 
 void computeFaceNormals(const shape_msgs::Mesh& mesh, std::vector<Eigen::Vector3d>& face_normals)
 {
   face_normals.clear();
   face_normals.reserve(mesh.triangles.size());
-  for(size_t i=0; i<mesh.triangles.size(); i++)
-    {
-      size_t idx1 = mesh.triangles[i].vertex_indices[0];
-      size_t idx2 = mesh.triangles[i].vertex_indices[1];
-      size_t idx3 = mesh.triangles[i].vertex_indices[2];
-      Eigen::Vector3d v1(mesh.vertices[idx1].x, mesh.vertices[idx1].y, mesh.vertices[idx1].z);
-      Eigen::Vector3d v2(mesh.vertices[idx2].x, mesh.vertices[idx2].y, mesh.vertices[idx2].z);
-      Eigen::Vector3d v3(mesh.vertices[idx3].x, mesh.vertices[idx3].y, mesh.vertices[idx3].z);
-      Eigen::Vector3d normal = v1.cross(v2) + v2.cross(v3) + v3.cross(v1);
-      normal.normalize();
-      face_normals.push_back(normal);
-    }
+  for (size_t i = 0; i < mesh.triangles.size(); i++)
+  {
+    size_t idx1 = mesh.triangles[i].vertex_indices[0];
+    size_t idx2 = mesh.triangles[i].vertex_indices[1];
+    size_t idx3 = mesh.triangles[i].vertex_indices[2];
+    Eigen::Vector3d v1(mesh.vertices[idx1].x, mesh.vertices[idx1].y, mesh.vertices[idx1].z);
+    Eigen::Vector3d v2(mesh.vertices[idx2].x, mesh.vertices[idx2].y, mesh.vertices[idx2].z);
+    Eigen::Vector3d v3(mesh.vertices[idx3].x, mesh.vertices[idx3].y, mesh.vertices[idx3].z);
+    Eigen::Vector3d normal = v1.cross(v2) + v2.cross(v3) + v3.cross(v1);
+    normal.normalize();
+    face_normals.push_back(normal);
+  }
 }
 
 void computeFaceNormals(pcl::PolygonMesh::ConstPtr& mesh, std::vector<Eigen::Vector3d>& face_normals)
 {
   face_normals.clear();
   face_normals.reserve(mesh->polygons.size());
-  for(size_t i=0; i<mesh->polygons.size(); i++)
-    {
-      size_t idx1 = mesh->polygons[i].vertices[0]*mesh->cloud.point_step;
-      size_t idx2 = mesh->polygons[i].vertices[1]*mesh->cloud.point_step;
-      size_t idx3 = mesh->polygons[i].vertices[2]*mesh->cloud.point_step;
-      size_t xo = mesh->cloud.fields[0].offset;
-      size_t yo = mesh->cloud.fields[1].offset;
-      size_t zo = mesh->cloud.fields[2].offset;
-      float* x = (float *)(&mesh->cloud.data[idx1+xo]);
-      float* y = (float *)(&mesh->cloud.data[idx1+yo]);
-      float* z = (float *)(&mesh->cloud.data[idx1+zo]);
-      Eigen::Vector3d v1(*x,*y,*z);
-      x = (float *)(&mesh->cloud.data[idx2+xo]);
-      y = (float *)(&mesh->cloud.data[idx2+yo]);
-      z = (float *)(&mesh->cloud.data[idx2+zo]);
-      Eigen::Vector3d v2(*x,*y,*z);
-      x = (float *)(&mesh->cloud.data[idx3+xo]);
-      y = (float *)(&mesh->cloud.data[idx3+yo]);
-      z = (float *)(&mesh->cloud.data[idx3+zo]);
-      Eigen::Vector3d v3(*x,*y,*z);
-      Eigen::Vector3d normal = v1.cross(v2) + v2.cross(v3) + v3.cross(v1);
-      normal.normalize();
-      face_normals.push_back(normal);
-    }
+  for (size_t i = 0; i < mesh->polygons.size(); i++)
+  {
+    size_t idx1 = mesh->polygons[i].vertices[0] * mesh->cloud.point_step;
+    size_t idx2 = mesh->polygons[i].vertices[1] * mesh->cloud.point_step;
+    size_t idx3 = mesh->polygons[i].vertices[2] * mesh->cloud.point_step;
+    size_t xo = mesh->cloud.fields[0].offset;
+    size_t yo = mesh->cloud.fields[1].offset;
+    size_t zo = mesh->cloud.fields[2].offset;
+    float* x = (float*)(&mesh->cloud.data[idx1 + xo]);
+    float* y = (float*)(&mesh->cloud.data[idx1 + yo]);
+    float* z = (float*)(&mesh->cloud.data[idx1 + zo]);
+    Eigen::Vector3d v1(*x, *y, *z);
+    x = (float*)(&mesh->cloud.data[idx2 + xo]);
+    y = (float*)(&mesh->cloud.data[idx2 + yo]);
+    z = (float*)(&mesh->cloud.data[idx2 + zo]);
+    Eigen::Vector3d v2(*x, *y, *z);
+    x = (float*)(&mesh->cloud.data[idx3 + xo]);
+    y = (float*)(&mesh->cloud.data[idx3 + yo]);
+    z = (float*)(&mesh->cloud.data[idx3 + zo]);
+    Eigen::Vector3d v3(*x, *y, *z);
+    Eigen::Vector3d normal = v1.cross(v2) + v2.cross(v3) + v3.cross(v1);
+    normal.normalize();
+    face_normals.push_back(normal);
+  }
 }
 
-void computeMeshNormals(const shape_msgs::Mesh& mesh, std::vector<Eigen::Vector3d>& face_normals, std::vector<Eigen::Vector3d>& vertex_normals)
+void computeMeshNormals(const shape_msgs::Mesh& mesh,
+                        std::vector<Eigen::Vector3d>& face_normals,
+                        std::vector<Eigen::Vector3d>& vertex_normals)
 {
   computeFaceNormals(mesh, face_normals);
 
   // populate a structure for each vertex containing a list of adjoining faces
   std::vector<size_t> vertex_faces[mesh.vertices.size()];
-  for(size_t i=0; i<mesh.triangles.size(); i++) // find every face adjoining each vertex
-    {
-      vertex_faces[mesh.triangles[i].vertex_indices[0]].push_back(i);
-      vertex_faces[mesh.triangles[i].vertex_indices[1]].push_back(i);
-      vertex_faces[mesh.triangles[i].vertex_indices[2]].push_back(i);
-    }
+  for (size_t i = 0; i < mesh.triangles.size(); i++)  // find every face adjoining each vertex
+  {
+    vertex_faces[mesh.triangles[i].vertex_indices[0]].push_back(i);
+    vertex_faces[mesh.triangles[i].vertex_indices[1]].push_back(i);
+    vertex_faces[mesh.triangles[i].vertex_indices[2]].push_back(i);
+  }
   // average the adjoining face normals
   vertex_normals.clear();
   vertex_normals.reserve(mesh.vertices.size());
-  for(size_t i=0; i<mesh.vertices.size(); i++) // for each vertex averages all adjoining face normals
+  for (size_t i = 0; i < mesh.vertices.size(); i++)  // for each vertex averages all adjoining face normals
+  {
+    Eigen::Vector3d vertex_normal;
+    if (vertex_faces[i].size() == 0)
     {
-      Eigen::Vector3d vertex_normal;
-      if(vertex_faces[i].size() == 0)
-	{
-	  vertex_normal.z() = 1;
-	}
-      else
-	{
-	  for(size_t j=0; j<vertex_faces[i].size(); j++)
-	    {
-	      size_t face_index = vertex_faces[i][j];
-	      vertex_normal += face_normals[face_index];
-	    }
-	}
-      vertex_normal.normalize();
-      vertex_normals.push_back(vertex_normal);
+      vertex_normal.z() = 1;
     }
-}  
+    else
+    {
+      for (size_t j = 0; j < vertex_faces[i].size(); j++)
+      {
+        size_t face_index = vertex_faces[i][j];
+        vertex_normal += face_normals[face_index];
+      }
+    }
+    vertex_normal.normalize();
+    vertex_normals.push_back(vertex_normal);
+  }
+}
 
-void computePCLMeshNormals(pcl::PolygonMesh::ConstPtr& mesh, std::vector<Eigen::Vector3d>& face_normals, std::vector<Eigen::Vector3d>& vertex_normals)
+void computePCLMeshNormals(pcl::PolygonMesh::ConstPtr& mesh,
+                           std::vector<Eigen::Vector3d>& face_normals,
+                           std::vector<Eigen::Vector3d>& vertex_normals)
 {
   computeFaceNormals(mesh, face_normals);
-  int num_pts = mesh->cloud.height*mesh->cloud.width;
+  int num_pts = mesh->cloud.height * mesh->cloud.width;
 
   // populate a structure for each vertex containing a list of adjoining faces
   std::vector<size_t> vertex_faces[num_pts];
-  for(size_t i=0; i<mesh->polygons.size(); i++) // find every face adjoining each vertex
-    {
-      vertex_faces[mesh->polygons[i].vertices[0]].push_back(i);
-      vertex_faces[mesh->polygons[i].vertices[1]].push_back(i);
-      vertex_faces[mesh->polygons[i].vertices[2]].push_back(i);
-    }
+  for (size_t i = 0; i < mesh->polygons.size(); i++)  // find every face adjoining each vertex
+  {
+    vertex_faces[mesh->polygons[i].vertices[0]].push_back(i);
+    vertex_faces[mesh->polygons[i].vertices[1]].push_back(i);
+    vertex_faces[mesh->polygons[i].vertices[2]].push_back(i);
+  }
   // average the adjoining face normals
   vertex_normals.clear();
   vertex_normals.reserve(num_pts);
-  for(size_t i=-0; i<num_pts; i++) // for each vertex averages all adjoining face normals
+  for (size_t i = -0; i < num_pts; i++)  // for each vertex averages all adjoining face normals
+  {
+    Eigen::Vector3d vertex_normal;
+    if (vertex_faces[i].size() == 0)
     {
-      Eigen::Vector3d vertex_normal;
-      if(vertex_faces[i].size() == 0)
-	{
-	  vertex_normal.z() = 1;
-	}
-      else
-	{
-	  for(size_t j=0; j<vertex_faces[i].size(); j++)
-	    {
-	      size_t face_index = vertex_faces[i][j];
-	      vertex_normal += face_normals[face_index];
-	    }
-	}
-      vertex_normal.normalize();
-      vertex_normals.push_back(vertex_normal);
+      vertex_normal.z() = 1;
     }
-}  
+    else
+    {
+      for (size_t j = 0; j < vertex_faces[i].size(); j++)
+      {
+        size_t face_index = vertex_faces[i][j];
+        vertex_normal += face_normals[face_index];
+      }
+    }
+    vertex_normal.normalize();
+    vertex_normals.push_back(vertex_normal);
+  }
+}
 
 bool alignToVertexNormals(pcl::PointCloud<pcl::PointNormal>& mesh_cloud, std::vector<Eigen::Vector3d>& vertex_normals)
 {
-  if(mesh_cloud.points.size() != vertex_normals.size())
+  if (mesh_cloud.points.size() != vertex_normals.size())
+  {
+    ROS_ERROR("mesh_cloud and vertex_normals have different number of points %ld vs %ld",
+              mesh_cloud.points.size(),
+              vertex_normals.size());
+    return (false);
+  }
+  for (size_t i = 0; i < mesh_cloud.points.size(); i++)
+  {
+    Eigen::Vector3d n(mesh_cloud.points[i].normal_x, mesh_cloud.points[i].normal_y, mesh_cloud.points[i].normal_z);
+    if (vertex_normals[i].dot(n) < 0)
     {
-      ROS_ERROR("mesh_cloud and vertex_normals have different number of points %ld vs %ld", mesh_cloud.points.size(), vertex_normals.size());
-      return(false);
+      mesh_cloud.points[i].normal_x = -mesh_cloud.points[i].normal_x;
+      mesh_cloud.points[i].normal_y = -mesh_cloud.points[i].normal_y;
+      mesh_cloud.points[i].normal_z = -mesh_cloud.points[i].normal_z;
     }
-  for(size_t i=0; i<mesh_cloud.points.size(); i++)
-    {
-      Eigen::Vector3d n(mesh_cloud.points[i].normal_x, mesh_cloud.points[i].normal_y, mesh_cloud.points[i].normal_z);
-      if(vertex_normals[i].dot(n)<0)
-	{
-	  mesh_cloud.points[i].normal_x = -mesh_cloud.points[i].normal_x;
-	  mesh_cloud.points[i].normal_y = -mesh_cloud.points[i].normal_y;
-	  mesh_cloud.points[i].normal_z = -mesh_cloud.points[i].normal_z; 
-	}
-    }
+  }
   return true;
 }
 }  // namespace tool_path_planner

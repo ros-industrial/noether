@@ -155,9 +155,9 @@ bool applyMinPointDistance(const pcl::PointCloud<pcl::PointNormal>& in,
  * @param dist  The required point spacing distance
  * @return True on success, False otherwise
  */
-bool applyEqualDistance1(const pcl::PointCloud<pcl::PointNormal>& in,
-                        pcl::PointCloud<pcl::PointNormal>& out,
-                        double dist)
+static bool applyEqualDistancePathCloud(const pcl::PointCloud<pcl::PointNormal>& in,
+                         pcl::PointCloud<pcl::PointNormal>& out,
+                         double dist)
 {
   using namespace pcl;
   using namespace Eigen;
@@ -500,7 +500,7 @@ boost::optional<ToolPaths> HalfedgeEdgeGenerator::generate()
           break;
 
         case PointSpacingMethod::EQUAL_SPACING:
-          if (!applyEqualDistance1(bound_segment_points, decimated_points, config_.point_dist))
+          if (!applyEqualDistancePathCloud(bound_segment_points, decimated_points, config_.point_dist))
           {
             CONSOLE_BRIDGE_logError("applyEqualDistance1 point spacing method failed");
             return boost::none;
