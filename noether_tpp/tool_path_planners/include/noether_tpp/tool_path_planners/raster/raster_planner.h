@@ -53,7 +53,7 @@ struct OriginGenerator
 class RasterPlanner : public ToolPathPlanner
 {
 public:
-  RasterPlanner(std::unique_ptr<DirectionGenerator>&& dir_gen, std::unique_ptr<OriginGenerator>&& origin_gen);
+  RasterPlanner(std::unique_ptr<DirectionGenerator> dir_gen, std::unique_ptr<OriginGenerator> origin_gen);
 
   ToolPaths plan(const pcl::PolygonMesh& mesh) const override final;
 

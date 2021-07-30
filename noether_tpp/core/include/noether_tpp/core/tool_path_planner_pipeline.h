@@ -37,9 +37,9 @@ namespace noether
 class ToolPathPlannerPipeline
 {
 public:
-  ToolPathPlannerPipeline(std::unique_ptr<MeshModifier>&& mesh_mod,
-                          std::unique_ptr<ToolPathPlanner>&& planner,
-                          std::unique_ptr<ToolPathModifier>&& tool_path_mod);
+  ToolPathPlannerPipeline(std::unique_ptr<MeshModifier> mesh_mod,
+                          std::unique_ptr<ToolPathPlanner> planner,
+                          std::unique_ptr<ToolPathModifier> tool_path_mod);
 
   std::vector<ToolPaths> plan(pcl::PolygonMesh mesh) const;
 

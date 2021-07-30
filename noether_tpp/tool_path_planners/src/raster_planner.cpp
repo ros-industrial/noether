@@ -6,8 +6,7 @@
 
 namespace noether
 {
-RasterPlanner::RasterPlanner(std::unique_ptr<DirectionGenerator>&& dir_gen,
-                             std::unique_ptr<OriginGenerator>&& origin_gen)
+RasterPlanner::RasterPlanner(std::unique_ptr<DirectionGenerator> dir_gen, std::unique_ptr<OriginGenerator> origin_gen)
   : dir_gen_(std::move(dir_gen)), origin_gen_(std::move(origin_gen))
 {
 }
