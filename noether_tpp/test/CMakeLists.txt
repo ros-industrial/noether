@@ -14,8 +14,7 @@ add_dependencies(run_tests ${PROJECT_NAME}_tool_path_modifier_utest)
 install(
   TARGETS
     ${PROJECT_NAME}_tool_path_modifier_utest
-  EXPORT ${PROJECT_NAME}-targets
-  RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin/test
+  LIBRARY DESTINATION lib/test
+  ARCHIVE DESTINATION lib/test
 )
