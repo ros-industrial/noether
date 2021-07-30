@@ -31,7 +31,7 @@ namespace noether_tpp
  */
 struct DirectionGenerator
 {
-  virtual ~DirectionGenerator() = 0;
+  virtual ~DirectionGenerator() = default;
   virtual Eigen::Vector3d generate(const pcl::PolygonMesh& mesh) const = 0;
 };
 
