@@ -26,6 +26,8 @@ add_library(${PROJECT_NAME} SHARED
   # Tool Path Planners
   src/tool_path_planners/edge_planner.cpp
   src/tool_path_planners/raster_planner.cpp
+  src/tool_path_planners/direction_generators.cpp
+  src/tool_path_planners/origin_generators.cpp
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
