@@ -23,7 +23,7 @@
 #include <noether_tpp/core/tool_path_modifier.h>
 #include <noether_tpp/core/tool_path_planner.h>
 
-namespace noether_tpp
+namespace noether
 {
 /**
  * @brief Interface for various methods to generate the direction of raster paths.  The direction
@@ -93,4 +93,4 @@ struct RasterPlannerFactory : public ToolPathPlannerFactory
   double min_hole_size;
 };
 
-}  // namespace noether_tpp
+}  // namespace noether

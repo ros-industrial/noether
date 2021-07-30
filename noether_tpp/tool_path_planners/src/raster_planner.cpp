@@ -4,7 +4,7 @@
 
 #include <noether_tpp/tool_path_modifiers/default_modifiers.h>
 
-namespace noether_tpp
+namespace noether
 {
 RasterPlanner::RasterPlanner(std::unique_ptr<DirectionGenerator>&& dir_gen,
                              std::unique_ptr<OriginGenerator>&& origin_gen)
@@ -18,4 +18,4 @@ ToolPaths RasterPlanner::plan(const pcl::PolygonMesh& mesh) const
   return modifier.modify(planImpl(mesh));
 }
 
-}  // namespace noether_tpp
+}  // namespace noether

@@ -18,6 +18,6 @@ if(${NOETHER_ENABLE_TESTING})
 endif()
 
 # Package configuration
-install(EXPORT ${PROJECT_NAME}-targets NAMESPACE "${PROJECT_NAME}::" DESTINATION lib/cmake/${PROJECT_NAME})
-export(EXPORT ${PROJECT_NAME}-targets NAMESPACE "${PROJECT_NAME}::" FILE ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-targets.cmake)
+install(EXPORT ${PROJECT_NAME}-targets NAMESPACE "noether::" DESTINATION lib/cmake/${PROJECT_NAME})
+export(EXPORT ${PROJECT_NAME}-targets NAMESPACE "noether::" FILE ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-targets.cmake)
 configure_package()

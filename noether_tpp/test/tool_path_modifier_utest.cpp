@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 #include <regex>
 
-using namespace noether_tpp;
+using namespace noether;
 
 ToolPaths createArbitraryToolPath(unsigned p, unsigned s, unsigned w)
 {

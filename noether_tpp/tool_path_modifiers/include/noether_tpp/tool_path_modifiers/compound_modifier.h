@@ -25,7 +25,7 @@
 #include <noether_tpp/core/tool_path_modifier.h>
 #include <noether_tpp/core/types.h>
 
-namespace noether_tpp
+namespace noether
 {
 /**
  * @brief Modifier that chains together other modifiers
@@ -53,4 +53,4 @@ private:
   std::vector<std::unique_ptr<const OneTimeToolPathModifier>> modifiers_;
 };
 
-}  // namespace noether_tpp
+}  // namespace noether

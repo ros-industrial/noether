@@ -2,7 +2,7 @@
 
 #include <utility>  // std::move()
 
-namespace noether_tpp
+namespace noether
 {
 ToolPathPlannerPipeline::ToolPathPlannerPipeline(std::unique_ptr<MeshModifier>&& mesh_mod,
                                                  std::unique_ptr<ToolPathPlanner>&& planner,
@@ -26,4 +26,4 @@ std::vector<ToolPaths> ToolPathPlannerPipeline::plan(pcl::PolygonMesh mesh) cons
   return output;
 }
 
-}  // namespace noether_tpp
+}  // namespace noether

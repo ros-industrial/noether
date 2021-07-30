@@ -21,7 +21,7 @@
 
 #include <noether_tpp/core/tool_path_modifier.h>
 
-namespace noether_tpp
+namespace noether
 {
 /**
  * @brief A tool path modifier that does not change the input tool path
@@ -34,4 +34,4 @@ public:
   inline ToolPaths modify(ToolPaths tool_paths) const override final { return tool_paths; };
 };
 
-}  // namespace noether_tpp
+}  // namespace noether

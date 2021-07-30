@@ -24,7 +24,7 @@
 
 #include <noether_tpp/core/types.h>
 
-namespace noether_tpp
+namespace noether
 {
 /**
  * @brief Interface for a tool path planner that operates on a mesh.
@@ -44,4 +44,4 @@ struct ToolPathPlannerFactory
   virtual std::unique_ptr<const ToolPathPlanner> create() const = 0;
 };
 
-}  // namespace noether_tpp
+}  // namespace noether

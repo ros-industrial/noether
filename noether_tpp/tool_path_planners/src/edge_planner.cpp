@@ -4,7 +4,7 @@
 
 #include <noether_tpp/tool_path_modifiers/default_modifiers.h>
 
-namespace noether_tpp
+namespace noether
 {
 ToolPaths EdgePlanner::plan(const pcl::PolygonMesh& mesh) const
 {
@@ -12,4 +12,4 @@ ToolPaths EdgePlanner::plan(const pcl::PolygonMesh& mesh) const
   return modifier.modify(planImpl(mesh));
 }
 
-}  // namespace noether_tpp
+}  // namespace noether

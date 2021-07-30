@@ -22,7 +22,7 @@
 
 #include <pcl/PolygonMesh.h>
 
-namespace noether_tpp
+namespace noether
 {
 /**
  * @brief A common interface for mesh modifications.  Since some
@@ -36,4 +36,4 @@ struct MeshModifier
   virtual std::vector<pcl::PolygonMesh> modify(const pcl::PolygonMesh& mesh) const = 0;
 };
 
-}  // namespace noether_tpp
+}  // namespace noether

@@ -2,7 +2,7 @@
 
 #include <noether_tpp/core/tool_path_modifier.h>
 
-namespace noether_tpp
+namespace noether
 {
 /**
  * @brief Creates a tool path modifier that enforces the definition of an edge path on the
@@ -26,4 +26,4 @@ struct DefaultRasterPlannerModifier : public OneTimeToolPathModifier
   ToolPaths modify(ToolPaths tool_paths) const override final;
 };
 
-}  // namespace noether_tpp
+}  // namespace noether

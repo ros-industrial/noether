@@ -2,7 +2,7 @@
 
 #include <utility>  // std::move()
 
-namespace noether_tpp
+namespace noether
 {
 CompoundModifier::CompoundModifier(std::vector<std::unique_ptr<const ToolPathModifier>>&& modifiers)
   : modifiers_(std::move(modifiers))
@@ -35,4 +35,4 @@ ToolPaths OneTimeCompoundModifier::modify(ToolPaths paths) const
   return paths;
 }
 
-}  // namespace noether_tpp
+}  // namespace noether

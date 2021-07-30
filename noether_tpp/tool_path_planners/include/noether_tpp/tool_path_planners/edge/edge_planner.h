@@ -24,7 +24,7 @@
 #include <noether_tpp/core/tool_path_modifier.h>
 #include <noether_tpp/core/tool_path_planner.h>
 
-namespace noether_tpp
+namespace noether
 {
 /**
  * @brief The EdgePlanner class - A specification of the tool path planner interface for generating
@@ -61,4 +61,4 @@ struct EdgePlannerFactory : public ToolPathPlannerFactory
   double point_spacing;
 };
 
-}  // namespace noether_tpp
+}  // namespace noether

@@ -20,7 +20,7 @@
 
 #include <noether_tpp/core/types.h>
 
-namespace noether_tpp
+namespace noether
 {
 /**
  * @brief A common interface for functions that alter a generated
@@ -44,4 +44,4 @@ struct OneTimeToolPathModifier : public ToolPathModifier
   virtual ToolPaths modify(ToolPaths tool_paths) const = 0;
 };
 
-}  // namespace noether_tpp
+}  // namespace noether

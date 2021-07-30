@@ -27,7 +27,7 @@
 
 #include <pcl/PolygonMesh.h>
 
-namespace noether_tpp
+namespace noether
 {
 /**
  * @brief The ToolPathPlannerPipeline class - Collects together a set of mesh modifiers, a planner,
@@ -49,4 +49,4 @@ private:
   std::unique_ptr<const ToolPathModifier> tool_path_modifier_;
 };
 
-}  // namespace noether_tpp
+}  // namespace noether
