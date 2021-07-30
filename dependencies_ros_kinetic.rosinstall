@@ -1,6 +1,3 @@
 # PCL ros tools, this is required because using custom version of PCL and VTK
-# As of ROS Noetic, the default PCL and VTK versions are sufficient to no longer require custom installs
 - git: {local-name: perception_pcl, uri: 'https://github.com/ros-perception/perception_pcl.git', version: 1.7.1}
-
-# As of ROS Noetic, the following command may be used instead: `sudo apt install ros-noetic-ros-industrial-cmake-boilerplate`
 - git: {local-name: ros_industrial_cmake_boilerplate, uri: 'https://github.com/ros-industrial/ros_industrial_cmake_boilerplate.git', version: 0.2.8}
