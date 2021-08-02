@@ -22,7 +22,6 @@ add_library(${PROJECT_NAME} SHARED
   src/core/tool_path_planner_pipeline.cpp
   # Tool Path Modifiers
   src/tool_path_modifiers/compound_modifier.cpp
-  src/tool_path_modifiers/default_modifiers.cpp
   # Tool Path Planners
   src/tool_path_planners/edge_planner.cpp
   src/tool_path_planners/raster_planner.cpp

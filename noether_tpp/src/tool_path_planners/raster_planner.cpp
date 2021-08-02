@@ -2,8 +2,6 @@
 
 #include <utility>  // std::move()
 
-#include <noether_tpp/tool_path_modifiers/default_modifiers.h>
-
 namespace noether
 {
 RasterPlanner::RasterPlanner(std::unique_ptr<DirectionGenerator> dir_gen, std::unique_ptr<OriginGenerator> origin_gen)
@@ -13,8 +11,11 @@ RasterPlanner::RasterPlanner(std::unique_ptr<DirectionGenerator> dir_gen, std::u
 
 ToolPaths RasterPlanner::plan(const pcl::PolygonMesh& mesh) const
 {
-  DefaultRasterPlannerModifier modifier;
-  return modifier.modify(planImpl(mesh));
+  ToolPaths tool_paths = planImpl(mesh);
+
+  // To-do: implement the modifications necessary to produce the default behavior
+
+  return tool_paths;
 }
 
 }  // namespace noether
