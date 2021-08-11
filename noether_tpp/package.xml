@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>noether_tpp</name>
+  <version>0.1.0</version>
+  <description>The noether_tpp package</description>
+
+  <author email="michael.ripperger@swri.org">Michael Ripperger</author>
+  <author email="david.merz@swri.org">David Merz</author>
+  <maintainer email="michael.ripperger@swri.org">Michael Ripperger</maintainer>
+
+  <license>Apache 2.0</license>
+
+  <build_depend>ros_industrial_cmake_boilerplate</build_depend>
+  <depend>libpcl-all-dev</depend>
+  <depend>libvtk</depend>
+  <depend>eigen</depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>
