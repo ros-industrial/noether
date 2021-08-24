@@ -1,11 +1,13 @@
 #include <boost/core/demangle.hpp>
 #include <gtest/gtest.h>
+#include <random>
 #include <regex>
 
 #include <noether_tpp/core/tool_path_modifier.h>
 // Implementations
 #include <noether_tpp/tool_path_modifiers/no_op_modifier.h>
 #include <noether_tpp/tool_path_modifiers/waypoint_orientation_modifiers.h>
+#include <noether_tpp/tool_path_modifiers/organization_modifiers.h>
 
 using namespace noether;
 
@@ -23,23 +25,78 @@ Eigen::Isometry3d createRandomWaypoint()
   return pose;
 }
 
-ToolPaths
-createArbitraryToolPath(unsigned p, unsigned s, unsigned w, std::function<Eigen::Isometry3d()> waypoint_generator)
+ToolPaths createArbitraryToolPath(const unsigned p,
+                                  const unsigned s,
+                                  const unsigned w,
+                                  std::function<Eigen::Isometry3d()> waypoint_generator)
 {
   ToolPaths paths(p);
-  for (unsigned i = 0; i < p; ++i)
+  for (ToolPath& path : paths)
   {
-    for (ToolPath& path : paths)
+    path.resize(s);
+    for (ToolPathSegment& segment : path)
     {
-      path.resize(s);
-      for (ToolPathSegment& segment : path)
-      {
-        segment.resize(w);
-        std::fill(segment.begin(), segment.end(), waypoint_generator());
-      }
+      segment.resize(w);
+      std::fill(segment.begin(), segment.end(), waypoint_generator());
     }
   }
+
   return paths;
+}
+
+ToolPaths createRasterGridToolPath(const unsigned p, const unsigned s, const unsigned w)
+{
+  ToolPaths paths;
+  paths.reserve(p);
+  for (unsigned p_idx = 0; p_idx < p; ++p_idx)
+  {
+    ToolPath path;
+    path.reserve(s);
+
+    for (unsigned s_idx = 0; s_idx < s; ++s_idx)
+    {
+      ToolPathSegment segment;
+      segment.reserve(w);
+
+      for (unsigned w_idx = 0; w_idx < w; ++w_idx)
+      {
+        Eigen::Isometry3d waypoint(Eigen::Isometry3d::Identity());
+        waypoint.translation().x() = static_cast<double>(s_idx * w + w_idx);
+        waypoint.translation().y() = static_cast<double>(p_idx);
+        waypoint.translation().z() = 0.0;
+        segment.push_back(waypoint);
+      }
+
+      path.push_back(segment);
+    }
+
+    paths.push_back(path);
+  }
+
+  return paths;
+}
+
+ToolPaths shuffle(ToolPaths tool_paths, std::size_t seed = 0)
+{
+  // Seeded random number generator
+  std::mt19937 rand(seed);
+
+  for (ToolPath& tool_path : tool_paths)
+  {
+    for (ToolPathSegment& segment : tool_path)
+    {
+      // Shuffle the order of waypoints in tool path segments
+      std::shuffle(segment.begin(), segment.end(), rand);
+    }
+
+    // Shuffle the order of tool path segments in the tool path
+    std::shuffle(tool_path.begin(), tool_path.end(), rand);
+  }
+
+  // Shuffle the order of tool paths within the container
+  std::shuffle(tool_paths.begin(), tool_paths.end(), rand);
+
+  return tool_paths;
 }
 
 /**
@@ -129,7 +186,9 @@ std::vector<std::shared_ptr<const ToolPathModifier>> createModifiers()
   return { std::make_shared<NoOpToolPathModifier>(),
            std::make_shared<FixedOrientationModifier>(Eigen::Vector3d(1, 0, 0)),
            std::make_shared<UniformOrientationModifier>(),
-           std::make_shared<DirectionOfTravelOrientationModifier>() };
+           std::make_shared<DirectionOfTravelOrientationModifier>(),
+           std::make_shared<RasterOrganizationModifier>(),
+           std::make_shared<SnakeOrganizationModifier>() };
 }
 
 std::vector<std::shared_ptr<const OneTimeToolPathModifier>> createOneTimeModifiers()
@@ -155,6 +214,50 @@ INSTANTIATE_TEST_SUITE_P(OneTimeToolPathModifierTests,
                          OneTimeToolPathModifierTestFixture,
                          testing::ValuesIn(createOneTimeModifiers()),
                          print<OneTimeToolPathModifier>);
+
+///////////////////////////////////
+// Implementation-specific tests //
+///////////////////////////////////
+
+TEST(ToolPathModifierTests, OrganizationModifiersTest)
+{
+  // Create a raster grid tool path pattern
+  const unsigned n_paths = 4;
+  const unsigned n_segments = 2;
+  const unsigned n_waypoints = 10;
+  const ToolPaths tool_paths = createRasterGridToolPath(n_paths, n_segments, n_waypoints);
+  const ToolPaths shuffled_tool_paths = shuffle(tool_paths);
+
+  // Create a raster pattern from the original tool paths
+  RasterOrganizationModifier raster;
+  ToolPaths raster_tool_paths = raster.modify(tool_paths);
+
+  // The original tool path is already a raster, so a raster modifier shouldn't change the structure
+  compare(tool_paths, raster_tool_paths);
+
+  // Modify the shuffled tool path to produce a raster pattern
+  raster_tool_paths = raster.modify(shuffled_tool_paths);
+  compare(tool_paths, raster_tool_paths);
+
+  // Create a snake pattern from the shuffled tool paths
+  SnakeOrganizationModifier snake;
+  const ToolPaths snake_tool_paths = snake.modify(shuffled_tool_paths);
+
+  // Check the snake pattern
+  for (unsigned i = 0; i < n_paths - 1; ++i)
+  {
+    const ToolPath& first = snake_tool_paths.at(i);
+    const ToolPath& second = snake_tool_paths.at(i + 1);
+
+    // The last waypoint in the last segment of the first path should have the same x-axis value as the first waypoint
+    // in the first segment of the second path
+    ASSERT_DOUBLE_EQ(first.back().back().translation().x(), second.front().front().translation().x());
+  }
+
+  // Convert the snake tool paths into raster tool paths and compare to the original
+  raster_tool_paths = raster.modify(snake_tool_paths);
+  compare(tool_paths, raster_tool_paths);
+}
 
 int main(int argc, char** argv)
 {
