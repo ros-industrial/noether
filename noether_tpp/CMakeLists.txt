@@ -22,9 +22,12 @@ add_library(${PROJECT_NAME} SHARED
   src/core/tool_path_planner_pipeline.cpp
   # Tool Path Modifiers
   src/tool_path_modifiers/compound_modifier.cpp
+  src/tool_path_modifiers/waypoint_orientation_modifiers.cpp
   # Tool Path Planners
   src/tool_path_planners/edge_planner.cpp
   src/tool_path_planners/raster_planner.cpp
+  src/tool_path_planners/direction_generators.cpp
+  src/tool_path_planners/origin_generators.cpp
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
