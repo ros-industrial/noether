@@ -23,6 +23,7 @@ add_library(${PROJECT_NAME} SHARED
   # Tool Path Modifiers
   src/tool_path_modifiers/compound_modifier.cpp
   src/tool_path_modifiers/waypoint_orientation_modifiers.cpp
+  src/tool_path_modifiers/organization_modifiers.cpp
   # Tool Path Planners
   src/tool_path_planners/edge_planner.cpp
   src/tool_path_planners/raster_planner.cpp
