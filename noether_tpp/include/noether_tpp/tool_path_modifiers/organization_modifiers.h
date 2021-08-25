@@ -29,4 +29,23 @@ struct SnakeOrganizationModifier : OneTimeToolPathModifier
   ToolPaths modify(ToolPaths) const override;
 };
 
+/**
+ * @brief Organizes a set of tool paths into a standard configuration for edge paths
+ * @details Waypoints are sorted within each tool path segment in ascending order along the average x-axis direction of
+ * the waypoints in the segment. Segments are ordered in a tool path such that the start of one segment is as close as
+ * possible to the end of the previous segment. The first segment is chosen as the one whose first waypoint is closest
+ * to a reference position. Tool path segments are ordered in the top-level container in order of length, from longest
+ * to shortest
+ */
+class StandardEdgePathsOrganizationModifier : public OneTimeToolPathModifier
+{
+public:
+  StandardEdgePathsOrganizationModifier(const Eigen::Vector3d& start_reference = Eigen::Vector3d::Zero());
+
+  ToolPaths modify(ToolPaths) const override;
+
+private:
+  const Eigen::Vector3d start_reference_;
+};
+
 }  // namespace noether
