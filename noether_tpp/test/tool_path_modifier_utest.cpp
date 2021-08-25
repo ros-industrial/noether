@@ -76,6 +76,49 @@ ToolPaths createRasterGridToolPath(const unsigned p, const unsigned s, const uns
   return paths;
 }
 
+ToolPaths createSquareToolPaths(const unsigned p, const unsigned w)
+{
+  // Helper function for creating a segment given a start position and offset direction
+  auto create_segment = [&w](const Eigen::Isometry3d& start, const Eigen::Vector3d& offset) -> ToolPathSegment {
+    ToolPathSegment segment;
+    segment.reserve(w);
+
+    for (unsigned w_idx = 0; w_idx < w; ++w_idx)
+    {
+      segment.push_back(start * Eigen::Translation3d(offset * w_idx));
+    }
+
+    return segment;
+  };
+
+  ToolPaths paths;
+  paths.reserve(p);
+
+  // Vector of scales such that each tool path will be a different sized square
+  Eigen::VectorXd scales = Eigen::VectorXd::LinSpaced(Eigen::Sequential, p, 1.0, 2.0).reverse();
+
+  for (unsigned p_idx = 0; p_idx < p; ++p_idx)
+  {
+    ToolPath path;
+    path.reserve(4);
+
+    // Create a square of tool path segments going clockwise from the top-left corner
+    Eigen::Vector3d offset(scales[p_idx], 0.0, 0.0);
+    // Top
+    path.push_back(create_segment(Eigen::Isometry3d::Identity(), offset));
+    // Right
+    path.push_back(create_segment(path.back().back() * Eigen::AngleAxisd(-M_PI_2, Eigen::Vector3d::UnitZ()), offset));
+    // Bottom
+    path.push_back(create_segment(path.back().back() * Eigen::AngleAxisd(-M_PI_2, Eigen::Vector3d::UnitZ()), offset));
+    // Left
+    path.push_back(create_segment(path.back().back() * Eigen::AngleAxisd(-M_PI_2, Eigen::Vector3d::UnitZ()), offset));
+
+    paths.push_back(path);
+  }
+
+  return paths;
+}
+
 ToolPaths shuffle(ToolPaths tool_paths, std::size_t seed = 0)
 {
   // Seeded random number generator
@@ -115,7 +158,7 @@ void compare(const ToolPaths& a, const ToolPaths& b)
       ASSERT_EQ(a[i][j].size(), b[i][j].size());
       for (std::size_t k = 0; k < a[i][j].size(); ++k)
       {
-        ASSERT_TRUE(a[i][j][k].isApprox(b[i][j][k]));
+        ASSERT_TRUE(a[i][j][k].isApprox(b[i][j][k])) << "Path " << i << ", Segment " << j << ", Waypoint " << k;
       }
     }
   }
@@ -131,8 +174,10 @@ class ToolPathModifierTestFixture : public testing::TestWithParam<std::shared_pt
 TEST_P(ToolPathModifierTestFixture, TestOperation)
 {
   auto modifier = GetParam();
-  ASSERT_NO_THROW(modifier->modify(createArbitraryToolPath(4, 1, 10, createIdentityWaypoint)));
-  ASSERT_NO_THROW(modifier->modify(createArbitraryToolPath(4, 1, 10, createRandomWaypoint)));
+  ASSERT_NO_THROW(modifier->modify(createArbitraryToolPath(4, 2, 10, createIdentityWaypoint)));
+  ASSERT_NO_THROW(modifier->modify(createArbitraryToolPath(4, 2, 10, createRandomWaypoint)));
+  ASSERT_NO_THROW(modifier->modify(createRasterGridToolPath(4, 2, 10)));
+  ASSERT_NO_THROW(modifier->modify(createSquareToolPaths(4, 10)));
 }
 
 /**
@@ -147,8 +192,10 @@ TEST_P(OneTimeToolPathModifierTestFixture, TestOperation)
   auto modifier = GetParam();
 
   // Create several arbitrary tool paths
-  std::vector<ToolPaths> inputs = { createArbitraryToolPath(4, 1, 10, createIdentityWaypoint),
-                                    createArbitraryToolPath(4, 1, 10, createRandomWaypoint) };
+  std::vector<ToolPaths> inputs = { createArbitraryToolPath(4, 2, 10, createIdentityWaypoint),
+                                    createArbitraryToolPath(4, 2, 10, createRandomWaypoint),
+                                    createRasterGridToolPath(4, 2, 10),
+                                    createSquareToolPaths(4, 10) };
 
   for (const ToolPaths& input : inputs)
   {
@@ -188,7 +235,8 @@ std::vector<std::shared_ptr<const ToolPathModifier>> createModifiers()
            std::make_shared<UniformOrientationModifier>(),
            std::make_shared<DirectionOfTravelOrientationModifier>(),
            std::make_shared<RasterOrganizationModifier>(),
-           std::make_shared<SnakeOrganizationModifier>() };
+           std::make_shared<SnakeOrganizationModifier>(),
+           std::make_shared<StandardEdgePathsOrganizationModifier>() };
 }
 
 std::vector<std::shared_ptr<const OneTimeToolPathModifier>> createOneTimeModifiers()
@@ -257,6 +305,26 @@ TEST(ToolPathModifierTests, OrganizationModifiersTest)
   // Convert the snake tool paths into raster tool paths and compare to the original
   raster_tool_paths = raster.modify(snake_tool_paths);
   compare(tool_paths, raster_tool_paths);
+}
+
+TEST(ToolPathModifierTests, EdgePathOrganizationModifiersTest)
+{
+  // Create a set of square tool paths to represent a collection of edge paths
+  const unsigned n_paths = 4;
+  const unsigned n_waypoints = 10;
+  const ToolPaths tool_paths = createSquareToolPaths(n_paths, n_waypoints);
+
+  // Create an ordered edge path organization modifier
+  StandardEdgePathsOrganizationModifier edge_path_organizer;
+
+  // The original square tool path should already match the output of the ordered edge path organization modifier
+  compare(edge_path_organizer.modify(tool_paths), tool_paths);
+
+  // Shuffle the tool paths and re-sort them into an ordered set of edge paths
+  ToolPaths edge_tool_paths = edge_path_organizer.modify(shuffle(tool_paths));
+
+  // Check for equivalence with the original tool path
+  compare(edge_tool_paths, tool_paths);
 }
 
 int main(int argc, char** argv)
