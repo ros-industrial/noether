@@ -85,7 +85,9 @@ static std::vector<std::size_t> sortToolPathBySegmentConnection(const ToolPath& 
     std::vector<std::size_t> remaining_segment_indices;
     {
       std::vector<std::size_t> order(path.size());
+      // Fill the order vector with increasing integers, starting at 0
       std::iota(order.begin(), order.end(), 0);
+      // Extract only the indices that have not been used so far into remaining_segment_indices
       std::set_difference(order.begin(),
                           order.end(),
                           segment_order.begin(),
