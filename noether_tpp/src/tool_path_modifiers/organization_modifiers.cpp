@@ -72,13 +72,6 @@ static std::vector<std::size_t> sortToolPathBySegmentConnection(const ToolPath& 
   std::vector<std::size_t> segment_order;
   segment_order.reserve(path.size());
 
-  // Comparator function for finding the segment whose first waypoint is closest to the reference position
-  auto compare_distances = [&path](const std::size_t& a, const std::size_t& b, const Eigen::Vector3d& ref) {
-    double d_a = (path.at(a).at(0).translation() - ref).norm();
-    double d_b = (path.at(b).at(0).translation() - ref).norm();
-    return d_a < d_b;
-  };
-
   while (segment_order.size() < path.size())
   {
     // Get the indices of the yet unordered segments
@@ -115,11 +108,20 @@ static std::vector<std::size_t> sortToolPathBySegmentConnection(const ToolPath& 
       }
 
       // Find the segment whose first waypoint is closest to the reference position
-      auto comp = std::bind(compare_distances, std::placeholders::_1, std::placeholders::_2, ref);
-      std::sort(remaining_segment_indices.begin(), remaining_segment_indices.end(), comp);
+      double min_dist = std::numeric_limits<double>::max();
+      std::size_t min_index = 0;
+      for (std::size_t idx : remaining_segment_indices)
+      {
+        double dist = (path.at(idx).at(0).translation() - ref).norm();
+        if (dist < min_dist)
+        {
+          min_dist = dist;
+          min_index = idx;
+        }
+      }
 
       // Add the index of that segment to the output variable
-      segment_order.push_back(remaining_segment_indices.front());
+      segment_order.push_back(min_index);
     }
   }
 
