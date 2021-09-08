@@ -11,24 +11,39 @@
 
 using namespace noether;
 
+/** @brief Interface for creating waypoints for test tool paths */
+struct WaypointCreator
+{
+  virtual Eigen::Isometry3d operator()() const = 0;
+};
+
 /** @brief Creates an identity waypoint */
-Eigen::Isometry3d createIdentityWaypoint() { return Eigen::Isometry3d::Identity(); }
+struct IdentityWaypointCreator : WaypointCreator
+{
+  Eigen::Isometry3d operator()() const override final { return Eigen::Isometry3d::Identity(); }
+};
 
 /** @brief Creates a waypoint with random position and orientation */
-Eigen::Isometry3d createRandomWaypoint()
+struct RandomWaypointCreator : WaypointCreator
 {
-  Eigen::Vector3d t = Eigen::Vector3d::Random();
-  Eigen::Vector3d r = Eigen::Vector3d::Random() * EIGEN_PI;
-  Eigen::Isometry3d pose = Eigen::AngleAxisd(r.x(), Eigen::Vector3d::UnitX()) *
-                           Eigen::AngleAxisd(r.y(), Eigen::Vector3d::UnitY()) *
-                           Eigen::AngleAxisd(r.z(), Eigen::Vector3d::UnitZ()) * Eigen::Translation3d(t);
-  return pose;
-}
+  RandomWaypointCreator() : gen(0), dist(-1.0, 1.0) {}
 
-ToolPaths createArbitraryToolPath(const unsigned p,
-                                  const unsigned s,
-                                  const unsigned w,
-                                  std::function<Eigen::Isometry3d()> waypoint_generator)
+  Eigen::Isometry3d operator()() const override final
+  {
+    Eigen::Vector3d t = Eigen::Vector3d::NullaryExpr([this]() { return dist(gen); });
+    Eigen::Vector3d r = Eigen::Vector3d::NullaryExpr([this]() { return dist(gen) * EIGEN_PI; });
+    Eigen::Isometry3d pose = Eigen::AngleAxisd(r.x(), Eigen::Vector3d::UnitX()) *
+                             Eigen::AngleAxisd(r.y(), Eigen::Vector3d::UnitY()) *
+                             Eigen::AngleAxisd(r.z(), Eigen::Vector3d::UnitZ()) * Eigen::Translation3d(t);
+    return pose;
+  }
+
+  mutable std::mt19937 gen;
+  mutable std::uniform_real_distribution<double> dist;
+};
+
+ToolPaths
+createArbitraryToolPath(const unsigned p, const unsigned s, const unsigned w, const WaypointCreator& waypoint_creator)
 {
   ToolPaths paths(p);
   for (ToolPath& path : paths)
@@ -37,7 +52,7 @@ ToolPaths createArbitraryToolPath(const unsigned p,
     for (ToolPathSegment& segment : path)
     {
       segment.resize(w);
-      std::fill(segment.begin(), segment.end(), waypoint_generator());
+      std::generate(segment.begin(), segment.end(), std::bind(&WaypointCreator::operator(), &waypoint_creator));
     }
   }
 
@@ -76,17 +91,63 @@ ToolPaths createRasterGridToolPath(const unsigned p, const unsigned s, const uns
   return paths;
 }
 
-ToolPaths shuffle(ToolPaths tool_paths, std::size_t seed = 0)
+ToolPaths createSquareToolPaths(const unsigned p, const unsigned w)
+{
+  // Helper function for creating a segment given a start position and offset direction
+  auto create_segment = [&w](const Eigen::Isometry3d& start, const Eigen::Vector3d& offset) -> ToolPathSegment {
+    ToolPathSegment segment;
+    segment.reserve(w);
+
+    for (unsigned w_idx = 0; w_idx < w; ++w_idx)
+    {
+      segment.push_back(start * Eigen::Translation3d(offset * w_idx));
+    }
+
+    return segment;
+  };
+
+  ToolPaths paths;
+  paths.reserve(p);
+
+  // Vector of scales such that each tool path will be a different sized square
+  Eigen::VectorXd scales = Eigen::VectorXd::LinSpaced(Eigen::Sequential, p, 1.0, 2.0).reverse();
+
+  for (unsigned p_idx = 0; p_idx < p; ++p_idx)
+  {
+    ToolPath path;
+    path.reserve(4);
+
+    // Create a square of tool path segments going clockwise from the top-left corner
+    Eigen::Vector3d offset(scales[p_idx], 0.0, 0.0);
+    // Top
+    path.push_back(create_segment(Eigen::Isometry3d::Identity(), offset));
+    // Right
+    path.push_back(create_segment(path.back().back() * Eigen::AngleAxisd(-M_PI_2, Eigen::Vector3d::UnitZ()), offset));
+    // Bottom
+    path.push_back(create_segment(path.back().back() * Eigen::AngleAxisd(-M_PI_2, Eigen::Vector3d::UnitZ()), offset));
+    // Left
+    path.push_back(create_segment(path.back().back() * Eigen::AngleAxisd(-M_PI_2, Eigen::Vector3d::UnitZ()), offset));
+
+    paths.push_back(path);
+  }
+
+  return paths;
+}
+
+ToolPaths shuffle(ToolPaths tool_paths, const bool shuffle_waypoints, const std::size_t seed = 0)
 {
   // Seeded random number generator
   std::mt19937 rand(seed);
 
   for (ToolPath& tool_path : tool_paths)
   {
-    for (ToolPathSegment& segment : tool_path)
+    if (shuffle_waypoints)
     {
-      // Shuffle the order of waypoints in tool path segments
-      std::shuffle(segment.begin(), segment.end(), rand);
+      for (ToolPathSegment& segment : tool_path)
+      {
+        // Shuffle the order of waypoints in tool path segments
+        std::shuffle(segment.begin(), segment.end(), rand);
+      }
     }
 
     // Shuffle the order of tool path segments in the tool path
@@ -115,7 +176,7 @@ void compare(const ToolPaths& a, const ToolPaths& b)
       ASSERT_EQ(a[i][j].size(), b[i][j].size());
       for (std::size_t k = 0; k < a[i][j].size(); ++k)
       {
-        ASSERT_TRUE(a[i][j][k].isApprox(b[i][j][k]));
+        ASSERT_TRUE(a[i][j][k].isApprox(b[i][j][k])) << "Path " << i << ", Segment " << j << ", Waypoint " << k;
       }
     }
   }
@@ -131,8 +192,10 @@ class ToolPathModifierTestFixture : public testing::TestWithParam<std::shared_pt
 TEST_P(ToolPathModifierTestFixture, TestOperation)
 {
   auto modifier = GetParam();
-  ASSERT_NO_THROW(modifier->modify(createArbitraryToolPath(4, 1, 10, createIdentityWaypoint)));
-  ASSERT_NO_THROW(modifier->modify(createArbitraryToolPath(4, 1, 10, createRandomWaypoint)));
+  ASSERT_NO_THROW(modifier->modify(createArbitraryToolPath(4, 2, 10, IdentityWaypointCreator())));
+  ASSERT_NO_THROW(modifier->modify(createArbitraryToolPath(4, 2, 10, RandomWaypointCreator())));
+  ASSERT_NO_THROW(modifier->modify(createRasterGridToolPath(4, 2, 10)));
+  ASSERT_NO_THROW(modifier->modify(createSquareToolPaths(4, 10)));
 }
 
 /**
@@ -147,8 +210,10 @@ TEST_P(OneTimeToolPathModifierTestFixture, TestOperation)
   auto modifier = GetParam();
 
   // Create several arbitrary tool paths
-  std::vector<ToolPaths> inputs = { createArbitraryToolPath(4, 1, 10, createIdentityWaypoint),
-                                    createArbitraryToolPath(4, 1, 10, createRandomWaypoint) };
+  std::vector<ToolPaths> inputs = { createArbitraryToolPath(4, 2, 10, IdentityWaypointCreator()),
+                                    createArbitraryToolPath(4, 2, 10, RandomWaypointCreator()),
+                                    createRasterGridToolPath(4, 2, 10),
+                                    createSquareToolPaths(4, 10) };
 
   for (const ToolPaths& input : inputs)
   {
@@ -188,7 +253,8 @@ std::vector<std::shared_ptr<const ToolPathModifier>> createModifiers()
            std::make_shared<UniformOrientationModifier>(),
            std::make_shared<DirectionOfTravelOrientationModifier>(),
            std::make_shared<RasterOrganizationModifier>(),
-           std::make_shared<SnakeOrganizationModifier>() };
+           std::make_shared<SnakeOrganizationModifier>(),
+           std::make_shared<StandardEdgePathsOrganizationModifier>() };
 }
 
 std::vector<std::shared_ptr<const OneTimeToolPathModifier>> createOneTimeModifiers()
@@ -226,7 +292,7 @@ TEST(ToolPathModifierTests, OrganizationModifiersTest)
   const unsigned n_segments = 2;
   const unsigned n_waypoints = 10;
   const ToolPaths tool_paths = createRasterGridToolPath(n_paths, n_segments, n_waypoints);
-  const ToolPaths shuffled_tool_paths = shuffle(tool_paths);
+  const ToolPaths shuffled_tool_paths = shuffle(tool_paths, true);
 
   // Create a raster pattern from the original tool paths
   RasterOrganizationModifier raster;
@@ -257,6 +323,28 @@ TEST(ToolPathModifierTests, OrganizationModifiersTest)
   // Convert the snake tool paths into raster tool paths and compare to the original
   raster_tool_paths = raster.modify(snake_tool_paths);
   compare(tool_paths, raster_tool_paths);
+}
+
+TEST(ToolPathModifierTests, EdgePathOrganizationModifiersTest)
+{
+  // Create a set of square tool paths to represent a collection of edge paths
+  const unsigned n_paths = 4;
+  const unsigned n_waypoints = 10;
+  const ToolPaths tool_paths = createSquareToolPaths(n_paths, n_waypoints);
+
+  // Create an ordered edge path organization modifier
+  StandardEdgePathsOrganizationModifier edge_path_organizer;
+
+  // The original square tool path should already match the output of the ordered edge path organization modifier
+  compare(edge_path_organizer.modify(tool_paths), tool_paths);
+
+  // Shuffle the tool paths and re-sort them into an ordered set of edge paths
+  // Note: the standard edge path organization modifier expects the planner to have provided the waypoints in the
+  // correct order, so don't shuffle them within the segments/tool paths
+  ToolPaths edge_tool_paths = edge_path_organizer.modify(shuffle(tool_paths, false));
+
+  // Check for equivalence with the original tool path
+  compare(edge_tool_paths, tool_paths);
 }
 
 int main(int argc, char** argv)
