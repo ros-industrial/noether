@@ -119,17 +119,20 @@ ToolPaths createSquareToolPaths(const unsigned p, const unsigned w)
   return paths;
 }
 
-ToolPaths shuffle(ToolPaths tool_paths, std::size_t seed = 0)
+ToolPaths shuffle(ToolPaths tool_paths, const bool shuffle_waypoints, const std::size_t seed = 0)
 {
   // Seeded random number generator
   std::mt19937 rand(seed);
 
   for (ToolPath& tool_path : tool_paths)
   {
-    for (ToolPathSegment& segment : tool_path)
+    if (shuffle_waypoints)
     {
-      // Shuffle the order of waypoints in tool path segments
-      std::shuffle(segment.begin(), segment.end(), rand);
+      for (ToolPathSegment& segment : tool_path)
+      {
+        // Shuffle the order of waypoints in tool path segments
+        std::shuffle(segment.begin(), segment.end(), rand);
+      }
     }
 
     // Shuffle the order of tool path segments in the tool path
@@ -274,7 +277,7 @@ TEST(ToolPathModifierTests, OrganizationModifiersTest)
   const unsigned n_segments = 2;
   const unsigned n_waypoints = 10;
   const ToolPaths tool_paths = createRasterGridToolPath(n_paths, n_segments, n_waypoints);
-  const ToolPaths shuffled_tool_paths = shuffle(tool_paths);
+  const ToolPaths shuffled_tool_paths = shuffle(tool_paths, true);
 
   // Create a raster pattern from the original tool paths
   RasterOrganizationModifier raster;
@@ -321,7 +324,9 @@ TEST(ToolPathModifierTests, EdgePathOrganizationModifiersTest)
   compare(edge_path_organizer.modify(tool_paths), tool_paths);
 
   // Shuffle the tool paths and re-sort them into an ordered set of edge paths
-  ToolPaths edge_tool_paths = edge_path_organizer.modify(shuffle(tool_paths));
+  // Note: the standard edge path organization modifier expects the planner to have provided the waypoints in the
+  // correct order, so don't shuffle them within the segments/tool paths
+  ToolPaths edge_tool_paths = edge_path_organizer.modify(shuffle(tool_paths, false));
 
   // Check for equivalence with the original tool path
   compare(edge_tool_paths, tool_paths);
