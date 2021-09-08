@@ -180,16 +180,6 @@ static ToolPaths sortToolPathsByLength(const ToolPaths& tool_paths)
   return reorder(tool_paths, order);
 }
 
-static Eigen::Vector3d getAverageXAxis(const ToolPathSegment& segment)
-{
-  Eigen::Vector3d mean = Eigen::Vector3d::Zero();
-  for (const ToolPathWaypoint& w : segment)
-  {
-    mean += w.matrix().col(0).head<3>();
-  }
-  return mean / static_cast<double>(segment.size());
-}
-
 StandardEdgePathsOrganizationModifier::StandardEdgePathsOrganizationModifier(const Eigen::Vector3d& start_reference)
   : start_reference_(start_reference)
 {
@@ -197,21 +187,6 @@ StandardEdgePathsOrganizationModifier::StandardEdgePathsOrganizationModifier(con
 
 ToolPaths StandardEdgePathsOrganizationModifier::modify(ToolPaths tool_paths) const
 {
-  // Sort the waypoints in each tool path segment
-  for (ToolPath& path : tool_paths)
-  {
-    for (ToolPathSegment& segment : path)
-    {
-      // Get the nominal direction of this segment by averaging all the waypoints' x-axes
-      const Eigen::Vector3d ref_dir = getAverageXAxis(segment);
-
-      // Project the position of the waypoints onto the reference direction vector to order them from start to end
-      std::sort(segment.begin(), segment.end(), [&ref_dir](const ToolPathWaypoint& a, const ToolPathWaypoint& b) {
-        return a.translation().dot(ref_dir) < b.translation().dot(ref_dir);
-      });
-    }
-  }
-
   // Sort the tool path segments such that the first segment is the one whose first waypoint is nearest the start
   // reference point and subsequent segments start near the end of the previous segment
   ToolPaths ordered_tool_paths;
