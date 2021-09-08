@@ -11,24 +11,39 @@
 
 using namespace noether;
 
+/** @brief Interface for creating waypoints for test tool paths */
+struct WaypointCreator
+{
+  virtual Eigen::Isometry3d operator()() const = 0;
+};
+
 /** @brief Creates an identity waypoint */
-Eigen::Isometry3d createIdentityWaypoint() { return Eigen::Isometry3d::Identity(); }
+struct IdentityWaypointCreator : WaypointCreator
+{
+  Eigen::Isometry3d operator()() const override final { return Eigen::Isometry3d::Identity(); }
+};
 
 /** @brief Creates a waypoint with random position and orientation */
-Eigen::Isometry3d createRandomWaypoint()
+struct RandomWaypointCreator : WaypointCreator
 {
-  Eigen::Vector3d t = Eigen::Vector3d::Random();
-  Eigen::Vector3d r = Eigen::Vector3d::Random() * EIGEN_PI;
-  Eigen::Isometry3d pose = Eigen::AngleAxisd(r.x(), Eigen::Vector3d::UnitX()) *
-                           Eigen::AngleAxisd(r.y(), Eigen::Vector3d::UnitY()) *
-                           Eigen::AngleAxisd(r.z(), Eigen::Vector3d::UnitZ()) * Eigen::Translation3d(t);
-  return pose;
-}
+  RandomWaypointCreator() : gen(0), dist(-1.0, 1.0) {}
 
-ToolPaths createArbitraryToolPath(const unsigned p,
-                                  const unsigned s,
-                                  const unsigned w,
-                                  std::function<Eigen::Isometry3d()> waypoint_generator)
+  Eigen::Isometry3d operator()() const override final
+  {
+    Eigen::Vector3d t = Eigen::Vector3d::NullaryExpr([this]() { return dist(gen); });
+    Eigen::Vector3d r = Eigen::Vector3d::NullaryExpr([this]() { return dist(gen) * EIGEN_PI; });
+    Eigen::Isometry3d pose = Eigen::AngleAxisd(r.x(), Eigen::Vector3d::UnitX()) *
+                             Eigen::AngleAxisd(r.y(), Eigen::Vector3d::UnitY()) *
+                             Eigen::AngleAxisd(r.z(), Eigen::Vector3d::UnitZ()) * Eigen::Translation3d(t);
+    return pose;
+  }
+
+  mutable std::mt19937 gen;
+  mutable std::uniform_real_distribution<double> dist;
+};
+
+ToolPaths
+createArbitraryToolPath(const unsigned p, const unsigned s, const unsigned w, const WaypointCreator& waypoint_creator)
 {
   ToolPaths paths(p);
   for (ToolPath& path : paths)
@@ -37,7 +52,7 @@ ToolPaths createArbitraryToolPath(const unsigned p,
     for (ToolPathSegment& segment : path)
     {
       segment.resize(w);
-      std::fill(segment.begin(), segment.end(), waypoint_generator());
+      std::generate(segment.begin(), segment.end(), std::bind(&WaypointCreator::operator(), &waypoint_creator));
     }
   }
 
@@ -177,8 +192,8 @@ class ToolPathModifierTestFixture : public testing::TestWithParam<std::shared_pt
 TEST_P(ToolPathModifierTestFixture, TestOperation)
 {
   auto modifier = GetParam();
-  ASSERT_NO_THROW(modifier->modify(createArbitraryToolPath(4, 2, 10, createIdentityWaypoint)));
-  ASSERT_NO_THROW(modifier->modify(createArbitraryToolPath(4, 2, 10, createRandomWaypoint)));
+  ASSERT_NO_THROW(modifier->modify(createArbitraryToolPath(4, 2, 10, IdentityWaypointCreator())));
+  ASSERT_NO_THROW(modifier->modify(createArbitraryToolPath(4, 2, 10, RandomWaypointCreator())));
   ASSERT_NO_THROW(modifier->modify(createRasterGridToolPath(4, 2, 10)));
   ASSERT_NO_THROW(modifier->modify(createSquareToolPaths(4, 10)));
 }
@@ -195,8 +210,8 @@ TEST_P(OneTimeToolPathModifierTestFixture, TestOperation)
   auto modifier = GetParam();
 
   // Create several arbitrary tool paths
-  std::vector<ToolPaths> inputs = { createArbitraryToolPath(4, 2, 10, createIdentityWaypoint),
-                                    createArbitraryToolPath(4, 2, 10, createRandomWaypoint),
+  std::vector<ToolPaths> inputs = { createArbitraryToolPath(4, 2, 10, IdentityWaypointCreator()),
+                                    createArbitraryToolPath(4, 2, 10, RandomWaypointCreator()),
                                     createRasterGridToolPath(4, 2, 10),
                                     createSquareToolPaths(4, 10) };
 
