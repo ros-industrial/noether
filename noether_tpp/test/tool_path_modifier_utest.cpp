@@ -1,4 +1,3 @@
-#include <boost/core/demangle.hpp>
 #include <gtest/gtest.h>
 #include <random>
 #include <regex>
@@ -8,6 +7,7 @@
 #include <noether_tpp/tool_path_modifiers/no_op_modifier.h>
 #include <noether_tpp/tool_path_modifiers/waypoint_orientation_modifiers.h>
 #include <noether_tpp/tool_path_modifiers/organization_modifiers.h>
+#include "utils.h"
 
 using namespace noether;
 
@@ -227,24 +227,6 @@ TEST_P(OneTimeToolPathModifierTestFixture, TestOperation)
   }
 }
 
-/** @brief Extracts the demangled class name behind the namespace for printing in unit test */
-std::string getClassName(const ToolPathModifier& modifier)
-{
-  std::regex re(".*::(.*)");
-  std::smatch match;
-  std::string class_name = boost::core::demangle(typeid(modifier).name());
-  if (std::regex_match(class_name, match, re))
-    return match[1];
-  throw std::runtime_error("Failed to get class name from demangled name");
-}
-
-/** @brief Prints name of class for unit test output */
-template <typename T>
-std::string print(testing::TestParamInfo<std::shared_ptr<const T>> info)
-{
-  return getClassName(*info.param) + "_" + std::to_string(info.index);
-}
-
 // Create a vector of implementations for the modifiers
 std::vector<std::shared_ptr<const ToolPathModifier>> createModifiers()
 {
@@ -274,12 +256,12 @@ std::vector<std::shared_ptr<const OneTimeToolPathModifier>> createOneTimeModifie
 INSTANTIATE_TEST_SUITE_P(ToolPathModifierTests,
                          ToolPathModifierTestFixture,
                          testing::ValuesIn(createModifiers()),
-                         print<ToolPathModifier>);
+                         print<const ToolPathModifier>);
 
 INSTANTIATE_TEST_SUITE_P(OneTimeToolPathModifierTests,
                          OneTimeToolPathModifierTestFixture,
                          testing::ValuesIn(createOneTimeModifiers()),
-                         print<OneTimeToolPathModifier>);
+                         print<const OneTimeToolPathModifier>);
 
 ///////////////////////////////////
 // Implementation-specific tests //
