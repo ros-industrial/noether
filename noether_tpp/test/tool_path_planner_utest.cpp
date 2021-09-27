@@ -104,7 +104,8 @@ TEST_P(RasterPlannerTestFixture, FlatSquareMesh)
   const Eigen::Isometry3d transform = createRandomTransform(dim * 5.0, M_PI);
   pcl::PolygonMesh mesh = createPlaneMesh(static_cast<float>(dim), transform);
 
-  // Configure the planning factory to generate an arbitrary number of lines along the mesh x-axis starting at the mesh origin
+  // Configure the planning factory to generate an arbitrary number of lines along the mesh x-axis starting at the mesh
+  // origin
   std::shared_ptr<RasterPlannerFactory> factory = GetParam();
   factory->line_spacing = dim / static_cast<double>(n_lines - 1);
   factory->point_spacing = dim / static_cast<double>(n_points - 1);
@@ -249,7 +250,7 @@ TEST_P(EdgePlannerTestFixture, SemiPlanarMeshFile)
 
     // Compute the length of the path
     double len = 0.0;
-    for(const ToolPathSegment& segment : path)
+    for (const ToolPathSegment& segment : path)
     {
       for (std::size_t i = 0; i < path.size() - 1; ++i)
       {

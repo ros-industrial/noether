@@ -28,4 +28,4 @@ std::string print(const testing::TestParamInfo<std::shared_ptr<T>> info)
   return getClassName(*info.param) + "_" + std::to_string(info.index);
 }
 
-} // namespace noether
+}  // namespace noether
