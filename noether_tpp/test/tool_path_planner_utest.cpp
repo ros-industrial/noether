@@ -1,8 +1,10 @@
 #include <gtest/gtest.h>
+#include <pcl/common/transforms.h>
 #include <pcl/io/vtk_lib_io.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/conversions.h>
+#include <random>
 
 // Planner interface
 #include <noether_tpp/core/tool_path_planner.h>
@@ -19,7 +21,7 @@
 using namespace noether;
 
 /** @brief Create a simple planar square mesh of fixed size */
-pcl::PolygonMesh createPlaneMesh(const float dim)
+pcl::PolygonMesh createPlaneMesh(const float dim, const Eigen::Isometry3d& transform)
 {
   pcl::PolygonMesh mesh;
 
@@ -29,7 +31,13 @@ pcl::PolygonMesh createPlaneMesh(const float dim)
   cloud.push_back(pcl::PointXYZ(dim, 0.0, 0.0));
   cloud.push_back(pcl::PointXYZ(dim, dim, 0.0));
   cloud.push_back(pcl::PointXYZ(0.0, dim, 0.0));
-  pcl::toPCLPointCloud2(cloud, mesh.cloud);
+
+  // Apply the transform offset
+  pcl::PointCloud<pcl::PointXYZ> transformed_cloud;
+  pcl::transformPointCloud(cloud, transformed_cloud, transform.matrix());
+
+  // Convert to message format
+  pcl::toPCLPointCloud2(transformed_cloud, mesh.cloud);
 
   // Upper right triangle
   pcl::Vertices tri_1;
@@ -59,6 +67,25 @@ pcl::PolygonMesh loadWavyMeshWithHole()
 }
 
 /**
+ * @brief Creates a random transform
+ */
+Eigen::Isometry3d createRandomTransform(const double translation_limit, const double rotation_limit)
+{
+  std::mt19937 rand_gen(0);
+
+  // Create a random translation
+  std::uniform_real_distribution<double> pos_dist(-std::abs(translation_limit), std::abs(translation_limit));
+  Eigen::Vector3d pos = Eigen::Vector3d::NullaryExpr([&rand_gen, &pos_dist]() { return pos_dist(rand_gen); });
+
+  // Create a random rotation
+  std::uniform_real_distribution<double> rot_dist(-std::abs(rotation_limit), std::abs(rotation_limit));
+  Eigen::Vector3d ea = Eigen::Vector3d::NullaryExpr([&rand_gen, &rot_dist]() { return rot_dist(rand_gen); });
+
+  return Eigen::Translation3d(pos) * Eigen::AngleAxisd(ea(0), Eigen::Vector3d::UnitX()) *
+         Eigen::AngleAxisd(ea(1), Eigen::Vector3d::UnitY()) * Eigen::AngleAxisd(ea(2), Eigen::Vector3d::UnitZ());
+}
+
+/**
  * @brief Test fixture for all raster tool path planners
  */
 class RasterPlannerTestFixture : public testing::TestWithParam<std::shared_ptr<RasterPlannerFactory>>
@@ -74,13 +101,18 @@ TEST_P(RasterPlannerTestFixture, FlatSquareMesh)
 {
   // Create a flat plane mesh with 2 triangles
   double dim = 1.0;
-  pcl::PolygonMesh mesh = createPlaneMesh(static_cast<float>(dim));
+  const Eigen::Isometry3d transform = createRandomTransform(dim * 5.0, M_PI);
+  pcl::PolygonMesh mesh = createPlaneMesh(static_cast<float>(dim), transform);
 
   // Configure the planning factory to generate an arbitrary number of lines along the mesh x-axis starting at the mesh origin
   std::shared_ptr<RasterPlannerFactory> factory = GetParam();
   factory->line_spacing = dim / static_cast<double>(n_lines - 1);
   factory->point_spacing = dim / static_cast<double>(n_points - 1);
-  factory->direction_gen = [this]() { return std::make_unique<FixedDirectionGenerator>(direction); };
+  factory->direction_gen = [this, &transform]() {
+    // Transform the nominal direction
+    Eigen::Vector3d dir = transform * direction;
+    return std::make_unique<FixedDirectionGenerator>(dir.normalized());
+  };
   factory->origin_gen = []() { return std::make_unique<FixedOriginGenerator>(Eigen::Vector3d::Zero()); };
 
   // Create the tool paths
@@ -171,7 +203,8 @@ TEST_P(EdgePlannerTestFixture, FlatSquareMesh)
 {
   // Create a flat plane mesh with 2 triangles
   double dim = 1.0;
-  pcl::PolygonMesh mesh = createPlaneMesh(static_cast<float>(dim));
+  Eigen::Isometry3d transform = createRandomTransform(dim * 5.0, M_PI);
+  pcl::PolygonMesh mesh = createPlaneMesh(static_cast<float>(dim), transform);
 
   // Configure the planning factory
   std::shared_ptr<EdgePlannerFactory> factory = GetParam();
