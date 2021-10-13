@@ -11,6 +11,11 @@ FixedDirectionGenerator::FixedDirectionGenerator(const Eigen::Vector3d& directio
 
 Eigen::Vector3d FixedDirectionGenerator::generate(const pcl::PolygonMesh&) const { return direction_; }
 
+std::unique_ptr<DirectionGenerator> FixedDirectionGenerator::clone() const
+{
+  return std::make_unique<FixedDirectionGenerator>(direction_);
+}
+
 PrincipalAxisDirectionGenerator::PrincipalAxisDirectionGenerator(double rotation_offset)
   : rotation_offset_(rotation_offset)
 {
@@ -28,6 +33,11 @@ Eigen::Vector3d PrincipalAxisDirectionGenerator::generate(const pcl::PolygonMesh
   // Therefore the cutting plane is defined by the direction of the second largest principal axis
   // We then choose to rotate this plane about the smallest principal axis by a configurable angle
   return Eigen::AngleAxisd(rotation_offset_, pca_vecs.col(2).normalized()) * pca_vecs.col(1).normalized();
+}
+
+std::unique_ptr<DirectionGenerator> PrincipalAxisDirectionGenerator::clone() const
+{
+  return std::make_unique<PrincipalAxisDirectionGenerator>(rotation_offset_);
 }
 
 }  // namespace noether
