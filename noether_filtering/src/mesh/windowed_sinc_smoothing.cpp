@@ -91,7 +91,7 @@ bool WindowedSincSmoothing::filter(const pcl::PolygonMesh& mesh_in, pcl::Polygon
   smoother->Update();
 
   mesh_data = smoother->GetOutput();
-  VTKUtils::vtk2mesh(mesh_data, mesh_out);
+  utils::vtk2TriangleMesh(mesh_data, mesh_out);
   return true;
 }
 

@@ -45,7 +45,7 @@ bool CleanData::filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMesh& mesh_o
   mesh_data = cleanPolyData->GetOutput();
   std::size_t num_end_points = mesh_data->GetNumberOfPoints();
   CONSOLE_BRIDGE_logInform("Removed duplicate points, retained %lu points from %lu", num_end_points, num_start_points);
-  VTKUtils::vtk2mesh(mesh_data, mesh_out);
+  utils::vtk2TriangleMesh(mesh_data, mesh_out);
   return true;
 }
 

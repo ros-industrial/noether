@@ -12,6 +12,7 @@
 #include <numeric>
 #include <algorithm> // std::sort
 
+#include <boost/make_shared.hpp>
 #include <Eigen/Core>
 #include <vtkParametricFunctionSource.h>
 #include <vtkOBBTree.h>

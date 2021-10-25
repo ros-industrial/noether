@@ -88,7 +88,7 @@ bool FillHoles::filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMesh& mesh_o
   mesh_data = normals_rectifier->GetOutput();
   std::size_t end_num_polys = mesh_data->GetNumberOfPolys();
   CONSOLE_BRIDGE_logInform("Filled %lu polygons", start_num_polys - end_num_polys);
-  VTKUtils::vtk2mesh(mesh_data, mesh_out);
+  utils::vtk2TriangleMesh(mesh_data, mesh_out);
   return true;
 }
 

@@ -8,10 +8,14 @@
 #ifndef INCLUDE_NOETHER_FILTERING_UTILS_H_
 #define INCLUDE_NOETHER_FILTERING_UTILS_H_
 
-#include <typeinfo>
+#include <cxxabi.h>
 #include <memory>
 #include <string>
-#include <cxxabi.h>
+#include <typeinfo>
+
+#include <pcl/PolygonMesh.h>
+#include <vtkPolyData.h>
+#include <vtkSmartPointer.h>
 
 namespace noether_filtering
 {
@@ -27,6 +31,16 @@ static std::string getClassName()
   std::unique_ptr<char, void (*)(void*)> res{ abi::__cxa_demangle(mangled_name, NULL, NULL, &status), std::free };
   return (status == 0) ? res.get() : mangled_name;
 }
+
+/**
+ * @brief vtk2TriangleMesh - pcl's vtk2mesh function can produce a PolygonMesh containing 1-point
+ * or 2-point 'polygons', as well as squares and so on.  Many applications assume a mesh containing
+ * only triangles.  This function converts the output to only include triangles.
+ * @param poly_data - input - the VTK mesh
+ * @param mesh - output - the resulting pcl polygonmesh containing only triangles
+ * @return - number of points contained in pcl::PolygonMesh, as vtk2mesh does.
+ */
+int vtk2TriangleMesh(const vtkSmartPointer<vtkPolyData>& poly_data, pcl::PolygonMesh& mesh);
 
 }  // namespace utils
 }  // namespace noether_filtering
