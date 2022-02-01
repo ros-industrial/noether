@@ -23,6 +23,7 @@ add_message_files(
     SurfaceWalkRasterGeneratorConfig.msg
     EigenValueEdgeGeneratorConfig.msg
     HalfedgeEdgeGeneratorConfig.msg
+    HeatRasterGeneratorConfig.msg
     SegmentationConfig.msg
     ToolPathConfig.msg
     ToolPath.msg

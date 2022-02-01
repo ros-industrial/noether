@@ -11,6 +11,7 @@
 #include <tool_path_planner/plane_slicer_raster_generator.h>
 #include <tool_path_planner/eigen_value_edge_generator.h>
 #include <tool_path_planner/halfedge_edge_generator.h>
+#include <smooth_pose_traj/smooth_pose_traj.hpp>
 
 static const double FEEDBACK_PUBLISH_PERIOD = 1.0;  // seconds
 static const std::string GENERATE_TOOL_PATHS_ACTION = "generate_tool_paths";
@@ -97,6 +98,7 @@ protected:
       const noether_msgs::ToolPathConfig& config = goal->path_configs[i];
       const shape_msgs::Mesh& mesh = goal->surface_meshes[i];
       boost::optional<tool_path_planner::ToolPaths> tool_paths = boost::none;
+      double pt_spacing, raster_spacing;
       ROS_INFO("Planning path");
       if (config.type == noether_msgs::ToolPathConfig::SURFACE_WALK_RASTER_GENERATOR)
       {
@@ -105,6 +107,8 @@ protected:
         tool_path_planner::toSurfaceWalkConfig(path_config, config.surface_walk_generator);
         path_gen->setConfiguration(path_config);
         generator = path_gen;
+        pt_spacing = path_config.point_spacing;
+        raster_spacing = path_config.raster_spacing;
       }
       else if (config.type == noether_msgs::ToolPathConfig::PLANE_SLICER_RASTER_GENERATOR)
       {
@@ -113,6 +117,9 @@ protected:
         tool_path_planner::toPlaneSlicerConfig(path_config, config.plane_slicer_generator);
         path_gen->setConfiguration(path_config);
         generator = path_gen;
+        pt_spacing = path_config.point_spacing;
+        raster_spacing = path_config.raster_spacing;
+        smooth_pose_arrays_ = path_config.smooth_rasters;
       }
       else if (config.type == noether_msgs::ToolPathConfig::EIGEN_VALUE_EDGE_GENERATOR)
       {
@@ -121,6 +128,7 @@ protected:
         tool_path_planner::toEigenValueConfig(path_config, config.eigen_value_generator);
         path_gen->setConfiguration(path_config);
         generator = path_gen;
+        pt_spacing = path_config.merge_dist;
       }
       else if (config.type == noether_msgs::ToolPathConfig::HALFEDGE_EDGE_GENERATOR)
       {
@@ -129,6 +137,7 @@ protected:
         tool_path_planner::toHalfedgeConfig(path_config, config.halfedge_generator);
         path_gen->setConfiguration(path_config);
         generator = path_gen;
+        pt_spacing = path_config.point_dist;
       }
       else
       {
@@ -144,7 +153,6 @@ protected:
 
       if (tool_paths.is_initialized())
       {
-        noether_msgs::ToolPaths trp;
         for (const auto& tool_path : tool_paths.get())
         {
           noether_msgs::ToolPath tp;
@@ -157,9 +165,15 @@ protected:
               tf::poseEigenToMsg(p, pose);
               seg.poses.push_back(pose);
             }
+            if (smooth_pose_arrays_)
+            {
+              smooth_pose_traj::SmoothPoseTraj smoother(seg, pt_spacing, true);
+              smoother.process(seg);
+            }
             tp.segments.push_back(seg);
           }
-          trp.paths.push_back(tp);
+
+          result.tool_paths[i].paths.push_back(tp);
         }
 
         result.tool_path_validities[i] = true;
@@ -229,6 +243,7 @@ protected:
   ros::NodeHandle nh_;
   GenPathActionServer as_;
   std::mutex goal_process_mutex_;
+  bool smooth_pose_arrays_;
 };
 
 }  // namespace tpp_path_gen

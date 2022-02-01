@@ -31,6 +31,7 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_conversions
   roscpp
   tool_path_planner
+  smooth_pose_traj
 )
 
 find_package(vtk_viewer REQUIRED)
@@ -52,6 +53,7 @@ catkin_package(
     pcl_conversions
     roscpp
     tool_path_planner
+    smooth_pose_traj
   DEPENDS
     VTK
     PCL

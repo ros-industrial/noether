@@ -4,7 +4,11 @@ float64 raster_rot_offset    # Specifies the direction of the raster path in rad
 float64 min_segment_size     # The minimum segment size to allow when finding intersections; small segments will be discarded
 float64 min_hole_size 	     # A path may pass over holes smaller than this, but must be broken when larger holes are encounterd.
 float64 tool_offset 	     # How far off the surface the tool needs to be
+float64 search_radius        # radius over which the normals are averaged
 bool generate_extra_rasters  # Whether an extra raster stroke should be added to the beginning and end of the raster pattern
+bool interleave_rasters      # create a second set of rasters interleaved inbetween first set
+bool smooth_rasters          # post process poses by fitting a cubic b-spline and re-sampling
+int32  raster_style          # 0,1,2 for mow_style, paint_style and read_style
 
 # When set to TRUE: initial cuts are determined using an axis-aligned bounding box. (global axes)
 # When set to FALSE: initial cuts are determined using an object-oriented bounding box and the

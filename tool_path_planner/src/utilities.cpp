@@ -46,6 +46,8 @@ typedef std::tuple<double, Eigen::Isometry3d, int> wp_tuple;
 typedef std::list<wp_tuple> tlist;
 typedef std::list<wp_tuple>::iterator tlist_it;
 
+static const double EPSILON = 1e-3;
+
 void flipPointOrder(ToolPath& path)
 {
   // Reverse the order of the segments
@@ -193,8 +195,12 @@ bool toPlaneSlicerConfigMsg(noether_msgs::PlaneSlicerRasterGeneratorConfig& conf
   config_msg.min_hole_size = config.min_hole_size;
   config_msg.min_segment_size = config.min_segment_size;
   config_msg.raster_rot_offset = config.raster_rot_offset;
+  config_msg.search_radius = config.search_radius;
+  config_msg.interleave_rasters = config.interleave_rasters;
+  config_msg.smooth_rasters = config.smooth_rasters;
+  config_msg.raster_style = config.raster_style;
+  config_msg.generate_extra_rasters = config.generate_extra_rasters;
   config_msg.raster_wrt_global_axes = config.raster_wrt_global_axes;
-
   config_msg.raster_direction.x = config.raster_direction.x();
   config_msg.raster_direction.y = config.raster_direction.y();
   config_msg.raster_direction.z = config.raster_direction.z();
@@ -241,7 +247,6 @@ bool toSurfaceWalkConfig(SurfaceWalkRasterGenerator::Config& config,
   config.min_segment_size = config_msg.min_segment_size;
   config.raster_rot_offset = config_msg.raster_rot_offset;
   config.generate_extra_rasters = config_msg.generate_extra_rasters;
-
   config.cut_direction[0] = config_msg.cut_direction.x;
   config.cut_direction[1] = config_msg.cut_direction.y;
   config.cut_direction[2] = config_msg.cut_direction.z;
@@ -257,6 +262,11 @@ bool toPlaneSlicerConfig(PlaneSlicerRasterGenerator::Config& config,
   config.min_hole_size = config_msg.min_hole_size;
   config.min_segment_size = config_msg.min_segment_size;
   config.raster_rot_offset = config_msg.raster_rot_offset;
+  config.search_radius = config_msg.search_radius;
+  config.interleave_rasters = config_msg.interleave_rasters;
+  config.smooth_rasters = config_msg.smooth_rasters;
+  config.raster_style = static_cast<tool_path_planner::RasterStyle>(config_msg.raster_style);
+  config.generate_extra_rasters = config_msg.generate_extra_rasters;
   config.raster_wrt_global_axes = config_msg.raster_wrt_global_axes;
 
   // Check that the raster direction was set; we are not interested in direction [0,0,0]
@@ -284,16 +294,39 @@ bool createToolPathSegment(const pcl::PointCloud<pcl::PointNormal>& cloud_normal
   std::vector<int> cloud_indices;
   if (indices.empty())
   {
-    cloud_indices.resize(cloud_normals.size());
-    std::iota(cloud_indices.begin(), cloud_indices.end(), 0);
+    cloud_indices.reserve(cloud_normals.size());
+    for (int i = 0; i < cloud_normals.points.size(); i++)
+    {
+      cloud_indices.push_back(i);
+    }
   }
   else
   {
     cloud_indices.assign(indices.begin(), indices.end());
   }
 
-  for (std::size_t i = 0; i < cloud_indices.size() - 1; i++)
+  if (cloud_indices.size() < 3)
   {
+    // TODO, covering the 2 point case is straight forward
+    ROS_ERROR("A valid path must have at least 3 points");
+    return false;
+  }
+
+  // compute first pose with x-axis using vector from first point to third point
+  const PointNormal& p1 = cloud_normals[cloud_indices[0]];
+  const PointNormal& p2 = cloud_normals[cloud_indices[2]];
+  x_dir = (p2.getVector3fMap() - p1.getVector3fMap()).normalized().cast<double>();
+  z_dir = Vector3d(p1.normal_x, p1.normal_y, p1.normal_z).normalized();
+  x_dir = (x_dir - x_dir.dot(z_dir) * z_dir).normalized();  // remove component of x along z
+  y_dir = z_dir.cross(x_dir).normalized();
+
+  pose = Translation3d(p1.getVector3fMap().cast<double>());
+  pose.matrix().block<3, 3>(0, 0) = tool_path_planner::toRotationMatrix(x_dir, y_dir, z_dir);
+  segment.push_back(pose);
+
+  for (std::size_t i = 1; i < cloud_indices.size() - 2; i++)
+  {
+    std::size_t idx_prev = cloud_indices[i - 1];
     std::size_t idx_current = cloud_indices[i];
     std::size_t idx_next = cloud_indices[i + 1];
     if (idx_current >= cloud_normals.size() || idx_next >= cloud_normals.size())
@@ -302,10 +335,12 @@ bool createToolPathSegment(const pcl::PointCloud<pcl::PointNormal>& cloud_normal
           "Invalid indices (current: %lu, next: %lu) for point cloud were passed", idx_current, idx_next);
       return false;
     }
+    const PointNormal& p0 = cloud_normals[idx_prev];
     const PointNormal& p1 = cloud_normals[idx_current];
     const PointNormal& p2 = cloud_normals[idx_next];
-    x_dir = (p2.getVector3fMap() - p1.getVector3fMap()).normalized().cast<double>();
+    x_dir = (p2.getVector3fMap() - p0.getVector3fMap()).normalized().cast<double>();
     z_dir = Vector3d(p1.normal_x, p1.normal_y, p1.normal_z).normalized();
+    x_dir = (x_dir - x_dir.dot(z_dir) * z_dir).normalized();  // remove component of x along z
     y_dir = z_dir.cross(x_dir).normalized();
 
     pose = Translation3d(p1.getVector3fMap().cast<double>());
@@ -313,12 +348,14 @@ bool createToolPathSegment(const pcl::PointCloud<pcl::PointNormal>& cloud_normal
     segment.push_back(pose);
   }
 
-  // last pose
-  Eigen::Isometry3d p = segment.back();
-  p.translation().x() = cloud_normals[cloud_indices.back()].x;
-  p.translation().y() = cloud_normals[cloud_indices.back()].y;
-  p.translation().z() = cloud_normals[cloud_indices.back()].z;
-  segment.push_back(p);
+  // compute last pose with last computed x-axis (corrected for change in z
+  const PointNormal& p_last = cloud_normals[cloud_indices[cloud_indices.size() - 1]];
+  z_dir = Vector3d(p_last.normal_x, p_last.normal_y, p_last.normal_z).normalized();
+  x_dir = (x_dir - x_dir.dot(z_dir) * z_dir).normalized();
+  y_dir = z_dir.cross(x_dir).normalized();
+  pose = Translation3d(p_last.getVector3fMap().cast<double>());
+  pose.matrix().block<3, 3>(0, 0) = tool_path_planner::toRotationMatrix(x_dir, y_dir, z_dir);
+  segment.push_back(pose);
 
   return true;
 }
@@ -752,10 +789,9 @@ ToolPath sortAndSegment(std::list<std::tuple<double, Eigen::Isometry3d, int> >& 
       last_wp = waypoint;
       last_dot = std::get<0>(waypoint_tuple);
     }
-    // only add extra if dot spacing is large
-    else if (dot_spacing > 1.3 * point_spacing && cart_spacing > 1.3 * point_spacing)
-    {
-      // start a new segment
+    else if (dot_spacing > 1.3 * point_spacing && cart_spacing > 1.3 * point_spacing)  // only add extra if dot spacing
+                                                                                       // is large
+    {                                                                                  // start a new segment
       if (seg.size() > 3)
       {
         new_tool_path.push_back(seg);  // throw away very short segments
@@ -897,4 +933,338 @@ ToolPaths addExtraWaypoints(const ToolPaths& tool_paths, double raster_spacing, 
   return new_tool_paths;
 }
 
+// computes the normal vectors to a mesh at every vertex
+pcl::PointCloud<pcl::PointNormal> computeMLSMeshNormals(const pcl::PointCloud<pcl::PointXYZ>::Ptr& mesh_cloud,
+                                                        double normal_search_radius)
+{
+  // initialize the MLSNE object
+  pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal> MLS;
+  MLS.setInputCloud(mesh_cloud);
+  MLS.setComputeNormals(true);
+  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
+  MLS.setSearchMethod(tree);
+  MLS.setPolynomialOrder(3);
+  MLS.setSearchRadius(normal_search_radius);
+  MLS.setUpsamplingMethod(pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal>::UpsamplingMethod::NONE);
+  MLS.setCacheMLSResults(true);
+  MLS.setProjectionMethod(pcl::MLSResult::ProjectionMethod::ORTHOGONAL);
+  // NONE, DISTINCT_CLOUD, SAMPLE_LOCAL_PLANE, RANDOM_UNIFORM_DENSITY, VOXEL_GRID_DILATION
+  // unused initialization methods here to help future developers
+  // MLS.setUpsamplingRadius(), MLS.setUpsamplingStepSize(), MLS.setDistinctCloud()
+
+  // process the cloud
+  pcl::PointCloud<pcl::PointNormal> mls_mesh_cloud_normals;
+  MLS.process(mls_mesh_cloud_normals);
+  std::vector<pcl::MLSResult> R = MLS.getMLSResults();
+
+  pcl::PointCloud<pcl::PointNormal> mesh_cloud_normals;
+  mesh_cloud_normals.reserve(mesh_cloud->points.size());
+  for (size_t i = 0; i < mesh_cloud->points.size(); i++)
+  {
+    pcl::PointNormal new_pn;
+    new_pn.x = mesh_cloud->points[i].x;
+    new_pn.y = mesh_cloud->points[i].y;
+    new_pn.z = mesh_cloud->points[i].z;
+    new_pn.normal_x = -R[i].plane_normal.x();
+    new_pn.normal_y = -R[i].plane_normal.y();
+    new_pn.normal_z = -R[i].plane_normal.z();
+    mesh_cloud_normals.push_back(new_pn);
+  }
+  return (mesh_cloud_normals);
+}
+
+/**
+ * @brief forces the required point spacing by computing new points along the curve
+ * @param in    The input cloud
+ * @param out   The output cloud
+ * @param dist  The required point spacing distance
+ * @return True on success, False otherwise
+ */
+bool applyEqualDistance(const std::vector<int>& pnt_indices,
+                        const pcl::PointCloud<pcl::PointXYZ>& mesh_cloud,
+                        pcl::PointCloud<pcl::PointNormal>& path_cloud,
+                        double dist)
+{
+  using namespace pcl;
+  using namespace Eigen;
+
+  PointNormal new_pt;
+  PointXYZ p_start, p_mid, p_end;
+  Vector3f v_1, v_2, unitv_2, v_next;
+  if (pnt_indices.size() < 3)
+  {
+    CONSOLE_BRIDGE_logError("pnt_indices must have at least 3");
+    return false;
+  }
+  PointXYZ pt = mesh_cloud.points[pnt_indices[0]];
+  p_start.x = pt.x;
+  p_start.y = pt.y;
+  p_start.z = pt.z;
+  pt = mesh_cloud.points[pnt_indices[1]];
+  p_mid.x = pt.x;
+  p_mid.y = pt.y;
+  p_mid.z = pt.z;
+  v_1 = p_mid.getVector3fMap() - p_start.getVector3fMap();
+  new_pt.x = mesh_cloud[pnt_indices[0]].x;
+  new_pt.y = mesh_cloud[pnt_indices[0]].y;
+  new_pt.z = mesh_cloud[pnt_indices[0]].z;
+  path_cloud.push_back(new_pt);  // add first point
+  for (std::size_t i = 2; i < pnt_indices.size(); i++)
+  {
+    pt = mesh_cloud[pnt_indices[i]];
+    p_end.x = pt.x;
+    p_end.y = pt.y;
+    p_end.z = pt.z;
+    while (dist < v_1.norm())
+    {
+      p_start.getVector3fMap() = p_start.getVector3fMap() + dist * v_1.normalized();
+      std::tie(new_pt.x, new_pt.y, new_pt.z) = std::make_tuple(p_start.x, p_start.y, p_start.z);
+      path_cloud.push_back(new_pt);
+      v_1 = p_mid.getVector3fMap() - p_start.getVector3fMap();
+    }
+
+    v_2 = p_end.getVector3fMap() - p_mid.getVector3fMap();
+    if (dist < (v_1 + v_2).norm())
+    {
+      // solve for x such that " x^2 + 2 * x * dot(v_1, unitv_2) + norm(v_1)^2 - d^2 = 0"
+      unitv_2 = v_2.normalized();
+      double b = 2 * v_1.dot(unitv_2);
+      double c = std::pow(v_1.norm(), 2) - std::pow(dist, 2);
+      double sqrt_term = std::sqrt(std::pow(b, 2) - 4 * c);
+      double x = 0.5 * (-b + sqrt_term);
+      x = (x > 0.0 && x < dist) ? x : 0.5 * (-b - sqrt_term);
+      if (x > dist)
+      {
+        return false;
+      }
+      v_next = v_1 + x * unitv_2;
+
+      // computing next point at distance "dist" from previous that lies on the curve
+      p_start.getVector3fMap() = p_start.getVector3fMap() + v_next;
+      std::tie(new_pt.x, new_pt.y, new_pt.z) = std::make_tuple(p_start.x, p_start.y, p_start.z);
+      path_cloud.push_back(new_pt);
+    }
+
+    // computing values for next iter
+    p_mid = p_end;
+    v_1 = p_mid.getVector3fMap() - p_start.getVector3fMap();
+  }
+
+  // add last point if not already there
+  if ((path_cloud.back().getVector3fMap() - mesh_cloud[pnt_indices.back()].getVector3fMap()).norm() > dist / 3.0)
+  {
+    new_pt.x = mesh_cloud[pnt_indices[pnt_indices.size() - 1]].x;
+    new_pt.y = mesh_cloud[pnt_indices[pnt_indices.size() - 1]].y;
+    new_pt.z = mesh_cloud[pnt_indices[pnt_indices.size() - 1]].z;
+    path_cloud.push_back(new_pt);
+  }
+
+  if (path_cloud.size() < 2)
+  {
+    CONSOLE_BRIDGE_logError("Points in curve segment are too close together");
+    return false;
+  }
+
+  return true;
+}
+
+bool insertPointNormals(const pcl::PointCloud<pcl::PointNormal>::Ptr& mesh_cloud,
+                        pcl::PointCloud<pcl::PointNormal>& path_cloud)
+{
+  // recovering normals using kd-treek
+  pcl::PointCloud<pcl::PointXYZ>::Ptr in_points(new pcl::PointCloud<pcl::PointXYZ>());
+  for (pcl::PointNormal p : mesh_cloud->points)
+  {
+    pcl::PointXYZ pt(p.x, p.y, p.z);
+    in_points->points.push_back(pt);
+  }
+  pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
+  kdtree.setInputCloud(in_points);
+  kdtree.setEpsilon(EPSILON);
+
+  std::vector<int> k_indices;
+  std::vector<float> k_sqr_distances;
+  pcl::PointXYZ query_point;
+  for (auto& p : path_cloud)
+  {
+    k_indices.resize(1);
+    k_sqr_distances.resize(1);
+    std::tie(query_point.x, query_point.y, query_point.z) = std::make_tuple(p.x, p.y, p.z);
+    if (kdtree.nearestKSearch(query_point, 1, k_indices, k_sqr_distances) < 1)
+    {
+      CONSOLE_BRIDGE_logError("No nearest points found");
+      return false;
+    }
+
+    int idx = k_indices[0];
+    if (idx < mesh_cloud->points.size())
+    {
+      std::tie(p.normal_x, p.normal_y, p.normal_z) = std::make_tuple(
+          mesh_cloud->points[idx].normal_x, mesh_cloud->points[idx].normal_y, mesh_cloud->points[idx].normal_z);
+    }
+    else
+    {
+      ROS_ERROR("what is wrong %d", idx);
+    }
+  }
+
+  return true;
+}
+
+// TODO, why is this here when noether_conversions::convertToPCLMesh(const shape_msgs::Mesh& mesh_msg, pcl::PolygonMesh&
+// mesh) returns a pcl::PointCloud<> with mesh.cloud being of type pcl::PointCloud<pcl::PointXYZ>
+void shapeMsgToPclPointXYZ(const shape_msgs::Mesh& mesh, pcl::PointCloud<pcl::PointXYZ>& mesh_cloud)
+{
+  mesh_cloud.points.clear();
+  for (int i = 0; i < mesh.vertices.size(); i++)
+  {
+    pcl::PointXYZ p(mesh.vertices[i].x, mesh.vertices[i].y, mesh.vertices[i].z);
+    mesh_cloud.points.push_back(p);
+  }
+}
+
+void computeFaceNormals(const shape_msgs::Mesh& mesh, std::vector<Eigen::Vector3d>& face_normals)
+{
+  face_normals.clear();
+  face_normals.reserve(mesh.triangles.size());
+  for (size_t i = 0; i < mesh.triangles.size(); i++)
+  {
+    size_t idx1 = mesh.triangles[i].vertex_indices[0];
+    size_t idx2 = mesh.triangles[i].vertex_indices[1];
+    size_t idx3 = mesh.triangles[i].vertex_indices[2];
+    Eigen::Vector3d v1(mesh.vertices[idx1].x, mesh.vertices[idx1].y, mesh.vertices[idx1].z);
+    Eigen::Vector3d v2(mesh.vertices[idx2].x, mesh.vertices[idx2].y, mesh.vertices[idx2].z);
+    Eigen::Vector3d v3(mesh.vertices[idx3].x, mesh.vertices[idx3].y, mesh.vertices[idx3].z);
+    Eigen::Vector3d normal = v1.cross(v2) + v2.cross(v3) + v3.cross(v1);
+    normal.normalize();
+    face_normals.push_back(normal);
+  }
+}
+
+void computeFaceNormals(pcl::PolygonMesh::ConstPtr& mesh, std::vector<Eigen::Vector3d>& face_normals)
+{
+  face_normals.clear();
+  face_normals.reserve(mesh->polygons.size());
+  for (size_t i = 0; i < mesh->polygons.size(); i++)
+  {
+    size_t idx1 = mesh->polygons[i].vertices[0] * mesh->cloud.point_step;
+    size_t idx2 = mesh->polygons[i].vertices[1] * mesh->cloud.point_step;
+    size_t idx3 = mesh->polygons[i].vertices[2] * mesh->cloud.point_step;
+    size_t xo = mesh->cloud.fields[0].offset;
+    size_t yo = mesh->cloud.fields[1].offset;
+    size_t zo = mesh->cloud.fields[2].offset;
+    float* x = (float*)(&mesh->cloud.data[idx1 + xo]);
+    float* y = (float*)(&mesh->cloud.data[idx1 + yo]);
+    float* z = (float*)(&mesh->cloud.data[idx1 + zo]);
+    Eigen::Vector3d v1(*x, *y, *z);
+    x = (float*)(&mesh->cloud.data[idx2 + xo]);
+    y = (float*)(&mesh->cloud.data[idx2 + yo]);
+    z = (float*)(&mesh->cloud.data[idx2 + zo]);
+    Eigen::Vector3d v2(*x, *y, *z);
+    x = (float*)(&mesh->cloud.data[idx3 + xo]);
+    y = (float*)(&mesh->cloud.data[idx3 + yo]);
+    z = (float*)(&mesh->cloud.data[idx3 + zo]);
+    Eigen::Vector3d v3(*x, *y, *z);
+    Eigen::Vector3d normal = v1.cross(v2) + v2.cross(v3) + v3.cross(v1);
+    normal.normalize();
+    face_normals.push_back(normal);
+  }
+}
+
+void computeMeshNormals(const shape_msgs::Mesh& mesh,
+                        std::vector<Eigen::Vector3d>& face_normals,
+                        std::vector<Eigen::Vector3d>& vertex_normals)
+{
+  computeFaceNormals(mesh, face_normals);
+
+  // populate a structure for each vertex containing a list of adjoining faces
+  std::vector<size_t> vertex_faces[mesh.vertices.size()];
+  for (size_t i = 0; i < mesh.triangles.size(); i++)  // find every face adjoining each vertex
+  {
+    vertex_faces[mesh.triangles[i].vertex_indices[0]].push_back(i);
+    vertex_faces[mesh.triangles[i].vertex_indices[1]].push_back(i);
+    vertex_faces[mesh.triangles[i].vertex_indices[2]].push_back(i);
+  }
+  // average the adjoining face normals
+  vertex_normals.clear();
+  vertex_normals.reserve(mesh.vertices.size());
+  for (size_t i = 0; i < mesh.vertices.size(); i++)  // for each vertex averages all adjoining face normals
+  {
+    Eigen::Vector3d vertex_normal;
+    if (vertex_faces[i].size() == 0)
+    {
+      vertex_normal.z() = 1;
+    }
+    else
+    {
+      for (size_t j = 0; j < vertex_faces[i].size(); j++)
+      {
+        size_t face_index = vertex_faces[i][j];
+        vertex_normal += face_normals[face_index];
+      }
+    }
+    vertex_normal.normalize();
+    vertex_normals.push_back(vertex_normal);
+  }
+}
+
+void computePCLMeshNormals(pcl::PolygonMesh::ConstPtr& mesh,
+                           std::vector<Eigen::Vector3d>& face_normals,
+                           std::vector<Eigen::Vector3d>& vertex_normals)
+{
+  computeFaceNormals(mesh, face_normals);
+  int num_pts = mesh->cloud.height * mesh->cloud.width;
+
+  // populate a structure for each vertex containing a list of adjoining faces
+  std::vector<size_t> vertex_faces[num_pts];
+  for (size_t i = 0; i < mesh->polygons.size(); i++)  // find every face adjoining each vertex
+  {
+    vertex_faces[mesh->polygons[i].vertices[0]].push_back(i);
+    vertex_faces[mesh->polygons[i].vertices[1]].push_back(i);
+    vertex_faces[mesh->polygons[i].vertices[2]].push_back(i);
+  }
+  // average the adjoining face normals
+  vertex_normals.clear();
+  vertex_normals.reserve(num_pts);
+  for (size_t i = -0; i < num_pts; i++)  // for each vertex averages all adjoining face normals
+  {
+    Eigen::Vector3d vertex_normal;
+    if (vertex_faces[i].size() == 0)
+    {
+      vertex_normal.z() = 1;
+    }
+    else
+    {
+      for (size_t j = 0; j < vertex_faces[i].size(); j++)
+      {
+        size_t face_index = vertex_faces[i][j];
+        vertex_normal += face_normals[face_index];
+      }
+    }
+    vertex_normal.normalize();
+    vertex_normals.push_back(vertex_normal);
+  }
+}
+
+bool alignToVertexNormals(pcl::PointCloud<pcl::PointNormal>& mesh_cloud, std::vector<Eigen::Vector3d>& vertex_normals)
+{
+  if (mesh_cloud.points.size() != vertex_normals.size())
+  {
+    ROS_ERROR("mesh_cloud and vertex_normals have different number of points %ld vs %ld",
+              mesh_cloud.points.size(),
+              vertex_normals.size());
+    return (false);
+  }
+  for (size_t i = 0; i < mesh_cloud.points.size(); i++)
+  {
+    Eigen::Vector3d n(mesh_cloud.points[i].normal_x, mesh_cloud.points[i].normal_y, mesh_cloud.points[i].normal_z);
+    if (vertex_normals[i].dot(n) < 0)
+    {
+      mesh_cloud.points[i].normal_x = -mesh_cloud.points[i].normal_x;
+      mesh_cloud.points[i].normal_y = -mesh_cloud.points[i].normal_y;
+      mesh_cloud.points[i].normal_z = -mesh_cloud.points[i].normal_z;
+    }
+  }
+  return true;
+}
 }  // namespace tool_path_planner
