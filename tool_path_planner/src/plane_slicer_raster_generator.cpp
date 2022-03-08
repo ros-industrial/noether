@@ -19,49 +19,50 @@
  * limitations under the License.
  */
 
-#include <vtkMath.h>
+#include <tool_path_planner/plane_slicer_raster_generator.h>
+
+#include <numeric>
+
+#include <boost/make_shared.hpp>
+#include <Eigen/StdVector>
+#include <pcl/surface/vtk_smoothing/vtk_utils.h>
+#include <vtkAppendPolyData.h>
 #include <vtkBoundingBox.h>
+#include <vtkCenterOfMass.h>
 #include <vtkDoubleArray.h>
 #include <vtkLine.h>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
+#include <vtkCutter.h>
+#include <vtkErrorCode.h>
+#include <vtkKdTree.h>
+#include <vtkMath.h>
+#include <vtkOBBTree.h>
+#include <vtkParametricSpline.h>
+#include <vtkPlane.h>
 #include <vtkPointData.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
-#include <vtkOBBTree.h>
-#include <vtkKdTree.h>
+#include <vtkPolyDataNormals.h>
+#include <vtkStripper.h>
 #include <vtkTransform.h>
 #include <vtkTransformFilter.h>
-#include <vtkCutter.h>
-#include <vtkStripper.h>
-#include <vtkPlane.h>
-#include <vtkAppendPolyData.h>
 #include <vtkSmartPointer.h>
-#include <vtkCenterOfMass.h>
-#include <vtkParametricSpline.h>
-#include <vtkPolyDataNormals.h>
-#include <vtkErrorCode.h>
 
-#include <boost/make_shared.hpp>
-#include <Eigen/StdVector>
-#include <numeric>
 #include <eigen_conversions/eigen_msg.h>
-#include <pcl/surface/vtk_smoothing/vtk_utils.h>
 #include <console_bridge/console.h>
+
 #include <noether_conversions/noether_conversions.h>
 #include <tool_path_planner/utilities.h>
-#include <tool_path_planner/plane_slicer_raster_generator.h>
 
 static const double EPSILON = 1e-6;
 
-using PolyDataPtr = vtkSmartPointer<vtkPolyData>;
-
-static Eigen::Vector3d getSegDir(PolyDataPtr seg)
+static Eigen::Vector3d getSegDir(vtkSmartPointer<vtkPolyData> seg)
 {
   if (seg->GetPoints()->GetNumberOfPoints() < 1)
   {
-    ROS_ERROR("can't get direction from a segment with fewer than 2 points");
+    CONSOLE_BRIDGE_logError("can't get direction from a segment with fewer than 2 points");
     Eigen::Vector3d v;
     v.x() = 1.0;
     v.y() = 0.0;
@@ -87,7 +88,7 @@ alignRasterCD(tool_path_planner::PlaneSlicerRasterGenerator::RasterConstructData
 {
   if (rcd.raster_segments[0]->GetPoints()->GetNumberOfPoints() <= 1)
   {
-    ROS_ERROR("first raster segment has 0 or 1 points, unable to alignRasterCD()");
+    CONSOLE_BRIDGE_logError("first raster segment has 0 or 1 points, unable to alignRasterCD()");
     return (rcd);
   }
   Eigen::Vector3d raster_start;
@@ -464,7 +465,7 @@ void PlaneSlicerRasterGenerator::setInput(pcl::PolygonMesh::ConstPtr mesh)
   // align mls_vertex_normals to vertex_normals
   if (!tool_path_planner::alignToVertexNormals(*mls_mesh_normals_ptr_, vertex_normals_))
   {
-    ROS_ERROR("alignToVertexNormals failed");
+    CONSOLE_BRIDGE_logError("alignToVertexNormals failed");
   }
 
   setInput(mesh_data);
@@ -478,7 +479,7 @@ void PlaneSlicerRasterGenerator::setInput(const shape_msgs::Mesh& mesh)
 }
 
 vtkSmartPointer<vtkPolyData> PlaneSlicerRasterGenerator::getInput() { return mesh_data_; }
-void PlaneSlicerRasterGenerator::computePoseData(const PolyDataPtr& polydata,
+void PlaneSlicerRasterGenerator::computePoseData(const vtkSmartPointer<vtkPolyData>& polydata,
                                                  int idx,
                                                  Eigen::Vector3d& p,
                                                  Eigen::Vector3d& vx,
@@ -508,9 +509,9 @@ tool_path_planner::ToolPaths PlaneSlicerRasterGenerator::convertToPoses(
   for (const tool_path_planner::PlaneSlicerRasterGenerator::RasterConstructData& rd : rasters_data)  // for every raster
   {
     tool_path_planner::ToolPath raster_path;
-    std::vector<PolyDataPtr> raster_segments;
+    std::vector<vtkSmartPointer<vtkPolyData>> raster_segments;
     raster_segments.assign(rd.raster_segments.begin(), rd.raster_segments.end());
-    for (const PolyDataPtr& polydata : raster_segments)  // for every segment
+    for (const vtkSmartPointer<vtkPolyData>& polydata : raster_segments)  // for every segment
     {
       tool_path_planner::ToolPathSegment raster_path_segment;
       std::size_t num_points = polydata->GetNumberOfPoints();
@@ -669,7 +670,7 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   Vector3d raster_dir;
   if (config_.raster_direction.isApprox(Eigen::Vector3d::Zero()))
   {
-    ROS_ERROR("APPROX ZERO");
+    CONSOLE_BRIDGE_logError("APPROX ZERO");
     // If no direction was specified, use the middle dimension of the bounding box
     raster_dir = Eigen::Vector3d::UnitY();
     raster_dir = (rotation_offset * raster_dir).normalized();
@@ -836,7 +837,7 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
         decltype(points) new_points = applyParametricSpline(points, line_length, config_.point_spacing);
 
         // add points to segment now
-        PolyDataPtr segment_data = PolyDataPtr::New();
+        vtkSmartPointer<vtkPolyData> segment_data = vtkSmartPointer<vtkPolyData>::New();
         segment_data->SetPoints(new_points);
 
         // transforming to original coordinate system
@@ -870,7 +871,7 @@ boost::optional<ToolPaths> PlaneSlicerRasterGenerator::generate()
   }
   if (rasters_data_vec.size() == 0)
   {
-    ROS_ERROR("no rasters found");
+    CONSOLE_BRIDGE_logError("no rasters found");
     ToolPaths rasters;
     return (rasters);
   }

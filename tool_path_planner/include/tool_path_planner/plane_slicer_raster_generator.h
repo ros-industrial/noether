@@ -22,17 +22,21 @@
 #ifndef INCLUDE_PLANE_SLICER_RASTER_GENERATOR_H_
 #define INCLUDE_PLANE_SLICER_RASTER_GENERATOR_H_
 
-#include <vtkPoints.h>
-#include <vtkSmartPointer.h>
-#include <vtkPolyData.h>
 #include <boost/optional.hpp>
 #include <Eigen/Dense>
+#include <jsoncpp/json/json.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 #include <pcl/PolygonMesh.h>
-#include <shape_msgs/Mesh.h>
 #include <vtkCellLocator.h>
 #include <vtkKdTreePointLocator.h>
-#include <jsoncpp/json/json.h>
-#include <ros/console.h>
+#include <vtkPoints.h>
+#include <vtkPolyData.h>
+#include <vtkSmartPointer.h>
+
+#include <console_bridge/console.h>
+#include <shape_msgs/Mesh.h>
+
 #include <tool_path_planner/path_generator.h>
 
 namespace tool_path_planner
@@ -91,14 +95,14 @@ public:
     {
       if (jv.isNull())
       {
-        ROS_ERROR("Json value is null");
+        CONSOLE_BRIDGE_logError("Json value is null");
         return false;
       }
       if (jv.type() != Json::ValueType::objectValue)
       {
-        ROS_ERROR("Json type %i is invalid, only '%i' is allowed",
-                  static_cast<int>(jv.type()),
-                  static_cast<int>(Json::ValueType::objectValue));
+        CONSOLE_BRIDGE_logError("Json type %i is invalid, only '%i' is allowed",
+                                static_cast<int>(jv.type()),
+                                static_cast<int>(Json::ValueType::objectValue));
         return false;
       }
       auto validate = [](const Json::Value& jv, const std::string& name_, const Json::ValueType& type_) -> bool {
@@ -128,7 +132,7 @@ public:
                                    DEFAULT_RASTER_WRT_GLOBAL_AXES;
       if (jv["raster_direction"].isNull() || jv["raster_direction"].type() != Json::ValueType::objectValue)
       {
-        ROS_ERROR("Malformed Raster Direction in Json value");
+        CONSOLE_BRIDGE_logError("Malformed Raster Direction in Json value");
         return false;
       }
       if (validate(jv["raster_direction"], "x", Json::ValueType::objectValue) &&
@@ -175,11 +179,9 @@ public:
     }
   };
 
-  using PolyDataPtr = vtkSmartPointer<vtkPolyData>;
-
   struct RasterConstructData
   {
-    std::vector<PolyDataPtr> raster_segments;
+    std::vector<vtkSmartPointer<vtkPolyData>> raster_segments;
     std::vector<double> segment_lengths;
   };
 
@@ -207,7 +209,7 @@ private:
   bool insertNormals(const double search_radius, vtkSmartPointer<vtkPolyData>& data);
 
   tool_path_planner::ToolPaths convertToPoses(const std::vector<RasterConstructData>& rasters_data);
-  void computePoseData(const PolyDataPtr& polydata,
+  void computePoseData(const vtkSmartPointer<vtkPolyData>& polydata,
                        int idx,
                        Eigen::Vector3d& p,
                        Eigen::Vector3d& vx,
@@ -218,7 +220,7 @@ private:
   vtkSmartPointer<vtkKdTreePointLocator> kd_tree_;
   vtkSmartPointer<vtkCellLocator> cell_locator_;
   Config config_;
-  boost::shared_ptr<pcl::PointCloud<pcl::PointNormal> > mls_mesh_normals_ptr_;
+  boost::shared_ptr<pcl::PointCloud<pcl::PointNormal>> mls_mesh_normals_ptr_;
   std::vector<Eigen::Vector3d> vertex_normals_;
   std::vector<Eigen::Vector3d> face_normals_;
 };
