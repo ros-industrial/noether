@@ -120,7 +120,10 @@ long SimplePathSequencePlanner::findNextNearestPath(tool_path_planner::ToolPaths
                                                     bool front)
 {
   Eigen::Isometry3d last_pt;
+
   // find next nearest point
+  // This should technically be guarded against last_path or its components being empty, but an
+  // empty path should not have been previously selected.
   if (front)
     last_pt = paths[last_path].front().front();
   else
@@ -136,17 +139,28 @@ long SimplePathSequencePlanner::findNextNearestPath(tool_path_planner::ToolPaths
       continue;
 
     // get first and last point of line j
-    Eigen::Isometry3d pt1 = paths[j].front().front();
-    double dist1 = (pt1.translation() - last_pt.translation()).norm();
-
-    // find distance between last point and the end points of the next line
-    Eigen::Isometry3d pt2 = paths[j].back().back();
-    double dist2 = (pt2.translation() - last_pt.translation()).norm();
-
-    if (dist1 < min_dist || dist2 < min_dist)
+    if (!paths[j].empty())
     {
-      min_index = static_cast<long>(j);
-      min_dist = (dist1 < dist2 ? dist1 : dist2);
+      double dist1 = std::numeric_limits<double>::max();
+      if (!paths[j].front().empty())
+      {
+        Eigen::Isometry3d pt1 = paths[j].front().front();
+        dist1 = (pt1.translation() - last_pt.translation()).norm();
+      }
+
+      // find distance between last point and the end points of the next line
+      double dist2 = std::numeric_limits<double>::max();
+      if (!paths[j].back().empty())
+      {
+        Eigen::Isometry3d pt2 = paths[j].back().back();
+        double dist2 = (pt2.translation() - last_pt.translation()).norm();
+      }
+
+      if (dist1 < min_dist || dist2 < min_dist)
+      {
+        min_index = static_cast<long>(j);
+        min_dist = (dist1 < dist2 ? dist1 : dist2);
+      }
     }
   }
 
