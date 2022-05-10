@@ -156,8 +156,8 @@ bool applyMinPointDistance(const pcl::PointCloud<pcl::PointNormal>& in,
  * @return True on success, False otherwise
  */
 static bool applyEqualDistancePathCloud(const pcl::PointCloud<pcl::PointNormal>& in,
-                         pcl::PointCloud<pcl::PointNormal>& out,
-                         double dist)
+                                        pcl::PointCloud<pcl::PointNormal>& out,
+                                        double dist)
 {
   using namespace pcl;
   using namespace Eigen;
@@ -556,8 +556,11 @@ boost::optional<ToolPaths> HalfedgeEdgeGenerator::generate()
     if (!createToolPathSegment(bound_segment_points, {}, edge_segment))
       return boost::none;
 
-    edge_paths.push_back({ edge_segment });
-    CONSOLE_BRIDGE_logInform("Added boundary with %lu points", edge_paths.back()[0].size());
+    ToolPathSegment cleaned_segment =
+        checkForPeninsulaOrInlet(edge_segment, config_.max_bridge_distance);
+
+    edge_paths.push_back({ cleaned_segment });
+    CONSOLE_BRIDGE_logDebug("Added boundary with %lu points", edge_paths.back()[0].size());
   }
 
   // sorting

@@ -10,7 +10,7 @@
 #include <limits>
 #include <cmath>
 #include <numeric>
-#include <algorithm> // std::sort
+#include <algorithm>  // std::sort
 
 #include <boost/make_shared.hpp>
 #include <Eigen/Core>
@@ -63,7 +63,8 @@ void flipPointOrder(ToolPath& path)
       p *= Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ());
 }
 
-tool_path_planner::ToolPathSegmentData toToolPathSegmentData(const tool_path_planner::ToolPathSegment& tool_path_segment)
+tool_path_planner::ToolPathSegmentData
+toToolPathSegmentData(const tool_path_planner::ToolPathSegment& tool_path_segment)
 {
   using namespace Eigen;
 
@@ -150,6 +151,7 @@ bool toHalfedgeConfigMsg(noether_msgs::HalfedgeEdgeGeneratorConfig& config_msg,
   config_msg.normal_influence_weight = config.normal_influence_weight;
   config_msg.point_spacing_method = static_cast<int>(config.point_spacing_method);
   config_msg.point_dist = config.point_dist;
+  config_msg.max_bridge_distance = config.max_bridge_distance;
   return true;
 }
 
@@ -218,6 +220,7 @@ bool toHalfedgeConfig(HalfedgeEdgeGenerator::Config& config,
   config.point_spacing_method =
       static_cast<tool_path_planner::HalfedgeEdgeGenerator::PointSpacingMethod>(config_msg.point_spacing_method);
   config.point_dist = config_msg.point_dist;
+  config.max_bridge_distance = config_msg.max_bridge_distance;
   return true;
 }
 
@@ -554,7 +557,7 @@ ToolPath splitByAxes(const ToolPathSegment& tool_path_segment)
 
   // Get major and middle axis (we don't care about minor axis)
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
-  for (Eigen::Isometry3d p: tool_path_segment)
+  for (Eigen::Isometry3d p : tool_path_segment)
   {
     pcl::PointXYZ point(float(p.translation().x()), float(p.translation().y()), float(p.translation().z()));
     cloud->push_back(point);
@@ -563,7 +566,7 @@ ToolPath splitByAxes(const ToolPathSegment& tool_path_segment)
   moment.setInputCloud(cloud);
   moment.compute();
   Eigen::Vector3f major_axis, middle_axis, minor_axis;
-  if(!moment.getEigenVectors(major_axis, middle_axis, minor_axis))
+  if (!moment.getEigenVectors(major_axis, middle_axis, minor_axis))
   {
     ROS_ERROR_STREAM("Could not compute Eigen Vectors.");
   }
@@ -576,7 +579,9 @@ ToolPath splitByAxes(const ToolPathSegment& tool_path_segment)
   return splitByAxes(tool_path_segment, major_axis, perp_axis);
 }
 
-ToolPath splitByAxes(const ToolPathSegment& tool_path_segment, const Eigen::Vector3f& axis_1, const Eigen::Vector3f& axis_2)
+ToolPath splitByAxes(const ToolPathSegment& tool_path_segment,
+                     const Eigen::Vector3f& axis_1,
+                     const Eigen::Vector3f& axis_2)
 {
   // Sanity check - tool path segment must not be empty
   if (tool_path_segment.size() == 0)
@@ -589,10 +594,7 @@ ToolPath splitByAxes(const ToolPathSegment& tool_path_segment, const Eigen::Vect
 
   ToolPath new_tool_path;
   std::vector<Eigen::Vector3f> vectors = {
-    -1 * axis_1 + -1 * axis_2,
-    -1 * axis_1 +      axis_2,
-         axis_1 +      axis_2,
-         axis_1 + -1 * axis_2
+    -1 * axis_1 + -1 * axis_2, -1 * axis_1 + axis_2, axis_1 + axis_2, axis_1 + -1 * axis_2
   };
   // Get indices to cut tool path at
   std::set<int> cut_indices;
@@ -615,7 +617,9 @@ ToolPath splitByAxes(const ToolPathSegment& tool_path_segment, const Eigen::Vect
     for (std::size_t index = 0; index < tool_path_segment.size(); ++index)
     {
       Eigen::Isometry3d p = tool_path_segment[index];
-      Eigen::Vector3f v(float(p.translation().x() - path_center[0]), float(p.translation().y() - path_center[1]), float(p.translation().z() - path_center[2]));
+      Eigen::Vector3f v(float(p.translation().x() - path_center[0]),
+                        float(p.translation().y() - path_center[1]),
+                        float(p.translation().z() - path_center[2]));
       float dot = vector.dot(v);
       if (dot > max_dot)
       {
@@ -701,6 +705,136 @@ ToolPaths splitByAxes(const ToolPaths& tool_paths, const Eigen::Vector3f& axis_1
   return new_tool_paths;
 }
 
+struct largestJumpResults
+{
+  bool exists = false;
+  std::size_t start_i = 0;
+  std::size_t end_i = 0;
+  std::size_t largest_jump = 0;
+  std::vector<bool> jump_exists;
+};
+
+largestJumpResults getLargestJump(const ToolPathSegment& tool_path_seg, const double& min_allowed_width)
+{
+  largestJumpResults results;
+  if (min_allowed_width == 0)
+    return results;
+
+  for (std::size_t i = 0; i < tool_path_seg.size(); i++)
+  {
+    std::vector<std::size_t> jumps;
+    for (std::size_t j = 0; j < tool_path_seg.size(); j++)
+    {
+      // Compare the distance to every waypoint after the current one
+      double dist = (tool_path_seg[i].translation() - tool_path_seg[j].translation()).norm();
+
+      // If the distance is less than the minimum given then add it to the vector keeping track
+      if (dist < min_allowed_width)
+      {
+        std::size_t forward_dist = std::min(j - i, tool_path_seg.size() + j - i);
+        std::size_t backward_dist = std::min(i - j, tool_path_seg.size() + i - j);
+        std::size_t min_dist = std::min(forward_dist, backward_dist);
+        jumps.push_back(min_dist);
+        if (min_dist > results.largest_jump)
+        {
+          results.largest_jump = min_dist;
+          results.start_i = i;
+          results.end_i = j;
+        }
+      }
+    }
+    if (jumps.size() > 0)
+    {
+      std::sort(jumps.begin(), jumps.end());
+      bool skip_exists = false;
+      for (std::size_t j = 1; j < jumps.size(); j++)
+      {
+        if ((jumps[j] - jumps[j - 1]) > 1)
+        {
+          results.exists = true;
+          skip_exists = true;
+          break;
+        }
+      }
+      results.jump_exists.push_back(skip_exists);
+    }
+  }
+  return results;
+}
+
+std::vector<std::size_t> getSideWithLowerSkipPercentage(largestJumpResults jump_results)
+{
+  double count_inner_skips = 0;
+  double count_inner_total = 0;
+  double count_outer_skips = 0;
+  double count_outer_total = 0;
+  for (std::size_t i = 0; i < jump_results.jump_exists.size(); i++)
+  {
+    if ((i < jump_results.start_i && i < jump_results.end_i) || (i > jump_results.start_i && i > jump_results.end_i))
+    {
+      if (jump_results.jump_exists[i])
+        count_outer_skips++;
+      count_outer_total++;
+    }
+    else if ((i > jump_results.start_i && i < jump_results.end_i) ||
+             (i < jump_results.start_i && i > jump_results.end_i))
+    {
+      if (jump_results.jump_exists[i])
+        count_inner_skips++;
+      count_inner_total++;
+    }
+  }
+  double percent_inner = count_inner_skips / count_inner_total;
+  double percent_outer = count_outer_skips / count_outer_total;
+
+  std::vector<std::size_t> indices_to_keep;
+  if (count_outer_total > count_inner_total)
+  {
+    for (std::size_t i = 0; i <= jump_results.start_i; i++)
+      indices_to_keep.push_back(i);
+    for (std::size_t i = jump_results.end_i; i < jump_results.jump_exists.size(); i++)
+      indices_to_keep.push_back(i);
+  }
+  else
+  {
+    for (std::size_t i = jump_results.start_i; i <= jump_results.end_i; i++)
+      indices_to_keep.push_back(i);
+  }
+  return indices_to_keep;
+}
+
+ToolPathSegment checkForPeninsulaOrInlet(const ToolPathSegment& tool_path_seg,
+                                         const double& min_allowed_width)
+{
+  ToolPathSegment output_segment = tool_path_seg;
+  bool jumps_exist = true;
+  std::size_t jumps_cleared = 0;
+  while (jumps_exist)
+  {
+    std::size_t prev_size = output_segment.size();
+    largestJumpResults jump_results = getLargestJump(output_segment, min_allowed_width);
+    if (jump_results.exists)
+    {
+      jumps_cleared++;
+      std::vector<std::size_t> indices_to_keep = getSideWithLowerSkipPercentage(jump_results);
+      ToolPathSegment temp_output_segment;
+      for (auto i : indices_to_keep)
+        temp_output_segment.push_back(output_segment[i]);
+      output_segment.clear();
+      output_segment = temp_output_segment;
+    }
+    else
+    {
+      jumps_exist = false;
+    }
+
+    // Check to ensure that points were actually removed, if not you will be stuck in infinite loop
+    if (prev_size <= output_segment.size() || output_segment.size() == 0)
+      jumps_exist = false;
+  }
+  return output_segment;
+}
+
 void testAndMark(tlist_it& item1, tlist_it& item2, double point_spacing)
 {
   int mark1 = std::get<2>(*item1);
@@ -752,7 +886,7 @@ tlist pruneList(tlist& waypoint_list, double point_spacing)
   return (new_list);
 }
 
-ToolPath sortAndSegment(std::list<std::tuple<double, Eigen::Isometry3d, int> >& waypoint_list, double point_spacing)
+ToolPath sortAndSegment(std::list<std::tuple<double, Eigen::Isometry3d, int>>& waypoint_list, double point_spacing)
 {
   ToolPath new_tool_path;
   ToolPathSegment seg;
@@ -840,8 +974,8 @@ ToolPaths addExtraWaypoints(const ToolPaths& tool_paths, double raster_spacing, 
     // end the old and start a new segment when the new point is significantly more than the point_spacing from previous
     // waypoint
     ToolPath tool_path = tool_paths[i];
-    std::list<std::tuple<double, Eigen::Isometry3d, int> > waypoint_list;  // once sorted this list will be the order of
-                                                                           // the segments
+    std::list<std::tuple<double, Eigen::Isometry3d, int>> waypoint_list;  // once sorted this list will be the order of
+                                                                          // the segments
     Eigen::Vector3d path_dir = computePathDirection(tool_path);
     ToolPathSegment sseg = tool_path[0];
     Eigen::Vector3d path_start = sseg[0].translation();

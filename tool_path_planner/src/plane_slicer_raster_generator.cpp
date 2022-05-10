@@ -96,7 +96,7 @@ alignRasterCD(tool_path_planner::PlaneSlicerRasterGenerator::RasterConstructData
 
   // determine location and direction of each successive segement, reverse any mis-directed segments
   tool_path_planner::PlaneSlicerRasterGenerator::RasterConstructData temp_rcd;
-  std::list<std::pair<double, size_t> > seg_order;  // once sorted this list will be the order of the segments
+  std::list<std::pair<double, size_t>> seg_order;  // once sorted this list will be the order of the segments
   for (size_t i = 0; i < rcd.raster_segments.size(); i++)
   {
     // determine i'th segments direction
@@ -236,7 +236,7 @@ static vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vt
  *        index remains
  * @param points_lists
  */
-static void removeRedundant(std::vector<std::vector<vtkIdType> >& points_lists)
+static void removeRedundant(std::vector<std::vector<vtkIdType>>& points_lists)
 {
   using IdList = std::vector<vtkIdType>;
   if (points_lists.size() < 2)
@@ -244,7 +244,7 @@ static void removeRedundant(std::vector<std::vector<vtkIdType> >& points_lists)
     return;
   }
 
-  std::vector<std::vector<vtkIdType> > new_points_lists;
+  std::vector<std::vector<vtkIdType>> new_points_lists;
   new_points_lists.push_back(points_lists.front());
   for (std::size_t i = 1; i < points_lists.size(); i++)
   {
@@ -280,7 +280,7 @@ static void removeRedundant(std::vector<std::vector<vtkIdType> >& points_lists)
 
 static void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points,
                                 double merge_dist,
-                                std::vector<std::vector<vtkIdType> >& points_lists)
+                                std::vector<std::vector<vtkIdType>>& points_lists)
 {
   using namespace Eigen;
   using IdList = std::vector<vtkIdType>;
@@ -378,7 +378,7 @@ static void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points,
 
 static void rectifyDirection(const vtkSmartPointer<vtkPoints>& points,
                              const Eigen::Vector3d& ref_point,
-                             std::vector<std::vector<vtkIdType> >& points_lists)
+                             std::vector<std::vector<vtkIdType>>& points_lists)
 {
   using namespace Eigen;
   Vector3d p0, pf;
@@ -459,7 +459,7 @@ void PlaneSlicerRasterGenerator::setInput(pcl::PolygonMesh::ConstPtr mesh)
   // compute vertex normals using Moving Least Squares
   pcl::PointCloud<pcl::PointXYZ>::Ptr mesh_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>());
   pcl::fromPCLPointCloud2(mesh->cloud, *mesh_cloud_ptr);
-  mls_mesh_normals_ptr_ = boost::make_shared<pcl::PointCloud<pcl::PointNormal> >(
+  mls_mesh_normals_ptr_ = boost::make_shared<pcl::PointCloud<pcl::PointNormal>>(
       tool_path_planner::computeMLSMeshNormals(mesh_cloud_ptr, config_.search_radius));
 
   // align mls_vertex_normals to vertex_normals

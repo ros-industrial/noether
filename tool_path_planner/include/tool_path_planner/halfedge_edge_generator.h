@@ -69,6 +69,9 @@ public:
 
     /** @brief flag indicating whether returned toolpaths should be split along the major and middle axis */
     bool split_by_axes = true;
+
+    /** @brief Size of peninsulas or inlets to skip over */
+    double max_bridge_distance = 0.0;
   };
 
   HalfedgeEdgeGenerator() = default;
