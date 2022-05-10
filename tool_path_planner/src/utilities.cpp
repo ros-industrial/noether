@@ -829,7 +829,7 @@ ToolPathSegment checkForPeninsulaOrInlet(const ToolPathSegment& tool_path_seg,
     }
 
     // Check to ensure that points were actually removed, if not you will be stuck in infinite loop
-    if (prev_size == output_segment.size() || output_segment.size() == 0)
+    if (prev_size <= output_segment.size() || output_segment.size() == 0)
       jumps_exist = false;
   }
   return output_segment;
