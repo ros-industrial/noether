@@ -811,6 +811,7 @@ ToolPathSegment checkForPeninsulaOrInlet(const ToolPathSegment& tool_path_seg,
   std::size_t jumps_cleared = 0;
   while (jumps_exist)
   {
+    std::size_t prev_size = output_segment.size();
     largestJumpResults jump_results = getLargestJump(output_segment, min_allowed_width);
     if (jump_results.exists)
     {
@@ -826,7 +827,9 @@ ToolPathSegment checkForPeninsulaOrInlet(const ToolPathSegment& tool_path_seg,
     {
       jumps_exist = false;
     }
-    if (jumps_cleared > 100)
+
+    // Check to ensure that points were actually removed, if not you will be stuck in infinite loop
+    if (prev_size == output_segment.size() || output_segment.size() == 0)
       jumps_exist = false;
   }
   return output_segment;

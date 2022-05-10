@@ -24,5 +24,5 @@ float64 point_dist
 # flag to break edge paths by diagonal axes
 bool split_by_axes
 
-# Size of peninsulas or inlets to skip over, default of 0 will not bridge any gaps, effectively off
+# Size (meters) of peninsulas or inlets to skip over, default of 0 will not bridge any gaps, effectively off
 float64 max_bridge_distance
