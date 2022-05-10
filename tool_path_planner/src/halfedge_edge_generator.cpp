@@ -556,7 +556,9 @@ boost::optional<ToolPaths> HalfedgeEdgeGenerator::generate()
     if (!createToolPathSegment(bound_segment_points, {}, edge_segment))
       return boost::none;
 
-    edge_paths.push_back({ edge_segment });
+    ToolPathSegment cleaned_segment = checkForPeninsulaOrInlet(edge_segment, config_.min_allowed_obstacle_width, config_.min_skip_amount);
+
+    edge_paths.push_back({ cleaned_segment });
     CONSOLE_BRIDGE_logInform("Added boundary with %lu points", edge_paths.back()[0].size());
   }
 

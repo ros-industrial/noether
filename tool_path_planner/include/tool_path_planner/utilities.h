@@ -154,6 +154,8 @@ ToolPath splitByAxes(const ToolPathSegment& tool_path_segment, const Eigen::Vect
 ToolPaths splitByAxes(const ToolPaths& tool_paths);
 ToolPaths splitByAxes(const ToolPaths& tool_paths, const Eigen::Vector3f& axis_1, const Eigen::Vector3f& axis_2);
 
+ToolPathSegment checkForPeninsulaOrInlet(const ToolPathSegment& tool_path, const double& min_allowed_width, const std::size_t& min_skip_amount);
+
 /**
  * @brief Appends an interleaved set tool_paths to the provided tool_paths
  * @param tool_paths The input trajectory to interleave

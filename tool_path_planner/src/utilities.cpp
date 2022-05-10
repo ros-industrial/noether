@@ -150,6 +150,8 @@ bool toHalfedgeConfigMsg(noether_msgs::HalfedgeEdgeGeneratorConfig& config_msg,
   config_msg.normal_influence_weight = config.normal_influence_weight;
   config_msg.point_spacing_method = static_cast<int>(config.point_spacing_method);
   config_msg.point_dist = config.point_dist;
+  config_msg.min_allowed_obstacle_width = config.min_allowed_obstacle_width;
+  config_msg.min_skip_amount = config.min_skip_amount;
   return true;
 }
 
@@ -218,6 +220,8 @@ bool toHalfedgeConfig(HalfedgeEdgeGenerator::Config& config,
   config.point_spacing_method =
       static_cast<tool_path_planner::HalfedgeEdgeGenerator::PointSpacingMethod>(config_msg.point_spacing_method);
   config.point_dist = config_msg.point_dist;
+  config.min_allowed_obstacle_width = config_msg.min_allowed_obstacle_width;
+  config.min_skip_amount = config_msg.min_skip_amount;
   return true;
 }
 
@@ -699,6 +703,133 @@ ToolPaths splitByAxes(const ToolPaths& tool_paths, const Eigen::Vector3f& axis_1
     new_tool_paths.push_back(new_tool_path);
   }
   return new_tool_paths;
+}
+
+struct largestJumpResults
+{
+    bool exists = false;
+    std::size_t start_i = 0;
+    std::size_t end_i = 0;
+    std::size_t largest_jump = 0;
+    std::vector<bool> jump_exists;
+};
+
+largestJumpResults getLargestJump(const ToolPathSegment& tool_path_seg, const double& min_allowed_width)
+{
+    largestJumpResults results;
+    if (min_allowed_width == 0)
+        return results;
+
+    for (std::size_t i = 0; i < tool_path_seg.size(); i++)
+    {
+        std::vector<std::size_t> jumps;
+        for (std::size_t j = 0; j < tool_path_seg.size(); j++)
+        {
+            // Compare the distance to every waypoint after the current one
+            double dist = (tool_path_seg[i].translation() - tool_path_seg[j].translation()).norm();
+
+            // If the distance is less than the minimum given then add it to the vector keeping track
+            if (dist < min_allowed_width)
+            {
+                std::size_t forward_dist = std::min(j - i, tool_path_seg.size() + j - i);
+                std::size_t backward_dist = std::min(i - j, tool_path_seg.size() + i - j);
+                std::size_t min_dist = std::min(forward_dist, backward_dist);
+                jumps.push_back(min_dist);
+                if (min_dist > results.largest_jump)
+                {
+                    results.largest_jump = min_dist;
+                    results.start_i = i;
+                    results.end_i = j;
+                }
+            }
+        }
+        if (jumps.size() > 0)
+        {
+            std::sort(jumps.begin(), jumps.end());
+            bool skip_exists = false;
+            for (std::size_t j = 1; j < jumps.size(); j++)
+            {
+                if ((jumps[j] - jumps[j-1]) > 1)
+                {
+                    results.exists = true;
+                    skip_exists = true;
+                    break;
+                }
+            }
+            results.jump_exists.push_back(skip_exists);
+        }
+    }
+    return results;
+}
+
+std::vector<std::size_t> getSideWithLowerSkipPercentage(largestJumpResults jump_results)
+{
+    double count_inner_skips = 0;
+    double count_inner_total = 0;
+    double count_outer_skips = 0;
+    double count_outer_total = 0;
+    for (std::size_t i = 0; i < jump_results.jump_exists.size(); i++)
+    {
+        if ((i < jump_results.start_i && i < jump_results.end_i) ||
+            (i > jump_results.start_i && i > jump_results.end_i))
+        {
+            if (jump_results.jump_exists[i])
+                count_outer_skips++;
+            count_outer_total++;
+        }
+        else if ((i > jump_results.start_i && i < jump_results.end_i) ||
+                 (i < jump_results.start_i && i > jump_results.end_i))
+        {
+            if (jump_results.jump_exists[i])
+                count_inner_skips++;
+            count_inner_total++;
+        }
+    }
+    double percent_inner = count_inner_skips / count_inner_total;
+    double percent_outer = count_outer_skips / count_outer_total;
+
+    std::vector<std::size_t> indices_to_keep;
+    if (count_outer_total > count_inner_total)
+    {
+        for (std::size_t i = 0; i <= jump_results.start_i; i++)
+            indices_to_keep.push_back(i);
+        for (std::size_t i = jump_results.end_i; i < jump_results.jump_exists.size(); i++)
+            indices_to_keep.push_back(i);
+    }
+    else
+    {
+        for (std::size_t i = jump_results.start_i; i <= jump_results.end_i; i++)
+            indices_to_keep.push_back(i);
+    }
+    return indices_to_keep;
+}
+
+ToolPathSegment checkForPeninsulaOrInlet(const ToolPathSegment& tool_path_seg, const double& min_allowed_width, const std::size_t& min_skip_amount)
+{
+    ToolPathSegment output_segment = tool_path_seg;
+    bool jumps_exist = true;
+    std::size_t jumps_cleared = 0;
+    while (jumps_exist)
+    {
+        largestJumpResults jump_results = getLargestJump(output_segment, min_allowed_width);
+        if (jump_results.exists && jump_results.largest_jump >= min_skip_amount)
+        {
+            jumps_cleared++;
+            std::vector<std::size_t> indices_to_keep = getSideWithLowerSkipPercentage(jump_results);
+            ToolPathSegment temp_output_segment;
+            for (auto i : indices_to_keep)
+                temp_output_segment.push_back(output_segment[i]);
+            output_segment.clear();
+            output_segment = temp_output_segment;
+        }
+        else
+        {
+            jumps_exist = false;
+        }
+        if (jumps_cleared > 100)
+            jumps_exist = false;
+    }
+    return output_segment;
 }
 
 void testAndMark(tlist_it& item1, tlist_it& item2, double point_spacing)
