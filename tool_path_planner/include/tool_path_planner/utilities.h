@@ -150,11 +150,14 @@ ToolPaths reverseOddRasters(const ToolPaths& tool_paths, RasterStyle raster_styl
 double computeOffsetSign(const ToolPathSegment& adjusted_segment, const ToolPathSegment& away_from_segment);
 
 ToolPath splitByAxes(const ToolPathSegment& tool_path_segment);
-ToolPath splitByAxes(const ToolPathSegment& tool_path_segment, const Eigen::Vector3f& axis_1, const Eigen::Vector3f& axis_2);
+ToolPath splitByAxes(const ToolPathSegment& tool_path_segment,
+                     const Eigen::Vector3f& axis_1,
+                     const Eigen::Vector3f& axis_2);
 ToolPaths splitByAxes(const ToolPaths& tool_paths);
 ToolPaths splitByAxes(const ToolPaths& tool_paths, const Eigen::Vector3f& axis_1, const Eigen::Vector3f& axis_2);
 
-ToolPathSegment checkForPeninsulaOrInlet(const ToolPathSegment& tool_path, const double& min_allowed_width, const std::size_t& min_skip_amount);
+ToolPathSegment checkForPeninsulaOrInlet(const ToolPathSegment& tool_path,
+                                         const double& min_allowed_width);
 
 /**
  * @brief Appends an interleaved set tool_paths to the provided tool_paths

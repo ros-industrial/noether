@@ -24,8 +24,5 @@ float64 point_dist
 # flag to break edge paths by diagonal axes
 bool split_by_axes
 
-# Size of peninsulas or inlets to skip over
-float64 min_allowed_obstacle_width
-
-# Minimum number of waypoints for a obstacle skip to be considered valid
-uint64 min_skip_amount
+# Size of peninsulas or inlets to skip over, default of 0 will not bridge any gaps, effectively off
+float64 max_bridge_distance

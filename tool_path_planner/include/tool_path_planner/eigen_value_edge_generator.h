@@ -100,7 +100,8 @@ public:
     double merge_dist =
         0.01; /** @brief any two consecutive points with a shortest distance smaller than this value are merged */
 
-    bool split_by_axes = true; /** @brief flag indicating whether returned toolpaths should be split along the major and middle axis */
+    bool split_by_axes =
+        true; /** @brief flag indicating whether returned toolpaths should be split along the major and middle axis */
   };
 
   EigenValueEdgeGenerator() = default;

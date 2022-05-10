@@ -71,10 +71,7 @@ public:
     bool split_by_axes = true;
 
     /** @brief Size of peninsulas or inlets to skip over */
-    double min_allowed_obstacle_width = 0.0;
-
-    /** @brief Minimum number of points for a skip over an obstacle to be considered valid */
-    std::size_t min_skip_amount = 0;
+    double max_bridge_distance = 0.0;
   };
 
   HalfedgeEdgeGenerator() = default;
