@@ -91,6 +91,10 @@ struct RasterPlannerFactory : public ToolPathPlannerFactory
   /** @brief Minimum size of hole in a mesh for which the planner should split a raster line that
    * crosses over the hole into multiple segments */
   double min_hole_size;
+  /** @brief Function for creating a raster direction generator */
+  std::function<std::unique_ptr<const DirectionGenerator>()> direction_gen;
+  /** @brief Function for creating a raster origin generator */
+  std::function<std::unique_ptr<const OriginGenerator>()> origin_gen;
 };
 
 }  // namespace noether
