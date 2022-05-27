@@ -236,7 +236,8 @@ std::vector<std::shared_ptr<const ToolPathModifier>> createModifiers()
            std::make_shared<DirectionOfTravelOrientationModifier>(),
            std::make_shared<RasterOrganizationModifier>(),
            std::make_shared<SnakeOrganizationModifier>(),
-           std::make_shared<StandardEdgePathsOrganizationModifier>() };
+           std::make_shared<StandardEdgePathsOrganizationModifier>(),
+           std::make_shared<MovingAverageOrientationSmoothingModifier>(3) };
 }
 
 std::vector<std::shared_ptr<const OneTimeToolPathModifier>> createOneTimeModifiers()
