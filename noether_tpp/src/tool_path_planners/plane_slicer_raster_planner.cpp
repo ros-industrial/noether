@@ -406,13 +406,13 @@ bool insertNormals(const double search_radius,
 
 namespace noether
 {
-PlaneSlicerRasterPlanner::PlaneSlicerRasterPlanner(std::unique_ptr<DirectionGenerator> dir_gen, std::unique_ptr<OriginGenerator> origin_gen)
+PlaneSlicerRasterPlanner::PlaneSlicerRasterPlanner(DirectionGenerator::ConstPtr dir_gen, OriginGenerator::ConstPtr origin_gen)
   : RasterPlanner(std::move(dir_gen), std::move(origin_gen))
 {
 }
 
-void PlaneSlicerRasterPlanner::setMinSegmentSize(const double& min_segment_size) { min_segment_size_ = min_segment_size; }
-void PlaneSlicerRasterPlanner::setSearchRadius(const double& search_radius) { search_radius_ = search_radius; }
+void PlaneSlicerRasterPlanner::setMinSegmentSize(const double min_segment_size) { min_segment_size_ = min_segment_size; }
+void PlaneSlicerRasterPlanner::setSearchRadius(const double search_radius) { search_radius_ = search_radius; }
 
 ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
 {
@@ -629,19 +629,6 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
   // converting to poses msg now
   ToolPaths tool_paths = convertToPoses(rasters_data_vec);
   return tool_paths;
-}
-
-std::unique_ptr<const ToolPathPlanner> PlaneSlicerRasterPlannerFactory::create() const
-{
-  std::unique_ptr<PlaneSlicerRasterPlanner> planner =
-      std::make_unique<PlaneSlicerRasterPlanner>(dir_gen->clone(),
-                                                 origin_gen->clone());
-  planner->setPointSpacing(point_spacing);
-  planner->setLineSpacing(line_spacing);
-  planner->setMinHoleSize(min_hole_size);
-  planner->setMinSegmentSize(min_segment_size);
-  planner->setSearchRadius(search_radius);
-  return planner;
 }
 
 }  // namespace noether

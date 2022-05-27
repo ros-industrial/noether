@@ -30,10 +30,10 @@ namespace noether
 class PlaneSlicerRasterPlanner : public RasterPlanner
 {
 public:
-  PlaneSlicerRasterPlanner(std::unique_ptr<DirectionGenerator> dir_gen, std::unique_ptr<OriginGenerator> origin_gen);
+  PlaneSlicerRasterPlanner(DirectionGenerator::ConstPtr dir_gen, OriginGenerator::ConstPtr origin_gen);
 
-  void setSearchRadius(const double& search_radius);
-  void setMinSegmentSize(const double& min_segment_size);
+  void setSearchRadius(const double search_radius);
+  void setMinSegmentSize(const double min_segment_size);
 
 protected:
   /**
@@ -48,21 +48,6 @@ private:
   double min_segment_size_;
   /** @brief Search radius for calculating normals (m) */
   double search_radius_;
-};
-
-/**
- * @brief Interface for creating implementations of raster tool path planners.
- * @details This class contains the generic parameters for configuring raster tool path planners
- */
-struct PlaneSlicerRasterPlannerFactory : public RasterPlannerFactory
-{
-  /** @brief Create a PlaneSlicerPlannerFactory inside a generic ToolPathPlanner unique_ptr */
-  std::unique_ptr<const ToolPathPlanner> create() const override final;
-
-  /** @brief Minimum length of valid segment (m) */
-  double min_segment_size;
-  /** @brief Search radius for calculating normals (m) */
-  double search_radius;
 };
 
 }  // namespace noether

@@ -95,11 +95,6 @@ protected:
  */
 struct RasterPlannerFactory : public ToolPathPlannerFactory
 {
-  /** @brief Direction generator to be copied to created planners */
-  std::unique_ptr<DirectionGenerator> dir_gen;
-  /** @brief Origin generator to be copied to created planners */
-  std::unique_ptr<OriginGenerator> origin_gen;
-
   /** @brief Distance between waypoints on the same raster line (m) */
   double point_spacing;
   /** @brief Distance between raster lines */
