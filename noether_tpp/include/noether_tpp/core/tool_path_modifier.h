@@ -23,25 +23,27 @@
 namespace noether
 {
 /**
- * @brief A common interface for functions that alter a generated
- * toolpath.  Modifiers using this interface may or may not cause additional changes on repeated
+ * @brief A common interface for functions that alter a generated toolpath.
+ * @details Modifiers using this interface may or may not cause additional changes on repeated
  * use.  A special interface exists for modifiers that do not cause additional changes on repeat.
- * Since a tool path modifier, by definition, modifies a path, a ToolPaths is passed by value.
+ * Since a tool path modifier, by definition, modifies a path, a ToolPaths is passed by value. The
+ * default behavior simply returns the input tool paths without change.
  */
 struct ToolPathModifier
 {
   virtual ~ToolPathModifier() = default;
-  virtual ToolPaths modify(ToolPaths toolpaths) const = 0;
+  virtual ToolPaths modify(ToolPaths toolpaths) const { return toolpaths; }
 };
 
 /**
  * @brief An extension of the ToolPathModifier interface that
- * requires a modifier to not cause additional changes if run again.  This will be enforced via
- * unit test.  New modifiers should be implemented as OneTimeToolPathModifiers if possible.
+ * requires a modifier to not cause additional changes if run again.
+ * @details This behavior will be enforced via unit test. New modifiers should be implemented as
+ * OneTimeToolPathModifiers if possible. The default behavior matches that of the tool path modifier.
  */
 struct OneTimeToolPathModifier : public ToolPathModifier
 {
-  virtual ToolPaths modify(ToolPaths tool_paths) const = 0;
+  using ToolPathModifier::modify;
 };
 
 }  // namespace noether
