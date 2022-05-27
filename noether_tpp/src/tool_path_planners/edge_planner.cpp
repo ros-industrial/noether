@@ -25,4 +25,6 @@ ToolPaths EdgePlanner::plan(const pcl::PolygonMesh& mesh) const
   return tool_paths;
 }
 
+void EdgePlanner::setPointSpacing(const double point_spacing) { point_spacing_ = point_spacing; }
+
 }  // namespace noether

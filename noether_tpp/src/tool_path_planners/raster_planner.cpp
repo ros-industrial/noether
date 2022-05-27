@@ -31,4 +31,8 @@ ToolPaths RasterPlanner::plan(const pcl::PolygonMesh& mesh) const
   return tool_paths;
 }
 
+void RasterPlanner::setPointSpacing(const double point_spacing) { point_spacing_ = point_spacing; }
+void RasterPlanner::setLineSpacing(const double line_spacing) { line_spacing_ = line_spacing; }
+void RasterPlanner::setMinHoleSize(const double min_hole_size) { min_hole_size_ = min_hole_size; };
+
 }  // namespace noether

@@ -46,9 +46,11 @@ protected:
    */
   virtual ToolPaths planImpl(const pcl::PolygonMesh& mesh) const = 0;
 
+  void setPointSpacing(const double point_spacing);
+
 private:
   /** @brief Distance between waypoints on the same raster line (m) */
-  double point_spacing;
+  double point_spacing_;
 };
 
 /**
