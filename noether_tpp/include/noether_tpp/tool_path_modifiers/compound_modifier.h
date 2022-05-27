@@ -33,11 +33,11 @@ namespace noether
 class CompoundModifier : public ToolPathModifier
 {
 public:
-  CompoundModifier(std::vector<std::unique_ptr<const ToolPathModifier>> modifiers);
+  CompoundModifier(std::vector<ToolPathModifier::ConstPtr> modifiers);
   ToolPaths modify(ToolPaths tool_paths) const override;
 
 private:
-  std::vector<std::unique_ptr<const ToolPathModifier>> modifiers_;
+  std::vector<ToolPathModifier::ConstPtr> modifiers_;
 };
 
 /**
@@ -46,11 +46,11 @@ private:
 class OneTimeCompoundModifier : public OneTimeToolPathModifier
 {
 public:
-  OneTimeCompoundModifier(std::vector<std::unique_ptr<const OneTimeToolPathModifier>> modifiers);
+  OneTimeCompoundModifier(std::vector<OneTimeToolPathModifier::ConstPtr> modifiers);
   ToolPaths modify(ToolPaths tool_paths) const override;
 
 private:
-  std::vector<std::unique_ptr<const OneTimeToolPathModifier>> modifiers_;
+  std::vector<OneTimeToolPathModifier::ConstPtr> modifiers_;
 };
 
 }  // namespace noether

@@ -18,9 +18,9 @@
  */
 #pragma once
 
-#include <vector>
-
 #include <Eigen/Geometry>
+#include <memory>
+#include <vector>
 
 namespace noether
 {
