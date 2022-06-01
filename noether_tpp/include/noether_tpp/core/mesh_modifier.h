@@ -25,15 +25,15 @@
 namespace noether
 {
 /**
- * @brief A common interface for mesh modifications.  Since some
- * modifications, such as segmentation, output multiple meshes, the function returns a list of
- * meshes.  Since the return value is a list, this interface (unlike the tool path modifier) takes
- * the input by reference.
+ * @brief A common interface for mesh modifications.
+ * @details Since some modifications, such as segmentation, output multiple meshes, the function returns a list of
+ * meshes. Since the return value is a list, this interface (unlike the tool path modifier) takes
+ * the input by reference. The default behavior simply returns the input mesh.
  */
 struct MeshModifier
 {
   virtual ~MeshModifier() = default;
-  virtual std::vector<pcl::PolygonMesh> modify(const pcl::PolygonMesh& mesh) const = 0;
+  virtual std::vector<pcl::PolygonMesh> modify(const pcl::PolygonMesh& mesh) const { return { mesh }; }
 };
 
 }  // namespace noether

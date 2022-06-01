@@ -4,7 +4,6 @@
 
 #include <noether_tpp/core/tool_path_modifier.h>
 // Implementations
-#include <noether_tpp/tool_path_modifiers/no_op_modifier.h>
 #include <noether_tpp/tool_path_modifiers/waypoint_orientation_modifiers.h>
 #include <noether_tpp/tool_path_modifiers/organization_modifiers.h>
 #include "utils.h"
@@ -230,8 +229,7 @@ TEST_P(OneTimeToolPathModifierTestFixture, TestOperation)
 // Create a vector of implementations for the modifiers
 std::vector<std::shared_ptr<const ToolPathModifier>> createModifiers()
 {
-  return { std::make_shared<NoOpToolPathModifier>(),
-           std::make_shared<FixedOrientationModifier>(Eigen::Vector3d(1, 0, 0)),
+  return { std::make_shared<FixedOrientationModifier>(Eigen::Vector3d(1, 0, 0)),
            std::make_shared<UniformOrientationModifier>(),
            std::make_shared<DirectionOfTravelOrientationModifier>(),
            std::make_shared<RasterOrganizationModifier>(),
