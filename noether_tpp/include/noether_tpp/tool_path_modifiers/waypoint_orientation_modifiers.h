@@ -42,4 +42,19 @@ struct UniformOrientationModifier : public OneTimeToolPathModifier
   ToolPaths modify(ToolPaths tool_paths) const override final;
 };
 
+/**
+ * @brief Applies a moving average filter to waypoints in each tool path segment to smooth their orientations
+ */
+class MovingAverageOrientationSmoothingModifier : public ToolPathModifier
+{
+public:
+  MovingAverageOrientationSmoothingModifier(std::size_t window_size);
+
+  ToolPaths modify(ToolPaths tool_paths) const override;
+
+protected:
+  /** @brief Moving average window size **/
+  const std::size_t window_size_;
+};
+
 }  // namespace noether
