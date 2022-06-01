@@ -134,8 +134,8 @@ static Eigen::Quaterniond computeQuaternionMean(const std::vector<Eigen::Quatern
   Eigen::Quaterniond q;
   q.coeffs() << svd.matrixU().col(0);
 
-  assert(std::isnan(q.w()) == false && std::isnan(q.x()) == false && std::isnan(q.y()) == false &&
-         std::isnan(q.z()) == false);
+  if (q.coeffs().array().isNaN().any())
+    throw std::runtime_error("Orientation contains NaN values");
 
   return q;
 };
@@ -156,10 +156,10 @@ static Eigen::Quaterniond getMovingAverageQuaternion(const ToolPathSegment& inpu
     // Accumulate all quaternions
     std::vector<Eigen::Quaterniond> q;
     q.reserve(input_poses.size());
-    std::transform(input_poses.begin() + start_idx,
-                   input_poses.begin() + stop_idx + 1,
-                   std::back_inserter(q),
-                   [](const Eigen::Isometry3d& p) { return Eigen::Quaterniond(p.linear()); });
+    for (int i = start_idx; i < stop_idx + 1; ++i)
+    {
+      q.push_back(Eigen::Quaterniond(input_poses.at(i).linear()));
+    }
 
     out = computeQuaternionMean(q);
   }
@@ -180,8 +180,7 @@ ToolPaths MovingAverageOrientationSmoothingModifier::modify(ToolPaths tool_paths
     {
       for (std::size_t i = 0; i < tps.size(); ++i)
       {
-        ToolPathWaypoint& w = tps[i];
-        w.linear() = getMovingAverageQuaternion(tps, static_cast<int>(i), window_size_).toRotationMatrix();
+        tps[i].linear() = getMovingAverageQuaternion(tps, static_cast<int>(i), window_size_).toRotationMatrix();
       }
     }
   }
