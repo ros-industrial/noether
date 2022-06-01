@@ -31,6 +31,9 @@ namespace noether
  */
 struct DirectionGenerator
 {
+  using Ptr = std::unique_ptr<DirectionGenerator>;
+  using ConstPtr = std::unique_ptr<const DirectionGenerator>;
+
   virtual ~DirectionGenerator() = default;
   virtual Eigen::Vector3d generate(const pcl::PolygonMesh& mesh) const = 0;
 };
@@ -40,6 +43,9 @@ struct DirectionGenerator
  */
 struct OriginGenerator
 {
+  using Ptr = std::unique_ptr<OriginGenerator>;
+  using ConstPtr = std::unique_ptr<const OriginGenerator>;
+
   virtual ~OriginGenerator() = default;
   virtual Eigen::Vector3d generate(const pcl::PolygonMesh& mesh) const = 0;
 };
@@ -53,7 +59,7 @@ struct OriginGenerator
 class RasterPlanner : public ToolPathPlanner
 {
 public:
-  RasterPlanner(std::unique_ptr<DirectionGenerator> dir_gen, std::unique_ptr<OriginGenerator> origin_gen);
+  RasterPlanner(DirectionGenerator::ConstPtr dir_gen, OriginGenerator::ConstPtr origin_gen);
 
   ToolPaths plan(const pcl::PolygonMesh& mesh) const override final;
 
@@ -69,8 +75,8 @@ protected:
    */
   virtual ToolPaths planImpl(const pcl::PolygonMesh& mesh) const = 0;
 
-  std::unique_ptr<DirectionGenerator> dir_gen_;
-  std::unique_ptr<OriginGenerator> origin_gen_;
+  DirectionGenerator::ConstPtr dir_gen_;
+  OriginGenerator::ConstPtr origin_gen_;
 
 private:
   /** @brief Distance between waypoints on the same raster line (m) */

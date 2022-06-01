@@ -18,9 +18,8 @@
  */
 #pragma once
 
-#include <vector>
-
 #include <pcl/PolygonMesh.h>
+#include <vector>
 
 namespace noether
 {
@@ -32,6 +31,8 @@ namespace noether
  */
 struct MeshModifier
 {
+  using Ptr = std::unique_ptr<MeshModifier>;
+  using ConstPtr = std::unique_ptr<const MeshModifier>;
   virtual ~MeshModifier() = default;
   virtual std::vector<pcl::PolygonMesh> modify(const pcl::PolygonMesh& mesh) const { return { mesh }; }
 };

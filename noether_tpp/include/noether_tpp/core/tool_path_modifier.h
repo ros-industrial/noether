@@ -31,6 +31,8 @@ namespace noether
  */
 struct ToolPathModifier
 {
+  using Ptr = std::unique_ptr<ToolPathModifier>;
+  using ConstPtr = std::unique_ptr<const ToolPathModifier>;
   virtual ~ToolPathModifier() = default;
   virtual ToolPaths modify(ToolPaths toolpaths) const { return toolpaths; }
 };

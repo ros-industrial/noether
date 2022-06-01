@@ -19,7 +19,6 @@
 #pragma once
 
 #include <memory>
-
 #include <pcl/PolygonMesh.h>
 
 #include <noether_tpp/core/types.h>
@@ -31,6 +30,8 @@ namespace noether
  */
 struct ToolPathPlanner
 {
+  using Ptr = std::unique_ptr<ToolPathPlanner>;
+  using ConstPtr = std::unique_ptr<const ToolPathPlanner>;
   virtual ~ToolPathPlanner() = default;
   virtual ToolPaths plan(const pcl::PolygonMesh& mesh) const = 0;
 };

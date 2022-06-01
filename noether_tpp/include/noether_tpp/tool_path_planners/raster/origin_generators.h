@@ -42,11 +42,11 @@ struct AABBCenterOriginGenerator : public OriginGenerator
 class OffsetOriginGenerator : public OriginGenerator
 {
 public:
-  OffsetOriginGenerator(std::unique_ptr<const OriginGenerator>&& generator, const Eigen::Vector3d& offset);
+  OffsetOriginGenerator(OriginGenerator::ConstPtr&& generator, const Eigen::Vector3d& offset);
   Eigen::Vector3d generate(const pcl::PolygonMesh& mesh) const override final;
 
 private:
-  std::unique_ptr<const OriginGenerator> generator_;
+  const OriginGenerator::ConstPtr generator_;
   const Eigen::Vector3d offset_;
 };
 

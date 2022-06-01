@@ -18,9 +18,6 @@
  */
 #pragma once
 
-#include <memory>
-#include <vector>
-
 #include <noether_tpp/core/mesh_modifier.h>
 #include <noether_tpp/core/tool_path_modifier.h>
 #include <noether_tpp/core/tool_path_planner.h>
@@ -37,16 +34,16 @@ namespace noether
 class ToolPathPlannerPipeline
 {
 public:
-  ToolPathPlannerPipeline(std::unique_ptr<MeshModifier> mesh_mod,
-                          std::unique_ptr<ToolPathPlanner> planner,
-                          std::unique_ptr<ToolPathModifier> tool_path_mod);
+  ToolPathPlannerPipeline(MeshModifier::ConstPtr mesh_mod,
+                          ToolPathPlanner::ConstPtr planner,
+                          ToolPathModifier::ConstPtr tool_path_mod);
 
   std::vector<ToolPaths> plan(pcl::PolygonMesh mesh) const;
 
 private:
-  std::unique_ptr<const MeshModifier> mesh_modifier_;
-  std::unique_ptr<const ToolPathPlanner> planner_;
-  std::unique_ptr<const ToolPathModifier> tool_path_modifier_;
+  MeshModifier::ConstPtr mesh_modifier_;
+  ToolPathPlanner::ConstPtr planner_;
+  ToolPathModifier::ConstPtr tool_path_modifier_;
 };
 
 }  // namespace noether

@@ -4,8 +4,7 @@
 
 namespace noether
 {
-CompoundModifier::CompoundModifier(std::vector<std::unique_ptr<const ToolPathModifier>> modifiers)
-  : modifiers_(std::move(modifiers))
+CompoundModifier::CompoundModifier(std::vector<ToolPathModifier::ConstPtr> modifiers) : modifiers_(std::move(modifiers))
 {
 }
 
@@ -19,7 +18,7 @@ ToolPaths CompoundModifier::modify(ToolPaths paths) const
   return paths;
 }
 
-OneTimeCompoundModifier::OneTimeCompoundModifier(std::vector<std::unique_ptr<const OneTimeToolPathModifier>> modifiers)
+OneTimeCompoundModifier::OneTimeCompoundModifier(std::vector<OneTimeToolPathModifier::ConstPtr> modifiers)
   : modifiers_(std::move(modifiers))
 {
 }
