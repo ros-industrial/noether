@@ -19,8 +19,8 @@
 
 namespace noether
 {
-pcl::PolygonMesh extractMeshFromInlierVertices(const pcl::PolygonMesh& input_mesh,
-                                               const std::vector<int>& inlier_vertex_indices)
+pcl::PolygonMesh extractSubMeshFromInlierVertices(const pcl::PolygonMesh& input_mesh,
+                                                  const std::vector<int>& inlier_vertex_indices)
 {
   // mark inlying points as true and outlying points as false
   std::vector<bool> whitelist(input_mesh.cloud.width * input_mesh.cloud.height, false);
