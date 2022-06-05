@@ -623,7 +623,8 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
     }
 
     // Save raster
-    rasters_data_vec.push_back(r);
+    if (!r.raster_segments.empty())
+      rasters_data_vec.push_back(r);
   }
 
   // converting to poses msg now
