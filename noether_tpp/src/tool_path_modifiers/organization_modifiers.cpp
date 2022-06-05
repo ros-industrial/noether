@@ -6,27 +6,46 @@ namespace noether
 {
 ToolPaths RasterOrganizationModifier::modify(ToolPaths tool_paths) const
 {
+  ToolPathSegment first_seg = tool_paths.at(0).at(0);
+  Eigen::Isometry3d first_wp = first_seg.at(0);
+  Eigen::Isometry3d last_wp_first_seg = first_seg.at(first_seg.size() - 1);
+  // TODO: Average along first toolpath
+  const Eigen::Vector3d reference_segment_dir = (last_wp_first_seg.translation() - first_wp.translation()).normalized();
+
   for (ToolPath& tool_path : tool_paths)
   {
-    // Sort waypoints in each tool path segment by ascending x-axis value (i.e. left to right)
     for (ToolPathSegment& segment : tool_path)
     {
-      std::sort(segment.begin(), segment.end(), [](const ToolPathWaypoint& a, const ToolPathWaypoint& b) {
-        return a.translation().x() < b.translation().x();
-      });
+      std::sort(segment.begin(),
+                segment.end(),
+                [segment, reference_segment_dir](const ToolPathWaypoint& a, const ToolPathWaypoint& b) {
+                  Eigen::Vector3d diff_from_start_b = b.translation() - segment.at(0).translation();
+                  Eigen::Vector3d diff_from_start_a = a.translation() - segment.at(0).translation();
+                  return diff_from_start_a.dot(reference_segment_dir) < diff_from_start_b.dot(reference_segment_dir);
+                });
     }
 
     // Sort the tool path segments by ascending x-axis value of the first waypoint in each tool path segment
-    std::sort(tool_path.begin(), tool_path.end(), [](const ToolPathSegment& a, const ToolPathSegment& b) {
-      return a.at(0).translation().x() < b.at(0).translation().x();
-    });
+    std::sort(tool_path.begin(),
+              tool_path.end(),
+              [tool_path, reference_segment_dir](const ToolPathSegment& a, const ToolPathSegment& b) {
+                Eigen::Vector3d diff_from_start_b = b.at(0).translation() - tool_path.at(0).at(0).translation();
+                Eigen::Vector3d diff_from_start_a = a.at(0).translation() - tool_path.at(0).at(0).translation();
+                return diff_from_start_a.dot(reference_segment_dir) < diff_from_start_b.dot(reference_segment_dir);
+              });
   }
+
+  const Eigen::Vector3d reference_tool_paths_dir = (first_wp.linear().col(2).cross(reference_segment_dir)).normalized();
 
   // Sort the tool paths by ascending y-axis value of the first waypoint in the first tool path segment of each tool
   // path
-  std::sort(tool_paths.begin(), tool_paths.end(), [](const ToolPath& a, const ToolPath& b) {
-    return a.at(0).at(0).translation().y() < b.at(0).at(0).translation().y();
-  });
+  std::sort(tool_paths.begin(),
+            tool_paths.end(),
+            [tool_paths, reference_tool_paths_dir, first_wp](const ToolPath& a, const ToolPath& b) {
+              Eigen::Vector3d diff_from_start_b = b.at(0).at(0).translation() - first_wp.translation();
+              Eigen::Vector3d diff_from_start_a = a.at(0).at(0).translation() - first_wp.translation();
+              return diff_from_start_a.dot(reference_tool_paths_dir) < diff_from_start_b.dot(reference_tool_paths_dir);
+            });
 
   return tool_paths;
 }
@@ -45,15 +64,10 @@ ToolPaths SnakeOrganizationModifier::modify(ToolPaths tool_paths) const
     // Sort waypoints in each tool path segment by descending x-axis value (i.e. right to left)
     for (ToolPathSegment& segment : tool_path)
     {
-      std::sort(segment.begin(), segment.end(), [](const ToolPathWaypoint& a, const ToolPathWaypoint& b) {
-        return a.translation().x() > b.translation().x();
-      });
+      std::reverse(segment.begin(), segment.end());
     }
 
-    // Sort the tool path segments by descending x-axis value of the first waypoint in each tool path segment
-    std::sort(tool_path.begin(), tool_path.end(), [](const ToolPathSegment& a, const ToolPathSegment& b) {
-      return a.at(0).translation().x() > b.at(0).translation().x();
-    });
+    std::reverse(tool_path.begin(), tool_path.end());
   }
 
   return tool_paths;
