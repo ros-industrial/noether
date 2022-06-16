@@ -25,22 +25,6 @@ find_package(console_bridge REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(xmlrpcpp REQUIRED)
 
-# Check if PCL was compiled with OpenNURBS
-if(NOT DEFINED NURBS_FOUND AND ${CMAKE_VERSION} VERSION_GREATER 3.15)
-    try_compile(
-        NURBS_FOUND
-        ${CMAKE_CURRENT_BINARY_DIR}/pcl_nurbs_try_compile
-        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/test_scripts/check_pcl_nurbs.cpp
-        CMAKE_FLAGS ${CMAKE_FLAGS} -DINCLUDE_DIRECTORIES=${PCL_INCLUDE_DIRS}
-        LINK_LIBRARIES ${PCL_LIBRARIES}
-        )
-    if (NOT ${NURBS_FOUND})
-        message("PCL NURBS NOT FOUND")
-    else()
-        message("PCL NURBS FOUND")
-    endif()
-endif()
-
 ###########
 ## Build ##
 ###########
@@ -77,6 +61,22 @@ if(${BUILD_MESH_PLUGINS})
       src/mesh/windowed_sinc_smoothing.cpp
       )
   set(MESH_FILTERS_COMPILE_DEFINITIONS "")
+
+  # Check if PCL was compiled with OpenNURBS
+  if(NOT DEFINED NURBS_FOUND AND ${CMAKE_VERSION} VERSION_GREATER 3.15)
+      try_compile(
+          NURBS_FOUND
+          ${CMAKE_CURRENT_BINARY_DIR}/pcl_nurbs_try_compile
+          ${CMAKE_CURRENT_SOURCE_DIR}/cmake/test_scripts/check_pcl_nurbs.cpp
+          CMAKE_FLAGS ${CMAKE_FLAGS} -DINCLUDE_DIRECTORIES=${PCL_INCLUDE_DIRS}
+          LINK_LIBRARIES ${PCL_LIBRARIES}
+          )
+      if (NOT ${NURBS_FOUND})
+          message("PCL NURBS NOT FOUND")
+      else()
+          message("PCL NURBS FOUND")
+      endif()
+  endif()
 
   if (${NURBS_FOUND})
       list(APPEND MESH_FILTERS_SRC src/mesh/bspline_reconstruction.cpp)
@@ -128,22 +128,12 @@ else()
   list(APPEND PACKAGE_LIBRARIES ${PROJECT_NAME} ${PROJECT_NAME}_cloud_filters ${PROJECT_NAME}_cloud_filter_plugins)
 endif()
 
-configure_package(NAMESPACE noether_filtering TARGETS ${PACKAGE_LIBRARIES})
-
 # Install headers
-install(DIRECTORY include/${PROJECT_NAME} DESTINATION include)
+install(DIRECTORY include/ DESTINATION include/)
 
 # Install files
 install(FILES package.xml cloud_filter_plugins.xml mesh_filter_plugins.xml
   DESTINATION share/${PROJECT_NAME})
-
-# Allows Colcon to find non-Ament packages when using workspace underlays
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/share/ament_index/resource_index/packages/${PROJECT_NAME} "")
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/share/ament_index/resource_index/packages/${PROJECT_NAME} DESTINATION share/ament_index/resource_index/packages)
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/share/${PROJECT_NAME}/hook/ament_prefix_path.dsv "prepend-non-duplicate;AMENT_PREFIX_PATH;")
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/share/${PROJECT_NAME}/hook/ament_prefix_path.dsv DESTINATION share/${PROJECT_NAME}/hook)
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/share/${PROJECT_NAME}/hook/ros_package_path.dsv "prepend-non-duplicate;ROS_PACKAGE_PATH;")
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/share/${PROJECT_NAME}/hook/ros_package_path.dsv DESTINATION share/${PROJECT_NAME}/hook)
 
 #############
 ## Testing ##
@@ -165,3 +155,6 @@ if(${ENABLE_TESTS})
   add_gtest_discover_tests(${PROJECT_NAME}_cloud_unit)
   add_dependencies(run_tests ${PROJECT_NAME})
 endif()
+
+# Configure package
+configure_package(NAMESPACE noether TARGETS ${PACKAGE_LIBRARIES})

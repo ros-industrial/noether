@@ -96,7 +96,7 @@ if(noether_filtering_FOUND)
   )
   target_link_libraries(mesh_filter_server PUBLIC
     ${catkin_LIBRARIES}
-    noether_filtering::noether_filtering
+    noether::noether_filtering
     noether::vtk_viewer
   )
 endif()
