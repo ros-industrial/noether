@@ -23,15 +23,24 @@
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/search/kdtree.h>
 #include <pcl/features/normal_3d.h>
+#include <pcl/pcl_config.h>
 
 namespace
 {
 /** @brief Creates a shared pointer with no-op destructor for various PCL methods that require a pointer */
+#if PCL_VERSION_COMPARE(<, 1, 10, 0)
+template <typename T>
+boost::shared_ptr<const T> createLocalPointer(const T& obj)
+{
+  return boost::shared_ptr<const T>(&obj, [](const T*) {});
+}
+#else
 template <typename T>
 pcl::shared_ptr<const T> createLocalPointer(const T& obj)
 {
   return pcl::shared_ptr<const T>(&obj, [](const T*) {});
 }
+#endif
 
 bool clusterComparator(const pcl::PointIndices& a,
                        const pcl::PointIndices& b,
