@@ -20,6 +20,10 @@ static Eigen::Vector3d getAverageToolPathDirection(const ToolPath& tool_path)
       }
     }
   }
+
+  if (n < 1)
+    throw std::runtime_error("Insufficient number of points to calculate average tool path direction");
+
   avg_dir /= static_cast<double>(n);
 
   return avg_dir.normalized();
