@@ -27,20 +27,26 @@
 
 namespace
 {
-/** @brief Creates a shared pointer with no-op destructor for various PCL methods that require a pointer */
 #if PCL_VERSION_COMPARE(<, 1, 10, 0)
 template <typename T>
-boost::shared_ptr<const T> createLocalPointer(const T& obj)
-{
-  return boost::shared_ptr<const T>(&obj, [](const T*) {});
-}
+using shared_ptr = boost::shared_ptr<T>;
+
+template <typename T>
+auto make_shared = boost::make_shared<T>;
 #else
 template <typename T>
-pcl::shared_ptr<const T> createLocalPointer(const T& obj)
-{
-  return pcl::shared_ptr<const T>(&obj, [](const T*) {});
-}
+using shared_ptr = pcl::shared_ptr<T>;
+
+template <typename T>
+auto make_shared = pcl::make_shared<T>;
 #endif
+
+/** @brief Creates a shared pointer with no-op destructor for various PCL methods that require a pointer */
+template <typename T>
+shared_ptr<const T> createLocalPointer(const T& obj)
+{
+  return shared_ptr<const T>(&obj, [](const T*) {});
+}
 
 bool clusterComparator(const pcl::PointIndices& a,
                        const pcl::PointIndices& b,
@@ -85,7 +91,7 @@ Eigen::Hyperplane<double, 3> fitPlaneToPoints(const Eigen::MatrixX3d& points, co
   seg.setInputCloud(input_cloud);
 
   // Extract best fit cylinder inliers and calculate cylinder coefficients
-  auto plane_coefficients = pcl::make_shared<pcl::ModelCoefficients>();
+  auto plane_coefficients = make_shared<pcl::ModelCoefficients>();
   pcl::PointIndices::Ptr plane_inliers(new pcl::PointIndices);
   seg.segment(*plane_inliers, *plane_coefficients);
 
@@ -108,7 +114,7 @@ std::vector<int> getSubMeshIndices(const pcl::PointCloud<pcl::PointXYZ>::Ptr ver
   float half_dist = (max_pt.getVector3fMap() - min_pt.getVector3fMap()).norm() / 2.0;
 
   // Create a point cloud from the projected boundary
-  auto projected_boundary_cloud = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+  auto projected_boundary_cloud = make_shared<pcl::PointCloud<pcl::PointXYZ>>();
   projected_boundary_cloud->resize(projected_boundary.rows());
   projected_boundary_cloud->getMatrixXfMap(3, 4, 0) = projected_boundary.cast<float>().transpose();
 
@@ -124,7 +130,7 @@ std::vector<int> getSubMeshIndices(const pcl::PointCloud<pcl::PointXYZ>::Ptr ver
     throw std::runtime_error("No points found within polygon boundary");
 
   // Pull out the points that are inside the user selected prism
-  auto prism_indices = pcl::make_shared<pcl::PointIndices>();
+  auto prism_indices = make_shared<pcl::PointIndices>();
   pcl::ExtractIndices<pcl::PointXYZ> extract;
   extract.setInputCloud(vertices);
   extract.setIndices(selection_indices);
@@ -134,7 +140,7 @@ std::vector<int> getSubMeshIndices(const pcl::PointCloud<pcl::PointXYZ>::Ptr ver
   // Extract the clusters within the boundary
   std::vector<pcl::PointIndices> cluster_indices;
   {
-    auto tree = pcl::make_shared<pcl::search::KdTree<pcl::PointXYZ>>();
+    auto tree = make_shared<pcl::search::KdTree<pcl::PointXYZ>>();
 
     pcl::EuclideanClusterExtraction<pcl::PointXYZ> cluster;
     cluster.setInputCloud(vertices);
@@ -174,7 +180,7 @@ pcl::PolygonMesh ExtrudedPolygonSubMeshExtractor::extract(const pcl::PolygonMesh
     throw std::runtime_error("At least three points required to create a closed loop");
 
   // Convert to point cloud class
-  auto vertices = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+  auto vertices = make_shared<pcl::PointCloud<pcl::PointXYZ>>();
   pcl::fromPCLPointCloud2(mesh.cloud, *vertices);
 
   // Check the size of the input point cloud
