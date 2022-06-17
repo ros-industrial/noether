@@ -13,6 +13,7 @@
   <depend>eigen_conversions</depend>
   <depend>eigen_stl_containers</depend>
   <depend>noether_conversions</depend>
+  <depend>noether_tpp</depend>
   <depend>geometry_msgs</depend>
   <depend>noether_msgs</depend>
   <depend>rosconsole</depend>

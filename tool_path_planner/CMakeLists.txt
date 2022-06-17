@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(jsoncpp REQUIRED)
 find_package(vtk_viewer REQUIRED)
+find_package(noether_tpp REQUIRED)
 
 find_package(VTK REQUIRED NO_MODULE)
 if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 7.1))
@@ -75,6 +76,7 @@ target_link_libraries(${PROJECT_NAME}
     ${PCL_LIBRARIES}
     ${VTK_LIBRARIES}
     noether::vtk_viewer
+    noether::noether_tpp
     jsoncpp_lib
 )
 add_dependencies(${PROJECT_NAME}
