@@ -64,4 +64,4 @@ if(${NOETHER_ENABLE_TESTING})
 endif()
 
 # Package configuration
-configure_package(NAMESPACE noether TARGETS ${PROJECT_NAME})
+configure_package(NAMESPACE noether DEPENDENCIES Eigen3 "PCL REQUIRED COMPONENTS common io" VTK TARGETS ${PROJECT_NAME})
