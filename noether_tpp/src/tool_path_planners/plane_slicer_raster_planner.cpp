@@ -184,31 +184,31 @@ void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points,
 
   auto do_merge =
       [&points](const IdList& current_list, const IdList& next_list, double merge_dist, IdList& merged_list) {
-    Vector3d cl_point, nl_point;
+        Vector3d cl_point, nl_point;
 
-    // checking front and back end points respectively
-    points->GetPoint(current_list.front(), cl_point.data());
-    points->GetPoint(next_list.back(), nl_point.data());
-    double d = (cl_point - nl_point).norm();
-    if (d < merge_dist)
-    {
-      merged_list.assign(next_list.begin(), next_list.end());
-      merged_list.insert(merged_list.end(), current_list.begin(), current_list.end());
-      return true;
-    }
+        // checking front and back end points respectively
+        points->GetPoint(current_list.front(), cl_point.data());
+        points->GetPoint(next_list.back(), nl_point.data());
+        double d = (cl_point - nl_point).norm();
+        if (d < merge_dist)
+        {
+          merged_list.assign(next_list.begin(), next_list.end());
+          merged_list.insert(merged_list.end(), current_list.begin(), current_list.end());
+          return true;
+        }
 
-    // checking back and front end points respectively
-    points->GetPoint(current_list.back(), cl_point.data());
-    points->GetPoint(next_list.front(), nl_point.data());
-    d = (cl_point - nl_point).norm();
-    if (d < merge_dist)
-    {
-      merged_list.assign(current_list.begin(), current_list.end());
-      merged_list.insert(merged_list.end(), next_list.begin(), next_list.end());
-      return true;
-    }
-    return false;
-  };
+        // checking back and front end points respectively
+        points->GetPoint(current_list.back(), cl_point.data());
+        points->GetPoint(next_list.front(), nl_point.data());
+        d = (cl_point - nl_point).norm();
+        if (d < merge_dist)
+        {
+          merged_list.assign(current_list.begin(), current_list.end());
+          merged_list.insert(merged_list.end(), next_list.begin(), next_list.end());
+          return true;
+        }
+        return false;
+      };
 
   for (std::size_t i = 0; i < points_lists.size(); i++)
   {
@@ -261,8 +261,8 @@ void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points,
 }
 
 void rectifyDirection(const vtkSmartPointer<vtkPoints>& points,
-                             const Eigen::Vector3d& ref_point,
-                             std::vector<std::vector<vtkIdType>>& points_lists)
+                      const Eigen::Vector3d& ref_point,
+                      std::vector<std::vector<vtkIdType>>& points_lists)
 {
   Eigen::Vector3d p0, pf;
   if (points_lists.size() < 2)
@@ -402,16 +402,20 @@ bool insertNormals(const double search_radius,
   data->GetPointData()->SetNormals(new_normals);
   return true;
 }
-}
+}  // namespace
 
 namespace noether
 {
-PlaneSlicerRasterPlanner::PlaneSlicerRasterPlanner(DirectionGenerator::ConstPtr dir_gen, OriginGenerator::ConstPtr origin_gen)
+PlaneSlicerRasterPlanner::PlaneSlicerRasterPlanner(DirectionGenerator::ConstPtr dir_gen,
+                                                   OriginGenerator::ConstPtr origin_gen)
   : RasterPlanner(std::move(dir_gen), std::move(origin_gen))
 {
 }
 
-void PlaneSlicerRasterPlanner::setMinSegmentSize(const double min_segment_size) { min_segment_size_ = min_segment_size; }
+void PlaneSlicerRasterPlanner::setMinSegmentSize(const double min_segment_size)
+{
+  min_segment_size_ = min_segment_size;
+}
 void PlaneSlicerRasterPlanner::setSearchRadius(const double search_radius) { search_radius_ = search_radius; }
 
 ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
@@ -474,7 +478,8 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
   Eigen::Vector3d cut_normal = (cut_direction.normalized().cross(pca_vecs.col(2).normalized())).normalized();
 
   // Calculate the number of planes needed to cover the mesh according to the length of the principle axes
-  double max_extent = std::sqrt(pca_vecs.col(0).squaredNorm() + pca_vecs.col(1).squaredNorm() + pca_vecs.col(2).squaredNorm());
+  double max_extent =
+      std::sqrt(pca_vecs.col(0).squaredNorm() + pca_vecs.col(1).squaredNorm() + pca_vecs.col(2).squaredNorm());
   std::size_t num_planes = static_cast<std::size_t>(max_extent / line_spacing_);
 
   // Calculate the start location as the centroid less half the full diagonal of the bounding box
@@ -613,7 +618,8 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
         // inserting normals
         if (!insertNormals(search_radius_, mesh_data_, kd_tree_, segment_data))
         {
-          throw std::runtime_error("Could not insert normals for segment " + std::to_string(r.raster_segments.size()) + " of raster " + std::to_string(i));
+          throw std::runtime_error("Could not insert normals for segment " + std::to_string(r.raster_segments.size()) +
+                                   " of raster " + std::to_string(i));
         }
 
         // saving into raster
