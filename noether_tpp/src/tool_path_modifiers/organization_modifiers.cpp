@@ -4,29 +4,96 @@
 
 namespace noether
 {
-ToolPaths RasterOrganizationModifier::modify(ToolPaths tool_paths) const
+/** @brief Estimates the direction of travel of a tool path by averaging the vectors between adjacent waypoints */
+static Eigen::Vector3d estimateToolPathDirection(const ToolPath& tool_path)
 {
-  for (ToolPath& tool_path : tool_paths)
+  Eigen::Vector3d avg_dir = Eigen::Vector3d::Zero();
+  int n = 0;
+  for (const ToolPathSegment& seg : tool_path)
   {
-    // Sort waypoints in each tool path segment by ascending x-axis value (i.e. left to right)
-    for (ToolPathSegment& segment : tool_path)
+    if (seg.size() > 1)
     {
-      std::sort(segment.begin(), segment.end(), [](const ToolPathWaypoint& a, const ToolPathWaypoint& b) {
-        return a.translation().x() < b.translation().x();
-      });
+      for (std::size_t i = 0; i < seg.size() - 1; ++i)
+      {
+        avg_dir += (seg.at(i + 1).translation() - seg.at(i).translation()).normalized();
+        ++n;
+      }
     }
-
-    // Sort the tool path segments by ascending x-axis value of the first waypoint in each tool path segment
-    std::sort(tool_path.begin(), tool_path.end(), [](const ToolPathSegment& a, const ToolPathSegment& b) {
-      return a.at(0).translation().x() < b.at(0).translation().x();
-    });
   }
 
-  // Sort the tool paths by ascending y-axis value of the first waypoint in the first tool path segment of each tool
-  // path
-  std::sort(tool_paths.begin(), tool_paths.end(), [](const ToolPath& a, const ToolPath& b) {
-    return a.at(0).at(0).translation().y() < b.at(0).at(0).translation().y();
-  });
+  if (n < 1)
+    throw std::runtime_error("Insufficient number of points to calculate average tool path direction");
+
+  avg_dir /= static_cast<double>(n);
+
+  return avg_dir.normalized();
+}
+
+/**
+ * @brief Estimates the raster direction of a set of tool paths by returning the component of the vector from the first
+ * point in the first segment of the first tool path) to the first waypoint in the first segment of the last tool path
+ * that is perpendicular to the nominal tool path direction
+ */
+static Eigen::Vector3d estimateRasterDirection(const ToolPaths& tool_paths,
+                                               const Eigen::Vector3d& reference_tool_path_dir)
+{
+  // First waypoint in the first segment of the first tool path
+  const Eigen::Isometry3d first_wp = tool_paths.at(0).at(0).at(0);
+  // First waypoint in the first segment of the last tool path
+  const Eigen::Isometry3d first_wp_last_path = tool_paths.at(tool_paths.size() - 1).at(0).at(0);
+
+  // Normalize the reference tool path direction
+  const Eigen::Vector3d norm_ref_tool_path_dir = reference_tool_path_dir.normalized();
+
+  // Get the vector between the two points
+  Eigen::Vector3d raster_dir = first_wp_last_path.translation() - first_wp.translation();
+
+  // Subtract the component of this vector that is parallel to the reference tool path direction
+  raster_dir -= raster_dir.dot(norm_ref_tool_path_dir) * norm_ref_tool_path_dir;
+  return raster_dir.normalized();
+}
+
+ToolPaths RasterOrganizationModifier::modify(ToolPaths tool_paths) const
+{
+  ToolPathSegment first_seg = tool_paths.at(0).at(0);
+  Eigen::Isometry3d first_wp = first_seg.at(0);
+  Eigen::Isometry3d last_wp_first_seg = first_seg.at(first_seg.size() - 1);
+  const Eigen::Vector3d reference_segment_dir = estimateToolPathDirection(tool_paths.at(0));
+
+  for (ToolPath& tool_path : tool_paths)
+  {
+    // Sort the waypoints within each tool path segment by their distance along the reference direction
+    for (ToolPathSegment& segment : tool_path)
+    {
+      std::sort(segment.begin(),
+                segment.end(),
+                [segment, reference_segment_dir](const ToolPathWaypoint& a, const ToolPathWaypoint& b) {
+                  Eigen::Vector3d diff_from_start_b = b.translation() - segment.at(0).translation();
+                  Eigen::Vector3d diff_from_start_a = a.translation() - segment.at(0).translation();
+                  return diff_from_start_a.dot(reference_segment_dir) < diff_from_start_b.dot(reference_segment_dir);
+                });
+    }
+
+    // Sort the tool path segments within each tool path by the distance of their first waypoints along the reference
+    // direction
+    std::sort(tool_path.begin(),
+              tool_path.end(),
+              [tool_path, reference_segment_dir](const ToolPathSegment& a, const ToolPathSegment& b) {
+                Eigen::Vector3d diff_from_start_b = b.at(0).translation() - tool_path.at(0).at(0).translation();
+                Eigen::Vector3d diff_from_start_a = a.at(0).translation() - tool_path.at(0).at(0).translation();
+                return diff_from_start_a.dot(reference_segment_dir) < diff_from_start_b.dot(reference_segment_dir);
+              });
+  }
+
+  // Sort the tool paths by their distance along a vector that is perpendicular to the reference direction of travel
+  const Eigen::Vector3d reference_tool_paths_dir = estimateRasterDirection(tool_paths, reference_segment_dir);
+  std::sort(tool_paths.begin(),
+            tool_paths.end(),
+            [tool_paths, reference_tool_paths_dir, first_wp](const ToolPath& a, const ToolPath& b) {
+              Eigen::Vector3d diff_from_start_b = b.at(0).at(0).translation() - first_wp.translation();
+              Eigen::Vector3d diff_from_start_a = a.at(0).at(0).translation() - first_wp.translation();
+              return diff_from_start_a.dot(reference_tool_paths_dir) < diff_from_start_b.dot(reference_tool_paths_dir);
+            });
 
   return tool_paths;
 }
@@ -45,15 +112,10 @@ ToolPaths SnakeOrganizationModifier::modify(ToolPaths tool_paths) const
     // Sort waypoints in each tool path segment by descending x-axis value (i.e. right to left)
     for (ToolPathSegment& segment : tool_path)
     {
-      std::sort(segment.begin(), segment.end(), [](const ToolPathWaypoint& a, const ToolPathWaypoint& b) {
-        return a.translation().x() > b.translation().x();
-      });
+      std::reverse(segment.begin(), segment.end());
     }
 
-    // Sort the tool path segments by descending x-axis value of the first waypoint in each tool path segment
-    std::sort(tool_path.begin(), tool_path.end(), [](const ToolPathSegment& a, const ToolPathSegment& b) {
-      return a.at(0).translation().x() > b.at(0).translation().x();
-    });
+    std::reverse(tool_path.begin(), tool_path.end());
   }
 
   return tool_paths;
