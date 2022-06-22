@@ -28,9 +28,6 @@
 #include <vtkSmartPointer.h>
 #include <vtkStripper.h>
 
-#include <noether_tpp/tool_path_modifiers/organization_modifiers.h>
-#include <noether_tpp/tool_path_modifiers/waypoint_orientation_modifiers.h>
-
 namespace
 {
 static const double EPSILON = 1e-6;
