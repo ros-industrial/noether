@@ -12,7 +12,6 @@ class FixedDirectionGenerator : public DirectionGenerator
 public:
   FixedDirectionGenerator(const Eigen::Vector3d& direction);
   Eigen::Vector3d generate(const pcl::PolygonMesh& mesh) const override final;
-  std::unique_ptr<DirectionGenerator> clone() const override final;
 
 private:
   const Eigen::Vector3d direction_;
@@ -26,7 +25,6 @@ class PrincipalAxisDirectionGenerator : public DirectionGenerator
 public:
   PrincipalAxisDirectionGenerator(double rotation_offset = 0.0);
   Eigen::Vector3d generate(const pcl::PolygonMesh& mesh) const override final;
-  std::unique_ptr<DirectionGenerator> clone() const override final;
 
 private:
   /**

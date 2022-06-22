@@ -36,7 +36,6 @@ struct DirectionGenerator
 
   virtual ~DirectionGenerator() = default;
   virtual Eigen::Vector3d generate(const pcl::PolygonMesh& mesh) const = 0;
-  virtual std::unique_ptr<DirectionGenerator> clone() const = 0;
 };
 
 /**
@@ -49,7 +48,6 @@ struct OriginGenerator
 
   virtual ~OriginGenerator() = default;
   virtual Eigen::Vector3d generate(const pcl::PolygonMesh& mesh) const = 0;
-  virtual std::unique_ptr<OriginGenerator> clone() const = 0;
 };
 
 /**

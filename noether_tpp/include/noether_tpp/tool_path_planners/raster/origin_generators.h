@@ -15,7 +15,6 @@ class FixedOriginGenerator : public OriginGenerator
 public:
   FixedOriginGenerator(const Eigen::Vector3d& origin = Eigen::Vector3d::Zero());
   Eigen::Vector3d generate(const pcl::PolygonMesh& mesh) const override final;
-  std::unique_ptr<OriginGenerator> clone() const override final;
 
 private:
   const Eigen::Vector3d origin_;
@@ -27,7 +26,6 @@ private:
 struct CentroidOriginGenerator : public OriginGenerator
 {
   Eigen::Vector3d generate(const pcl::PolygonMesh& mesh) const override final;
-  std::unique_ptr<OriginGenerator> clone() const override final;
 };
 
 /**
@@ -36,7 +34,6 @@ struct CentroidOriginGenerator : public OriginGenerator
 struct AABBCenterOriginGenerator : public OriginGenerator
 {
   Eigen::Vector3d generate(const pcl::PolygonMesh& mesh) const override final;
-  std::unique_ptr<OriginGenerator> clone() const override final;
 };
 
 /**
@@ -47,7 +44,6 @@ class OffsetOriginGenerator : public OriginGenerator
 public:
   OffsetOriginGenerator(OriginGenerator::ConstPtr&& generator, const Eigen::Vector3d& offset);
   Eigen::Vector3d generate(const pcl::PolygonMesh& mesh) const override final;
-  std::unique_ptr<OriginGenerator> clone() const override final;
 
 private:
   const OriginGenerator::ConstPtr generator_;
