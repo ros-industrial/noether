@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(jsoncpp REQUIRED)
 find_package(vtk_viewer REQUIRED)
+find_package(noether_tpp REQUIRED)
 
 find_package(VTK REQUIRED NO_MODULE)
 if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 7.1))
@@ -35,7 +36,14 @@ if(PCL_FOUND AND ("${PCL_VERSION}" VERSION_LESS 1.9))
 else()
   add_definitions(${PCL_DEFINITIONS})
 endif()
+
 find_package(Eigen3 REQUIRED)
+if(NOT TARGET Eigen3::Eigen)
+  find_package(Threads REQUIRED)
+  add_library(Eigen3::Eigen IMPORTED INTERFACE)
+  set_property(TARGET Eigen3::Eigen PROPERTY INTERFACE_COMPILE_DEFINITIONS ${EIGEN3_DEFINITIONS})
+  set_property(TARGET Eigen3::Eigen PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${EIGEN3_INCLUDE_DIRS})
+endif()
 
 catkin_package(
   INCLUDE_DIRS
@@ -75,6 +83,7 @@ target_link_libraries(${PROJECT_NAME}
     ${PCL_LIBRARIES}
     ${VTK_LIBRARIES}
     noether::vtk_viewer
+    noether::noether_tpp
     jsoncpp_lib
 )
 add_dependencies(${PROJECT_NAME}

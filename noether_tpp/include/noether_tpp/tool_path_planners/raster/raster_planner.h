@@ -78,7 +78,6 @@ protected:
   DirectionGenerator::ConstPtr dir_gen_;
   OriginGenerator::ConstPtr origin_gen_;
 
-private:
   /** @brief Distance between waypoints on the same raster line (m) */
   double point_spacing_;
   /** @brief Distance between raster lines */

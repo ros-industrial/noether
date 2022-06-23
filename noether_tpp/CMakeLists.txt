@@ -9,6 +9,14 @@ project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES CXX)
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED COMPONENTS common io)
 
+find_package(VTK REQUIRED NO_MODULE)
+if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 7.1))
+  message(FATAL_ERROR "The minimum required version of VTK is 7.1, but found ${VTK_VERSION}")
+  set(VTK_FOUND FALSE)
+else()
+  include(${VTK_USE_FILE})
+endif()
+
 # Create targets if necessary
 if(NOT TARGET Eigen3::Eigen)
   find_package(Threads REQUIRED)
@@ -29,6 +37,7 @@ add_library(${PROJECT_NAME} SHARED
   # Tool Path Planners
   src/tool_path_planners/edge_planner.cpp
   src/tool_path_planners/raster_planner.cpp
+  src/tool_path_planners/plane_slicer_raster_planner.cpp
   src/tool_path_planners/direction_generators.cpp
   src/tool_path_planners/origin_generators.cpp
 )
@@ -36,7 +45,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC ${PCL_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen ${PCL_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen ${PCL_LIBRARIES} ${VTK_LIBRARIES})
 target_cxx_version(${PROJECT_NAME} PUBLIC VERSION 14)
 target_clang_tidy(${PROJECT_NAME}
   ENABLE ${NOETHER_ENABLE_CLANG_TIDY}
@@ -55,4 +64,4 @@ if(${NOETHER_ENABLE_TESTING})
 endif()
 
 # Package configuration
-configure_package(NAMESPACE noether TARGETS ${PROJECT_NAME})
+configure_package(NAMESPACE noether DEPENDENCIES Eigen3 "PCL REQUIRED COMPONENTS common io" VTK TARGETS ${PROJECT_NAME})
