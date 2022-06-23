@@ -1,0 +1,3 @@
+{
+    "hooks": ["share/noether_gui/hook/ament_prefix_path.dsv", "share/noether_gui/hook/ros_package_path.dsv"]
+}
