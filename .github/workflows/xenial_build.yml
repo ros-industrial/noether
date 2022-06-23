@@ -19,6 +19,7 @@ jobs:
       ROS_DISTRO: kinetic
       ROS_REPO: main
       NOT_TEST_BUILD: true
+      BEFORE_BUILD_UPSTREAM_WORKSPACE: 'pip install "cmake>=3.10"'
       UPSTREAM_WORKSPACE: 'dependencies_ros_kinetic.rosinstall'
       CCACHE_DIR: "/home/runner/work/noether/noether/Xenial-Build/.ccache"
       TARGET_CMAKE_ARGS: "-DNURBS_FOUND=TRUE"
