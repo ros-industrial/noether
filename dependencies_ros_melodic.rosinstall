@@ -1,3 +1,4 @@
+# PCL ros tools, this is required because using custom version of PCL and VTK
 - git:
     local-name: perception_pcl
     uri: 'https://github.com/ros-perception/perception_pcl.git'
