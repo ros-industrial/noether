@@ -34,8 +34,8 @@ public:
   std::vector<ToolPaths> getToolPaths();
 
 private:
-  void onLoadMesh(const bool);
-  void onPlan(const bool);
+  void onLoadMesh(const bool /*checked*/);
+  void onPlan(const bool /*checked*/);
 
   Ui::TPP* ui_;
   std::vector<ToolPaths> tool_paths_;

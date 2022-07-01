@@ -24,14 +24,14 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent) 
 
 std::vector<ToolPaths> TPPWidget::getToolPaths() { return tool_paths_; }
 
-void TPPWidget::onLoadMesh(const bool)
+void TPPWidget::onLoadMesh(const bool /*checked*/)
 {
   const QString home = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).at(0);
   const QString file = QFileDialog::getOpenFileName(this, "Load mesh file", home, "Mesh files (*.ply *.stl)");
   ui_->line_edit_mesh->setText(file);
 }
 
-void TPPWidget::onPlan(const bool)
+void TPPWidget::onPlan(const bool /*checked*/)
 {
   try
   {
