@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>noether_gui</name>
+  <version>0.1.0</version>
+  <description>The noether_gui package</description>
+
+  <maintainer email="michael.ripperger@swri.org">Michael Ripperger</maintainer>
+
+  <license>Apache 2.0</license>
+
+  <build_depend>ros_industrial_cmake_boilerplate</build_depend>
+  <depend>libqt5-widgets</depend>
+  <depend>noether_tpp</depend>
+  <depend>boost_plugin_loader</depend>
+
+  <export>
+    <build_type>cmake</build_type>
+  </export>
+</package>

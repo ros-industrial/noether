@@ -19,6 +19,7 @@ jobs:
       ROS_DISTRO: noetic
       ROS_REPO: main
       NOT_TEST_BUILD: true
+      UPSTREAM_WORKSPACE: 'dependencies_ros_noetic.rosinstall'
       CCACHE_DIR: "/home/runner/work/noether/noether/Focal-Build/.ccache"
       TARGET_CMAKE_ARGS: "-DNURBS_FOUND=FALSE"
       DOCKER_IMAGE: "ros:noetic"
