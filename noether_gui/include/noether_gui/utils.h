@@ -39,8 +39,8 @@ inline void overwriteWidget(QLayout* layout, QWidget*& from, QWidget* to)
   QLayoutItem* ret = layout->replaceWidget(from, to);
   if (!ret)
     throw std::runtime_error("Widget replacement returned a nullptr");
-  if (ret->widget() == from)
-    throw std::runtime_error("The widget returned by the replacement did not change");
+  if (ret->widget() != from)
+    throw std::runtime_error("Widget replacement did not return the correct replaced widget");
 
   // Delete the replaced widget (which is no longer managed), and reset it to the widget that replaced it for future
   // reference
