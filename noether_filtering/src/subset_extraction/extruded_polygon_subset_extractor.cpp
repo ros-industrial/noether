@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <noether_filtering/submesh_extraction/extruded_polygon_mesh_extractor.h>
+#include <noether_filtering/subset_extraction/extruded_polygon_subset_extractor.h>
 
 #include <pcl/common/common.h>
 #include <pcl/segmentation/extract_polygonal_prism_data.h>

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <noether_filtering/submesh_extraction/submesh_extractor.h>
+#include <noether_filtering/subset_extraction/subset_extractor.h>
 
 #include <pcl/surface/simplification_remove_unused_vertices.h>
 
