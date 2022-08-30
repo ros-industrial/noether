@@ -159,4 +159,8 @@ if(${ENABLE_TESTS})
 endif()
 
 # Configure package
-configure_package(NAMESPACE noether TARGETS ${PACKAGE_LIBRARIES})
+configure_package(
+  NAMESPACE noether
+  TARGETS ${PACKAGE_LIBRARIES}
+  DEPENDENCIES "PCL REQUIRED COMPONENTS common filters surface segmentation" VTK pluginlib console_bridge xmlrpcpp
+)
