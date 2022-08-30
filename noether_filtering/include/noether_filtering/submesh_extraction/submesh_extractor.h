@@ -21,6 +21,20 @@
 namespace noether
 {
 /**
+ * @brief Base class for extracting a point cloud subset from an input given a set of boundary points
+ */
+struct SubsetExtractor
+{
+  /**
+   * @brief Extracts the inlying subset of points from a cloud given a set of boundary points
+   * @param cloud
+   * @param boundary - ordered 3D points (row-wise) defining a closed boundary polygon
+   * @return
+   */
+  virtual std::vector<int> extract(const pcl::PCLPointCloud2& cloud, const Eigen::MatrixX3d& boundary) const = 0;
+};
+
+/**
  * @brief Base class for extracting a submesh from a mesh given a set of boundary points
  */
 struct SubMeshExtractor
