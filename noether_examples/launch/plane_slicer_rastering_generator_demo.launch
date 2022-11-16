@@ -13,4 +13,5 @@
     </rosparam>
   </node>
   <include file="$(find noether)/launch/tool_path_planner_server.launch"/>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find noether_examples)/config/plane_slicer.rviz" />
 </launch>
