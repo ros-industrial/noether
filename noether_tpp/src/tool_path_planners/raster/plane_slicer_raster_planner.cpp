@@ -25,6 +25,7 @@
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataNormals.h>
+#include <vtkGenericCell.h>
 #include <vtkSmartPointer.h>
 #include <vtkStripper.h>
 
@@ -338,7 +339,8 @@ noether::ToolPaths convertToPoses(const std::vector<RasterConstructData>& raster
 bool insertNormals(const double search_radius,
                    vtkSmartPointer<vtkPolyData>& mesh_data_,
                    vtkSmartPointer<vtkKdTreePointLocator>& kd_tree_,
-                   vtkSmartPointer<vtkPolyData>& data)
+                   vtkSmartPointer<vtkPolyData>& data,
+                   vtkSmartPointer<vtkCellLocator>& cell_locator_)
 {
   // Find closest cell to each point and uses its normal vector
   vtkSmartPointer<vtkDoubleArray> new_normals = vtkSmartPointer<vtkDoubleArray>::New();
@@ -358,39 +360,51 @@ bool insertNormals(const double search_radius,
   {
     // locate closest cell
     Eigen::Vector3d query_point;
-    vtkSmartPointer<vtkIdList> id_list = vtkSmartPointer<vtkIdList>::New();
     data->GetPoints()->GetPoint(i, query_point.data());
-    kd_tree_->FindPointsWithinRadius(search_radius, query_point.data(), id_list);
-    if (id_list->GetNumberOfIds() < 1)
-    {
-      kd_tree_->FindClosestNPoints(1, query_point.data(), id_list);
 
+    if (search_radius > 0.0)
+    {
+      vtkSmartPointer<vtkIdList> id_list = vtkSmartPointer<vtkIdList>::New();
+      kd_tree_->FindPointsWithinRadius(search_radius, query_point.data(), id_list);
       if (id_list->GetNumberOfIds() < 1)
       {
-        return false;
+        kd_tree_->FindClosestNPoints(1, query_point.data(), id_list);
+
+        if (id_list->GetNumberOfIds() < 1)
+        {
+          return false;
+        }
       }
-    }
 
-    // compute normal average
-    normal_vect = Eigen::Vector3d::Zero();
-    std::size_t num_normals = 0;
-    for (auto p = 0; p < id_list->GetNumberOfIds(); p++)
-    {
-      Eigen::Vector3d temp_normal, query_point, closest_point;
-      vtkIdType p_id = id_list->GetId(p);
-
-      if (p_id < 0)
+      // compute normal average
+      normal_vect = Eigen::Vector3d::Zero();
+      std::size_t num_normals = 0;
+      for (auto p = 0; p < id_list->GetNumberOfIds(); p++)
       {
-        continue;
+        Eigen::Vector3d temp_normal, query_point, closest_point;
+        vtkIdType p_id = id_list->GetId(p);
+
+        if (p_id < 0)
+        {
+          continue;
+        }
+
+        // get normal and add it to average
+        normal_data->GetTuple(p_id, temp_normal.data());
+        normal_vect += temp_normal.normalized();
+        num_normals++;
       }
 
-      // get normal and add it to average
-      normal_data->GetTuple(p_id, temp_normal.data());
-      normal_vect += temp_normal.normalized();
-      num_normals++;
+      normal_vect /= num_normals;
     }
-
-    normal_vect /= num_normals;
+    else{
+      Eigen::Vector3d closest_point;
+      vtkIdType cellId;
+      int subid;
+      double dist2;
+      cell_locator_->FindClosestPoint(query_point.data(), closest_point.data(), cellId, subid, dist2);
+      mesh_data_->GetCellData()->GetNormals()->GetTuple(cellId, normal_vect.data());
+    }
     normal_vect.normalize();
 
     // save normal
@@ -615,7 +629,7 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
         segment_data->SetPoints(new_points);
 
         // inserting normals
-        if (!insertNormals(search_radius_, mesh_data_, kd_tree_, segment_data))
+        if (!insertNormals(search_radius_, mesh_data_, kd_tree_, segment_data, cell_locator_))
         {
           throw std::runtime_error("Could not insert normals for segment " + std::to_string(r.raster_segments.size()) +
                                    " of raster " + std::to_string(i));
