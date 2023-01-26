@@ -68,51 +68,48 @@ double computeLength(const vtkSmartPointer<vtkPoints>& points)
   return total_length;
 }
 
-vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vtkPoints>& points,
-                                                 double total_length,
-                                                 double point_spacing)
+vtkSmartPointer<vtkPoints> enforcePointSpacing(const vtkSmartPointer<vtkPoints>& points,
+                                               double total_length,
+                                               double point_spacing)
 {
   vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
 
   // create spline
-  vtkSmartPointer<vtkParametricSpline> spline = vtkSmartPointer<vtkParametricSpline>::New();
-  spline->SetPoints(points);
-  spline->SetParameterizeByLength(true);
-  spline->ClosedOff();
+  // vtkSmartPointer<vtkParametricSpline> spline = vtkSmartPointer<vtkParametricSpline>::New();
+  // spline->SetPoints(points);
+  // spline->SetParameterizeByLength(true);
+  // spline->ClosedOff();
 
   // adding first point
-  Eigen::Vector3d pt_prev;
-  points->GetPoint(0, pt_prev.data());
-  new_points->InsertNextPoint(pt_prev.data());
 
-  // adding remaining points by evaluating spline
-  std::size_t num_points = static_cast<std::size_t>(std::ceil(total_length / point_spacing) + 1);
-  double du[9];
-  Eigen::Vector3d u, pt;
-  for (unsigned i = 1; i < num_points; i++)
+  Eigen::Vector3d a, b, current_vector;
+  int i = 0;
+  points->GetPoint(i, a.data());
+  points->GetPoint(i + 1, b.data());
+  double current_distance = (a - b).norm();
+  current_vector = (b - a).normalized();
+  double previous_distances = 0;
+
+  new_points->InsertNextPoint(a.data());
+
+  for (double desired_distance = point_spacing; desired_distance < total_length; desired_distance += point_spacing)
   {
-    double interv = static_cast<double>(i) / static_cast<double>(num_points - 1);
-    interv = interv > 1.0 ? 1.0 : interv;
-    if (std::abs(interv - 1.0) < EPSILON)
+    while (desired_distance > previous_distances + current_distance)
     {
-      break;  // reach end
+      previous_distances += current_distance;
+      i += 1;
+      points->GetPoint(i, a.data());
+      points->GetPoint(i + 1, b.data());
+      current_distance = (b-a).norm();
+      current_vector = (b-a).normalized();
     }
-
-    u = interv * Eigen::Vector3d::Ones();
-    std::tie(u[0], u[1], u[2]) = std::make_tuple(interv, interv, interv);
-    spline->Evaluate(u.data(), pt.data(), du);
-
-    // check distance
-    if ((pt - pt_prev).norm() >= point_spacing)
-    {
-      new_points->InsertNextPoint(pt.data());
-      pt_prev = pt;
-    }
+    Eigen::Vector3d np = a + current_vector * (desired_distance - previous_distances);
+    new_points->InsertNextPoint(np.data());
   }
 
   // add last point
-  points->GetPoint(points->GetNumberOfPoints() - 1, pt_prev.data());
-  new_points->InsertNextPoint(pt_prev.data());
+  points->GetPoint(points->GetNumberOfPoints() - 1, b.data());
+  new_points->InsertNextPoint(b.data());
 
   return new_points;
 }
@@ -608,7 +605,7 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
       if (line_length > min_segment_size_ && points->GetNumberOfPoints() > 1)
       {
         // enforce point spacing
-        vtkSmartPointer<vtkPoints> new_points = applyParametricSpline(points, line_length, point_spacing_);
+        vtkSmartPointer<vtkPoints> new_points = enforcePointSpacing(points, line_length, point_spacing_);
 
         // add points to segment now
         vtkSmartPointer<vtkPolyData> segment_data = vtkSmartPointer<vtkPolyData>::New();
