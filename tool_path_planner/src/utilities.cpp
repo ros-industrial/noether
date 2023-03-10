@@ -169,6 +169,7 @@ bool toPlaneSlicerConfigMsg(noether_msgs::PlaneSlicerRasterGeneratorConfig& conf
   config_msg.min_hole_size = config.min_hole_size;
   config_msg.min_segment_size = config.min_segment_size;
   config_msg.raster_rot_offset = config.raster_rot_offset;
+  config_msg.search_radius = config.search_radius;
 
   return true;
 }
@@ -229,6 +230,7 @@ bool toPlaneSlicerConfig(PlaneSlicerRasterGenerator::Config& config,
   config.min_hole_size = config_msg.min_hole_size;
   config.min_segment_size = config_msg.min_segment_size;
   config.raster_rot_offset = config_msg.raster_rot_offset;
+  config.search_radius = config_msg.search_radius;
 
   return true;
 }
