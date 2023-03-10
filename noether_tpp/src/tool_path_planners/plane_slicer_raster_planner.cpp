@@ -316,7 +316,7 @@ noether::ToolPaths convertToPoses(const std::vector<RasterConstructData>& raster
         polydata->GetPointData()->GetNormals()->GetTuple(idx, vz.data());
         vx = (p_next - p).normalized();
         vy = vz.cross(vx).normalized();
-        vz = vx.cross(vy).normalized();
+        vx = vy.cross(vz).normalized();
         pose = Eigen::Translation3d(p) * Eigen::AngleAxisd(computeRotation(vx, vy, vz));
         raster_path_segment.push_back(pose);
       }
