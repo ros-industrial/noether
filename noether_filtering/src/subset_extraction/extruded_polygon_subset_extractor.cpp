@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <noether_filtering/submesh_extraction/extruded_polygon_mesh_extractor.h>
+#include <noether_filtering/subset_extraction/extruded_polygon_subset_extractor.h>
 
 #include <pcl/common/common.h>
 #include <pcl/segmentation/extract_polygonal_prism_data.h>
@@ -106,7 +106,7 @@ Eigen::Hyperplane<double, 3> fitPlaneToPoints(const Eigen::MatrixX3d& points, co
 
 std::vector<int> getSubMeshIndices(const pcl::PointCloud<pcl::PointXYZ>::Ptr vertices,
                                    const Eigen::MatrixX3d& projected_boundary,
-                                   const noether::ExtrudedPolygonSubMeshExtractor::Params& params)
+                                   const noether::ExtrudedPolygonSubsetExtractor::Params& params)
 {
   // Calculate the diagonal of search_points_ cloud
   pcl::PointXYZ min_pt, max_pt;
@@ -172,8 +172,8 @@ std::vector<int> getSubMeshIndices(const pcl::PointCloud<pcl::PointXYZ>::Ptr ver
 
 namespace noether
 {
-pcl::PolygonMesh ExtrudedPolygonSubMeshExtractor::extract(const pcl::PolygonMesh& mesh,
-                                                          const Eigen::MatrixX3d& boundary) const
+std::vector<int> ExtrudedPolygonSubsetExtractor::extract(const pcl::PCLPointCloud2& cloud,
+                                                         const Eigen::MatrixX3d& boundary) const
 {
   // Check size of selection points vector
   if (boundary.rows() < 3)
@@ -181,7 +181,7 @@ pcl::PolygonMesh ExtrudedPolygonSubMeshExtractor::extract(const pcl::PolygonMesh
 
   // Convert to point cloud class
   auto vertices = make_shared<pcl::PointCloud<pcl::PointXYZ>>();
-  pcl::fromPCLPointCloud2(mesh.cloud, *vertices);
+  pcl::fromPCLPointCloud2(cloud, *vertices);
 
   // Check the size of the input point cloud
   if (vertices->points.size() == 0)
@@ -200,11 +200,18 @@ pcl::PolygonMesh ExtrudedPolygonSubMeshExtractor::extract(const pcl::PolygonMesh
 
   /* Find all of the sensor data points inside a volume whose perimeter is defined by the projected selection points
    * and whose depth is defined by the largest length of the bounding box of the input point cloud */
-  std::vector<int> submesh_vertex_indices = getSubMeshIndices(vertices, projected_boundary, params);
-  if (submesh_vertex_indices.empty())
+  std::vector<int> subset_vertex_indices = getSubMeshIndices(vertices, projected_boundary, params);
+  if (subset_vertex_indices.empty())
     throw std::runtime_error("Unable to identify points in the region of interest");
 
-  return extractSubMeshFromInlierVertices(mesh, submesh_vertex_indices);
+  return subset_vertex_indices;
+}
+
+pcl::PolygonMesh ExtrudedPolygonSubMeshExtractor::extract(const pcl::PolygonMesh& mesh,
+                                                          const Eigen::MatrixX3d& boundary) const
+{
+  std::vector<int> subset_indices = extractor.extract(mesh.cloud, boundary);
+  return extractSubMeshFromInlierVertices(mesh, subset_indices);
 }
 
 }  // namespace noether

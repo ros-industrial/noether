@@ -32,8 +32,8 @@ find_package(xmlrpcpp REQUIRED)
 add_library(${PROJECT_NAME} SHARED
   src/filter_group.cpp
   src/filter_manager.cpp
-  src/submesh_extraction/submesh_extractor.cpp
-  src/submesh_extraction/extruded_polygon_submesh_extractor.cpp
+  src/subset_extraction/subset_extractor.cpp
+  src/subset_extraction/extruded_polygon_subset_extractor.cpp
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC
   ${Boost_LIBRARIES}

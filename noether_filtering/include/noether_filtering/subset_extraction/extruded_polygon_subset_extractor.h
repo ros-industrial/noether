@@ -15,7 +15,7 @@
  */
 #pragma once
 
-#include <noether_filtering/submesh_extraction/submesh_extractor.h>
+#include <noether_filtering/subset_extraction/subset_extractor.h>
 
 namespace noether
 {
@@ -30,11 +30,9 @@ namespace noether
  *   - Identify the vertices within the extruded prism
  *   - Cluster the inlier vertices
  *   - Extract the single cluster of vertices whose centroid is closest to the centroid of the boundary
- *   - Extract the submesh that includes the inlier vertices in the identified cluster
  */
-class ExtrudedPolygonSubMeshExtractor : SubMeshExtractor
+struct ExtrudedPolygonSubsetExtractor : SubsetExtractor
 {
-public:
   struct Params
   {
     /** @brief Distance (m) above which boundary points will not be included as inliers to the plane fit */
@@ -47,9 +45,19 @@ public:
     double cluster_tolerance = 0.15;
   };
 
-  pcl::PolygonMesh extract(const pcl::PolygonMesh& mesh, const Eigen::MatrixX3d& boundary) const override;
+  std::vector<int> extract(const pcl::PCLPointCloud2& cloud, const Eigen::MatrixX3d& boundary) const override;
 
   Params params;
+};
+
+/**
+ * @brief Extracts the submesh with the vertices captured inside an extruded polygon defined by the input boundary
+ * points
+ */
+struct ExtrudedPolygonSubMeshExtractor : SubMeshExtractor
+{
+  pcl::PolygonMesh extract(const pcl::PolygonMesh& mesh, const Eigen::MatrixX3d& boundary) const override;
+  ExtrudedPolygonSubsetExtractor extractor;
 };
 
 }  // namespace noether
