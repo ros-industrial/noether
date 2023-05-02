@@ -22,4 +22,32 @@ private:
   QCheckBox* flip_sign_;
 };
 
+class LeadInToolPathModifierWidget : public ToolPathModifierWidget
+{
+  Q_OBJECT
+public:
+  LeadInToolPathModifierWidget(QWidget* parent = nullptr);
+
+  ToolPathModifier::ConstPtr create() const override;
+
+private:
+  QDoubleSpinBox* lead_in_angle_;
+  QDoubleSpinBox* lead_in_arc_radius_;
+  QDoubleSpinBox* lead_in_num_of_points_;
+};
+
+class LeadOutToolPathModifierWidget : public ToolPathModifierWidget
+{
+  Q_OBJECT
+public:
+  LeadOutToolPathModifierWidget(QWidget* parent = nullptr);
+
+  ToolPathModifier::ConstPtr create() const override;
+
+private:
+  QDoubleSpinBox* lead_out_angle_;
+  QDoubleSpinBox* lead_out_arc_radius_;
+  QDoubleSpinBox* lead_out_num_of_points_;
+};
+
 }  // namespace noether

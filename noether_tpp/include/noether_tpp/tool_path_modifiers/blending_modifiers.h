@@ -24,5 +24,29 @@ protected:
   const bool flip_sign_;
 };
 
+class LeadInModifier : public ToolPathModifier
+{
+public:
+  LeadInModifier(double lead_in_angle, double lead_in_arc_radius, double lead_in_num_of_points);
+  ToolPaths modify(ToolPaths tool_paths) const override final;
+
+protected:
+  const double lead_in_angle_;
+  const double lead_in_arc_radius_;
+  const double lead_in_num_of_points_;
+};
+
+class LeadOutModifier : public ToolPathModifier
+{
+public:
+  LeadOutModifier(double lead_out_angle, double lead_out_arc_radius, double lead_out_num_of_points);
+  ToolPaths modify(ToolPaths tool_paths) const override final;
+
+protected:
+  const double lead_out_angle_;
+  const double lead_out_arc_radius_;
+  const double lead_out_num_of_points_;
+};
+
 }  // namespace noether
 

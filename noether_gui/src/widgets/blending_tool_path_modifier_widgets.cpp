@@ -39,7 +39,82 @@ AngledOrientationToolPathModifierWidget::AngledOrientationToolPathModifierWidget
 
 ToolPathModifier::ConstPtr AngledOrientationToolPathModifierWidget::create() const
 {
-  return std::make_unique<AngledOrientationModifier>(angle_offset_->value() * M_PI / 180.0, tool_radius_->value(), flip_sign_->value());
+  return std::make_unique<AngledOrientationModifier>(angle_offset_->value() * M_PI / 180.0, tool_radius_->value(), flip_sign_->checkState());
 }
+
+LeadInToolPathModifierWidget::LeadInToolPathModifierWidget(QWidget* parent)
+  : ToolPathModifierWidget(parent)
+{
+  auto layout = new QFormLayout(this);
+
+  // Lead in angle (how steep of shallow the approach of the tool path is)
+  lead_in_angle_ = new QDoubleSpinBox(this);
+  lead_in_angle_->setMinimum(0.0);
+  lead_in_angle_->setSingleStep(1.0);
+  lead_in_angle_->setValue(90.0);
+  lead_in_angle_->setDecimals(3);
+  layout->addRow(new QLabel("Lead In Angle (deg)", this), lead_in_angle_);
+
+  // Radius of the lead in arc
+  lead_in_arc_radius_ = new QDoubleSpinBox(this);
+  lead_in_arc_radius_->setMinimum(0.0);
+  lead_in_arc_radius_->setSingleStep(0.01);
+  lead_in_arc_radius_->setValue(0.1);
+  lead_in_arc_radius_->setDecimals(3);
+  layout->addRow(new QLabel("Tool radius (m)", this), lead_in_arc_radius_);
+
+  // Number of points
+  lead_in_num_of_points_ = new QDoubleSpinBox(this);
+  lead_in_num_of_points_->setMinimum(0.0);
+  lead_in_num_of_points_->setSingleStep(1);
+  lead_in_num_of_points_->setValue(5);
+  lead_in_num_of_points_->setDecimals(3);
+  layout->addRow(new QLabel("Lead in number of points", this), lead_in_num_of_points_);
+
+  setLayout(layout);
+}
+
+ToolPathModifier::ConstPtr LeadInToolPathModifierWidget::create() const
+{
+  return std::make_unique<LeadInModifier>(lead_in_angle_->value() * M_PI / 180.0, lead_in_arc_radius_->value(), lead_in_num_of_points_->value());
+}
+
+LeadOutToolPathModifierWidget::LeadOutToolPathModifierWidget(QWidget* parent)
+  : ToolPathModifierWidget(parent)
+{
+  auto layout = new QFormLayout(this);
+
+  // Lead out angle (how steep of shallow the approach of the tool path is)
+  lead_out_angle_ = new QDoubleSpinBox(this);
+  lead_out_angle_->setMinimum(0.0);
+  lead_out_angle_->setSingleStep(1.0);
+  lead_out_angle_->setValue(90.0);
+  lead_out_angle_->setDecimals(3);
+  layout->addRow(new QLabel("Lead out Angle (deg)", this), lead_out_angle_);
+
+  // Radius of the lead out arc
+  lead_out_arc_radius_ = new QDoubleSpinBox(this);
+  lead_out_arc_radius_->setMinimum(0.0);
+  lead_out_arc_radius_->setSingleStep(0.01);
+  lead_out_arc_radius_->setValue(0.1);
+  lead_out_arc_radius_->setDecimals(3);
+  layout->addRow(new QLabel("Tool radius (m)", this), lead_out_arc_radius_);
+
+  // Number of points
+  lead_out_num_of_points_ = new QDoubleSpinBox(this);
+  lead_out_num_of_points_->setMinimum(0.0);
+  lead_out_num_of_points_->setSingleStep(1);
+  lead_out_num_of_points_->setValue(5);
+  lead_out_num_of_points_->setDecimals(3);
+  layout->addRow(new QLabel("Lead out number of points", this), lead_out_num_of_points_);
+
+  setLayout(layout);
+}
+
+ToolPathModifier::ConstPtr LeadOutToolPathModifierWidget::create() const
+{
+  return std::make_unique<LeadOutModifier>(lead_out_angle_->value() * M_PI / 180.0, lead_out_arc_radius_->value(), lead_out_num_of_points_->value());
+}
+
 
 }  // namespace noether

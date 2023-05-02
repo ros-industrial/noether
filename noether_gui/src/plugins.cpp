@@ -52,6 +52,12 @@ using MovingAverageOrientationSmoothingModifierWidgetPlugin =
 using AngledOrientationToolPathModifierWidgetPlugin =
   WidgetPluginImpl<AngledOrientationToolPathModifierWidget, ToolPathModifierWidget>;
 
+using LeadInToolPathModifierWidgetPlugin =
+  WidgetPluginImpl<LeadInToolPathModifierWidget, ToolPathModifierWidget>;
+
+using LeadOutToolPathModifierWidgetPlugin =
+  WidgetPluginImpl<LeadOutToolPathModifierWidget, ToolPathModifierWidget>;
+
 // Raster Tool Path Planners
 struct PlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlugin
 {
@@ -84,5 +90,7 @@ EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::UniformOrientationModifierWidge
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::MovingAverageOrientationSmoothingModifierWidgetPlugin,
                                         MovingAverageOrientationSmoothingModifier)
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::AngledOrientationToolPathModifierWidgetPlugin, AngledOrientationModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::LeadInToolPathModifierWidgetPlugin, LeadInModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::LeadInToolPathModifierWidgetPlugin, LeadOutModifier)
 
 EXPORT_TPP_WIDGET_PLUGIN(noether::PlaneSlicerRasterPlannerWidgetPlugin, PlaneSlicerRasterPlanner);
