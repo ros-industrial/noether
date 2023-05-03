@@ -10,6 +10,11 @@ namespace Ui
 class RasterPlanner;
 }
 
+namespace YAML
+{
+class Node;
+}
+
 namespace noether
 {
 class RasterPlannerWidget : public ToolPathPlannerWidget
@@ -22,6 +27,9 @@ public:
 protected:
   DirectionGeneratorWidget* getDirectionGeneratorWidget() const;
   OriginGeneratorWidget* getOriginGeneratorWidget() const;
+
+  void setDirectionGeneratorWidget(const QString& plugin_name, const YAML::Node& config);
+  void setOriginGeneratorWidget(const QString& plugin_name, const YAML::Node& config);
 
   const boost_plugin_loader::PluginLoader loader_;
   Ui::RasterPlanner* ui_;

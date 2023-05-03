@@ -20,49 +20,51 @@ RasterPlannerWidget::RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loa
 
   connect(ui_->combo_box_dir_gen, &QComboBox::currentTextChanged, [this](const QString& text) {
     if (text.isEmpty())
-    {
       overwriteWidget(ui_->group_box_dir_gen->layout(), ui_->widget_dir_gen, new QWidget(this));
-    }
     else
-    {
-      try
-      {
-        auto plugin = loader_.createInstance<DirectionGeneratorWidgetPlugin>(text.toStdString());
-
-        auto collapsible_area = new CollapsibleArea(text, this);
-        collapsible_area->setWidget(plugin->create(this));
-
-        overwriteWidget(ui_->group_box_dir_gen->layout(), ui_->widget_dir_gen, collapsible_area);
-      }
-      catch (const std::exception& ex)
-      {
-        QMessageBox::warning(this, "Direction Generator Error", QString::fromStdString(ex.what()));
-      }
-    }
+      setDirectionGeneratorWidget(text, {});
   });
 
   connect(ui_->combo_box_origin_gen, &QComboBox::currentTextChanged, [this](const QString& text) {
     if (text.isEmpty())
-    {
       overwriteWidget(ui_->group_box_origin_gen->layout(), ui_->widget_origin_gen, new QWidget(this));
-    }
     else
-    {
-      try
-      {
-        auto plugin = loader_.createInstance<OriginGeneratorWidgetPlugin>(text.toStdString());
-
-        auto collapsible_area = new CollapsibleArea(text, this);
-        collapsible_area->setWidget(plugin->create(this));
-
-        overwriteWidget(ui_->group_box_origin_gen->layout(), ui_->widget_origin_gen, collapsible_area);
-      }
-      catch (const std::exception& ex)
-      {
-        QMessageBox::warning(this, "Origin Generator Error", QString::fromStdString(ex.what()));
-      }
-    }
+      setOriginGeneratorWidget(text, {});
   });
+}
+
+void RasterPlannerWidget::setDirectionGeneratorWidget(const QString& plugin_name, const YAML::Node& config)
+{
+  try
+  {
+    auto plugin = loader_.createInstance<DirectionGeneratorWidgetPlugin>(plugin_name.toStdString());
+
+    auto collapsible_area = new CollapsibleArea(plugin_name, this);
+    collapsible_area->setWidget(plugin->create(this, config));
+
+    overwriteWidget(ui_->group_box_dir_gen->layout(), ui_->widget_dir_gen, collapsible_area);
+  }
+  catch (const std::exception& ex)
+  {
+    QMessageBox::warning(this, "Direction Generator Error", QString::fromStdString(ex.what()));
+  }
+}
+
+void RasterPlannerWidget::setOriginGeneratorWidget(const QString& plugin_name, const YAML::Node& config)
+{
+  try
+  {
+    auto plugin = loader_.createInstance<OriginGeneratorWidgetPlugin>(plugin_name.toStdString());
+
+    auto collapsible_area = new CollapsibleArea(plugin_name, this);
+    collapsible_area->setWidget(plugin->create(this, config));
+
+    overwriteWidget(ui_->group_box_origin_gen->layout(), ui_->widget_origin_gen, collapsible_area);
+  }
+  catch (const std::exception& ex)
+  {
+    QMessageBox::warning(this, "Origin Generator Error", QString::fromStdString(ex.what()));
+  }
 }
 
 void RasterPlannerWidget::fromYAML(const YAML::Node& config)
@@ -70,6 +72,29 @@ void RasterPlannerWidget::fromYAML(const YAML::Node& config)
   ui_->double_spin_box_line_spacing->setValue(getEntry<double>(config, "line_spacing"));
   ui_->double_spin_box_point_spacing->setValue(getEntry<double>(config, "point_spacing"));
   ui_->double_spin_box_minimum_hole_size->setValue(getEntry<double>(config, "min_hole_size"));
+
+  try
+  {
+    // Direction generator
+    auto dir_gen_config = getEntry<YAML::Node>(config, "direction_generator");
+    setDirectionGeneratorWidget(QString::fromStdString(getEntry<std::string>(dir_gen_config, "name")), dir_gen_config);
+  }
+  catch (const std::exception& ex)
+  {
+    QMessageBox::warning(this, "Direction generator configuration error", ex.what());
+  }
+
+  try
+  {
+    // Origin generator
+    auto origin_gen_config = getEntry<YAML::Node>(config, "origin_generator");
+    setOriginGeneratorWidget(QString::fromStdString(getEntry<std::string>(origin_gen_config, "name")),
+                             origin_gen_config);
+  }
+  catch (const std::exception& ex)
+  {
+    QMessageBox::warning(this, "Origin generator configuration error", ex.what());
+  }
 }
 
 DirectionGeneratorWidget* RasterPlannerWidget::getDirectionGeneratorWidget() const
