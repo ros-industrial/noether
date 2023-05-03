@@ -13,8 +13,8 @@
 #include <QMessageBox>
 
 static const std::string MESH_MODIFIERS_KEY = "mesh_modifiers";
-static const std::string TOOL_PATH_PLANNER_KEY = "mesh_modifiers";
-static const std::string TOOL_PATH_MODIFIERS_KEY = "mesh_modifiers";
+static const std::string TOOL_PATH_PLANNER_KEY = "tool_path_planner";
+static const std::string TOOL_PATH_MODIFIERS_KEY = "tool_path_modifiers";
 
 template <typename T>
 std::vector<typename T::ConstPtr> convert(const QWidgetList& widgets)
@@ -53,7 +53,9 @@ TPPPipelineWidget::TPPPipelineWidget(boost_plugin_loader::PluginLoader loader, Q
   // Add the mesh modifier loader widget
   ui_->vertical_layout_mesh_mod->addWidget(mesh_modifier_loader_widget_);
 
-  connect(ui_->combo_box_tpp, &QComboBox::currentTextChanged, [this](const QString& text) {
+  connect(ui_->push_button_select_tpp, &QPushButton::clicked, [this](const bool /*checked*/) {
+    const QString text = ui_->combo_box_tpp->currentText();
+    ui_->group_box_tpp->setTitle(text);
     if (text.isEmpty())
     {
       overwriteWidget(ui_->group_box_tpp->layout(), ui_->widget_tpp, new QWidget(this));
@@ -82,12 +84,10 @@ void TPPPipelineWidget::configure(const YAML::Node& config)
   try
   {
     auto tpp_config = getEntry<YAML::Node>(config, TOOL_PATH_PLANNER_KEY);
-    for (auto it = tpp_config.begin(); it != tpp_config.end(); ++it)
-    {
-      auto name = getEntry<std::string>(*it, "name");
-      auto plugin = loader_.createInstance<ToolPathPlannerWidgetPlugin>(name);
-      overwriteWidget(ui_->group_box_tpp->layout(), ui_->widget_tpp, plugin->create(this, *it));
-    }
+    auto name = getEntry<std::string>(tpp_config, "name");
+    auto plugin = loader_.createInstance<ToolPathPlannerWidgetPlugin>(name);
+    overwriteWidget(ui_->group_box_tpp->layout(), ui_->widget_tpp, plugin->create(this, tpp_config));
+    ui_->group_box_tpp->setTitle(QString::fromStdString(name));
   }
   catch (const std::exception& ex)
   {
@@ -113,6 +113,7 @@ void TPPPipelineWidget::save(YAML::Node& config) const
     if (tpp_widget)
     {
       YAML::Node tpp_config;
+      tpp_config["name"] = ui_->group_box_tpp->title().toStdString();
       tpp_widget->save(tpp_config);
       config[TOOL_PATH_PLANNER_KEY] = tpp_config;
     }
