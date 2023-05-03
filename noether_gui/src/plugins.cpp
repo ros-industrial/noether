@@ -7,6 +7,7 @@
 #include <noether_gui/widgets/plane_slicer_raster_planner_widget.h>
 
 #include <QWidget>
+#include <QMessageBox>
 
 namespace noether
 {
@@ -17,14 +18,17 @@ struct WidgetPluginImpl : WidgetPlugin<BaseT>
   {
     auto widget = new T(parent);
 
-    // Attempt to deserialize
-    try
+    if (!config.IsNull())
     {
-      widget->fromYAML(config);
-    }
-    catch (const std::exception& /*ex*/)
-    {
-      // Document
+      // Attempt to configure the widget
+      try
+      {
+        widget->fromYAML(config);
+      }
+      catch (const std::exception& ex)
+      {
+        QMessageBox::warning(widget, "Configuration error", ex.what());
+      }
     }
 
     return widget;
@@ -83,14 +87,17 @@ struct PlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlugin
     loader.search_libraries.insert(NOETHER_GUI_PLUGINS);
     auto widget = new PlaneSlicerRasterPlannerWidget(std::move(loader), parent);
 
-    // Load the parameters
-    try
+    if (!config.IsNull())
     {
-      widget->fromYAML(config);
-    }
-    catch (const std::exception&)
-    {
-      //
+      // Attempt to configure the widget
+      try
+      {
+        widget->fromYAML(config);
+      }
+      catch (const std::exception& ex)
+      {
+        QMessageBox::warning(widget, "Configuration error", ex.what());
+      }
     }
 
     return widget;
