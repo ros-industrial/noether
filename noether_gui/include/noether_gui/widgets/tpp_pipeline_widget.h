@@ -27,10 +27,12 @@ public:
 
   ToolPathPlannerPipeline createPipeline() const;
 
+  void configure(const YAML::Node& config);
+
 private:
   const boost_plugin_loader::PluginLoader loader_;
   PluginLoaderWidget<MeshModifierWidgetPlugin>* mesh_modifier_loader_widget_;
-  PluginLoaderWidget<ToolPathModifierWidgetPlugin>* tool_path_modifier_loader_widget;
+  PluginLoaderWidget<ToolPathModifierWidgetPlugin>* tool_path_modifier_loader_widget_;
   Ui::TPPPipeline* ui_;
 };
 

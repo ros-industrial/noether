@@ -35,7 +35,7 @@ TPPPipelineWidget::TPPPipelineWidget(boost_plugin_loader::PluginLoader loader, Q
   , loader_(std::move(loader))
   , ui_(new Ui::TPPPipeline())
   , mesh_modifier_loader_widget_(new PluginLoaderWidget<MeshModifierWidgetPlugin>(loader_, "Mesh Modifier", this))
-  , tool_path_modifier_loader_widget(
+  , tool_path_modifier_loader_widget_(
         new PluginLoaderWidget<ToolPathModifierWidgetPlugin>(loader_, "Tool Path Modifier", this))
 {
   ui_->setupUi(this);
@@ -44,7 +44,7 @@ TPPPipelineWidget::TPPPipelineWidget(boost_plugin_loader::PluginLoader loader, Q
   ui_->combo_box_tpp->addItems(getAvailablePlugins<ToolPathPlannerWidgetPlugin>(loader_));
 
   // Add the tool path modifier loader widget
-  ui_->vertical_layout_tool_path_mod->addWidget(tool_path_modifier_loader_widget);
+  ui_->vertical_layout_tool_path_mod->addWidget(tool_path_modifier_loader_widget_);
 
   // Add the mesh modifier loader widget
   ui_->vertical_layout_mesh_mod->addWidget(mesh_modifier_loader_widget_);
@@ -67,6 +67,31 @@ TPPPipelineWidget::TPPPipelineWidget(boost_plugin_loader::PluginLoader loader, Q
       }
     }
   });
+}
+
+void TPPPipelineWidget::configure(const YAML::Node& config)
+{
+  // Mesh modifier
+  mesh_modifier_loader_widget_->configure(getEntry<YAML::Node>(config, "mesh_modifiers"));
+
+  // Tool path planner
+  try
+  {
+    auto tpp_config = getEntry<YAML::Node>(config, "tool_path_planner");
+    for (auto it = tpp_config.begin(); it != tpp_config.end(); ++it)
+    {
+      auto name = getEntry<std::string>(*it, "name");
+      auto plugin = loader_.createInstance<ToolPathPlannerWidgetPlugin>(name);
+      overwriteWidget(ui_->group_box_tpp->layout(), ui_->widget_tpp, plugin->create(this, *it));
+    }
+  }
+  catch (const std::exception& ex)
+  {
+    QMessageBox::warning(this, "Configuration Error", ex.what());
+  }
+
+  // Tool path modifiers
+  tool_path_modifier_loader_widget_->configure(getEntry<YAML::Node>(config, "tool_path_modifiers"));
 }
 
 ToolPathPlannerPipeline TPPPipelineWidget::createPipeline() const
@@ -92,7 +117,7 @@ ToolPathPlannerPipeline TPPPipelineWidget::createPipeline() const
   ToolPathModifier::ConstPtr tool_path_mod;
   {
     std::vector<ToolPathModifier::ConstPtr> tool_path_mods =
-        convert<ToolPathModifier>(tool_path_modifier_loader_widget->getWidgets());
+        convert<ToolPathModifier>(tool_path_modifier_loader_widget_->getWidgets());
 
     if (tool_path_mods.empty())
       tool_path_mod = std::make_unique<const ToolPathModifier>();
