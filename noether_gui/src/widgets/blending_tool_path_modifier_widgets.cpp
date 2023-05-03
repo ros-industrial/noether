@@ -14,13 +14,15 @@ AngledOrientationToolPathModifierWidget::AngledOrientationToolPathModifierWidget
 {
   auto layout = new QFormLayout(this);
 
-  // Angle of rotation about the y axis
+  // Angle between the grinder and the media being ground
   angle_offset_ = new QDoubleSpinBox(this);
   angle_offset_->setMinimum(0.0);
   angle_offset_->setSingleStep(1.0);
   angle_offset_->setValue(30.0);
   angle_offset_->setDecimals(3);
-  layout->addRow(new QLabel("Angle offset (deg)", this), angle_offset_);
+  auto label = new QLabel("Angle offset (deg)", this);
+  label->setToolTip("The angle between the grinder and the media being ground");
+  layout->addRow(label, angle_offset_);
 
   // Radius of the tool
   tool_radius_ = new QDoubleSpinBox(this);
@@ -34,7 +36,6 @@ AngledOrientationToolPathModifierWidget::AngledOrientationToolPathModifierWidget
   flip_sign_ = new QCheckBox(this);
   flip_sign_->setToolTip("Flip the sign of the angle offset between rasters (to support snake organization)");
   layout->addRow(new QLabel("Flip", this), flip_sign_);
-
   setLayout(layout);
 }
 
@@ -48,13 +49,14 @@ LeadInToolPathModifierWidget::LeadInToolPathModifierWidget(QWidget* parent)
 {
   auto layout = new QFormLayout(this);
 
-  // Lead in angle (how steep of shallow the approach of the tool path is)
   lead_in_angle_ = new QDoubleSpinBox(this);
   lead_in_angle_->setMinimum(0.0);
   lead_in_angle_->setSingleStep(1.0);
   lead_in_angle_->setValue(90.0);
   lead_in_angle_->setDecimals(3);
-  layout->addRow(new QLabel("Lead In Angle (deg)", this), lead_in_angle_);
+  auto label = new QLabel("Arc sweep (deg)", this);
+  label->setToolTip("How far along the approach trajectory arc the waypoints extend from the first waypoint of the segment");
+  layout->addRow(label, lead_in_angle_);
 
   // Radius of the lead in arc
   lead_in_arc_radius_ = new QDoubleSpinBox(this);
@@ -62,14 +64,17 @@ LeadInToolPathModifierWidget::LeadInToolPathModifierWidget(QWidget* parent)
   lead_in_arc_radius_->setSingleStep(0.01);
   lead_in_arc_radius_->setValue(0.1);
   lead_in_arc_radius_->setDecimals(3);
-  layout->addRow(new QLabel("Tool radius (m)", this), lead_in_arc_radius_);
-
+  auto label_rad = new QLabel("Arc radius (m)", this);
+  label_rad->setToolTip("Distance from the first segment point to the center of the approach trajectory arc");
+  layout->addRow(label_rad, lead_in_arc_radius_);
   // Number of points
   lead_in_num_of_points_ = new QSpinBox(this);
   lead_in_num_of_points_->setMinimum(0.0);
   lead_in_num_of_points_->setSingleStep(1);
   lead_in_num_of_points_->setValue(5);
-  layout->addRow(new QLabel("Lead in number of points", this), lead_in_num_of_points_);
+  auto label_pnt = new QLabel("Lead in number of points", this);
+  label_pnt->setToolTip("Number of waypoints along the approach trajectory");
+  layout->addRow(label_pnt, lead_in_num_of_points_);
 
   setLayout(layout);
 }
@@ -84,13 +89,15 @@ LeadOutToolPathModifierWidget::LeadOutToolPathModifierWidget(QWidget* parent)
 {
   auto layout = new QFormLayout(this);
 
-  // Lead out angle (how steep of shallow the approach of the tool path is)
+  // Lead out angle (how steep or shallow the exit of the tool path is)
   lead_out_angle_ = new QDoubleSpinBox(this);
   lead_out_angle_->setMinimum(0.0);
   lead_out_angle_->setSingleStep(1.0);
   lead_out_angle_->setValue(90.0);
   lead_out_angle_->setDecimals(3);
-  layout->addRow(new QLabel("Lead out Angle (deg)", this), lead_out_angle_);
+  auto label = new QLabel("Arc sweep (deg)", this);
+  label->setToolTip("How far along the exit trajectory arc the waypoints extend from the last waypoint of the segment");
+  layout->addRow(label, lead_out_angle_);
 
   // Radius of the lead out arc
   lead_out_arc_radius_ = new QDoubleSpinBox(this);
@@ -98,14 +105,19 @@ LeadOutToolPathModifierWidget::LeadOutToolPathModifierWidget(QWidget* parent)
   lead_out_arc_radius_->setSingleStep(0.01);
   lead_out_arc_radius_->setValue(0.1);
   lead_out_arc_radius_->setDecimals(3);
-  layout->addRow(new QLabel("Tool radius (m)", this), lead_out_arc_radius_);
+  auto label_rad = new QLabel("Arc radius (m)", this);
+  label_rad->setToolTip("Distance from the last segment point to the center of the exit trajectory arc");
+  layout->addRow(label_rad, lead_out_arc_radius_);
 
   // Number of points
   lead_out_num_of_points_ = new QSpinBox(this);
   lead_out_num_of_points_->setMinimum(0.0);
   lead_out_num_of_points_->setSingleStep(1);
   lead_out_num_of_points_->setValue(5);
-  layout->addRow(new QLabel("Lead out number of points", this), lead_out_num_of_points_);
+
+  auto label_pnt = new QLabel("Lead in number of points", this);
+  label_pnt->setToolTip("Number of waypoints along the exit trajectory");
+  layout->addRow(label_pnt, lead_out_num_of_points_);
 
   setLayout(layout);
 }

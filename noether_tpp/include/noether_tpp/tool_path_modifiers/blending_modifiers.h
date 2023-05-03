@@ -5,13 +5,9 @@
 namespace noether
 {
 /**
- * @brief Aligns the orientation of each waypoint with the existing waypoint normal (z-axis) and the specified reference
- * x-axis direction
- * @details The new waypoint y-axis is computed as the cross-product of the existing waypoint normal (z-axis) and the
- * reference x-axis. The new waypoint x-axis is computed as the cross-product of the new y-axis with the existing
- * waypoint normal (z-axis). Thus, each new waypoint's x-axis will probably not exactly match the input reference
- * direction, but it will be as close as possible
- */
+ * @brief Transforms the waypoints to correspond with the center of the ginding tool so that the edge
+ * of the tool is in contact with the media
+*/
 class AngledOrientationModifier : public ToolPathModifier
 {
 public:
@@ -24,6 +20,11 @@ protected:
   const bool flip_sign_;
 };
 
+/**
+ * @brief Modifier that adjusts the parameters of the tool approach trajectory to the media
+ * @details Asumes that the x direction of the waypoints is the direction of travel for the tool.
+ * If this is not a valid assumption, run the DirectionOfTravel orientation modifier before this modifier.
+*/
 class LeadInModifier : public ToolPathModifier
 {
 public:
@@ -36,6 +37,11 @@ protected:
   const double n_points_;
 };
 
+/**
+ * @brief Modifier that adjusts the parameters of the tool exit trajectory to the media
+ * @details Asumes that the x direction of the waypoints is the direction of travel for the tool.
+ * If this is not a valid assumption, run the DirectionOfTravel orientation modifier before this modifier.
+*/
 class LeadOutModifier : public ToolPathModifier
 {
 public:

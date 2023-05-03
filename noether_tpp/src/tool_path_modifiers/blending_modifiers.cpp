@@ -41,26 +41,15 @@ ToolPaths LeadInModifier::modify(ToolPaths tool_paths) const
     for (ToolPathSegment& segment : tool_path)
     {
       Eigen::Isometry3d radius_center = segment.front() * Eigen::Translation3d(0.0, 0.0, arc_radius_);
-//      Eigen::Isometry3d wp1 = segment.front();
-//      Eigen::Isometry3d wp2 = segment[1];
-//      Eigen::Isometry3d wp21 = wp1.inverse() * wp2;
-//      Eigen::Vector3d t21 = wp21.translation();
-//      Eigen::Vector3d rotation_vect = Eigen::Vector3d::UnitZ().cross(t21/t21.norm());
-
       ToolPathSegment new_segment;
 
       for(int i = 0; i < n_points_; i++)
-      {
-//        Eigen::Isometry3d pt = radius_center * Eigen::AngleAxisd(delta_theta * (i + 1), rotation_vect) * Eigen::Translation3d(0, 0,-lead_in_arc_radius_);
-        Eigen::Isometry3d pt = radius_center * Eigen::AngleAxisd(delta_theta * (i + 1), Eigen::Vector3d::UnitY()) * Eigen::Translation3d(0, 0,-arc_radius_);
+      {        Eigen::Isometry3d pt = radius_center * Eigen::AngleAxisd(delta_theta * (i + 1), Eigen::Vector3d::UnitY()) * Eigen::Translation3d(0, 0,-arc_radius_);
         pt.linear() = segment.front().linear();
         new_segment.push_back(pt);
       }
 
       segment.insert(segment.begin(), new_segment.rbegin(), new_segment.rend());
-
-//      new_segment.insert(new_segment.end(), segment.begin(), segment.end());
-//      segment = new_segment;
     }
   }
 
@@ -81,17 +70,10 @@ ToolPaths LeadInModifier::modify(ToolPaths tool_paths) const
       for (ToolPathSegment& segment : tool_path)
       {
         Eigen::Isometry3d radius_center = segment.back() * Eigen::Translation3d(0.0, 0.0, arc_radius_);
-//        Eigen::Isometry3d wp1 = segment.back();
-//        Eigen::Isometry3d wp2 = segment.end()[-2];
-//        Eigen::Isometry3d wp21 = wp1.inverse() * wp2;
-//        Eigen::Vector3d t21 = wp21.translation();
-//        Eigen::Vector3d rotation_vect = Eigen::Vector3d::UnitZ().cross(t21/t21.norm());
-
         ToolPathSegment new_segment;
 
         for(int i = 0; i < n_points_; i++)
         {
-//          Eigen::Isometry3d pt = radius_center * Eigen::AngleAxisd(-delta_theta * (i + 1), rotation_vect) * Eigen::Translation3d(0, 0, lead_out_arc_radius_);
           Eigen::Isometry3d pt = radius_center * Eigen::AngleAxisd(-delta_theta * (i + 1), Eigen::Vector3d::UnitY()) * Eigen::Translation3d(0, 0, -arc_radius_);
           pt.linear() = segment.back().linear();
           new_segment.insert(new_segment.begin(), pt);
