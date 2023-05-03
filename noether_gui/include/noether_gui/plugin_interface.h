@@ -24,6 +24,7 @@ template <typename T>
 class WidgetPlugin
 {
 public:
+  using WidgetT = T;
   using Ptr = std::shared_ptr<WidgetPlugin>;
   virtual ~WidgetPlugin() = default;
 
