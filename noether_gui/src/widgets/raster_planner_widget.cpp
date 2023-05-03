@@ -7,6 +7,12 @@
 #include <QMessageBox>
 #include <yaml-cpp/yaml.h>
 
+static const std::string DIRECTION_GENERATOR_KEY = "direction_generator";
+static const std::string ORIGIN_GENERATOR_KEY = "origin_generator";
+static const std::string LINE_SPACING_KEY = "line_spacing";
+static const std::string POINT_SPACING_KEY = "point_spacing";
+static const std::string MIN_HOLE_SIZE_KEY = "min_hole_size";
+
 namespace noether
 {
 RasterPlannerWidget::RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loader, QWidget* parent)
@@ -18,14 +24,18 @@ RasterPlannerWidget::RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loa
   ui_->combo_box_dir_gen->addItems(getAvailablePlugins<DirectionGeneratorWidgetPlugin>(loader_));
   ui_->combo_box_origin_gen->addItems(getAvailablePlugins<OriginGeneratorWidgetPlugin>(loader_));
 
-  connect(ui_->combo_box_dir_gen, &QComboBox::currentTextChanged, [this](const QString& text) {
+  connect(ui_->push_button_dir_gen, &QPushButton::clicked, [this](const bool /*clicked*/) {
+    QString text = ui_->combo_box_dir_gen->currentText();
+    ui_->group_box_dir_gen->setTitle(text);
     if (text.isEmpty())
       overwriteWidget(ui_->group_box_dir_gen->layout(), ui_->widget_dir_gen, new QWidget(this));
     else
       setDirectionGeneratorWidget(text, {});
   });
 
-  connect(ui_->combo_box_origin_gen, &QComboBox::currentTextChanged, [this](const QString& text) {
+  connect(ui_->push_button_origin_gen, &QPushButton::clicked, [this](const bool /*clicked*/) {
+    QString text = ui_->combo_box_origin_gen->currentText();
+    ui_->group_box_origin_gen->setTitle(text);
     if (text.isEmpty())
       overwriteWidget(ui_->group_box_origin_gen->layout(), ui_->widget_origin_gen, new QWidget(this));
     else
@@ -69,15 +79,17 @@ void RasterPlannerWidget::setOriginGeneratorWidget(const QString& plugin_name, c
 
 void RasterPlannerWidget::configure(const YAML::Node& config)
 {
-  ui_->double_spin_box_line_spacing->setValue(getEntry<double>(config, "line_spacing"));
-  ui_->double_spin_box_point_spacing->setValue(getEntry<double>(config, "point_spacing"));
-  ui_->double_spin_box_minimum_hole_size->setValue(getEntry<double>(config, "min_hole_size"));
+  ui_->double_spin_box_line_spacing->setValue(getEntry<double>(config, LINE_SPACING_KEY));
+  ui_->double_spin_box_point_spacing->setValue(getEntry<double>(config, POINT_SPACING_KEY));
+  ui_->double_spin_box_minimum_hole_size->setValue(getEntry<double>(config, MIN_HOLE_SIZE_KEY));
 
   try
   {
     // Direction generator
-    auto dir_gen_config = getEntry<YAML::Node>(config, "direction_generator");
-    setDirectionGeneratorWidget(QString::fromStdString(getEntry<std::string>(dir_gen_config, "name")), dir_gen_config);
+    auto dir_gen_config = getEntry<YAML::Node>(config, DIRECTION_GENERATOR_KEY);
+    QString plugin_name = QString::fromStdString(getEntry<std::string>(dir_gen_config, "name"));
+    setDirectionGeneratorWidget(plugin_name, dir_gen_config);
+    ui_->group_box_dir_gen->setTitle(plugin_name);
   }
   catch (const std::exception& ex)
   {
@@ -87,9 +99,10 @@ void RasterPlannerWidget::configure(const YAML::Node& config)
   try
   {
     // Origin generator
-    auto origin_gen_config = getEntry<YAML::Node>(config, "origin_generator");
-    setOriginGeneratorWidget(QString::fromStdString(getEntry<std::string>(origin_gen_config, "name")),
-                             origin_gen_config);
+    auto origin_gen_config = getEntry<YAML::Node>(config, ORIGIN_GENERATOR_KEY);
+    QString plugin_name = QString::fromStdString(getEntry<std::string>(origin_gen_config, "name"));
+    setOriginGeneratorWidget(plugin_name, origin_gen_config);
+    ui_->group_box_origin_gen->setTitle(plugin_name);
   }
   catch (const std::exception& ex)
   {
@@ -99,17 +112,33 @@ void RasterPlannerWidget::configure(const YAML::Node& config)
 
 void RasterPlannerWidget::save(YAML::Node& config) const
 {
-  YAML::Node dir_gen_config;
-  getDirectionGeneratorWidget()->save(dir_gen_config);
-  config["direction_generator"] = dir_gen_config;
+  // Direction generator
+  try
+  {
+    YAML::Node dir_gen_config;
+    dir_gen_config["name"] = ui_->group_box_dir_gen->title().toStdString();
+    getDirectionGeneratorWidget()->save(dir_gen_config);
+    config[DIRECTION_GENERATOR_KEY] = dir_gen_config;
+  }
+  catch (const std::exception&)
+  {
+  }
 
-  YAML::Node origin_gen_config;
-  getOriginGeneratorWidget()->save(origin_gen_config);
-  config["origin_generator"] = origin_gen_config;
+  // Origin generator
+  try
+  {
+    YAML::Node origin_gen_config;
+    origin_gen_config["name"] = ui_->group_box_origin_gen->title().toStdString();
+    getOriginGeneratorWidget()->save(origin_gen_config);
+    config[ORIGIN_GENERATOR_KEY] = origin_gen_config;
+  }
+  catch (const std::exception&)
+  {
+  }
 
-  config["line_spacing"] = ui_->double_spin_box_line_spacing->value();
-  config["point_spacing"] = ui_->double_spin_box_point_spacing->value();
-  config["min_hole_size"] = ui_->double_spin_box_minimum_hole_size->value();
+  config[LINE_SPACING_KEY] = ui_->double_spin_box_line_spacing->value();
+  config[POINT_SPACING_KEY] = ui_->double_spin_box_point_spacing->value();
+  config[MIN_HOLE_SIZE_KEY] = ui_->double_spin_box_minimum_hole_size->value();
 }
 
 DirectionGeneratorWidget* RasterPlannerWidget::getDirectionGeneratorWidget() const
