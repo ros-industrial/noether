@@ -25,6 +25,13 @@ void StandardEdgePathsOrganizationModifierWidget::configure(const YAML::Node& co
   ui_->double_spin_box_z->setValue(getEntry<double>(config, "z"));
 }
 
+void StandardEdgePathsOrganizationModifierWidget::save(YAML::Node& config) const
+{
+  config["x"] = ui_->double_spin_box_x->value();
+  config["y"] = ui_->double_spin_box_y->value();
+  config["z"] = ui_->double_spin_box_z->value();
+}
+
 ToolPathModifier::ConstPtr StandardEdgePathsOrganizationModifierWidget::create() const
 {
   Eigen::Vector3d start_ref(
@@ -62,6 +69,13 @@ void FixedOrientationModifierWidget::configure(const YAML::Node& config)
   ui_->double_spin_box_z->setValue(dir.z());
 }
 
+void FixedOrientationModifierWidget::save(YAML::Node& config) const
+{
+  config["x"] = ui_->double_spin_box_x->value();
+  config["y"] = ui_->double_spin_box_y->value();
+  config["z"] = ui_->double_spin_box_z->value();
+}
+
 ToolPathModifier::ConstPtr FixedOrientationModifierWidget::create() const
 {
   Eigen::Vector3d ref_x_dir(
@@ -93,6 +107,11 @@ MovingAverageOrientationSmoothingModifierWidget::MovingAverageOrientationSmoothi
 void MovingAverageOrientationSmoothingModifierWidget::configure(const YAML::Node& config)
 {
   window_size_->setValue(getEntry<int>(config, "window_size"));
+}
+
+void MovingAverageOrientationSmoothingModifierWidget::save(YAML::Node& config) const
+{
+  config["window_size"] = window_size_->value();
 }
 
 ToolPathModifier::ConstPtr MovingAverageOrientationSmoothingModifierWidget::create() const

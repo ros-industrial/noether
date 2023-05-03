@@ -13,6 +13,7 @@ namespace noether
 {
 CollapsibleArea::CollapsibleArea(const QString& label, QWidget* parent)
   : QWidget(parent)
+  , label_(label)
   , layout(new QGridLayout(this))
   , tool_button(new QToolButton(this))
   , line(new QFrame(this))
@@ -92,5 +93,7 @@ void CollapsibleArea::setWidget(QWidget* widget)
 }
 
 QWidget* CollapsibleArea::getWidget() const { return content->widget(); }
+
+QString CollapsibleArea::getLabel() const { return label_; }
 
 }  // namespace noether

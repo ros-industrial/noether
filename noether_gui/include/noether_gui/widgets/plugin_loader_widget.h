@@ -25,7 +25,9 @@ public:
   PluginLoaderWidget(boost_plugin_loader::PluginLoader loader, const QString& title, QWidget* parent = nullptr);
 
   QWidgetList getWidgets() const;
+
   void configure(const YAML::Node& config);
+  void save(YAML::Node& config) const;
 
 private:
   void addWidget(const QString& plugin_name, const YAML::Node& config);

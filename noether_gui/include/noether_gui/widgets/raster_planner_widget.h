@@ -23,6 +23,7 @@ public:
   RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loader, QWidget* parent = nullptr);
 
   void configure(const YAML::Node&) override;
+  void save(YAML::Node&) const override;
 
 protected:
   DirectionGeneratorWidget* getDirectionGeneratorWidget() const;

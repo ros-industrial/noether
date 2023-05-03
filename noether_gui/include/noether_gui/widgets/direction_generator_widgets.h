@@ -24,6 +24,7 @@ public:
   DirectionGenerator::ConstPtr create() const override;
 
   void configure(const YAML::Node&) override;
+  void save(YAML::Node&) const override;
 
 private:
   Ui::Vector3dEditor* ui_;
@@ -38,6 +39,7 @@ public:
   DirectionGenerator::ConstPtr create() const override;
 
   void configure(const YAML::Node&) override;
+  void save(YAML::Node&) const override;
 
 private:
   QFormLayout* layout_;

@@ -50,6 +50,13 @@ void PlaneSlicerRasterPlannerWidget::configure(const YAML::Node& config)
   min_segment_size_->setValue(getEntry<double>(config, "min_segment_size"));
 }
 
+void PlaneSlicerRasterPlannerWidget::save(YAML::Node& config) const
+{
+  RasterPlannerWidget::save(config);
+  config["search_radius"] = search_radius_->value();
+  config["min_segment_size"] = min_segment_size_->value();
+}
+
 ToolPathPlanner::ConstPtr PlaneSlicerRasterPlannerWidget::create() const
 {
   DirectionGeneratorWidget* dir_gen_widget = getDirectionGeneratorWidget();

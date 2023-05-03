@@ -28,6 +28,13 @@ void FixedDirectionGeneratorWidget::configure(const YAML::Node& config)
   ui_->double_spin_box_z->setValue(dir.z());
 }
 
+void FixedDirectionGeneratorWidget::save(YAML::Node& config) const
+{
+  config["x"] = ui_->double_spin_box_x->value();
+  config["y"] = ui_->double_spin_box_x->value();
+  config["z"] = ui_->double_spin_box_x->value();
+}
+
 DirectionGenerator::ConstPtr FixedDirectionGeneratorWidget::create() const
 {
   Eigen::Vector3d dir(
@@ -51,6 +58,11 @@ PrincipalAxisDirectionGeneratorWidget::PrincipalAxisDirectionGeneratorWidget(QWi
 void PrincipalAxisDirectionGeneratorWidget::configure(const YAML::Node& config)
 {
   rotation_offset_->setValue(getEntry<double>(config, "rotation_offset"));
+}
+
+void PrincipalAxisDirectionGeneratorWidget::save(YAML::Node& config) const
+{
+  config["rotation_offset"] = rotation_offset_->value();
 }
 
 DirectionGenerator::ConstPtr PrincipalAxisDirectionGeneratorWidget::create() const

@@ -15,6 +15,7 @@ public:
   ToolPathPlanner::ConstPtr create() const override final;
 
   void configure(const YAML::Node&) override;
+  void save(YAML::Node&) const override;
 
 private:
   QDoubleSpinBox* search_radius_;

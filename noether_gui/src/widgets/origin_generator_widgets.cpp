@@ -21,6 +21,13 @@ void FixedOriginGeneratorWidget::configure(const YAML::Node& config)
   ui_->double_spin_box_z->setValue(getEntry<double>(config, "z"));
 }
 
+void FixedOriginGeneratorWidget::save(YAML::Node& config) const
+{
+  config["x"] = ui_->double_spin_box_x->value();
+  config["y"] = ui_->double_spin_box_x->value();
+  config["z"] = ui_->double_spin_box_x->value();
+}
+
 OriginGenerator::ConstPtr FixedOriginGeneratorWidget::create() const
 {
   Eigen::Vector3d origin(

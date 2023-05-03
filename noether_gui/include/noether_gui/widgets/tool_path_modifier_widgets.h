@@ -24,6 +24,7 @@ public:
   ToolPathModifier::ConstPtr create() const override;
 
   void configure(const YAML::Node&) override;
+  void save(YAML::Node&) const;
 
 private:
   Ui::Vector3dEditor* ui_;
@@ -55,6 +56,7 @@ public:
   ToolPathModifier::ConstPtr create() const override;
 
   void configure(const YAML::Node&) override;
+  void save(YAML::Node&) const;
 
 private:
   Ui::Vector3dEditor* ui_;
@@ -82,6 +84,7 @@ public:
   ToolPathModifier::ConstPtr create() const override;
 
   void configure(const YAML::Node&) override;
+  void save(YAML::Node&) const;
 
 private:
   QFormLayout* layout_;

@@ -28,6 +28,7 @@ public:
   ToolPathPlannerPipeline createPipeline() const;
 
   void configure(const YAML::Node& config);
+  void save(YAML::Node& config) const;
 
 private:
   const boost_plugin_loader::PluginLoader loader_;

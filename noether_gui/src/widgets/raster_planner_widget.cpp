@@ -97,6 +97,21 @@ void RasterPlannerWidget::configure(const YAML::Node& config)
   }
 }
 
+void RasterPlannerWidget::save(YAML::Node& config) const
+{
+  YAML::Node dir_gen_config;
+  getDirectionGeneratorWidget()->save(dir_gen_config);
+  config["direction_generator"] = dir_gen_config;
+
+  YAML::Node origin_gen_config;
+  getOriginGeneratorWidget()->save(origin_gen_config);
+  config["origin_generator"] = origin_gen_config;
+
+  config["line_spacing"] = ui_->double_spin_box_line_spacing->value();
+  config["point_spacing"] = ui_->double_spin_box_point_spacing->value();
+  config["min_hole_size"] = ui_->double_spin_box_minimum_hole_size->value();
+}
+
 DirectionGeneratorWidget* RasterPlannerWidget::getDirectionGeneratorWidget() const
 {
   auto collapsible_area = dynamic_cast<CollapsibleArea*>(ui_->widget_dir_gen);

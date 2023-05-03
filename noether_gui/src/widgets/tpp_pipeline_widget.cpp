@@ -12,6 +12,10 @@
 #include <QMenu>
 #include <QMessageBox>
 
+static const std::string MESH_MODIFIERS_KEY = "mesh_modifiers";
+static const std::string TOOL_PATH_PLANNER_KEY = "mesh_modifiers";
+static const std::string TOOL_PATH_MODIFIERS_KEY = "mesh_modifiers";
+
 template <typename T>
 std::vector<typename T::ConstPtr> convert(const QWidgetList& widgets)
 {
@@ -72,12 +76,12 @@ TPPPipelineWidget::TPPPipelineWidget(boost_plugin_loader::PluginLoader loader, Q
 void TPPPipelineWidget::configure(const YAML::Node& config)
 {
   // Mesh modifier
-  mesh_modifier_loader_widget_->configure(getEntry<YAML::Node>(config, "mesh_modifiers"));
+  mesh_modifier_loader_widget_->configure(getEntry<YAML::Node>(config, MESH_MODIFIERS_KEY));
 
   // Tool path planner
   try
   {
-    auto tpp_config = getEntry<YAML::Node>(config, "tool_path_planner");
+    auto tpp_config = getEntry<YAML::Node>(config, TOOL_PATH_PLANNER_KEY);
     for (auto it = tpp_config.begin(); it != tpp_config.end(); ++it)
     {
       auto name = getEntry<std::string>(*it, "name");
@@ -91,7 +95,35 @@ void TPPPipelineWidget::configure(const YAML::Node& config)
   }
 
   // Tool path modifiers
-  tool_path_modifier_loader_widget_->configure(getEntry<YAML::Node>(config, "tool_path_modifiers"));
+  tool_path_modifier_loader_widget_->configure(getEntry<YAML::Node>(config, TOOL_PATH_MODIFIERS_KEY));
+}
+
+void TPPPipelineWidget::save(YAML::Node& config) const
+{
+  // Mesh modifier
+  {
+    YAML::Node mm_config;
+    mesh_modifier_loader_widget_->save(mm_config);
+    config[MESH_MODIFIERS_KEY] = mm_config;
+  }
+
+  // Tool path planner
+  {
+    auto tpp_widget = dynamic_cast<const ToolPathPlannerWidget*>(ui_->widget_tpp);
+    if (tpp_widget)
+    {
+      YAML::Node tpp_config;
+      tpp_widget->save(tpp_config);
+      config[TOOL_PATH_PLANNER_KEY] = tpp_config;
+    }
+  }
+
+  // Tool path modifiers
+  {
+    YAML::Node tpm_config;
+    tool_path_modifier_loader_widget_->save(tpm_config);
+    config[TOOL_PATH_MODIFIERS_KEY] = tpm_config;
+  }
 }
 
 ToolPathPlannerPipeline TPPPipelineWidget::createPipeline() const

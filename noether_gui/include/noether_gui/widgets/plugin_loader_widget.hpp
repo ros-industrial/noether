@@ -99,4 +99,29 @@ void PluginLoaderWidget<PluginT>::configure(const YAML::Node& config)
   }
 }
 
+template <typename PluginT>
+void PluginLoaderWidget<PluginT>::save(YAML::Node& config) const
+{
+  for (int i = 0; i < ui_->vertical_layout_plugins->count(); ++i)
+  {
+    QLayoutItem* item = ui_->vertical_layout_plugins->itemAt(i);
+    if (item)
+    {
+      auto collapsible_area = dynamic_cast<const CollapsibleArea*>(item->widget());
+      if (collapsible_area)
+      {
+        auto widget = dynamic_cast<const typename PluginT::WidgetT*>(collapsible_area->getWidget());
+        if (widget)
+        {
+          YAML::Node widget_config;
+          widget->save(widget_config);
+          widget_config["name"] = collapsible_area->getLabel().toStdString();
+
+          config.push_back(widget_config);
+        }
+      }
+    }
+  }
+}
+
 }  // namespace noether
