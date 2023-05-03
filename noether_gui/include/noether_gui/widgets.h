@@ -27,6 +27,7 @@ public:
   virtual typename T::ConstPtr create() const = 0;
 
   virtual void configure(const YAML::Node&) {}
+  virtual void save(YAML::Node&) const {}
 };
 
 using ToolPathPlannerWidget = BaseWidget<ToolPathPlanner>;
