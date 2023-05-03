@@ -15,6 +15,8 @@ class TPP;
 
 namespace noether
 {
+class TPPPipelineWidget;
+
 /**
  * @brief Basic tool path planning widget
  * @details Allows the user to laod a mesh from file, configure a tool path planning pipeline, and generate tool paths
@@ -35,9 +37,12 @@ public:
 
 private:
   void onLoadMesh(const bool /*checked*/);
+  void onLoadConfiguration(const bool /*checked*/);
+  void onSaveConfiguration(const bool /*checked*/);
   void onPlan(const bool /*checked*/);
 
   Ui::TPP* ui_;
+  TPPPipelineWidget* pipeline_widget_;
   std::vector<ToolPaths> tool_paths_;
 };
 
