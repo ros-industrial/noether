@@ -5,14 +5,11 @@
 #include <noether_gui/utils.h>
 
 #include <QMessageBox>
+#include <yaml-cpp/yaml.h>
 
 namespace noether
 {
-RasterPlannerWidget::RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loader,
-                                         QWidget* parent,
-                                         const double line_spacing,
-                                         const double point_spacing,
-                                         const double min_hole_size)
+RasterPlannerWidget::RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loader, QWidget* parent)
   : ToolPathPlannerWidget(parent), loader_(std::move(loader)), ui_(new Ui::RasterPlanner())
 {
   ui_->setupUi(this);
@@ -20,10 +17,6 @@ RasterPlannerWidget::RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loa
   // Populate the combo boxes
   ui_->combo_box_dir_gen->addItems(getAvailablePlugins<DirectionGeneratorWidgetPlugin>(loader_));
   ui_->combo_box_origin_gen->addItems(getAvailablePlugins<OriginGeneratorWidgetPlugin>(loader_));
-
-  ui_->double_spin_box_line_spacing->setValue(line_spacing);
-  ui_->double_spin_box_point_spacing->setValue(point_spacing);
-  ui_->double_spin_box_minimum_hole_size->setValue(min_hole_size);
 
   connect(ui_->combo_box_dir_gen, &QComboBox::currentTextChanged, [this](const QString& text) {
     if (text.isEmpty())
@@ -70,6 +63,13 @@ RasterPlannerWidget::RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loa
       }
     }
   });
+}
+
+void RasterPlannerWidget::fromYAML(const YAML::Node& config)
+{
+  ui_->double_spin_box_line_spacing->setValue(getEntry<double>(config, "line_spacing"));
+  ui_->double_spin_box_point_spacing->setValue(getEntry<double>(config, "point_spacing"));
+  ui_->double_spin_box_minimum_hole_size->setValue(getEntry<double>(config, "min_hole_size"));
 }
 
 DirectionGeneratorWidget* RasterPlannerWidget::getDirectionGeneratorWidget() const

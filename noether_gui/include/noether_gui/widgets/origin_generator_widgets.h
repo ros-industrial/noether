@@ -15,9 +15,11 @@ class FixedOriginGeneratorWidget : public OriginGeneratorWidget
 {
   Q_OBJECT
 public:
-  FixedOriginGeneratorWidget(QWidget* parent = nullptr, const Eigen::Vector3d& dir = Eigen::Vector3d::Zero());
+  FixedOriginGeneratorWidget(QWidget* parent = nullptr);
 
   OriginGenerator::ConstPtr create() const override;
+
+  void fromYAML(const YAML::Node&) override;
 
 private:
   Ui::Vector3dEditor* ui_;

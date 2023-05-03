@@ -1,19 +1,24 @@
 #include <noether_gui/widgets/origin_generator_widgets.h>
 #include "ui_vector3d_editor_widget.h"
+#include <noether_gui/utils.h>
 
 #include <noether_tpp/tool_path_planners/raster/origin_generators.h>
+#include <yaml-cpp/yaml.h>
 
 namespace noether
 {
-FixedOriginGeneratorWidget::FixedOriginGeneratorWidget(QWidget* parent, const Eigen::Vector3d& dir)
+FixedOriginGeneratorWidget::FixedOriginGeneratorWidget(QWidget* parent)
   : OriginGeneratorWidget(parent), ui_(new Ui::Vector3dEditor())
 {
   ui_->setupUi(this);
   ui_->group_box->setTitle("Origin");
+}
 
-  ui_->double_spin_box_x->setValue(dir.x());
-  ui_->double_spin_box_y->setValue(dir.y());
-  ui_->double_spin_box_z->setValue(dir.z());
+void FixedOriginGeneratorWidget::fromYAML(const YAML::Node& config)
+{
+  ui_->double_spin_box_x->setValue(getEntry<double>(config, "x"));
+  ui_->double_spin_box_y->setValue(getEntry<double>(config, "y"));
+  ui_->double_spin_box_z->setValue(getEntry<double>(config, "z"));
 }
 
 OriginGenerator::ConstPtr FixedOriginGeneratorWidget::create() const

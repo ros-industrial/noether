@@ -1,11 +1,13 @@
 #include <noether_gui/widgets/tool_path_modifier_widgets.h>
 #include "ui_vector3d_editor_widget.h"
+#include <noether_gui/utils.h>
 
 #include <noether_tpp/tool_path_modifiers/organization_modifiers.h>
 #include <noether_tpp/tool_path_modifiers/waypoint_orientation_modifiers.h>
 #include <QFormLayout>
 #include <QLabel>
 #include <QSpinBox>
+#include <yaml-cpp/yaml.h>
 
 namespace noether
 {
@@ -14,6 +16,13 @@ StandardEdgePathsOrganizationModifierWidget::StandardEdgePathsOrganizationModifi
 {
   ui_->setupUi(this);
   ui_->group_box->setTitle("Start Reference");
+}
+
+void StandardEdgePathsOrganizationModifierWidget::fromYAML(const YAML::Node& config)
+{
+  ui_->double_spin_box_x->setValue(getEntry<double>(config, "x"));
+  ui_->double_spin_box_y->setValue(getEntry<double>(config, "y"));
+  ui_->double_spin_box_z->setValue(getEntry<double>(config, "z"));
 }
 
 ToolPathModifier::ConstPtr StandardEdgePathsOrganizationModifierWidget::create() const
@@ -43,6 +52,16 @@ FixedOrientationModifierWidget::FixedOrientationModifierWidget(QWidget* parent)
   ui_->double_spin_box_x->setValue(1.0);
 }
 
+void FixedOrientationModifierWidget::fromYAML(const YAML::Node& config)
+{
+  Eigen::Vector3d dir(getEntry<double>(config, "x"), getEntry<double>(config, "y"), getEntry<double>(config, "z"));
+  dir.normalize();
+
+  ui_->double_spin_box_x->setValue(dir.x());
+  ui_->double_spin_box_y->setValue(dir.y());
+  ui_->double_spin_box_z->setValue(dir.z());
+}
+
 ToolPathModifier::ConstPtr FixedOrientationModifierWidget::create() const
 {
   Eigen::Vector3d ref_x_dir(
@@ -69,6 +88,11 @@ MovingAverageOrientationSmoothingModifierWidget::MovingAverageOrientationSmoothi
 {
   layout_->addRow(label_, window_size_);
   window_size_->setMinimum(3);
+}
+
+void MovingAverageOrientationSmoothingModifierWidget::fromYAML(const YAML::Node& config)
+{
+  window_size_->setValue(getEntry<int>(config, "window_size"));
 }
 
 ToolPathModifier::ConstPtr MovingAverageOrientationSmoothingModifierWidget::create() const

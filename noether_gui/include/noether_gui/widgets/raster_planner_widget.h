@@ -15,11 +15,9 @@ namespace noether
 class RasterPlannerWidget : public ToolPathPlannerWidget
 {
 public:
-  RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loader,
-                      QWidget* parent = nullptr,
-                      const double line_spacing = 0.1,
-                      const double point_spacing = 0.025,
-                      const double min_hole_size = 0.1);
+  RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loader, QWidget* parent = nullptr);
+
+  void fromYAML(const YAML::Node&) override;
 
 protected:
   DirectionGeneratorWidget* getDirectionGeneratorWidget() const;
