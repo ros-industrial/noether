@@ -12,6 +12,7 @@
   <depend>libqt5-widgets</depend>
   <depend>noether_tpp</depend>
   <depend>boost_plugin_loader</depend>
+  <depend>yaml-cpp</depend>
 
   <export>
     <build_type>cmake</build_type>
