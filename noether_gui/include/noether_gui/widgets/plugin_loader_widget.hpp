@@ -114,8 +114,8 @@ void PluginLoaderWidget<PluginT>::save(YAML::Node& config) const
         if (widget)
         {
           YAML::Node widget_config;
-          widget->save(widget_config);
           widget_config["name"] = collapsible_area->getLabel().toStdString();
+          widget->save(widget_config);
 
           config.push_back(widget_config);
         }
