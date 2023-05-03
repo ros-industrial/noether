@@ -22,7 +22,7 @@ class RasterPlannerWidget : public ToolPathPlannerWidget
 public:
   RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loader, QWidget* parent = nullptr);
 
-  void fromYAML(const YAML::Node&) override;
+  void configure(const YAML::Node&) override;
 
 protected:
   DirectionGeneratorWidget* getDirectionGeneratorWidget() const;

@@ -18,7 +18,7 @@ StandardEdgePathsOrganizationModifierWidget::StandardEdgePathsOrganizationModifi
   ui_->group_box->setTitle("Start Reference");
 }
 
-void StandardEdgePathsOrganizationModifierWidget::fromYAML(const YAML::Node& config)
+void StandardEdgePathsOrganizationModifierWidget::configure(const YAML::Node& config)
 {
   ui_->double_spin_box_x->setValue(getEntry<double>(config, "x"));
   ui_->double_spin_box_y->setValue(getEntry<double>(config, "y"));
@@ -52,7 +52,7 @@ FixedOrientationModifierWidget::FixedOrientationModifierWidget(QWidget* parent)
   ui_->double_spin_box_x->setValue(1.0);
 }
 
-void FixedOrientationModifierWidget::fromYAML(const YAML::Node& config)
+void FixedOrientationModifierWidget::configure(const YAML::Node& config)
 {
   Eigen::Vector3d dir(getEntry<double>(config, "x"), getEntry<double>(config, "y"), getEntry<double>(config, "z"));
   dir.normalize();
@@ -90,7 +90,7 @@ MovingAverageOrientationSmoothingModifierWidget::MovingAverageOrientationSmoothi
   window_size_->setMinimum(3);
 }
 
-void MovingAverageOrientationSmoothingModifierWidget::fromYAML(const YAML::Node& config)
+void MovingAverageOrientationSmoothingModifierWidget::configure(const YAML::Node& config)
 {
   window_size_->setValue(getEntry<int>(config, "window_size"));
 }

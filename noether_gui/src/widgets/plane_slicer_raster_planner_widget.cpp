@@ -43,9 +43,9 @@ PlaneSlicerRasterPlannerWidget::PlaneSlicerRasterPlannerWidget(boost_plugin_load
   ui_->group_box_raster_planner->layout()->addWidget(collapsible_area);
 }
 
-void PlaneSlicerRasterPlannerWidget::fromYAML(const YAML::Node& config)
+void PlaneSlicerRasterPlannerWidget::configure(const YAML::Node& config)
 {
-  RasterPlannerWidget::fromYAML(config);
+  RasterPlannerWidget::configure(config);
   search_radius_->setValue(getEntry<double>(config, "search_radius"));
   min_segment_size_->setValue(getEntry<double>(config, "min_segment_size"));
 }

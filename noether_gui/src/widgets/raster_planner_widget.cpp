@@ -67,7 +67,7 @@ void RasterPlannerWidget::setOriginGeneratorWidget(const QString& plugin_name, c
   }
 }
 
-void RasterPlannerWidget::fromYAML(const YAML::Node& config)
+void RasterPlannerWidget::configure(const YAML::Node& config)
 {
   ui_->double_spin_box_line_spacing->setValue(getEntry<double>(config, "line_spacing"));
   ui_->double_spin_box_point_spacing->setValue(getEntry<double>(config, "point_spacing"));

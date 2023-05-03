@@ -23,7 +23,7 @@ struct WidgetPluginImpl : WidgetPlugin<BaseT>
       // Attempt to configure the widget
       try
       {
-        widget->fromYAML(config);
+        widget->configure(config);
       }
       catch (const std::exception& ex)
       {
@@ -92,7 +92,7 @@ struct PlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlugin
       // Attempt to configure the widget
       try
       {
-        widget->fromYAML(config);
+        widget->configure(config);
       }
       catch (const std::exception& ex)
       {

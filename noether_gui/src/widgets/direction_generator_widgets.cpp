@@ -18,7 +18,7 @@ FixedDirectionGeneratorWidget::FixedDirectionGeneratorWidget(QWidget* parent)
   ui_->group_box->setTitle("Direction");
 }
 
-void FixedDirectionGeneratorWidget::fromYAML(const YAML::Node& config)
+void FixedDirectionGeneratorWidget::configure(const YAML::Node& config)
 {
   Eigen::Vector3d dir(getEntry<double>(config, "x"), getEntry<double>(config, "y"), getEntry<double>(config, "z"));
   dir.normalize();
@@ -48,7 +48,7 @@ PrincipalAxisDirectionGeneratorWidget::PrincipalAxisDirectionGeneratorWidget(QWi
   rotation_offset_->setDecimals(3);
 }
 
-void PrincipalAxisDirectionGeneratorWidget::fromYAML(const YAML::Node& config)
+void PrincipalAxisDirectionGeneratorWidget::configure(const YAML::Node& config)
 {
   rotation_offset_->setValue(getEntry<double>(config, "rotation_offset"));
 }

@@ -14,7 +14,7 @@ FixedOriginGeneratorWidget::FixedOriginGeneratorWidget(QWidget* parent)
   ui_->group_box->setTitle("Origin");
 }
 
-void FixedOriginGeneratorWidget::fromYAML(const YAML::Node& config)
+void FixedOriginGeneratorWidget::configure(const YAML::Node& config)
 {
   ui_->double_spin_box_x->setValue(getEntry<double>(config, "x"));
   ui_->double_spin_box_y->setValue(getEntry<double>(config, "y"));
