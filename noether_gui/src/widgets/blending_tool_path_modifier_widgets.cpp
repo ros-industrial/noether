@@ -4,6 +4,7 @@
 #include <QFormLayout>
 #include <QLabel>
 #include <QDoubleSpinBox>
+#include <QSpinBox>
 #include <QCheckBox>
 
 namespace noether
@@ -31,7 +32,7 @@ AngledOrientationToolPathModifierWidget::AngledOrientationToolPathModifierWidget
 
   // Flip sign
   flip_sign_ = new QCheckBox(this);
-  //
+  flip_sign_->setToolTip("Flip the sign of the angle offset between rasters (to support snake organization)");
   layout->addRow(new QLabel("Flip", this), flip_sign_);
 
   setLayout(layout);
@@ -64,11 +65,10 @@ LeadInToolPathModifierWidget::LeadInToolPathModifierWidget(QWidget* parent)
   layout->addRow(new QLabel("Tool radius (m)", this), lead_in_arc_radius_);
 
   // Number of points
-  lead_in_num_of_points_ = new QDoubleSpinBox(this);
+  lead_in_num_of_points_ = new QSpinBox(this);
   lead_in_num_of_points_->setMinimum(0.0);
   lead_in_num_of_points_->setSingleStep(1);
   lead_in_num_of_points_->setValue(5);
-  lead_in_num_of_points_->setDecimals(3);
   layout->addRow(new QLabel("Lead in number of points", this), lead_in_num_of_points_);
 
   setLayout(layout);
@@ -101,11 +101,10 @@ LeadOutToolPathModifierWidget::LeadOutToolPathModifierWidget(QWidget* parent)
   layout->addRow(new QLabel("Tool radius (m)", this), lead_out_arc_radius_);
 
   // Number of points
-  lead_out_num_of_points_ = new QDoubleSpinBox(this);
+  lead_out_num_of_points_ = new QSpinBox(this);
   lead_out_num_of_points_->setMinimum(0.0);
   lead_out_num_of_points_->setSingleStep(1);
   lead_out_num_of_points_->setValue(5);
-  lead_out_num_of_points_->setDecimals(3);
   layout->addRow(new QLabel("Lead out number of points", this), lead_out_num_of_points_);
 
   setLayout(layout);

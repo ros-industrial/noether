@@ -28,72 +28,76 @@ ToolPaths AngledOrientationModifier::modify(ToolPaths tool_paths) const
   return tool_paths;
 }
 
-LeadInModifier::LeadInModifier(double lead_in_angle, double lead_in_arc_radius, double lead_in_num_of_points)
-  : lead_in_angle_(lead_in_angle), lead_in_arc_radius_(lead_in_arc_radius), lead_in_num_of_points_(lead_in_num_of_points)
+LeadInModifier::LeadInModifier(double arc_angle, double arc_radius, double n_points)
+  : arc_angle_(arc_angle), arc_radius_(arc_radius), n_points_(n_points)
 {
 }
 
 ToolPaths LeadInModifier::modify(ToolPaths tool_paths) const
 {
-  double delta_theta = lead_in_angle_ / (lead_in_num_of_points_ - 1);
+  double delta_theta = arc_angle_ / (n_points_ - 1);
   for (ToolPath& tool_path : tool_paths)
   {
     for (ToolPathSegment& segment : tool_path)
     {
-      Eigen::Isometry3d radius_center = segment.front() * Eigen::Translation3d(0.0, 0.0, lead_in_arc_radius_);
-      Eigen::Isometry3d wp1 = segment.front();
-      Eigen::Isometry3d wp2 = segment[1];
-      Eigen::Isometry3d wp21 = wp1.inverse() * wp2;
-      Eigen::Vector3d t21 = wp21.translation();
-      Eigen::Vector3d rotation_vect = Eigen::Vector3d::UnitZ().cross(t21/t21.norm());
+      Eigen::Isometry3d radius_center = segment.front() * Eigen::Translation3d(0.0, 0.0, arc_radius_);
+//      Eigen::Isometry3d wp1 = segment.front();
+//      Eigen::Isometry3d wp2 = segment[1];
+//      Eigen::Isometry3d wp21 = wp1.inverse() * wp2;
+//      Eigen::Vector3d t21 = wp21.translation();
+//      Eigen::Vector3d rotation_vect = Eigen::Vector3d::UnitZ().cross(t21/t21.norm());
 
       ToolPathSegment new_segment;
 
-      for(int i = 0; i < lead_in_num_of_points_; i++)
+      for(int i = 0; i < n_points_; i++)
       {
-        Eigen::Isometry3d pt = radius_center * Eigen::AngleAxisd(lead_in_angle_ - delta_theta * i, rotation_vect) * Eigen::Translation3d(0, 0,-lead_in_arc_radius_);
+//        Eigen::Isometry3d pt = radius_center * Eigen::AngleAxisd(delta_theta * (i + 1), rotation_vect) * Eigen::Translation3d(0, 0,-lead_in_arc_radius_);
+        Eigen::Isometry3d pt = radius_center * Eigen::AngleAxisd(delta_theta * (i + 1), Eigen::Vector3d::UnitY()) * Eigen::Translation3d(0, 0,-arc_radius_);
         pt.linear() = segment.front().linear();
         new_segment.push_back(pt);
       }
 
-      new_segment.insert(new_segment.end(), segment.begin(), segment.end());
-      segment = new_segment;
+      segment.insert(segment.begin(), new_segment.rbegin(), new_segment.rend());
+
+//      new_segment.insert(new_segment.end(), segment.begin(), segment.end());
+//      segment = new_segment;
     }
   }
 
   return tool_paths;
 }
 
-  LeadOutModifier::LeadOutModifier(double lead_out_angle, double lead_out_arc_radius, double lead_out_num_of_points)
-    : lead_out_angle_(lead_out_angle), lead_out_arc_radius_(lead_out_arc_radius), lead_out_num_of_points_(lead_out_num_of_points)
+  LeadOutModifier::LeadOutModifier(double arc_angle, double arc_radius, double n_points)
+    : arc_angle_(arc_angle), arc_radius_(arc_radius), n_points_(n_points)
   {
   }
 
   ToolPaths LeadOutModifier::modify(ToolPaths tool_paths) const
   {
-    double delta_theta = lead_out_angle_ / (lead_out_num_of_points_ - 1);
+    double delta_theta = arc_angle_ / (n_points_ - 1);
+
     for (ToolPath& tool_path : tool_paths)
     {
       for (ToolPathSegment& segment : tool_path)
       {
-        Eigen::Isometry3d radius_center = segment.back() * Eigen::Translation3d(0.0, 0.0, -lead_out_arc_radius_);
-        Eigen::Isometry3d wp1 = segment.back();
-        Eigen::Isometry3d wp2 = segment.end()[-2];
-        Eigen::Isometry3d wp21 = wp1.inverse() * wp2;
-        Eigen::Vector3d t21 = wp21.translation();
-        Eigen::Vector3d rotation_vect = Eigen::Vector3d::UnitZ().cross(t21/t21.norm());
+        Eigen::Isometry3d radius_center = segment.back() * Eigen::Translation3d(0.0, 0.0, arc_radius_);
+//        Eigen::Isometry3d wp1 = segment.back();
+//        Eigen::Isometry3d wp2 = segment.end()[-2];
+//        Eigen::Isometry3d wp21 = wp1.inverse() * wp2;
+//        Eigen::Vector3d t21 = wp21.translation();
+//        Eigen::Vector3d rotation_vect = Eigen::Vector3d::UnitZ().cross(t21/t21.norm());
 
         ToolPathSegment new_segment;
 
-        for(int i = 0; i < lead_out_num_of_points_; i++)
+        for(int i = 0; i < n_points_; i++)
         {
-          Eigen::Isometry3d pt = radius_center * Eigen::AngleAxisd(lead_out_angle_ + delta_theta * i, rotation_vect) * Eigen::Translation3d(0, 0, lead_out_arc_radius_);
+//          Eigen::Isometry3d pt = radius_center * Eigen::AngleAxisd(-delta_theta * (i + 1), rotation_vect) * Eigen::Translation3d(0, 0, lead_out_arc_radius_);
+          Eigen::Isometry3d pt = radius_center * Eigen::AngleAxisd(-delta_theta * (i + 1), Eigen::Vector3d::UnitY()) * Eigen::Translation3d(0, 0, -arc_radius_);
           pt.linear() = segment.back().linear();
           new_segment.insert(new_segment.begin(), pt);
         }
 
-        new_segment.insert(new_segment.end(), segment.begin(), segment.end());
-        segment = new_segment;
+        segment.insert(segment.end(), new_segment.begin(), new_segment.end());
       }
     }
 

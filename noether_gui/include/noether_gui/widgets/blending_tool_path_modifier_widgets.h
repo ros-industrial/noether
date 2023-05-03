@@ -3,8 +3,9 @@
 #include <noether_gui/widgets.h>
 #include <noether_tpp/core/tool_path_modifier.h>
 
-class QDoubleSpinBox;
 class QCheckBox;
+class QDoubleSpinBox;
+class QSpinBox;
 
 namespace noether
 {
@@ -33,7 +34,7 @@ public:
 private:
   QDoubleSpinBox* lead_in_angle_;
   QDoubleSpinBox* lead_in_arc_radius_;
-  QDoubleSpinBox* lead_in_num_of_points_;
+  QSpinBox* lead_in_num_of_points_;
 };
 
 class LeadOutToolPathModifierWidget : public ToolPathModifierWidget
@@ -47,7 +48,7 @@ public:
 private:
   QDoubleSpinBox* lead_out_angle_;
   QDoubleSpinBox* lead_out_arc_radius_;
-  QDoubleSpinBox* lead_out_num_of_points_;
+  QSpinBox* lead_out_num_of_points_;
 };
 
 }  // namespace noether

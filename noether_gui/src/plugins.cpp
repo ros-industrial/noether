@@ -91,6 +91,6 @@ EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::MovingAverageOrientationSmoothi
                                         MovingAverageOrientationSmoothingModifier)
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::AngledOrientationToolPathModifierWidgetPlugin, AngledOrientationModifier)
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::LeadInToolPathModifierWidgetPlugin, LeadInModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::LeadInToolPathModifierWidgetPlugin, LeadOutModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::LeadOutToolPathModifierWidgetPlugin, LeadOutModifier)
 
 EXPORT_TPP_WIDGET_PLUGIN(noether::PlaneSlicerRasterPlannerWidgetPlugin, PlaneSlicerRasterPlanner);

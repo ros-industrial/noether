@@ -27,25 +27,25 @@ protected:
 class LeadInModifier : public ToolPathModifier
 {
 public:
-  LeadInModifier(double lead_in_angle, double lead_in_arc_radius, double lead_in_num_of_points);
+  LeadInModifier(double arc_angle, double arc_radius, double n_points);
   ToolPaths modify(ToolPaths tool_paths) const override final;
 
 protected:
-  const double lead_in_angle_;
-  const double lead_in_arc_radius_;
-  const double lead_in_num_of_points_;
+  const double arc_angle_;
+  const double arc_radius_;
+  const double n_points_;
 };
 
 class LeadOutModifier : public ToolPathModifier
 {
 public:
-  LeadOutModifier(double lead_out_angle, double lead_out_arc_radius, double lead_out_num_of_points);
+  LeadOutModifier(double arc_angle, double arc_radius, double n_points);
   ToolPaths modify(ToolPaths tool_paths) const override final;
 
 protected:
-  const double lead_out_angle_;
-  const double lead_out_arc_radius_;
-  const double lead_out_num_of_points_;
+  const double arc_angle_;
+  const double arc_radius_;
+  const double n_points_;
 };
 
 }  // namespace noether
