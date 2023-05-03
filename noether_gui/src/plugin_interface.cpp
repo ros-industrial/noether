@@ -14,7 +14,7 @@ template <>
 std::string noether::ToolPathPlannerWidgetPlugin::getSection()
 {
   return "tpp";
-};
+}
 
 template <>
 std::string DirectionGeneratorWidgetPlugin::getSection()
@@ -43,10 +43,10 @@ std::string MeshModifierWidgetPlugin::getSection()
 
 namespace boost_plugin_loader
 {
-INSTANTIATE_PLUGIN_LOADER(noether::ToolPathPlannerWidgetPlugin);
-INSTANTIATE_PLUGIN_LOADER(noether::DirectionGeneratorWidgetPlugin);
-INSTANTIATE_PLUGIN_LOADER(noether::OriginGeneratorWidgetPlugin);
-INSTANTIATE_PLUGIN_LOADER(noether::ToolPathModifierWidgetPlugin);
-INSTANTIATE_PLUGIN_LOADER(noether::MeshModifierWidgetPlugin);
+INSTANTIATE_PLUGIN_LOADER(noether::ToolPathPlannerWidgetPlugin)
+INSTANTIATE_PLUGIN_LOADER(noether::DirectionGeneratorWidgetPlugin)
+INSTANTIATE_PLUGIN_LOADER(noether::OriginGeneratorWidgetPlugin)
+INSTANTIATE_PLUGIN_LOADER(noether::ToolPathModifierWidgetPlugin)
+INSTANTIATE_PLUGIN_LOADER(noether::MeshModifierWidgetPlugin)
 
 }  // namespace boost_plugin_loader
