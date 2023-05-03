@@ -1,12 +1,15 @@
 #pragma once
 
 #include <boost_plugin_loader/plugin_loader.h>
+#include <boost/core/demangle.hpp>
 #include <QLayoutItem>
 #include <QLayout>
 #include <QStringList>
 #include <QWidget>
 #include <string>
 #include <vector>
+#include <yaml-cpp/node/node.h>
+#include <yaml-cpp/exceptions.h>
 
 namespace noether
 {
@@ -46,6 +49,21 @@ inline void overwriteWidget(QLayout* layout, QWidget*& from, QWidget* to)
   // reference
   delete from;
   from = to;
+}
+
+template <typename T>
+T getEntry(const YAML::Node& config, const std::string& key)
+{
+  try
+  {
+    return config[key].as<T>();
+  }
+  catch (const YAML::Exception&)
+  {
+    std::stringstream ss;
+    ss << "Failed to cast parameter '" << key << "' as type '" << boost::core::demangle(typeid(T).name()) << "'";
+    throw std::runtime_error(ss.str());
+  }
 }
 
 }  // namespace noether
