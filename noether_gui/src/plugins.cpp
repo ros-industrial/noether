@@ -15,66 +15,31 @@ struct WidgetPluginImpl : WidgetPlugin<BaseT>
 {
   QWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
   {
-    return new T(parent);
+    auto widget = new T(parent);
+
+    // Attempt to deserialize
+    try
+    {
+      widget->fromYAML(config);
+    }
+    catch (const std::exception& /*ex*/)
+    {
+      // Document
+    }
+
+    return widget;
   }
 };
 
 // Direction Generators
-struct FixedDirectionGeneratorWidgetPlugin : DirectionGeneratorWidgetPlugin
-{
-  QWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
-  {
-    try
-    {
-      auto x = config["x"].as<double>();
-      auto y = config["y"].as<double>();
-      auto z = config["z"].as<double>();
-      Eigen::Vector3d dir(x, y, z);
-      dir.normalize();
-      return new FixedDirectionGeneratorWidget(parent, dir);
-    }
-    catch (const YAML::Exception&)
-    {
-      return new FixedDirectionGeneratorWidget(parent);
-    }
-  }
-};
+using FixedDirectionGeneratorWidgetPlugin =
+    WidgetPluginImpl<FixedDirectionGeneratorWidget, DirectionGeneratorWidgetPlugin>;
 
-struct PrincipalAxisDirectionGeneratorWidgetPlugin : DirectionGeneratorWidgetPlugin
-{
-  QWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
-  {
-    try
-    {
-      return new PrincipalAxisDirectionGeneratorWidget(parent, config["rotation_offset"].as<double>());
-    }
-    catch (const YAML::Exception&)
-    {
-      return new PrincipalAxisDirectionGeneratorWidget(parent);
-    }
-  }
-};
+using PrincipalAxisDirectionGeneratorWidgetPlugin =
+    WidgetPluginImpl<PrincipalAxisDirectionGeneratorWidget, DirectionGeneratorWidgetPlugin>;
 
 // Origin Generators
-struct FixedOriginGeneratorWidgetPlugin : OriginGeneratorWidgetPlugin
-{
-  QWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
-  {
-    try
-    {
-      auto x = config["x"].as<double>();
-      auto y = config["y"].as<double>();
-      auto z = config["z"].as<double>();
-      Eigen::Vector3d dir(x, y, z);
-      dir.normalize();
-      return new FixedOriginGeneratorWidget(parent, dir);
-    }
-    catch (const YAML::Exception&)
-    {
-      return new FixedOriginGeneratorWidget(parent);
-    }
-  }
-};
+using FixedOriginGeneratorWidgetPlugin = WidgetPluginImpl<FixedOriginGeneratorWidget, OriginGeneratorWidgetPlugin>;
 
 using CentroidOriginGeneratorWidgetPlugin = WidgetPluginImpl<CentroidOriginGeneratorWidget, OriginGeneratorWidget>;
 
@@ -116,21 +81,19 @@ struct PlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlugin
   {
     boost_plugin_loader::PluginLoader loader;
     loader.search_libraries.insert(NOETHER_GUI_PLUGINS);
+    auto widget = new PlaneSlicerRasterPlannerWidget(std::move(loader), parent);
 
+    // Load the parameters
     try
     {
-      auto line_spacing = config["line_spacing"].as<double>();
-      auto point_spacing = config["point_spacing"].as<double>();
-      auto min_hole_size = config["min_hole_size"].as<double>();
-      auto search_radius = config["search_radius"].as<double>();
-      auto min_segment_size = config["min_segment_size"].as<double>();
-      return new PlaneSlicerRasterPlannerWidget(
-          std::move(loader), parent, line_spacing, point_spacing, min_hole_size, search_radius, min_segment_size);
+      widget->fromYAML(config);
     }
-    catch (const YAML::Exception&)
+    catch (const std::exception&)
     {
-      return new PlaneSlicerRasterPlannerWidget(std::move(loader), parent);
+      //
     }
+
+    return widget;
   }
 };
 

@@ -2,6 +2,11 @@
 
 #include <QWidget>
 
+namespace YAML
+{
+class Node;
+}
+
 namespace noether
 {
 class ToolPathPlanner;
@@ -20,6 +25,8 @@ public:
   BaseWidget(QWidget* parent = nullptr) : QWidget(parent) {}
 
   virtual typename T::ConstPtr create() const = 0;
+
+  virtual void fromYAML(const YAML::Node&) {}
 };
 
 using ToolPathPlannerWidget = BaseWidget<ToolPathPlanner>;
