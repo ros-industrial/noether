@@ -11,8 +11,13 @@
 namespace noether
 {
 PlaneSlicerRasterPlannerWidget::PlaneSlicerRasterPlannerWidget(boost_plugin_loader::PluginLoader&& loader,
-                                                               QWidget* parent)
-  : RasterPlannerWidget(std::move(loader), parent)
+                                                               QWidget* parent,
+                                                               const double line_spacing,
+                                                               const double point_spacing,
+                                                               const double min_hole_size,
+                                                               const double search_radius,
+                                                               const double min_segment_size)
+  : RasterPlannerWidget(std::move(loader), parent, line_spacing, point_spacing, min_hole_size)
   , search_radius_(new QDoubleSpinBox(this))
   , min_segment_size_(new QDoubleSpinBox(this))
 {
@@ -21,14 +26,14 @@ PlaneSlicerRasterPlannerWidget::PlaneSlicerRasterPlannerWidget(boost_plugin_load
   // Search radius
   search_radius_->setMinimum(0.0);
   search_radius_->setSingleStep(0.1);
-  search_radius_->setValue(0.025);
+  search_radius_->setValue(search_radius);
   search_radius_->setDecimals(3);
   layout->addRow(new QLabel("Search radius (m)", this), search_radius_);
 
   // Min segment length
   min_segment_size_->setMinimum(0.0);
   min_segment_size_->setSingleStep(0.1);
-  min_segment_size_->setValue(0.1);
+  min_segment_size_->setValue(min_segment_size);
   min_segment_size_->setDecimals(3);
   layout->addRow(new QLabel("Min. segment length", this), min_segment_size_);
 

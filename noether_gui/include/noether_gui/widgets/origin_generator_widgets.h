@@ -15,7 +15,7 @@ class FixedOriginGeneratorWidget : public OriginGeneratorWidget
 {
   Q_OBJECT
 public:
-  FixedOriginGeneratorWidget(QWidget* parent = nullptr);
+  FixedOriginGeneratorWidget(QWidget* parent = nullptr, const Eigen::Vector3d& dir = Eigen::Vector3d::Zero());
 
   OriginGenerator::ConstPtr create() const override;
 

@@ -5,11 +5,15 @@
 
 namespace noether
 {
-FixedOriginGeneratorWidget::FixedOriginGeneratorWidget(QWidget* parent)
+FixedOriginGeneratorWidget::FixedOriginGeneratorWidget(QWidget* parent, const Eigen::Vector3d& dir)
   : OriginGeneratorWidget(parent), ui_(new Ui::Vector3dEditor())
 {
   ui_->setupUi(this);
   ui_->group_box->setTitle("Origin");
+
+  ui_->double_spin_box_x->setValue(dir.x());
+  ui_->double_spin_box_y->setValue(dir.y());
+  ui_->double_spin_box_z->setValue(dir.z());
 }
 
 OriginGenerator::ConstPtr FixedOriginGeneratorWidget::create() const

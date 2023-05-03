@@ -13,17 +13,68 @@ namespace noether
 template <typename T, typename BaseT>
 struct WidgetPluginImpl : WidgetPlugin<BaseT>
 {
-  QWidget* create(QWidget* parent = nullptr, const YAML::Node& = {}) const override final { return new T(parent); }
+  QWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
+  {
+    return new T(parent);
+  }
 };
 
 // Direction Generators
-using FixedDirectionGeneratorWidgetPlugin = WidgetPluginImpl<FixedDirectionGeneratorWidget, DirectionGeneratorWidget>;
+struct FixedDirectionGeneratorWidgetPlugin : DirectionGeneratorWidgetPlugin
+{
+  QWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
+  {
+    try
+    {
+      auto x = config["x"].as<double>();
+      auto y = config["y"].as<double>();
+      auto z = config["z"].as<double>();
+      Eigen::Vector3d dir(x, y, z);
+      dir.normalize();
+      return new FixedDirectionGeneratorWidget(parent, dir);
+    }
+    catch (const YAML::Exception&)
+    {
+      return new FixedDirectionGeneratorWidget(parent);
+    }
+  }
+};
 
-using PrincipalAxisDirectionGeneratorWidgetPlugin =
-    WidgetPluginImpl<PrincipalAxisDirectionGeneratorWidget, DirectionGeneratorWidget>;
+struct PrincipalAxisDirectionGeneratorWidgetPlugin : DirectionGeneratorWidgetPlugin
+{
+  QWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
+  {
+    try
+    {
+      return new PrincipalAxisDirectionGeneratorWidget(parent, config["rotation_offset"].as<double>());
+    }
+    catch (const YAML::Exception&)
+    {
+      return new PrincipalAxisDirectionGeneratorWidget(parent);
+    }
+  }
+};
 
 // Origin Generators
-using FixedOriginGeneratorWidgetPlugin = WidgetPluginImpl<FixedOriginGeneratorWidget, OriginGeneratorWidget>;
+struct FixedOriginGeneratorWidgetPlugin : OriginGeneratorWidgetPlugin
+{
+  QWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
+  {
+    try
+    {
+      auto x = config["x"].as<double>();
+      auto y = config["y"].as<double>();
+      auto z = config["z"].as<double>();
+      Eigen::Vector3d dir(x, y, z);
+      dir.normalize();
+      return new FixedOriginGeneratorWidget(parent, dir);
+    }
+    catch (const YAML::Exception&)
+    {
+      return new FixedOriginGeneratorWidget(parent);
+    }
+  }
+};
 
 using CentroidOriginGeneratorWidgetPlugin = WidgetPluginImpl<CentroidOriginGeneratorWidget, OriginGeneratorWidget>;
 
@@ -61,11 +112,25 @@ using LeadOutToolPathModifierWidgetPlugin =
 // Raster Tool Path Planners
 struct PlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlugin
 {
-  QWidget* create(QWidget* parent = nullptr, const YAML::Node& = {}) const override final
+  QWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
   {
     boost_plugin_loader::PluginLoader loader;
     loader.search_libraries.insert(NOETHER_GUI_PLUGINS);
-    return new PlaneSlicerRasterPlannerWidget(std::move(loader), parent);
+
+    try
+    {
+      auto line_spacing = config["line_spacing"].as<double>();
+      auto point_spacing = config["point_spacing"].as<double>();
+      auto min_hole_size = config["min_hole_size"].as<double>();
+      auto search_radius = config["search_radius"].as<double>();
+      auto min_segment_size = config["min_segment_size"].as<double>();
+      return new PlaneSlicerRasterPlannerWidget(
+          std::move(loader), parent, line_spacing, point_spacing, min_hole_size, search_radius, min_segment_size);
+    }
+    catch (const YAML::Exception&)
+    {
+      return new PlaneSlicerRasterPlannerWidget(std::move(loader), parent);
+    }
   }
 };
 
@@ -94,4 +159,4 @@ EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::ToolDragOrientationToolPathModi
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::LeadInToolPathModifierWidgetPlugin, LeadInModifier)
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::LeadOutToolPathModifierWidgetPlugin, LeadOutModifier)
 
-EXPORT_TPP_WIDGET_PLUGIN(noether::PlaneSlicerRasterPlannerWidgetPlugin, PlaneSlicerRasterPlanner);
+EXPORT_TPP_WIDGET_PLUGIN(noether::PlaneSlicerRasterPlannerWidgetPlugin, PlaneSlicerRasterPlanner)

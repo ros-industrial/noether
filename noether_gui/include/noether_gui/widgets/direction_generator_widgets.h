@@ -19,7 +19,7 @@ class FixedDirectionGeneratorWidget : public DirectionGeneratorWidget
 {
   Q_OBJECT
 public:
-  FixedDirectionGeneratorWidget(QWidget* parent = nullptr);
+  FixedDirectionGeneratorWidget(QWidget* parent = nullptr, const Eigen::Vector3d& = Eigen::Vector3d::UnitX());
 
   DirectionGenerator::ConstPtr create() const override;
 
@@ -31,7 +31,7 @@ class PrincipalAxisDirectionGeneratorWidget : public DirectionGeneratorWidget
 {
   Q_OBJECT
 public:
-  PrincipalAxisDirectionGeneratorWidget(QWidget* parent = nullptr);
+  PrincipalAxisDirectionGeneratorWidget(QWidget* parent = nullptr, const double rotation_offset = 0.0);
 
   DirectionGenerator::ConstPtr create() const override;
 
