@@ -24,8 +24,8 @@ void FixedOriginGeneratorWidget::configure(const YAML::Node& config)
 void FixedOriginGeneratorWidget::save(YAML::Node& config) const
 {
   config["x"] = ui_->double_spin_box_x->value();
-  config["y"] = ui_->double_spin_box_x->value();
-  config["z"] = ui_->double_spin_box_x->value();
+  config["y"] = ui_->double_spin_box_y->value();
+  config["z"] = ui_->double_spin_box_z->value();
 }
 
 OriginGenerator::ConstPtr FixedOriginGeneratorWidget::create() const

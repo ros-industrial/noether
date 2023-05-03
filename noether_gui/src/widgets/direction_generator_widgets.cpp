@@ -16,6 +16,8 @@ FixedDirectionGeneratorWidget::FixedDirectionGeneratorWidget(QWidget* parent)
 {
   ui_->setupUi(this);
   ui_->group_box->setTitle("Direction");
+
+  ui_->double_spin_box_x->setValue(1.0);
 }
 
 void FixedDirectionGeneratorWidget::configure(const YAML::Node& config)
@@ -31,8 +33,8 @@ void FixedDirectionGeneratorWidget::configure(const YAML::Node& config)
 void FixedDirectionGeneratorWidget::save(YAML::Node& config) const
 {
   config["x"] = ui_->double_spin_box_x->value();
-  config["y"] = ui_->double_spin_box_x->value();
-  config["z"] = ui_->double_spin_box_x->value();
+  config["y"] = ui_->double_spin_box_y->value();
+  config["z"] = ui_->double_spin_box_z->value();
 }
 
 DirectionGenerator::ConstPtr FixedDirectionGeneratorWidget::create() const
