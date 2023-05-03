@@ -1,7 +1,6 @@
 #pragma once
 
 #include <boost_plugin_loader/plugin_loader.h>
-#include <boost/core/demangle.hpp>
 #include <QLayoutItem>
 #include <QLayout>
 #include <QStringList>
@@ -60,9 +59,7 @@ T getEntry(const YAML::Node& config, const std::string& key)
   }
   catch (const YAML::Exception&)
   {
-    std::stringstream ss;
-    ss << "Failed to cast parameter '" << key << "' as type '" << boost::core::demangle(typeid(T).name()) << "'";
-    throw std::runtime_error(ss.str());
+    throw std::runtime_error("Failed to load parameter '" + key + "'");
   }
 }
 
