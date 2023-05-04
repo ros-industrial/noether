@@ -63,4 +63,20 @@ T getEntry(const YAML::Node& config, const std::string& key)
   }
 }
 
+/**
+ * @details Adapted from https://en.cppreference.com/w/cpp/error/throw_with_nested
+ */
+inline void printException(const std::exception& e, std::ostream& ss, int level = 0)
+{
+  ss << std::string(level * 4, ' ') << e.what() << '\n';
+  try
+  {
+    std::rethrow_if_nested(e);
+  }
+  catch (const std::exception& nested_exception)
+  {
+    printException(nested_exception, ss, level + 1);
+  }
+}
+
 }  // namespace noether
