@@ -28,6 +28,7 @@ endif()
 add_library(${PROJECT_NAME} SHARED
   # Core
   src/core/tool_path_planner_pipeline.cpp
+  src/utils.cpp
   # Mesh Modifiers
   src/mesh_modifiers/compound_modifier.cpp
   # Tool Path Modifiers
