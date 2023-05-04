@@ -90,11 +90,11 @@ void TPPPipelineWidget::configure(const YAML::Node& config)
   try
   {
     // Mesh modifier
-    mesh_modifier_loader_widget_->configure(getEntry<YAML::Node>(config, MESH_MODIFIERS_KEY));
+    mesh_modifier_loader_widget_->configure(config[MESH_MODIFIERS_KEY]);
 
     // Tool path planner
     {
-      auto tpp_config = getEntry<YAML::Node>(config, TOOL_PATH_PLANNER_KEY);
+      auto tpp_config = config[TOOL_PATH_PLANNER_KEY];
       auto name = getEntry<std::string>(tpp_config, "name");
       auto plugin = loader_.createInstance<ToolPathPlannerWidgetPlugin>(name);
       overwriteWidget(ui_->group_box_tpp->layout(), ui_->widget_tpp, plugin->create(this, tpp_config));
@@ -102,7 +102,7 @@ void TPPPipelineWidget::configure(const YAML::Node& config)
     }
 
     // Tool path modifiers
-    tool_path_modifier_loader_widget_->configure(getEntry<YAML::Node>(config, TOOL_PATH_MODIFIERS_KEY));
+    tool_path_modifier_loader_widget_->configure(config[TOOL_PATH_MODIFIERS_KEY]);
   }
   catch (const std::exception&)
   {

@@ -90,7 +90,7 @@ void RasterPlannerWidget::configure(const YAML::Node& config)
   // Direction generator
   try
   {
-    auto dir_gen_config = getEntry<YAML::Node>(config, DIRECTION_GENERATOR_KEY);
+    const YAML::Node dir_gen_config = config[DIRECTION_GENERATOR_KEY];
     QString plugin_name = QString::fromStdString(getEntry<std::string>(dir_gen_config, "name"));
     setDirectionGeneratorWidget(plugin_name, dir_gen_config);
     ui_->group_box_dir_gen->setTitle(plugin_name);
@@ -103,7 +103,7 @@ void RasterPlannerWidget::configure(const YAML::Node& config)
   // Origin generator
   try
   {
-    auto origin_gen_config = getEntry<YAML::Node>(config, ORIGIN_GENERATOR_KEY);
+    const YAML::Node origin_gen_config = config[ORIGIN_GENERATOR_KEY];
     QString plugin_name = QString::fromStdString(getEntry<std::string>(origin_gen_config, "name"));
     setOriginGeneratorWidget(plugin_name, origin_gen_config);
     ui_->group_box_origin_gen->setTitle(plugin_name);
