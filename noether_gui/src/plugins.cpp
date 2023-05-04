@@ -53,10 +53,10 @@ using AngledOrientationToolPathModifierWidgetPlugin =
   WidgetPluginImpl<AngledOrientationToolPathModifierWidget, ToolPathModifierWidget>;
 
 using LeadInToolPathModifierWidgetPlugin =
-  WidgetPluginImpl<LeadInToolPathModifierWidget, ToolPathModifierWidget>;
+  WidgetPluginImpl<CircularLeadInToolPathModifierWidget, ToolPathModifierWidget>;
 
 using LeadOutToolPathModifierWidgetPlugin =
-  WidgetPluginImpl<LeadOutToolPathModifierWidget, ToolPathModifierWidget>;
+  WidgetPluginImpl<CircularLeadOutToolPathModifierWidget, ToolPathModifierWidget>;
 
 // Raster Tool Path Planners
 struct PlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlugin

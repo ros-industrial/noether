@@ -11,24 +11,23 @@ namespace noether
 class AngledOrientationModifier : public ToolPathModifier
 {
 public:
-  AngledOrientationModifier(double angle_offset, double tool_radius, bool flip_sign);
+  AngledOrientationModifier(double angle_offset, double tool_radius);
   ToolPaths modify(ToolPaths tool_paths) const override final;
 
 protected:
   const double angle_offset_;
   const double tool_radius_;
-  const bool flip_sign_;
 };
 
 /**
  * @brief Modifier that adjusts the parameters of the tool approach trajectory to the media
- * @details Asumes that the x direction of the waypoints is the direction of travel for the tool.
+ * @details Assumes that the x direction of the waypoints is the direction of travel for the tool.
  * If this is not a valid assumption, run the DirectionOfTravel orientation modifier before this modifier.
 */
-class LeadInModifier : public ToolPathModifier
+class CircularLeadInModifier : public ToolPathModifier
 {
 public:
-  LeadInModifier(double arc_angle, double arc_radius, double n_points);
+  CircularLeadInModifier(double arc_angle, double arc_radius, double n_points);
   ToolPaths modify(ToolPaths tool_paths) const override final;
 
 protected:
@@ -38,14 +37,14 @@ protected:
 };
 
 /**
- * @brief Modifier that adjusts the parameters of the tool exit trajectory to the media
- * @details Asumes that the x direction of the waypoints is the direction of travel for the tool.
+ * @brief Modifier that adds exit waypoints in a circular arc (with fixed orientation) to the end of a trajectory
+ * @details Assumes that the x direction of the waypoints is the direction of travel for the tool.
  * If this is not a valid assumption, run the DirectionOfTravel orientation modifier before this modifier.
 */
-class LeadOutModifier : public ToolPathModifier
+class CircularLeadOutModifier : public ToolPathModifier
 {
 public:
-  LeadOutModifier(double arc_angle, double arc_radius, double n_points);
+  CircularLeadOutModifier(double arc_angle, double arc_radius, double n_points);
   ToolPaths modify(ToolPaths tool_paths) const override final;
 
 protected:

@@ -20,35 +20,34 @@ public:
 private:
   QDoubleSpinBox* angle_offset_;
   QDoubleSpinBox* tool_radius_;
-  QCheckBox* flip_sign_;
 };
 
-class LeadInToolPathModifierWidget : public ToolPathModifierWidget
+class CircularLeadInToolPathModifierWidget : public ToolPathModifierWidget
 {
   Q_OBJECT
 public:
-  LeadInToolPathModifierWidget(QWidget* parent = nullptr);
+  CircularLeadInToolPathModifierWidget(QWidget* parent = nullptr);
 
   ToolPathModifier::ConstPtr create() const override;
 
 private:
-  QDoubleSpinBox* lead_in_angle_;
-  QDoubleSpinBox* lead_in_arc_radius_;
-  QSpinBox* lead_in_num_of_points_;
+  QDoubleSpinBox* arc_angle_;
+  QDoubleSpinBox* arc_radius_;
+  QSpinBox* n_points_;
 };
 
-class LeadOutToolPathModifierWidget : public ToolPathModifierWidget
+class CircularLeadOutToolPathModifierWidget : public ToolPathModifierWidget
 {
   Q_OBJECT
 public:
-  LeadOutToolPathModifierWidget(QWidget* parent = nullptr);
+  CircularLeadOutToolPathModifierWidget(QWidget* parent = nullptr);
 
   ToolPathModifier::ConstPtr create() const override;
 
 private:
-  QDoubleSpinBox* lead_out_angle_;
-  QDoubleSpinBox* lead_out_arc_radius_;
-  QSpinBox* lead_out_num_of_points_;
+  QDoubleSpinBox* arc_angle_;
+  QDoubleSpinBox* arc_radius_;
+  QSpinBox* n_points;
 };
 
 }  // namespace noether
