@@ -62,48 +62,57 @@ TPPPipelineWidget::TPPPipelineWidget(boost_plugin_loader::PluginLoader loader, Q
   }
 
   connect(ui_->push_button_select_tpp, &QPushButton::clicked, [this](const bool /*checked*/) {
-    const QString text = ui_->combo_box_tpp->currentText();
-    ui_->group_box_tpp->setTitle(text);
-    if (text.isEmpty())
+    try
     {
-      overwriteWidget(ui_->group_box_tpp->layout(), ui_->widget_tpp, new QWidget(this));
-    }
-    else
-    {
-      try
+      const QString text = ui_->combo_box_tpp->currentText();
+      ui_->group_box_tpp->setTitle(text);
+      if (text.isEmpty())
+      {
+        overwriteWidget(ui_->group_box_tpp->layout(), ui_->widget_tpp, new QWidget(this));
+      }
+      else
       {
         auto plugin = loader_.createInstance<ToolPathPlannerWidgetPlugin>(text.toStdString());
         overwriteWidget(ui_->group_box_tpp->layout(), ui_->widget_tpp, plugin->create(this));
       }
-      catch (const std::exception& ex)
-      {
-        QMessageBox::warning(this, "Tool Path Planner Error", QString::fromStdString(ex.what()));
-      }
+    }
+    catch (const std::exception& ex)
+    {
+      std::stringstream ss;
+      printException(ex, ss);
+      QMessageBox::warning(this, "Configuration Error", QString::fromStdString(ss.str()));
     }
   });
 }
 
 void TPPPipelineWidget::configure(const YAML::Node& config)
 {
-  // Mesh modifier
-  mesh_modifier_loader_widget_->configure(getEntry<YAML::Node>(config, MESH_MODIFIERS_KEY));
-
-  // Tool path planner
   try
   {
-    auto tpp_config = getEntry<YAML::Node>(config, TOOL_PATH_PLANNER_KEY);
-    auto name = getEntry<std::string>(tpp_config, "name");
-    auto plugin = loader_.createInstance<ToolPathPlannerWidgetPlugin>(name);
-    overwriteWidget(ui_->group_box_tpp->layout(), ui_->widget_tpp, plugin->create(this, tpp_config));
-    ui_->group_box_tpp->setTitle(QString::fromStdString(name));
-  }
-  catch (const std::exception& ex)
-  {
-    QMessageBox::warning(this, "Configuration Error", ex.what());
-  }
+    // Mesh modifier
+    mesh_modifier_loader_widget_->configure(getEntry<YAML::Node>(config, MESH_MODIFIERS_KEY));
 
-  // Tool path modifiers
-  tool_path_modifier_loader_widget_->configure(getEntry<YAML::Node>(config, TOOL_PATH_MODIFIERS_KEY));
+    // Tool path planner
+    {
+      auto tpp_config = getEntry<YAML::Node>(config, TOOL_PATH_PLANNER_KEY);
+      auto name = getEntry<std::string>(tpp_config, "name");
+      auto plugin = loader_.createInstance<ToolPathPlannerWidgetPlugin>(name);
+      overwriteWidget(ui_->group_box_tpp->layout(), ui_->widget_tpp, plugin->create(this, tpp_config));
+      ui_->group_box_tpp->setTitle(QString::fromStdString(name));
+    }
+
+    // Tool path modifiers
+    tool_path_modifier_loader_widget_->configure(getEntry<YAML::Node>(config, TOOL_PATH_MODIFIERS_KEY));
+  }
+  catch (const std::exception&)
+  {
+    // Clear the widgets
+    overwriteWidget(ui_->group_box_tpp->layout(), ui_->widget_tpp, new QWidget(this));
+    mesh_modifier_loader_widget_->removeWidgets();
+    tool_path_modifier_loader_widget_->removeWidgets();
+
+    throw;
+  }
 }
 
 void TPPPipelineWidget::save(YAML::Node& config) const

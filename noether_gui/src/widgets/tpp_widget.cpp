@@ -52,44 +52,48 @@ void TPPWidget::onLoadConfiguration(const bool /*checked*/)
     pipeline_widget_->configure(YAML::LoadFile(file.toStdString()));
     QMessageBox::information(this, "Configuration", "Successfully loaded tool path planning pipeline configuration");
   }
-  catch (const YAML::BadFile& ex)
+  catch (const YAML::BadFile&)
   {
     QString message;
-    QTextStream ss(&message);
+    QTextStream ss;
     ss << "Failed to open YAML file at '" << file << "'";
     QMessageBox::warning(this, "Configuration Error", message);
   }
   catch (const std::exception& ex)
   {
-    QMessageBox::warning(this, "Configuration Error", ex.what());
+    std::stringstream ss;
+    printException(ex, ss);
+    QMessageBox::warning(this, "Configuration Error", QString::fromStdString(ss.str()));
   }
 }
 
 void TPPWidget::onSaveConfiguration(const bool /*checked*/)
 {
-  QString file = ui_->line_edit_configuration->text();
-  if (file.isEmpty())
-    file = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).at(0);
-
-  file = QFileDialog::getSaveFileName(this, "Save configuration file", file, "YAML files (*.yaml)");
-  if (file.isEmpty())
-    return;
-
-  YAML::Node config;
-  pipeline_widget_->save(config);
-
-  std::ofstream ofh(file.toStdString());
-  if (!ofh)
+  try
   {
-    QString message;
-    QTextStream ss(&message);
-    ss << "Failed to open output file at '" << file << "'";
-    QMessageBox::warning(this, "Error", message);
-  }
-  else
-  {
+    QString file = ui_->line_edit_configuration->text();
+    if (file.isEmpty())
+      file = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).at(0);
+
+    file = QFileDialog::getSaveFileName(this, "Save configuration file", file, "YAML files (*.yaml)");
+    if (file.isEmpty())
+      return;
+
+    YAML::Node config;
+    pipeline_widget_->save(config);
+
+    std::ofstream ofh(file.toStdString());
+    if (!ofh)
+      throw std::runtime_error("Failed to open output file at '" + file.toStdString() + "'");
+
     ofh << config;
     QMessageBox::information(this, "Configuration", "Successfully saved tool path planning pipeline configuration");
+  }
+  catch (const std::exception& ex)
+  {
+    std::stringstream ss;
+    printException(ex, ss);
+    QMessageBox::warning(this, "Save Error", QString::fromStdString(ss.str()));
   }
 }
 
@@ -122,7 +126,10 @@ void TPPWidget::onPlan(const bool /*checked*/)
   catch (const std::exception& ex)
   {
     QApplication::restoreOverrideCursor();
-    QMessageBox::warning(this, "Tool Path Planning Error", QString::fromStdString(ex.what()));
+
+    std::stringstream ss;
+    printException(ex, ss);
+    QMessageBox::warning(this, "Tool Path Planning Error", QString::fromStdString(ss.str()));
   }
 }
 
