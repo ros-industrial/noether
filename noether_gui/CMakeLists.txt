@@ -56,7 +56,15 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 target_link_libraries(${PROJECT_NAME} PUBLIC noether::noether_tpp Qt5::Widgets ${PCL_LIBRARIES} boost_plugin_loader::boost_plugin_loader Eigen3::Eigen yaml-cpp)
-target_compile_definitions(${PROJECT_NAME} PUBLIC NOETHER_GUI_PLUGINS="${PROJECT_NAME}_plugins")
+target_compile_definitions(${PROJECT_NAME}
+  PUBLIC
+    NOETHER_GUI_PLUGINS="${PROJECT_NAME}_plugins"
+    NOETHER_GUI_TPP_SECTION="tpp"
+    NOETHER_GUI_DIRECTION_GENERATOR_SECTION="dg"
+    NOETHER_GUI_ORIGIN_GENERATOR_SECTION="og"
+    NOETHER_GUI_TOOL_PATH_MODIFIER_SECTION="mod"
+    NOETHER_GUI_MESH_MODIFIER_SECTION="mesh"
+)
 target_cxx_version(${PROJECT_NAME} PUBLIC VERSION 14)
 target_clang_tidy(${PROJECT_NAME}
   ENABLE ${NOETHER_ENABLE_CLANG_TIDY}

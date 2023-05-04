@@ -13,31 +13,31 @@ namespace noether
 template <>
 std::string noether::ToolPathPlannerWidgetPlugin::getSection()
 {
-  return "tpp";
+  return NOETHER_GUI_TPP_SECTION;
 }
 
 template <>
 std::string DirectionGeneratorWidgetPlugin::getSection()
 {
-  return "dg";
+  return NOETHER_GUI_DIRECTION_GENERATOR_SECTION;
 }
 
 template <>
 std::string OriginGeneratorWidgetPlugin::getSection()
 {
-  return "og";
+  return NOETHER_GUI_ORIGIN_GENERATOR_SECTION;
 }
 
 template <>
 std::string ToolPathModifierWidgetPlugin::getSection()
 {
-  return "mod";
+  return NOETHER_GUI_TOOL_PATH_MODIFIER_SECTION;
 }
 
 template <>
 std::string MeshModifierWidgetPlugin::getSection()
 {
-  return "mesh";
+  return NOETHER_GUI_MESH_MODIFIER_SECTION;
 }
 }  // namespace noether
 
