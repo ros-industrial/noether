@@ -93,7 +93,7 @@ void RasterPlannerWidget::configure(const YAML::Node& config)
   }
   catch (const std::exception& ex)
   {
-    QMessageBox::warning(this, "Direction generator configuration error", ex.what());
+    QMessageBox::warning(this, "Direction Generator Error", ex.what());
   }
 
   try
@@ -106,7 +106,7 @@ void RasterPlannerWidget::configure(const YAML::Node& config)
   }
   catch (const std::exception& ex)
   {
-    QMessageBox::warning(this, "Origin generator configuration error", ex.what());
+    QMessageBox::warning(this, "Origin Generator Error", ex.what());
   }
 }
 
