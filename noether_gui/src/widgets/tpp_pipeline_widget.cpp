@@ -93,12 +93,17 @@ void TPPPipelineWidget::configure(const YAML::Node& config)
     mesh_modifier_loader_widget_->configure(config[MESH_MODIFIERS_KEY]);
 
     // Tool path planner
+    try
     {
       auto tpp_config = config[TOOL_PATH_PLANNER_KEY];
       auto name = getEntry<std::string>(tpp_config, "name");
       auto plugin = loader_.createInstance<ToolPathPlannerWidgetPlugin>(name);
       overwriteWidget(ui_->group_box_tpp->layout(), ui_->widget_tpp, plugin->create(this, tpp_config));
       ui_->group_box_tpp->setTitle(QString::fromStdString(name));
+    }
+    catch (const std::exception&)
+    {
+      std::throw_with_nested(std::runtime_error("Error configuring tool path planner: "));
     }
 
     // Tool path modifiers
