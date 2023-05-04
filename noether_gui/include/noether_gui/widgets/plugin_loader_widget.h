@@ -29,6 +29,8 @@ public:
   void configure(const YAML::Node& config);
   void save(YAML::Node& config) const;
 
+  void removeWidgets();
+
 private:
   void addWidget(const QString& plugin_name, const YAML::Node& config);
 
