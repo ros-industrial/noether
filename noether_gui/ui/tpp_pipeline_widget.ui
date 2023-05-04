@@ -19,66 +19,63 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_3">
+  <layout class="QVBoxLayout" name="verticalLayout_4">
    <item>
-    <layout class="QVBoxLayout" name="vertical_layout_mesh_mod"/>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="group_box_tpp_container">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>1</number>
      </property>
-     <property name="title">
-      <string>Tool Path Planner</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <item>
-         <widget class="QComboBox" name="combo_box_tpp"/>
-        </item>
-        <item>
-         <widget class="QPushButton" name="push_button_select_tpp">
-          <property name="text">
-           <string>Select</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QGroupBox" name="group_box_tpp">
-        <property name="title">
-         <string/>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
+     <widget class="QWidget" name="tab_mesh_modifier">
+      <attribute name="title">
+       <string>Mesh Modifier</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="tab_tool_path_planner">
+      <attribute name="title">
+       <string>Tool Path Planner</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
-          <widget class="QWidget" name="widget_tpp" native="true"/>
+          <widget class="QComboBox" name="combo_box_tpp"/>
+         </item>
+         <item>
+          <widget class="QPushButton" name="push_button_select_tpp">
+           <property name="text">
+            <string>Select</string>
+           </property>
+          </widget>
          </item>
         </layout>
-       </widget>
-      </item>
-     </layout>
+       </item>
+       <item>
+        <widget class="Line" name="line">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="group_box_tpp">
+         <property name="title">
+          <string/>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QWidget" name="widget_tpp" native="true"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_tool_path_modifier">
+      <attribute name="title">
+       <string>Tool Path Modifier</string>
+      </attribute>
+     </widget>
     </widget>
-   </item>
-   <item>
-    <layout class="QVBoxLayout" name="vertical_layout_tool_path_mod"/>
-   </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
    </item>
   </layout>
  </widget>

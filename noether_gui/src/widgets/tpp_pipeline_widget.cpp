@@ -48,10 +48,18 @@ TPPPipelineWidget::TPPPipelineWidget(boost_plugin_loader::PluginLoader loader, Q
   ui_->combo_box_tpp->addItems(getAvailablePlugins<ToolPathPlannerWidgetPlugin>(loader_));
 
   // Add the tool path modifier loader widget
-  ui_->vertical_layout_tool_path_mod->addWidget(tool_path_modifier_loader_widget_);
+  {
+    auto layout = new QVBoxLayout();
+    layout->addWidget(tool_path_modifier_loader_widget_);
+    ui_->tab_tool_path_modifier->setLayout(layout);
+  }
 
   // Add the mesh modifier loader widget
-  ui_->vertical_layout_mesh_mod->addWidget(mesh_modifier_loader_widget_);
+  {
+    auto layout = new QVBoxLayout();
+    layout->addWidget(mesh_modifier_loader_widget_);
+    ui_->tab_mesh_modifier->setLayout(layout);
+  }
 
   connect(ui_->push_button_select_tpp, &QPushButton::clicked, [this](const bool /*checked*/) {
     const QString text = ui_->combo_box_tpp->currentText();
