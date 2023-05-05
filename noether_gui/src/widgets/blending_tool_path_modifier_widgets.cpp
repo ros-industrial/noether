@@ -107,14 +107,14 @@ CircularLeadOutToolPathModifierWidget::CircularLeadOutToolPathModifierWidget(QWi
   layout->addRow(label_rad, arc_radius_);
 
   // Number of points
-  n_points = new QSpinBox(this);
-  n_points->setMinimum(0.0);
-  n_points->setSingleStep(1);
-  n_points->setValue(5);
+  n_points_ = new QSpinBox(this);
+  n_points_->setMinimum(0.0);
+  n_points_->setSingleStep(1);
+  n_points_->setValue(5);
 
   auto label_pnt = new QLabel("Lead in number of points", this);
   label_pnt->setToolTip("Number of waypoints along the exit trajectory");
-  layout->addRow(label_pnt, n_points);
+  layout->addRow(label_pnt, n_points_);
 
   setLayout(layout);
 }
@@ -122,7 +122,7 @@ CircularLeadOutToolPathModifierWidget::CircularLeadOutToolPathModifierWidget(QWi
 ToolPathModifier::ConstPtr CircularLeadOutToolPathModifierWidget::create() const
 {
   return std::make_unique<CircularLeadOutModifier>(
-      arc_angle_->value() * M_PI / 180.0, arc_radius_->value(), n_points->value());
+      arc_angle_->value() * M_PI / 180.0, arc_radius_->value(), n_points_->value());
 }
 
 }  // namespace noether

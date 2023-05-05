@@ -47,7 +47,7 @@ public:
 private:
   QDoubleSpinBox* arc_angle_;
   QDoubleSpinBox* arc_radius_;
-  QSpinBox* n_points;
+  QSpinBox* n_points_;
 };
 
 }  // namespace noether
