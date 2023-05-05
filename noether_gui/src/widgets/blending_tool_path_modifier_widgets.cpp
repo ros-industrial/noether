@@ -1,11 +1,18 @@
 #include <noether_gui/widgets/blending_tool_path_modifier_widgets.h>
-#include <noether_tpp/tool_path_modifiers/blending_modifiers.h>
+#include <noether_gui/utils.h>
 
+#include <noether_tpp/tool_path_modifiers/blending_modifiers.h>
 #include <QFormLayout>
 #include <QLabel>
 #include <QDoubleSpinBox>
 #include <QSpinBox>
 #include <QCheckBox>
+
+static const std::string ANGLE_OFFSET_KEY = "angle_offset";
+static const std::string TOOL_RADIUS_KEY = "tool_radius";
+static const std::string ARC_ANGLE_KEY = "arc_angle";
+static const std::string ARC_RADIUS_KEY = "arc_radius";
+static const std::string N_POINTS_KEY = "n_points";
 
 namespace noether
 {
@@ -37,6 +44,18 @@ ToolPathModifier::ConstPtr ToolDragOrientationToolPathModifierWidget::create() c
 {
   return std::make_unique<ToolDragOrientationToolPathModifier>(angle_offset_->value() * M_PI / 180.0,
                                                                tool_radius_->value());
+}
+
+void ToolDragOrientationToolPathModifierWidget::configure(const YAML::Node& config)
+{
+  angle_offset_->setValue(getEntry<double>(config, ANGLE_OFFSET_KEY));
+  tool_radius_->setValue(getEntry<double>(config, TOOL_RADIUS_KEY));
+}
+
+void ToolDragOrientationToolPathModifierWidget::save(YAML::Node& config) const
+{
+  config[ANGLE_OFFSET_KEY] = angle_offset_->value();
+  config[TOOL_RADIUS_KEY] = tool_radius_->value();
 }
 
 CircularLeadInToolPathModifierWidget::CircularLeadInToolPathModifierWidget(QWidget* parent)
@@ -81,6 +100,20 @@ ToolPathModifier::ConstPtr CircularLeadInToolPathModifierWidget::create() const
       arc_angle_->value() * M_PI / 180.0, arc_radius_->value(), n_points_->value());
 }
 
+void CircularLeadInToolPathModifierWidget::configure(const YAML::Node& config)
+{
+  arc_angle_->setValue(getEntry<double>(config, ARC_ANGLE_KEY));
+  arc_radius_->setValue(getEntry<double>(config, ARC_RADIUS_KEY));
+  n_points_->setValue(getEntry<int>(config, N_POINTS_KEY));
+}
+
+void CircularLeadInToolPathModifierWidget::save(YAML::Node& config) const
+{
+  config[ARC_ANGLE_KEY] = arc_angle_->value();
+  config[ARC_RADIUS_KEY] = arc_radius_->value();
+  config[N_POINTS_KEY] = n_points_->value();
+}
+
 CircularLeadOutToolPathModifierWidget::CircularLeadOutToolPathModifierWidget(QWidget* parent)
   : ToolPathModifierWidget(parent)
 {
@@ -123,6 +156,20 @@ ToolPathModifier::ConstPtr CircularLeadOutToolPathModifierWidget::create() const
 {
   return std::make_unique<CircularLeadOutModifier>(
       arc_angle_->value() * M_PI / 180.0, arc_radius_->value(), n_points_->value());
+}
+
+void CircularLeadOutToolPathModifierWidget::configure(const YAML::Node& config)
+{
+  arc_angle_->setValue(getEntry<double>(config, ARC_ANGLE_KEY));
+  arc_radius_->setValue(getEntry<double>(config, ARC_RADIUS_KEY));
+  n_points_->setValue(getEntry<int>(config, N_POINTS_KEY));
+}
+
+void CircularLeadOutToolPathModifierWidget::save(YAML::Node& config) const
+{
+  config[ARC_ANGLE_KEY] = arc_angle_->value();
+  config[ARC_RADIUS_KEY] = arc_radius_->value();
+  config[N_POINTS_KEY] = n_points_->value();
 }
 
 }  // namespace noether
