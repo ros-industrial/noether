@@ -35,7 +35,8 @@ ToolDragOrientationToolPathModifierWidget::ToolDragOrientationToolPathModifierWi
 
 ToolPathModifier::ConstPtr ToolDragOrientationToolPathModifierWidget::create() const
 {
-  return std::make_unique<ToolDragOrientationToolPathModifier>(angle_offset_->value() * M_PI / 180.0, tool_radius_->value());
+  return std::make_unique<ToolDragOrientationToolPathModifier>(angle_offset_->value() * M_PI / 180.0,
+                                                               tool_radius_->value());
 }
 
 CircularLeadInToolPathModifierWidget::CircularLeadInToolPathModifierWidget(QWidget* parent)
@@ -49,7 +50,8 @@ CircularLeadInToolPathModifierWidget::CircularLeadInToolPathModifierWidget(QWidg
   arc_angle_->setValue(90.0);
   arc_angle_->setDecimals(3);
   auto label = new QLabel("Arc sweep (deg)", this);
-  label->setToolTip("How far along the approach trajectory arc the waypoints extend from the first waypoint of the segment");
+  label->setToolTip("How far along the approach trajectory arc the waypoints extend from the first waypoint of the "
+                    "segment");
   layout->addRow(label, arc_angle_);
 
   // Radius of the lead in arc
@@ -75,7 +77,8 @@ CircularLeadInToolPathModifierWidget::CircularLeadInToolPathModifierWidget(QWidg
 
 ToolPathModifier::ConstPtr CircularLeadInToolPathModifierWidget::create() const
 {
-  return std::make_unique<CircularLeadInModifier>(arc_angle_->value() * M_PI / 180.0, arc_radius_->value(), n_points_->value());
+  return std::make_unique<CircularLeadInModifier>(
+      arc_angle_->value() * M_PI / 180.0, arc_radius_->value(), n_points_->value());
 }
 
 CircularLeadOutToolPathModifierWidget::CircularLeadOutToolPathModifierWidget(QWidget* parent)
@@ -118,8 +121,8 @@ CircularLeadOutToolPathModifierWidget::CircularLeadOutToolPathModifierWidget(QWi
 
 ToolPathModifier::ConstPtr CircularLeadOutToolPathModifierWidget::create() const
 {
-  return std::make_unique<CircularLeadOutModifier>(arc_angle_->value() * M_PI / 180.0, arc_radius_->value(), n_points->value());
+  return std::make_unique<CircularLeadOutModifier>(
+      arc_angle_->value() * M_PI / 180.0, arc_radius_->value(), n_points->value());
 }
-
 
 }  // namespace noether

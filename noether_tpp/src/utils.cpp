@@ -32,8 +32,7 @@ Eigen::Vector3d estimateToolPathDirection(const ToolPath& tool_path)
  * point in the first segment of the first tool path) to the first waypoint in the first segment of the last tool path
  * that is perpendicular to the nominal tool path direction
  */
-Eigen::Vector3d estimateRasterDirection(const ToolPaths& tool_paths,
-                                               const Eigen::Vector3d& reference_tool_path_dir)
+Eigen::Vector3d estimateRasterDirection(const ToolPaths& tool_paths, const Eigen::Vector3d& reference_tool_path_dir)
 {
   // First waypoint in the first segment of the first tool path
   const Eigen::Isometry3d first_wp = tool_paths.at(0).at(0).at(0);

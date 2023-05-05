@@ -7,7 +7,7 @@ namespace noether
 /**
  * @brief Transforms the waypoints to correspond with the center of the ginding tool so that the edge
  * of the tool is in contact with the media
-*/
+ */
 class ToolDragOrientationToolPathModifier : public ToolPathModifier
 {
 public:
@@ -21,7 +21,7 @@ protected:
 
 /**
  * @brief Modifier that adjusts the parameters of the tool approach trajectory to the media
-*/
+ */
 class CircularLeadInModifier : public ToolPathModifier
 {
 public:
@@ -36,7 +36,7 @@ protected:
 
 /**
  * @brief Modifier that adds exit waypoints in a circular arc (with fixed orientation) to the end of a trajectory
-*/
+ */
 class CircularLeadOutModifier : public ToolPathModifier
 {
 public:
@@ -50,4 +50,3 @@ protected:
 };
 
 }  // namespace noether
-
