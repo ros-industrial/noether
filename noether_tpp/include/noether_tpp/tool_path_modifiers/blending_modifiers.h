@@ -8,10 +8,10 @@ namespace noether
  * @brief Transforms the waypoints to correspond with the center of the ginding tool so that the edge
  * of the tool is in contact with the media
 */
-class AngledOrientationModifier : public ToolPathModifier
+class ToolDragOrientationToolPathModifier : public ToolPathModifier
 {
 public:
-  AngledOrientationModifier(double angle_offset, double tool_radius);
+  ToolDragOrientationToolPathModifier(double angle_offset, double tool_radius);
   ToolPaths modify(ToolPaths tool_paths) const override final;
 
 protected:
@@ -21,8 +21,6 @@ protected:
 
 /**
  * @brief Modifier that adjusts the parameters of the tool approach trajectory to the media
- * @details Assumes that the x direction of the waypoints is the direction of travel for the tool.
- * If this is not a valid assumption, run the DirectionOfTravel orientation modifier before this modifier.
 */
 class CircularLeadInModifier : public ToolPathModifier
 {
@@ -38,8 +36,6 @@ protected:
 
 /**
  * @brief Modifier that adds exit waypoints in a circular arc (with fixed orientation) to the end of a trajectory
- * @details Assumes that the x direction of the waypoints is the direction of travel for the tool.
- * If this is not a valid assumption, run the DirectionOfTravel orientation modifier before this modifier.
 */
 class CircularLeadOutModifier : public ToolPathModifier
 {

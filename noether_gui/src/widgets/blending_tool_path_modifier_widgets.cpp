@@ -9,7 +9,7 @@
 
 namespace noether
 {
-AngledOrientationToolPathModifierWidget::AngledOrientationToolPathModifierWidget(QWidget* parent)
+ToolDragOrientationToolPathModifierWidget::ToolDragOrientationToolPathModifierWidget(QWidget* parent)
   : ToolPathModifierWidget(parent)
 {
   auto layout = new QFormLayout(this);
@@ -33,9 +33,9 @@ AngledOrientationToolPathModifierWidget::AngledOrientationToolPathModifierWidget
   layout->addRow(new QLabel("Tool radius (m)", this), tool_radius_);
 }
 
-ToolPathModifier::ConstPtr AngledOrientationToolPathModifierWidget::create() const
+ToolPathModifier::ConstPtr ToolDragOrientationToolPathModifierWidget::create() const
 {
-  return std::make_unique<AngledOrientationModifier>(angle_offset_->value() * M_PI / 180.0, tool_radius_->value());
+  return std::make_unique<ToolDragOrientationToolPathModifier>(angle_offset_->value() * M_PI / 180.0, tool_radius_->value());
 }
 
 CircularLeadInToolPathModifierWidget::CircularLeadInToolPathModifierWidget(QWidget* parent)

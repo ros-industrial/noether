@@ -49,8 +49,8 @@ using UniformOrientationModifierWidgetPlugin =
 using MovingAverageOrientationSmoothingModifierWidgetPlugin =
     WidgetPluginImpl<MovingAverageOrientationSmoothingModifierWidget, ToolPathModifierWidget>;
 
-using AngledOrientationToolPathModifierWidgetPlugin =
-  WidgetPluginImpl<AngledOrientationToolPathModifierWidget, ToolPathModifierWidget>;
+using ToolDragOrientationToolPathModifierWidgetPlugin =
+  WidgetPluginImpl<ToolDragOrientationToolPathModifierWidget, ToolPathModifierWidget>;
 
 using LeadInToolPathModifierWidgetPlugin =
   WidgetPluginImpl<CircularLeadInToolPathModifierWidget, ToolPathModifierWidget>;
@@ -89,7 +89,7 @@ EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::DirectionOfTravelOrientationMod
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::UniformOrientationModifierWidgetPlugin, UniformOrientationModifier)
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::MovingAverageOrientationSmoothingModifierWidgetPlugin,
                                         MovingAverageOrientationSmoothingModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::AngledOrientationToolPathModifierWidgetPlugin, AngledOrientationModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::ToolDragOrientationToolPathModifierWidgetPlugin, ToolDragOrientationToolPathModifier)
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::LeadInToolPathModifierWidgetPlugin, LeadInModifier)
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::LeadOutToolPathModifierWidgetPlugin, LeadOutModifier)
 

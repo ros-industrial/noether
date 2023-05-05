@@ -3,12 +3,12 @@
 
 namespace noether
 {
-AngledOrientationModifier::AngledOrientationModifier(double angle_offset, double tool_radius)
+ToolDragOrientationToolPathModifier::ToolDragOrientationToolPathModifier(double angle_offset, double tool_radius)
   : angle_offset_(angle_offset), tool_radius_(tool_radius)
 {
 }
 
-ToolPaths AngledOrientationModifier::modify(ToolPaths tool_paths) const
+ToolPaths ToolDragOrientationToolPathModifier::modify(ToolPaths tool_paths) const
 {
   for (ToolPath& tool_path : tool_paths)
   {

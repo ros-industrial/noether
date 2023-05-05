@@ -9,11 +9,11 @@ class QSpinBox;
 
 namespace noether
 {
-class AngledOrientationToolPathModifierWidget : public ToolPathModifierWidget
+class ToolDragOrientationToolPathModifierWidget : public ToolPathModifierWidget
 {
   Q_OBJECT
 public:
-  AngledOrientationToolPathModifierWidget(QWidget* parent = nullptr);
+  ToolDragOrientationToolPathModifierWidget(QWidget* parent = nullptr);
 
   ToolPathModifier::ConstPtr create() const override;
 
