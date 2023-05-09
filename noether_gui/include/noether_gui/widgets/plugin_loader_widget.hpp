@@ -5,6 +5,7 @@
 
 #include <QMenu>
 #include <QMessageBox>
+#include <yaml-cpp/yaml.h>
 
 namespace noether
 {
@@ -25,28 +26,7 @@ PluginLoaderWidget<PluginT>::PluginLoaderWidget(boost_plugin_loader::PluginLoade
     {
       try
       {
-        auto plugin = loader_.createInstance<PluginT>(plugin_name.toStdString());
-
-        auto collapsible_area = new CollapsibleArea(plugin_name, this);
-        collapsible_area->setWidget(plugin->create(this));
-        collapsible_area->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
-
-        ui_->vertical_layout_plugins->addWidget(collapsible_area);
-
-        // Add a right click menu option for deleting this tool path modifier widget
-        connect(collapsible_area, &QWidget::customContextMenuRequested, [this, collapsible_area](const QPoint& pos) {
-          QMenu context_menu;
-          QAction* remove_action = context_menu.addAction("Remove");
-          QAction* action = context_menu.exec(collapsible_area->mapToGlobal(pos));
-          if (action == remove_action)
-          {
-            ui_->vertical_layout_plugins->removeWidget(collapsible_area);
-            delete collapsible_area;
-          }
-        });
-
-        // Reset the combo box to the blank value
-        ui_->combo_box->setCurrentIndex(0);
+        addWidget(plugin_name, {});
       }
       catch (const std::exception& ex)
       {
@@ -54,6 +34,33 @@ PluginLoaderWidget<PluginT>::PluginLoaderWidget(boost_plugin_loader::PluginLoade
       }
     }
   });
+}
+
+template <typename PluginT>
+void PluginLoaderWidget<PluginT>::addWidget(const QString& plugin_name, const YAML::Node& config)
+{
+  auto plugin = loader_.createInstance<PluginT>(plugin_name.toStdString());
+
+  auto collapsible_area = new CollapsibleArea(plugin_name, this);
+  collapsible_area->setWidget(plugin->create(this, config));
+  collapsible_area->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
+
+  ui_->vertical_layout_plugins->addWidget(collapsible_area);
+
+  // Add a right click menu option for deleting this tool path modifier widget
+  connect(collapsible_area, &QWidget::customContextMenuRequested, [this, collapsible_area](const QPoint& pos) {
+    QMenu context_menu;
+    QAction* remove_action = context_menu.addAction("Remove");
+    QAction* action = context_menu.exec(collapsible_area->mapToGlobal(pos));
+    if (action == remove_action)
+    {
+      ui_->vertical_layout_plugins->removeWidget(collapsible_area);
+      delete collapsible_area;
+    }
+  });
+
+  // Reset the combo box to the blank value
+  ui_->combo_box->setCurrentIndex(0);
 }
 
 template <typename PluginT>
@@ -74,6 +81,50 @@ QWidgetList PluginLoaderWidget<PluginT>::getWidgets() const
   }
 
   return widgets;
+}
+
+template <typename PluginT>
+void PluginLoaderWidget<PluginT>::configure(const YAML::Node& config)
+{
+  removeWidgets();
+  for (auto it = config.begin(); it != config.end(); ++it)
+  {
+    addWidget(QString::fromStdString(getEntry<std::string>(*it, "name")), *it);
+  }
+}
+
+template <typename PluginT>
+void PluginLoaderWidget<PluginT>::save(YAML::Node& config) const
+{
+  for (int i = 0; i < ui_->vertical_layout_plugins->count(); ++i)
+  {
+    QLayoutItem* item = ui_->vertical_layout_plugins->itemAt(i);
+    if (item)
+    {
+      auto collapsible_area = dynamic_cast<const CollapsibleArea*>(item->widget());
+      if (collapsible_area)
+      {
+        auto widget = dynamic_cast<const typename PluginT::WidgetT*>(collapsible_area->getWidget());
+        if (widget)
+        {
+          YAML::Node widget_config;
+          widget_config["name"] = collapsible_area->getLabel().toStdString();
+          widget->save(widget_config);
+
+          config.push_back(widget_config);
+        }
+      }
+    }
+  }
+}
+
+template <typename PluginT>
+void PluginLoaderWidget<PluginT>::removeWidgets()
+{
+  for (int i = 0; i < ui_->vertical_layout_plugins->count(); ++i)
+  {
+    ui_->vertical_layout_plugins->itemAt(i)->widget()->deleteLater();
+  }
 }
 
 }  // namespace noether

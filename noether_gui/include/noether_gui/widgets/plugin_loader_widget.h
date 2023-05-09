@@ -8,6 +8,11 @@ namespace Ui
 class PluginLoader;
 }
 
+namespace YAML
+{
+class Node;
+}
+
 namespace noether
 {
 /**
@@ -21,7 +26,14 @@ public:
 
   QWidgetList getWidgets() const;
 
+  void configure(const YAML::Node& config);
+  void save(YAML::Node& config) const;
+
+  void removeWidgets();
+
 private:
+  void addWidget(const QString& plugin_name, const YAML::Node& config);
+
   Ui::PluginLoader* ui_;
   const boost_plugin_loader::PluginLoader loader_;
 };

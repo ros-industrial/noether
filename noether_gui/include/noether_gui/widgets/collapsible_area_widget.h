@@ -38,7 +38,10 @@ public:
     return widget;
   }
 
+  QString getLabel() const;
+
 private:
+  QString label_;
   QGridLayout* layout;
   QToolButton* tool_button;
   QFrame* line;

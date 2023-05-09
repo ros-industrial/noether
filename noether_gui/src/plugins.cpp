@@ -7,23 +7,34 @@
 #include <noether_gui/widgets/plane_slicer_raster_planner_widget.h>
 
 #include <QWidget>
+#include <QMessageBox>
 
 namespace noether
 {
 template <typename T, typename BaseT>
 struct WidgetPluginImpl : WidgetPlugin<BaseT>
 {
-  QWidget* create(QWidget* parent = nullptr) const override final { return new T(parent); }
+  QWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
+  {
+    auto widget = new T(parent);
+
+    // Attempt to configure the widget
+    if (!config.IsNull())
+      widget->configure(config);
+
+    return widget;
+  }
 };
 
 // Direction Generators
-using FixedDirectionGeneratorWidgetPlugin = WidgetPluginImpl<FixedDirectionGeneratorWidget, DirectionGeneratorWidget>;
+using FixedDirectionGeneratorWidgetPlugin =
+    WidgetPluginImpl<FixedDirectionGeneratorWidget, DirectionGeneratorWidgetPlugin>;
 
 using PrincipalAxisDirectionGeneratorWidgetPlugin =
-    WidgetPluginImpl<PrincipalAxisDirectionGeneratorWidget, DirectionGeneratorWidget>;
+    WidgetPluginImpl<PrincipalAxisDirectionGeneratorWidget, DirectionGeneratorWidgetPlugin>;
 
 // Origin Generators
-using FixedOriginGeneratorWidgetPlugin = WidgetPluginImpl<FixedOriginGeneratorWidget, OriginGeneratorWidget>;
+using FixedOriginGeneratorWidgetPlugin = WidgetPluginImpl<FixedOriginGeneratorWidget, OriginGeneratorWidgetPlugin>;
 
 using CentroidOriginGeneratorWidgetPlugin = WidgetPluginImpl<CentroidOriginGeneratorWidget, OriginGeneratorWidget>;
 
@@ -52,20 +63,26 @@ using MovingAverageOrientationSmoothingModifierWidgetPlugin =
 using ToolDragOrientationToolPathModifierWidgetPlugin =
     WidgetPluginImpl<ToolDragOrientationToolPathModifierWidget, ToolPathModifierWidget>;
 
-using LeadInToolPathModifierWidgetPlugin =
+using CircularLeadInToolPathModifierWidgetPlugin =
     WidgetPluginImpl<CircularLeadInToolPathModifierWidget, ToolPathModifierWidget>;
 
-using LeadOutToolPathModifierWidgetPlugin =
+using CircularLeadOutToolPathModifierWidgetPlugin =
     WidgetPluginImpl<CircularLeadOutToolPathModifierWidget, ToolPathModifierWidget>;
 
 // Raster Tool Path Planners
 struct PlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlugin
 {
-  QWidget* create(QWidget* parent = nullptr) const override final
+  QWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
   {
     boost_plugin_loader::PluginLoader loader;
     loader.search_libraries.insert(NOETHER_GUI_PLUGINS);
-    return new PlaneSlicerRasterPlannerWidget(std::move(loader), parent);
+    auto widget = new PlaneSlicerRasterPlannerWidget(std::move(loader), parent);
+
+    // Attempt to configure the widget
+    if (!config.IsNull())
+      widget->configure(config);
+
+    return widget;
   }
 };
 
@@ -91,7 +108,7 @@ EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::MovingAverageOrientationSmoothi
                                         MovingAverageOrientationSmoothingModifier)
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::ToolDragOrientationToolPathModifierWidgetPlugin,
                                         ToolDragOrientationToolPathModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::LeadInToolPathModifierWidgetPlugin, LeadInModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::LeadOutToolPathModifierWidgetPlugin, LeadOutModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::CircularLeadInToolPathModifierWidgetPlugin, CircularLeadInModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::CircularLeadOutToolPathModifierWidgetPlugin, CircularLeadOutModifier)
 
-EXPORT_TPP_WIDGET_PLUGIN(noether::PlaneSlicerRasterPlannerWidgetPlugin, PlaneSlicerRasterPlanner);
+EXPORT_TPP_WIDGET_PLUGIN(noether::PlaneSlicerRasterPlannerWidgetPlugin, PlaneSlicerRasterPlanner)

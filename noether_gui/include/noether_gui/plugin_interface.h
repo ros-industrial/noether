@@ -3,6 +3,7 @@
 #include <noether_gui/widgets.h>
 #include <string>
 #include <memory>
+#include <yaml-cpp/yaml.h>
 
 class QWidget;
 
@@ -23,10 +24,11 @@ template <typename T>
 class WidgetPlugin
 {
 public:
+  using WidgetT = T;
   using Ptr = std::shared_ptr<WidgetPlugin>;
   virtual ~WidgetPlugin() = default;
 
-  virtual QWidget* create(QWidget* parent = nullptr) const = 0;
+  virtual QWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const = 0;
 
 private:
   friend class boost_plugin_loader::PluginLoader;

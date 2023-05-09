@@ -23,6 +23,9 @@ public:
 
   ToolPathModifier::ConstPtr create() const override;
 
+  void configure(const YAML::Node&) override;
+  void save(YAML::Node&) const;
+
 private:
   Ui::Vector3dEditor* ui_;
 };
@@ -52,6 +55,9 @@ public:
   FixedOrientationModifierWidget(QWidget* parent = nullptr);
   ToolPathModifier::ConstPtr create() const override;
 
+  void configure(const YAML::Node&) override;
+  void save(YAML::Node&) const;
+
 private:
   Ui::Vector3dEditor* ui_;
 };
@@ -76,6 +82,9 @@ class MovingAverageOrientationSmoothingModifierWidget : public ToolPathModifierW
 public:
   MovingAverageOrientationSmoothingModifierWidget(QWidget* parent = nullptr);
   ToolPathModifier::ConstPtr create() const override;
+
+  void configure(const YAML::Node&) override;
+  void save(YAML::Node&) const;
 
 private:
   QFormLayout* layout_;

@@ -17,6 +17,9 @@ public:
 
   ToolPathModifier::ConstPtr create() const override;
 
+  void configure(const YAML::Node&) override;
+  void save(YAML::Node&) const override;
+
 private:
   QDoubleSpinBox* angle_offset_;
   QDoubleSpinBox* tool_radius_;
@@ -29,6 +32,9 @@ public:
   CircularLeadInToolPathModifierWidget(QWidget* parent = nullptr);
 
   ToolPathModifier::ConstPtr create() const override;
+
+  void configure(const YAML::Node&) override;
+  void save(YAML::Node&) const override;
 
 private:
   QDoubleSpinBox* arc_angle_;
@@ -44,10 +50,13 @@ public:
 
   ToolPathModifier::ConstPtr create() const override;
 
+  void configure(const YAML::Node&) override;
+  void save(YAML::Node&) const override;
+
 private:
   QDoubleSpinBox* arc_angle_;
   QDoubleSpinBox* arc_radius_;
-  QSpinBox* n_points;
+  QSpinBox* n_points_;
 };
 
 }  // namespace noether

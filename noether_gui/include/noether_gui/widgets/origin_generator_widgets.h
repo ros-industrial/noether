@@ -19,6 +19,9 @@ public:
 
   OriginGenerator::ConstPtr create() const override;
 
+  void configure(const YAML::Node&) override;
+  void save(YAML::Node&) const override;
+
 private:
   Ui::Vector3dEditor* ui_;
 };

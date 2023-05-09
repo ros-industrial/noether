@@ -11,6 +11,7 @@ find_package(boost_plugin_loader REQUIRED)
 find_package(noether_tpp REQUIRED)
 find_package(PCL REQUIRED COMPONENTS io surface)
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
+find_package(yaml-cpp REQUIRED)
 
 option(NOETHER_ENABLE_CLANG_TIDY "Enables compilation with clang-tidy" OFF)
 option(NOETHER_ENABLE_TESTING "Enables compilation of unit tests" OFF)
@@ -54,8 +55,16 @@ add_library(${PROJECT_NAME} SHARED
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
-target_link_libraries(${PROJECT_NAME} PUBLIC noether::noether_tpp Qt5::Widgets ${PCL_LIBRARIES} boost_plugin_loader::boost_plugin_loader Eigen3::Eigen)
-target_compile_definitions(${PROJECT_NAME} PUBLIC NOETHER_GUI_PLUGINS="${PROJECT_NAME}_plugins")
+target_link_libraries(${PROJECT_NAME} PUBLIC noether::noether_tpp Qt5::Widgets ${PCL_LIBRARIES} boost_plugin_loader::boost_plugin_loader Eigen3::Eigen yaml-cpp)
+target_compile_definitions(${PROJECT_NAME}
+  PUBLIC
+    NOETHER_GUI_PLUGINS="${PROJECT_NAME}_plugins"
+    NOETHER_GUI_TPP_SECTION="tpp"
+    NOETHER_GUI_DIRECTION_GENERATOR_SECTION="dg"
+    NOETHER_GUI_ORIGIN_GENERATOR_SECTION="og"
+    NOETHER_GUI_TOOL_PATH_MODIFIER_SECTION="mod"
+    NOETHER_GUI_MESH_MODIFIER_SECTION="mesh"
+)
 target_cxx_version(${PROJECT_NAME} PUBLIC VERSION 14)
 target_clang_tidy(${PROJECT_NAME}
   ENABLE ${NOETHER_ENABLE_CLANG_TIDY}

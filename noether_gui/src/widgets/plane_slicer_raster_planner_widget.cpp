@@ -1,12 +1,14 @@
 #include <noether_gui/widgets/plane_slicer_raster_planner_widget.h>
 #include "ui_raster_planner_widget.h"
 #include <noether_gui/widgets/collapsible_area_widget.h>
+#include <noether_gui/utils.h>
 
 #include <noether_tpp/tool_path_planners/raster/plane_slicer_raster_planner.h>
 #include <QFormLayout>
 #include <QLabel>
 #include <QDoubleSpinBox>
 #include <QMessageBox>
+#include <yaml-cpp/yaml.h>
 
 namespace noether
 {
@@ -21,7 +23,7 @@ PlaneSlicerRasterPlannerWidget::PlaneSlicerRasterPlannerWidget(boost_plugin_load
   // Search radius
   search_radius_->setMinimum(0.0);
   search_radius_->setSingleStep(0.1);
-  search_radius_->setValue(0.025);
+  search_radius_->setValue(0.1);
   search_radius_->setDecimals(3);
   layout->addRow(new QLabel("Search radius (m)", this), search_radius_);
 
@@ -39,6 +41,20 @@ PlaneSlicerRasterPlannerWidget::PlaneSlicerRasterPlannerWidget(boost_plugin_load
   collapsible_area->setWidget(widget);
 
   ui_->group_box_raster_planner->layout()->addWidget(collapsible_area);
+}
+
+void PlaneSlicerRasterPlannerWidget::configure(const YAML::Node& config)
+{
+  RasterPlannerWidget::configure(config);
+  search_radius_->setValue(getEntry<double>(config, "search_radius"));
+  min_segment_size_->setValue(getEntry<double>(config, "min_segment_size"));
+}
+
+void PlaneSlicerRasterPlannerWidget::save(YAML::Node& config) const
+{
+  RasterPlannerWidget::save(config);
+  config["search_radius"] = search_radius_->value();
+  config["min_segment_size"] = min_segment_size_->value();
 }
 
 ToolPathPlanner::ConstPtr PlaneSlicerRasterPlannerWidget::create() const

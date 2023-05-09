@@ -1,11 +1,13 @@
 #include <noether_gui/widgets/direction_generator_widgets.h>
 #include "ui_vector3d_editor_widget.h"
+#include <noether_gui/utils.h>
 
 #include <noether_tpp/tool_path_planners/raster/direction_generators.h>
 #include <QFormLayout>
 #include <QLabel>
 #include <QDoubleSpinBox>
 #include <QGroupBox>
+#include <yaml-cpp/yaml.h>
 
 namespace noether
 {
@@ -15,8 +17,24 @@ FixedDirectionGeneratorWidget::FixedDirectionGeneratorWidget(QWidget* parent)
   ui_->setupUi(this);
   ui_->group_box->setTitle("Direction");
 
-  // Set the x value to 1.0 by default
   ui_->double_spin_box_x->setValue(1.0);
+}
+
+void FixedDirectionGeneratorWidget::configure(const YAML::Node& config)
+{
+  Eigen::Vector3d dir(getEntry<double>(config, "x"), getEntry<double>(config, "y"), getEntry<double>(config, "z"));
+  dir.normalize();
+
+  ui_->double_spin_box_x->setValue(dir.x());
+  ui_->double_spin_box_y->setValue(dir.y());
+  ui_->double_spin_box_z->setValue(dir.z());
+}
+
+void FixedDirectionGeneratorWidget::save(YAML::Node& config) const
+{
+  config["x"] = ui_->double_spin_box_x->value();
+  config["y"] = ui_->double_spin_box_y->value();
+  config["z"] = ui_->double_spin_box_z->value();
 }
 
 DirectionGenerator::ConstPtr FixedDirectionGeneratorWidget::create() const
@@ -37,6 +55,16 @@ PrincipalAxisDirectionGeneratorWidget::PrincipalAxisDirectionGeneratorWidget(QWi
   rotation_offset_->setValue(0.0);
   rotation_offset_->setRange(-180.0, 180.0);
   rotation_offset_->setDecimals(3);
+}
+
+void PrincipalAxisDirectionGeneratorWidget::configure(const YAML::Node& config)
+{
+  rotation_offset_->setValue(getEntry<double>(config, "rotation_offset"));
+}
+
+void PrincipalAxisDirectionGeneratorWidget::save(YAML::Node& config) const
+{
+  config["rotation_offset"] = rotation_offset_->value();
 }
 
 DirectionGenerator::ConstPtr PrincipalAxisDirectionGeneratorWidget::create() const
