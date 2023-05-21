@@ -5,19 +5,6 @@
 namespace noether
 {
 /**
- * @brief Generates the raster direction based on a fixed input
- */
-class FixedDirectionGenerator : public DirectionGenerator
-{
-public:
-  FixedDirectionGenerator(const Eigen::Vector3d& direction);
-  Eigen::Vector3d generate(const pcl::PolygonMesh& mesh) const override final;
-
-private:
-  const Eigen::Vector3d direction_;
-};
-
-/**
  * @brief Generates the raster direction along the largest principal axis of the input mesh
  */
 class PrincipalAxisDirectionGenerator : public DirectionGenerator

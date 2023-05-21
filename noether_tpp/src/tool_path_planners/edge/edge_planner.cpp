@@ -1,9 +1,11 @@
 #include <noether_tpp/tool_path_planners/edge/edge_planner.h>
+#include <noether_tpp/tool_path_modifiers/standard_edge_paths_organization_modifier.h>
+#include <noether_tpp/tool_path_modifiers/direction_of_travel_orientation_modifier.h>
 
 #include <utility>  // std::move()
 
-#include <noether_tpp/tool_path_modifiers/organization_modifiers.h>
-#include <noether_tpp/tool_path_modifiers/waypoint_orientation_modifiers.h>
+#include <noether_tpp/tool_path_modifiers/raster_organization_modifier.h>
+#include <noether_tpp/tool_path_modifiers/fixed_orientation_modifier.h>
 
 namespace noether
 {

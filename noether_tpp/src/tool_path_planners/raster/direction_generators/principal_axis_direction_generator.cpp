@@ -1,16 +1,10 @@
-#include <noether_tpp/tool_path_planners/raster/direction_generators.h>
+#include <noether_tpp/tool_path_planners/raster/direction_generators/principal_axis_direction_generator.h>
 
 #include <boost/make_shared.hpp>
 #include <pcl/common/pca.h>
 
 namespace noether
 {
-FixedDirectionGenerator::FixedDirectionGenerator(const Eigen::Vector3d& direction) : direction_(direction.normalized())
-{
-}
-
-Eigen::Vector3d FixedDirectionGenerator::generate(const pcl::PolygonMesh&) const { return direction_; }
-
 PrincipalAxisDirectionGenerator::PrincipalAxisDirectionGenerator(double rotation_offset)
   : rotation_offset_(rotation_offset)
 {

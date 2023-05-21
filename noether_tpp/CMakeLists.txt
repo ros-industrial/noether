@@ -32,16 +32,27 @@ add_library(${PROJECT_NAME} SHARED
   # Mesh Modifiers
   src/mesh_modifiers/compound_modifier.cpp
   # Tool Path Modifiers
+  src/tool_path_modifiers/circular_lead_in_modifier.cpp
+  src/tool_path_modifiers/circular_lead_out_modifier.cpp
   src/tool_path_modifiers/compound_modifier.cpp
-  src/tool_path_modifiers/waypoint_orientation_modifiers.cpp
-  src/tool_path_modifiers/organization_modifiers.cpp
-  src/tool_path_modifiers/blending_modifiers.cpp
+  src/tool_path_modifiers/direction_of_travel_orientation_modifier.cpp
+  src/tool_path_modifiers/fixed_orientation_modifier.cpp
+  src/tool_path_modifiers/moving_average_orientation_smoothing_modifier.cpp
+  src/tool_path_modifiers/raster_organization_modifier.cpp
+  src/tool_path_modifiers/snake_organization_modifier.cpp
+  src/tool_path_modifiers/standard_edge_paths_organization_modifier.cpp
+  src/tool_path_modifiers/tool_drag_orientation_modifier.cpp
+  src/tool_path_modifiers/uniform_orientation_modifier.cpp
   # Tool Path Planners
-  src/tool_path_planners/edge_planner.cpp
-  src/tool_path_planners/raster_planner.cpp
-  src/tool_path_planners/plane_slicer_raster_planner.cpp
-  src/tool_path_planners/direction_generators.cpp
-  src/tool_path_planners/origin_generators.cpp
+  src/tool_path_planners/edge/edge_planner.cpp
+  src/tool_path_planners/raster/raster_planner.cpp
+  src/tool_path_planners/raster/origin_generators/aabb_origin_generator.cpp
+  src/tool_path_planners/raster/origin_generators/centroid_origin_generator.cpp
+  src/tool_path_planners/raster/origin_generators/offset_origin_generator.cpp
+  src/tool_path_planners/raster/origin_generators/fixed_origin_generator.cpp
+  src/tool_path_planners/raster/direction_generators/fixed_direction_generator.cpp
+  src/tool_path_planners/raster/direction_generators/principal_axis_direction_generator.cpp
+  src/tool_path_planners/raster/plane_slicer_raster_planner.cpp
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
