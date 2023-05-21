@@ -1,8 +1,8 @@
-#include <noether_gui/widgets/origin_generator_widgets.h>
+#include <noether_gui/widgets/tool_path_planners/raster/origin_generators/fixed_origin_generator_widget.h>
 #include "ui_vector3d_editor_widget.h"
 #include <noether_gui/utils.h>
 
-#include <noether_tpp/tool_path_planners/raster/origin_generators.h>
+#include <noether_tpp/tool_path_planners/raster/origin_generators/fixed_origin_generator.h>
 #include <yaml-cpp/yaml.h>
 
 namespace noether
@@ -33,16 +33,6 @@ OriginGenerator::ConstPtr FixedOriginGeneratorWidget::create() const
   Eigen::Vector3d origin(
       ui_->double_spin_box_x->value(), ui_->double_spin_box_y->value(), ui_->double_spin_box_z->value());
   return std::make_unique<FixedOriginGenerator>(origin);
-}
-
-OriginGenerator::ConstPtr CentroidOriginGeneratorWidget::create() const
-{
-  return std::make_unique<CentroidOriginGenerator>();
-}
-
-OriginGenerator::ConstPtr AABBOriginGeneratorWidget::create() const
-{
-  return std::make_unique<AABBCenterOriginGenerator>();
 }
 
 }  // namespace noether

@@ -8,7 +8,6 @@
 #include <noether_tpp/core/tool_path_planner_pipeline.h>
 #include <noether_tpp/mesh_modifiers/compound_modifier.h>
 #include <noether_tpp/tool_path_modifiers/compound_modifier.h>
-#include <noether_tpp/tool_path_planners/raster/origin_generators.h>
 #include <QMenu>
 #include <QMessageBox>
 

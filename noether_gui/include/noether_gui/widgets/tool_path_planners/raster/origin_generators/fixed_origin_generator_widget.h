@@ -26,22 +26,4 @@ private:
   Ui::Vector3dEditor* ui_;
 };
 
-struct CentroidOriginGeneratorWidget : public OriginGeneratorWidget
-{
-  Q_OBJECT
-public:
-  using BaseWidget::BaseWidget;
-
-  OriginGenerator::ConstPtr create() const override;
-};
-
-struct AABBOriginGeneratorWidget : public OriginGeneratorWidget
-{
-  Q_OBJECT
-public:
-  using BaseWidget::BaseWidget;
-
-  OriginGenerator::ConstPtr create() const override;
-};
-
 }  // namespace noether

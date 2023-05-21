@@ -1,6 +1,6 @@
 #pragma once
 
-#include <noether_gui/widgets/raster_planner_widget.h>
+#include <noether_gui/widgets/tool_path_planners/raster/raster_planner_widget.h>
 
 class QDoubleSpinBox;
 
