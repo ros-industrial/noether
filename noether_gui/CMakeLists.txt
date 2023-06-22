@@ -18,13 +18,30 @@ option(NOETHER_ENABLE_TESTING "Enables compilation of unit tests" OFF)
 
 qt5_wrap_cpp(${PROJECT_NAME}_widget_mocs
   include/${PROJECT_NAME}/widgets/collapsible_area_widget.h
-  include/${PROJECT_NAME}/widgets/tool_path_modifier_widgets.h
-  include/${PROJECT_NAME}/widgets/blending_tool_path_modifier_widgets.h
-  include/${PROJECT_NAME}/widgets/direction_generator_widgets.h
-  include/${PROJECT_NAME}/widgets/origin_generator_widgets.h
   include/${PROJECT_NAME}/widgets/tpp_pipeline_widget.h
-  include/${PROJECT_NAME}/widgets/plane_slicer_raster_planner_widget.h
-  include/${PROJECT_NAME}/widgets/tpp_widget.h)
+  include/${PROJECT_NAME}/widgets/tpp_widget.h
+  # Tool Path Planners
+  #   Raster
+  #   Direction Generator
+  include/${PROJECT_NAME}/widgets/tool_path_planners/raster/direction_generators/fixed_direction_generator_widget.h
+  include/${PROJECT_NAME}/widgets/tool_path_planners/raster/direction_generators/principal_axis_direction_generator_widget.h
+  #   Origin Generator
+  include/${PROJECT_NAME}/widgets/tool_path_planners/raster/origin_generators/fixed_origin_generator_widget.h
+  include/${PROJECT_NAME}/widgets/tool_path_planners/raster/origin_generators/aabb_origin_generator_widget.h
+  include/${PROJECT_NAME}/widgets/tool_path_planners/raster/origin_generators/centroid_origin_generator_widget.h
+  #   Plane Slicer Raster Planner
+  include/${PROJECT_NAME}/widgets/tool_path_planners/raster/plane_slicer_raster_planner_widget.h
+  # Tool Path Modifiers
+  include/${PROJECT_NAME}/widgets/tool_path_modifiers/circular_lead_in_modifier_widget.h
+  include/${PROJECT_NAME}/widgets/tool_path_modifiers/circular_lead_out_modifier_widget.h
+  include/${PROJECT_NAME}/widgets/tool_path_modifiers/direction_of_travel_orientation_modifier_widget.h
+  include/${PROJECT_NAME}/widgets/tool_path_modifiers/fixed_orientation_modifier_widget.h
+  include/${PROJECT_NAME}/widgets/tool_path_modifiers/moving_average_orientation_smoothing_modifier_widget.h
+  include/${PROJECT_NAME}/widgets/tool_path_modifiers/raster_organization_modifier_widget.h
+  include/${PROJECT_NAME}/widgets/tool_path_modifiers/snake_organization_modifier_widget.h
+  include/${PROJECT_NAME}/widgets/tool_path_modifiers/standard_edge_paths_organization_modifier_widget.h
+  include/${PROJECT_NAME}/widgets/tool_path_modifiers/tool_drag_orientation_modifier_widget.h
+  include/${PROJECT_NAME}/widgets/tool_path_modifiers/uniform_orientation_modifier_widget.h)
 
 qt5_wrap_ui(${PROJECT_NAME}_widget_ui_mocs
   ui/vector3d_editor_widget.ui
@@ -41,14 +58,31 @@ add_library(${PROJECT_NAME} SHARED
   # Widgets
   src/widgets/collapsible_area_widget.cpp
   src/widgets/plugin_loader_widget.cpp
-  src/widgets/tool_path_modifier_widgets.cpp
-  src/widgets/blending_tool_path_modifier_widgets.cpp
-  src/widgets/direction_generator_widgets.cpp
-  src/widgets/origin_generator_widgets.cpp
-  src/widgets/raster_planner_widget.cpp
   src/widgets/tpp_pipeline_widget.cpp
-  src/widgets/plane_slicer_raster_planner_widget.cpp
   src/widgets/tpp_widget.cpp
+  # Tool Path Planners
+  #   Raster Planner
+  src/widgets/tool_path_planners/raster/raster_planner_widget.cpp
+  #   Direction Generator
+  src/widgets/tool_path_planners/raster/direction_generators/fixed_direction_generator_widget.cpp
+  src/widgets/tool_path_planners/raster/direction_generators/principal_axis_direction_generator_widget.cpp
+  #   Origin Generator
+  src/widgets/tool_path_planners/raster/origin_generators/fixed_origin_generator_widget.cpp
+  src/widgets/tool_path_planners/raster/origin_generators/aabb_origin_generator_widget.cpp
+  src/widgets/tool_path_planners/raster/origin_generators/centroid_origin_generator_widget.cpp
+  #   Plane Slicer Tool Path Planner
+  src/widgets/tool_path_planners/raster/plane_slicer_raster_planner_widget.cpp
+  # Tool Path Modifiers
+  src/widgets/tool_path_modifiers/circular_lead_in_modifier_widget.cpp
+  src/widgets/tool_path_modifiers/circular_lead_out_modifier_widget.cpp
+  src/widgets/tool_path_modifiers/direction_of_travel_orientation_modifier_widget.cpp
+  src/widgets/tool_path_modifiers/fixed_orientation_modifier_widget.cpp
+  src/widgets/tool_path_modifiers/moving_average_orientation_smoothing_modifier_widget.cpp
+  src/widgets/tool_path_modifiers/raster_organization_modifier_widget.cpp
+  src/widgets/tool_path_modifiers/snake_organization_modifier_widget.cpp
+  src/widgets/tool_path_modifiers/standard_edge_paths_organization_modifier_widget.cpp
+  src/widgets/tool_path_modifiers/tool_drag_orientation_modifier_widget.cpp
+  src/widgets/tool_path_modifiers/uniform_orientation_modifier_widget.cpp
   ${${PROJECT_NAME}_widget_mocs}
   ${${PROJECT_NAME}_widget_ui_mocs}
 )

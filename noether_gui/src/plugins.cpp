@@ -1,10 +1,27 @@
 #include <noether_gui/plugin_interface.h>
-#include <noether_gui/widgets/direction_generator_widgets.h>
-#include <noether_gui/widgets/origin_generator_widgets.h>
-#include <noether_gui/widgets/tool_path_modifier_widgets.h>
-#include <noether_gui/widgets/blending_tool_path_modifier_widgets.h>
-#include <noether_gui/widgets/raster_planner_widget.h>
-#include <noether_gui/widgets/plane_slicer_raster_planner_widget.h>
+// Tool path planners
+//   Raster
+#include <noether_gui/widgets/tool_path_planners/raster/raster_planner_widget.h>
+//   Direction Generators
+#include <noether_gui/widgets/tool_path_planners/raster/direction_generators/fixed_direction_generator_widget.h>
+#include <noether_gui/widgets/tool_path_planners/raster/direction_generators/principal_axis_direction_generator_widget.h>
+//   Origin Generators
+#include <noether_gui/widgets/tool_path_planners/raster/origin_generators/fixed_origin_generator_widget.h>
+#include <noether_gui/widgets/tool_path_planners/raster/origin_generators/aabb_origin_generator_widget.h>
+#include <noether_gui/widgets/tool_path_planners/raster/origin_generators/centroid_origin_generator_widget.h>
+//   Plane Slicer Raster Planner
+#include <noether_gui/widgets/tool_path_planners/raster/plane_slicer_raster_planner_widget.h>
+// Tool Path Modifiers
+#include <noether_gui/widgets/tool_path_modifiers/circular_lead_in_modifier_widget.h>
+#include <noether_gui/widgets/tool_path_modifiers/circular_lead_out_modifier_widget.h>
+#include <noether_gui/widgets/tool_path_modifiers/direction_of_travel_orientation_modifier_widget.h>
+#include <noether_gui/widgets/tool_path_modifiers/fixed_orientation_modifier_widget.h>
+#include <noether_gui/widgets/tool_path_modifiers/moving_average_orientation_smoothing_modifier_widget.h>
+#include <noether_gui/widgets/tool_path_modifiers/raster_organization_modifier_widget.h>
+#include <noether_gui/widgets/tool_path_modifiers/snake_organization_modifier_widget.h>
+#include <noether_gui/widgets/tool_path_modifiers/standard_edge_paths_organization_modifier_widget.h>
+#include <noether_gui/widgets/tool_path_modifiers/tool_drag_orientation_modifier_widget.h>
+#include <noether_gui/widgets/tool_path_modifiers/uniform_orientation_modifier_widget.h>
 
 #include <QWidget>
 #include <QMessageBox>

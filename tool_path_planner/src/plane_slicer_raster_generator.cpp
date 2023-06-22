@@ -26,8 +26,8 @@
 #include <console_bridge/console.h>
 #include <noether_conversions/noether_conversions.h>
 #include <noether_tpp/tool_path_planners/raster/plane_slicer_raster_planner.h>
-#include <noether_tpp/tool_path_planners/raster/origin_generators.h>
-#include <noether_tpp/tool_path_planners/raster/direction_generators.h>
+#include <noether_tpp/tool_path_planners/raster/origin_generators/centroid_origin_generator.h>
+#include <noether_tpp/tool_path_planners/raster/direction_generators/principal_axis_direction_generator.h>
 #include <numeric>
 #include <pcl/surface/vtk_smoothing/vtk_utils.h>
 #include <vtkCellData.h>
