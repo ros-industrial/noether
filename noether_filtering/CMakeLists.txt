@@ -5,15 +5,6 @@ extract_package_metadata(pkg)
 
 project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES CXX)
 
-find_package(VTK REQUIRED NO_MODULE)
-if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 7.1))
-  message(FATAL_ERROR "The minimum required version of VTK is 7.1, but found ${VTK_VERSION}")
-  set(VTK_FOUND FALSE)
-else()
-  include(${VTK_USE_FILE})
-  set(BUILD_MESH_PLUGINS TRUE)
-endif()
-
 find_package(PCL REQUIRED COMPONENTS common filters surface segmentation)
 if(PCL_FOUND AND ("${PCL_VERSION}" VERSION_LESS 1.9))
   message(WARNING "The minimum required version of PCL is 1.9, but found ${PCL_VERSION} in path first. Checking for exactly 1.9")
@@ -110,7 +101,7 @@ target_link_libraries(${PROJECT_NAME}_cloud_filters PUBLIC ${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME}_cloud_filters PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:include>")
-target_cxx_version(${PROJECT_NAME}_mesh_filter_plugins PUBLIC VERSION 14)
+target_cxx_version(${PROJECT_NAME}_cloud_filters PUBLIC VERSION 14)
 set_target_properties(${PROJECT_NAME}_cloud_filters PROPERTIES NO_SYSTEM_FROM_IMPORTED 1)
 
 # Cloud Filter Plugins Library
@@ -118,7 +109,7 @@ add_library(${PROJECT_NAME}_cloud_filter_plugins SHARED src/cloud/plugins.cpp)
 target_link_libraries(${PROJECT_NAME}_cloud_filter_plugins PUBLIC
   ${PROJECT_NAME}_cloud_filters
 )
-target_cxx_version(${PROJECT_NAME}_mesh_filter_plugins PUBLIC VERSION 14)
+target_cxx_version(${PROJECT_NAME}_cloud_filter_plugins PUBLIC VERSION 14)
 set_target_properties(${PROJECT_NAME}_cloud_filter_plugins PROPERTIES NO_SYSTEM_FROM_IMPORTED 1)
 
 #############
@@ -162,5 +153,5 @@ endif()
 configure_package(
   NAMESPACE noether
   TARGETS ${PACKAGE_LIBRARIES}
-  DEPENDENCIES "PCL REQUIRED COMPONENTS common filters surface segmentation" VTK pluginlib console_bridge xmlrpcpp
+  DEPENDENCIES "PCL REQUIRED COMPONENTS common filters surface segmentation" pluginlib console_bridge xmlrpcpp
 )
