@@ -2,6 +2,7 @@
 
 #include <boost_plugin_loader/plugin_loader.h>
 #include <QApplication>
+#include <QMainWindow>
 #include <signal.h>
 
 void handleSignal(int /*sig*/) { QApplication::instance()->quit(); }
@@ -18,7 +19,8 @@ int main(int argc, char** argv)
   loader.search_libraries_env = NOETHER_GUI_PLUGIN_LIBS_ENV;
   loader.search_paths_env = NOETHER_GUI_PLUGIN_PATHS_ENV;
 
-  noether::TPPWidget w(std::move(loader));
+  QMainWindow w;
+  w.setCentralWidget(new noether::TPPWidget(std::move(loader), &w));
   w.show();
 
   return app.exec();
