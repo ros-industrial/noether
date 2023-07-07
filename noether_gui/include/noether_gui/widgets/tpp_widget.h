@@ -44,6 +44,9 @@ public:
    */
   std::vector<ToolPaths> getToolPaths();
 
+  void setMeshFile(const QString& file);
+  void setConfigurationFile(const QString& file);
+
 private:
   void onLoadMesh(const bool /*checked*/);
   void onLoadConfiguration(const bool /*checked*/);

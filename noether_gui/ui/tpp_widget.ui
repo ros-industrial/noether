@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>747</width>
-    <height>596</height>
+    <width>355</width>
+    <height>421</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,6 +18,9 @@
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="handleWidth">
+      <number>10</number>
      </property>
      <property name="childrenCollapsible">
       <bool>false</bool>
@@ -109,8 +112,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>701</width>
-               <height>308</height>
+               <width>309</width>
+               <height>133</height>
               </rect>
              </property>
             </widget>

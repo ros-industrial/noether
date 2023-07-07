@@ -84,10 +84,8 @@ TPPWidget::~TPPWidget()
 
 std::vector<ToolPaths> TPPWidget::getToolPaths() { return tool_paths_; }
 
-void TPPWidget::onLoadMesh(const bool /*checked*/)
+void TPPWidget::setMeshFile(const QString& file)
 {
-  const QString home = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).at(0);
-  const QString file = QFileDialog::getOpenFileName(this, "Load mesh file", home, "Mesh files (*.ply *.stl)");
   ui_->line_edit_mesh->setText(file);
 
   // Render the mesh
@@ -113,22 +111,21 @@ void TPPWidget::onLoadMesh(const bool /*checked*/)
   render_widget_->GetRenderWindow()->Render();
 }
 
-void TPPWidget::onLoadConfiguration(const bool /*checked*/)
+void TPPWidget::onLoadMesh(const bool /*checked*/)
 {
-  QString file = ui_->line_edit_configuration->text();
-  if (file.isEmpty())
-    file = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).at(0);
+  const QString home = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).at(0);
+  const QString file = QFileDialog::getOpenFileName(this, "Load mesh file", home, "Mesh files (*.ply *.stl)");
+  if (!file.isNull())
+    setMeshFile(file);
+}
 
-  file = QFileDialog::getOpenFileName(this, "Load configuration file", file, "YAML files (*.yaml)");
-  if (file.isEmpty())
-    return;
-
+void TPPWidget::setConfigurationFile(const QString& file)
+{
   ui_->line_edit_configuration->setText(file);
 
   try
   {
     pipeline_widget_->configure(YAML::LoadFile(file.toStdString()));
-    QMessageBox::information(this, "Configuration", "Successfully loaded tool path planning pipeline configuration");
   }
   catch (const YAML::BadFile&)
   {
@@ -143,6 +140,17 @@ void TPPWidget::onLoadConfiguration(const bool /*checked*/)
     printException(ex, ss);
     QMessageBox::warning(this, "Configuration Error", QString::fromStdString(ss.str()));
   }
+}
+
+void TPPWidget::onLoadConfiguration(const bool /*checked*/)
+{
+  QString file = ui_->line_edit_configuration->text();
+  if (file.isEmpty())
+    file = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).at(0);
+
+  file = QFileDialog::getOpenFileName(this, "Load configuration file", file, "YAML files (*.yaml)");
+  if (!file.isEmpty())
+    setConfigurationFile(file);
 }
 
 void TPPWidget::onSaveConfiguration(const bool /*checked*/)

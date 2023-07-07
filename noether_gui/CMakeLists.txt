@@ -7,6 +7,7 @@ extract_package_metadata(pkg)
 project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES CXX)
 
 find_package(Eigen3 REQUIRED)
+find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(boost_plugin_loader REQUIRED)
 find_package(noether_tpp REQUIRED)
 find_package(PCL REQUIRED COMPONENTS io surface)
@@ -122,7 +123,7 @@ target_code_coverage(${PROJECT_NAME}_plugins INTERFACE ALL ENABLE ${NOETHER_ENAB
 
 # TPP Application
 add_executable(${PROJECT_NAME}_app src/tpp_app.cpp)
-target_link_libraries(${PROJECT_NAME}_app PRIVATE ${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME}_app PRIVATE ${PROJECT_NAME} Boost::program_options)
 target_compile_definitions(${PROJECT_NAME}_app PRIVATE NOETHER_GUI_PLUGINS="${PROJECT_NAME}_plugins")
 
 # Install headers
