@@ -10,6 +10,7 @@
 #include <noether_tpp/tool_path_modifiers/compound_modifier.h>
 #include <QMenu>
 #include <QMessageBox>
+#include <yaml-cpp/yaml.h>
 
 static const std::string MESH_MODIFIERS_KEY = "mesh_modifiers";
 static const std::string TOOL_PATH_PLANNER_KEY = "tool_path_planner";

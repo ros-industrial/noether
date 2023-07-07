@@ -3,7 +3,6 @@
 #include <noether_gui/widgets.h>
 #include <string>
 #include <memory>
-#include <yaml-cpp/yaml.h>
 
 class QWidget;
 
