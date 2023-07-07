@@ -25,6 +25,7 @@
 
 #include <QWidget>
 #include <QMessageBox>
+#include <yaml-cpp/yaml.h>
 
 namespace noether
 {
