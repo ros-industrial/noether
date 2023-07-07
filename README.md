@@ -8,91 +8,12 @@ Tool path planning and surface segmenter
 
 Platform             | CI Status
 ---------------------|:---------
-Linux (Focal)        | [![Build Status](https://github.com/ros-industrial/noether/workflows/Focal-Build/badge.svg)](https://github.com/ros-industrial/noether/actions)
-Linux (Bionic)       | [![Build Status](https://github.com/ros-industrial/noether/workflows/Bionic-Build/badge.svg)](https://github.com/ros-industrial/noether/actions)
-Linux (Xenial)       | [![Build Status](https://github.com/ros-industrial/noether/workflows/Xenial-Build/badge.svg)](https://github.com/ros-industrial/noether/actions)
+Linux (Ubuntu)       | [![Build Status](https://github.com/ros-industrial/noether/workflows/Ubuntu/badge.svg)](https://github.com/ros-industrial/noether/actions)
 Lint  (Clang-Format) | [![Build Status](https://github.com/ros-industrial/noether/workflows/Clang-Format/badge.svg)](https://github.com/ros-industrial/ros-industrial/actions)
 
----
-## Prerequisites
-- These packages run on Ubuntu 16.04 and ROS
-- Uses the catkin tools build system
+## Supported OS/ROS Distributions
+- Noetic (Ubuntu 20.04)
 
----
-## Installation
-
-This package depends on PCL 1.9.1+ and VTK 7.1+. If you are using a Ubuntu system version 20.04+ (ROS Noetic/Foxy), you should already have these and can skip to the build instructions. Otherwise proceed with installing the custom PCL and VTK versions.
-
-#### Prerequisites
-- **checkinstall**
-    - `sudo apt install checkinstall`
-
-#### Useful Information
-- **number of available threads / CPU cores**
-    - This is useful for accelerating building of the required libraries, but is not required.  If you know this number, great!  If not, you can use one of these commands:
-    - `htop` - You can count the number of threads displayed at the top.
-    - `lscpu` - Outputs a number of CPUs, or you can multiply `Thread(s) per core:` * `Core(s) per socket:` * `Socket(s)` to get the available threads
-
-#### Dependencies Installation
-##### 1. VTK
-1. Download [VTK 7.1](https://github.com/Kitware/VTK/archive/v7.1.1.tar.gz)
-2. Unzip or extract into a user accessible directory
-3. `CD` into that directory and create a new `build` directory
-4. Run cmake
-    ```
-    cd build
-    cmake ..
-    ```
-1. Build the library
-    ```
-    make
-    ```
-    _This will take a while ..._
-
-    If you know the number of threads available, you can specify to use more of them.  Leaving one or two open should allow you to continue using your computer.  For example, if you have 8 threads available, you could do the following to speed up build time:
-    ```
-    make --jobs=6
-    ```
-2. Install 
-    ```
-    sudo checkinstall --pkgname=vtk-7.1
-    ```
-    The installation process will prompt you to accept/reject some options prior to building the debian, **just follow the recommended prompts**.
-    
-    NOTE: Using `checkinstall` instead of `make install` has the advantage that it builds a debian package which can be easily uninstalled with `sudo dpkg -r [packagename]`.
-    
-##### 2. PCL 
-1. Download [PCL 1.9.1](https://github.com/PointCloudLibrary/pcl/archive/pcl-1.9.1.tar.gz)
-2. Unzip or extract into a user accessible directory
-3. `cd` into that directory and locate the `CMakeLists.txt` file.
-4. Locate the `find package(VTK)` line (close to line 362) and edit it to `find_package(VTK 7.1 REQUIRED)`
-5. Configure the build using the ccmake gui
-    ```
-    mkdir build
-    cd build
-    ccmake ..
-    ```
-    - Then locate the `BUILD_surface_on_nurbs` flag and set it to `ON`
-    - Locate the `PCL_ENABLE_SSE` flag and set it to `OFF` or `FALSE`, this alters the alignment of class members when enabled, see [here](https://github.com/PointCloudLibrary/pcl/issues/1725)
-6. Build
-    ```
-    make
-    ```
-    _Wait until the build finishes, it may take a couple of hours ..._
-
-    If you know the number of threads available, you can specify to use more of them.  Leaving one or two open should allow you to continue using your computer.  For example, if you have 8 threads available, you could do the following to speed up build time:
-    ```
-    make --jobs=6
-    ```
-1. Install 
-    ```
-    sudo checkinstall --pkgname=pcl-1.9.1
-    ```
-    The installation process will prompt you to accept/reject some options prior to building the debian, **just follow the recommended prompts**
-    
-    NOTE: Using `checkinstall` instead of `make install` has the advantage that it builds a debian package which can be easily uninstalled with `sudo dpkg -r [packagename]`.
-
----
 ## Build
 
 ```
@@ -106,7 +27,7 @@ cd ~/catkin_ws/src && git clone https://github.com/ros-industrial/noether.git
 cd ~/catkin_ws
 
 # pull down the dependencies
-vcstool import src < src/noether/dependencies_ros1.rosinstall
+vcstool import src < src/noether/dependencies.rosinstall
 
 # build the Noether packages
 # note: if you want to build the entire workspace, just run 'catkin build' instead
@@ -124,8 +45,6 @@ catkin build noether
     catkin run_tests noether --no-deps
     ```
     >> NOTE: Press 'q' to close the vtk window and proceed with the test program.
-
----
 
 ## Run Applications and Demos
 ### Surface Raster Planner
