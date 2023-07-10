@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.5.1)
 find_package(ros_industrial_cmake_boilerplate REQUIRED)
 extract_package_metadata(pkg)
 
-project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES CXX)
+project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES C CXX)
 
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS program_options)
