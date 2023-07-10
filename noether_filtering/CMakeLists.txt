@@ -28,7 +28,7 @@ add_library(${PROJECT_NAME} SHARED
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC
   ${Boost_LIBRARIES}
-  ${pluginlib_LIBRARIES}
+  pluginlib::pluginlib
   ${PCL_LIBRARIES}
   ${xmlrpcpp_LIBRARIES}
 )

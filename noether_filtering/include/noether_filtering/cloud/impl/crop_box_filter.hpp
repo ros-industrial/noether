@@ -121,7 +121,7 @@ template <typename PointT>
 bool CropBoxFilter<PointT>::filter(const T& input, T& output)
 {
   // Create a shared pointer to the input object with a "destructor" function that does not delete the raw pointer
-  auto cloud = boost::shared_ptr<const T>(&input, [](const T*) {});
+  auto cloud = pcl::shared_ptr<const T>(&input, [](const T*) {});
 
   // Set the parameters
   pcl::CropBox<PointT> f(params.crop_outside);

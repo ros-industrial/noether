@@ -29,10 +29,10 @@ namespace
 {
 #if PCL_VERSION_COMPARE(<, 1, 10, 0)
 template <typename T>
-using shared_ptr = boost::shared_ptr<T>;
+using shared_ptr = std::shared_ptr<T>;
 
 template <typename T>
-auto make_shared = boost::make_shared<T>;
+auto make_shared = std::make_shared<T>;
 #else
 template <typename T>
 using shared_ptr = pcl::shared_ptr<T>;

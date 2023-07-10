@@ -76,7 +76,7 @@ template <typename PointT>
 bool VoxelGridFilter<PointT>::filter(const T& input, T& output)
 {
   // Create a shared pointer to the input object with a "destructor" function that does not delete the raw pointer
-  auto cloud = boost::shared_ptr<const T>(&input, [](const T*) {});
+  auto cloud = pcl::shared_ptr<const T>(&input, [](const T*) {});
 
   pcl::VoxelGrid<PointT> f;
 

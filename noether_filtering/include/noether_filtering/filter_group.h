@@ -10,7 +10,7 @@
 #include <string>
 #include <memory>
 #include <XmlRpcValue.h>
-#include <pluginlib/class_loader.h>
+#include <pluginlib/class_loader.hpp>
 #include "noether_filtering/filter_base.h"
 
 namespace noether_filtering
