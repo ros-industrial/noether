@@ -27,6 +27,9 @@
 #include <vtkPolyDataNormals.h>
 #include <vtkSmartPointer.h>
 #include <vtkStripper.h>
+#ifndef VTK_MAJOR_VERSION
+#include <vtkVersionMacros.h>
+#endif
 
 namespace
 {
@@ -537,7 +540,11 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
 
     // collecting raster segments based on min hole size
     vtkSmartPointer<vtkPolyData> raster_lines = raster_data->GetInput(i);
+#if VTK_MAJOR_VERSION > 7
+    const vtkIdType* indices;
+#else
     vtkIdType* indices;
+#endif
     vtkIdType num_points;
     vtkIdType num_lines = raster_lines->GetNumberOfLines();
     vtkCellArray* cells = raster_lines->GetLines();
