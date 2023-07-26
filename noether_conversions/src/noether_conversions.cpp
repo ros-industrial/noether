@@ -134,6 +134,7 @@ visualization_msgs::Marker createMeshMarker(const std::string& mesh_file,
   m.lifetime = ros::Duration(0);
   std::tie(m.scale.x, m.scale.y, m.scale.z) = std::make_tuple(1.0, 1.0, 1.0);
   m.mesh_resource = "file://" + mesh_file;
+  m.frame_locked = true;
   m.type = m.MESH_RESOURCE;
   return m;
 }
@@ -218,6 +219,7 @@ visualization_msgs::MarkerArray convertToAxisMarkers(const noether_msgs::ToolPat
     line_marker.header.frame_id = frame_id;
     line_marker.type = line_marker.LINE_LIST;
     line_marker.id = id;
+    line_marker.frame_locked = true;
     line_marker.lifetime = ros::Duration(0);
     line_marker.ns = ns;
     std::tie(line_marker.scale.x, line_marker.scale.y, line_marker.scale.z) = std::make_tuple(axis_scale, 0.0, 0.0);
@@ -285,6 +287,8 @@ convertToArrowMarkers(const noether_msgs::ToolPaths& toolpaths,
   visualization_msgs::Marker arrow_marker, points_marker;
   const geometry_msgs::Pose pose_msg = pose3DtoPoseMsg(offset);
 
+  arrow_marker.action = arrow_marker.DELETEALL;
+  markers_msgs.markers.push_back(arrow_marker);
   // configure arrow marker
   arrow_marker.action = arrow_marker.ADD;
   std::tie(arrow_marker.color.r, arrow_marker.color.g, arrow_marker.color.b, arrow_marker.color.a) =
@@ -292,6 +296,7 @@ convertToArrowMarkers(const noether_msgs::ToolPaths& toolpaths,
   arrow_marker.header.frame_id = frame_id;
   arrow_marker.type = arrow_marker.ARROW;
   arrow_marker.id = start_id;
+  arrow_marker.frame_locked = true;
   arrow_marker.lifetime = ros::Duration(0);
   arrow_marker.ns = ns;
   std::tie(arrow_marker.scale.x, arrow_marker.scale.y, arrow_marker.scale.z) =
@@ -358,6 +363,8 @@ convertToDottedLineMarker(const noether_msgs::ToolPaths& toolpaths,
   visualization_msgs::MarkerArray markers_msgs;
   visualization_msgs::Marker line_marker, points_marker;
 
+  line_marker.action = line_marker.DELETEALL;
+  markers_msgs.markers.push_back(line_marker);
   // configure line marker
   line_marker.action = line_marker.ADD;
   std::tie(line_marker.color.r, line_marker.color.g, line_marker.color.b, line_marker.color.a) =
@@ -365,6 +372,7 @@ convertToDottedLineMarker(const noether_msgs::ToolPaths& toolpaths,
   line_marker.header.frame_id = frame_id;
   line_marker.type = line_marker.LINE_STRIP;
   line_marker.id = start_id;
+  line_marker.frame_locked = true;
   line_marker.lifetime = ros::Duration(0);
   line_marker.ns = ns;
   std::tie(line_marker.scale.x, line_marker.scale.y, line_marker.scale.z) = std::make_tuple(line_width, 0.0, 0.0);
