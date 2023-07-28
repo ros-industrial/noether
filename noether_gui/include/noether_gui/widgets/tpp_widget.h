@@ -3,6 +3,14 @@
 #include <noether_tpp/core/types.h>
 #include <QWidget>
 
+class QVTKWidget;
+class vtkActor;
+class vtkPolyDataMapper;
+class vtkProp;
+class vtkRenderer;
+class vtkAxes;
+class vtkTubeFilter;
+
 namespace boost_plugin_loader
 {
 class PluginLoader;
@@ -27,6 +35,7 @@ class TPPWidget : public QWidget
   Q_OBJECT
 public:
   TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent = nullptr);
+  virtual ~TPPWidget();
 
   /**
    * @brief Get the planned tool paths
@@ -34,6 +43,9 @@ public:
    * mesh modifier in the tool path planning pipeline
    */
   std::vector<ToolPaths> getToolPaths();
+
+  void setMeshFile(const QString& file);
+  void setConfigurationFile(const QString& file);
 
 private:
   void onLoadMesh(const bool /*checked*/);
@@ -43,6 +55,16 @@ private:
 
   Ui::TPP* ui_;
   TPPPipelineWidget* pipeline_widget_;
+
+  // Viewer rendering
+  QVTKWidget* render_widget_;
+  vtkRenderer* renderer_;
+  vtkPolyDataMapper* mesh_mapper_;
+  vtkActor* mesh_actor_;
+  std::vector<vtkProp*> tool_path_actors_;
+  vtkAxes* axes_;
+  vtkTubeFilter* tube_filter_;
+
   std::vector<ToolPaths> tool_paths_;
 };
 
