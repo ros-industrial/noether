@@ -39,11 +39,13 @@ public:
                           ToolPathModifier::ConstPtr tool_path_mod);
 
   std::vector<ToolPaths> plan(pcl::PolygonMesh mesh) const;
+  MeshModifier::ConstPtr mesh_modifier;
+  ToolPathPlanner::ConstPtr planner;
+  ToolPathModifier::ConstPtr tool_path_modifier;
+
 
 private:
-  MeshModifier::ConstPtr mesh_modifier_;
-  ToolPathPlanner::ConstPtr planner_;
-  ToolPathModifier::ConstPtr tool_path_modifier_;
+
 };
 
 }  // namespace noether
