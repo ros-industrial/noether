@@ -54,8 +54,6 @@ qt5_wrap_ui(${PROJECT_NAME}_widget_ui_mocs
   ui/tpp_pipeline_widget.ui
   ui/tpp_widget.ui)
 
-include_directories(include ${CMAKE_CURRENT_BINARY_DIR})
-
 # Core Library
 add_library(${PROJECT_NAME} SHARED
   src/plugin_interface.cpp
@@ -95,6 +93,7 @@ add_library(${PROJECT_NAME} SHARED
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
+target_include_directories(${PROJECT_NAME} PRIVATE "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>")
 target_link_libraries(${PROJECT_NAME} PUBLIC noether::noether_tpp Qt5::Widgets ${PCL_LIBRARIES} boost_plugin_loader::boost_plugin_loader Eigen3::Eigen yaml-cpp)
 target_compile_definitions(${PROJECT_NAME}
   PUBLIC

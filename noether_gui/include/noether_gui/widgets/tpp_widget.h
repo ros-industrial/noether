@@ -4,7 +4,18 @@
 #include <QWidget>
 #include <vtkSmartPointer.h>
 
+#ifndef VTK_MAJOR_VERSION
+#include <vtkVersionMacros.h>
+#endif
+
+#if VTK_MAJOR_VERSION > 7
+class QVTKOpenGLNativeWidget;
+using RenderWidget = QVTKOpenGLNativeWidget;
+#else
 class QVTKWidget;
+using RenderWidget = QVTKWidget;
+#endif
+
 class vtkActor;
 class vtkPolyDataMapper;
 class vtkProp;
@@ -63,7 +74,7 @@ private:
   TPPPipelineWidget* pipeline_widget_;
 
   // Viewer rendering
-  QVTKWidget* render_widget_;
+  RenderWidget* render_widget_;
   vtkSmartPointer<vtkRenderer> renderer_;
   vtkSmartPointer<vtkPolyDataMapper> mesh_mapper_;
   vtkSmartPointer<vtkActor> mesh_actor_;
