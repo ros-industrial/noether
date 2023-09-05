@@ -448,6 +448,7 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
   }
 
   // Use principal component analysis (PCA) to determine the principal axes of the mesh
+  Eigen::Vector3d mesh_normal; // Unit vector along shortest mesh PCA direction
   Eigen::Matrix3d pca_vecs;  // Principal axes, scaled to the size of the mesh in each direction
   Eigen::Vector3d centroid;  // Mesh centroid
   {
@@ -466,13 +467,14 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
     pcl::getMinMax3D(proj, min, max);
     Eigen::Array3f scales = max.getArray3fMap() - min.getArray3fMap();
 
+    mesh_normal = pca.getEigenVectors().col(2).cast<double>().normalized();
     centroid = pca.getMean().head<3>().cast<double>();
     pca_vecs = (pca.getEigenVectors().array().rowwise() * scales.transpose()).cast<double>();
   }
 
   // Get the initial cutting plane
   Eigen::Vector3d cut_direction = dir_gen_->generate(mesh);
-  Eigen::Vector3d cut_normal = (cut_direction.normalized().cross(pca_vecs.col(2).normalized())).normalized();
+  Eigen::Vector3d cut_normal = (cut_direction.normalized().cross(mesh_normal)).normalized();
 
   // Calculate the number of planes needed to cover the mesh according to the length of the principle axes
   double max_extent =
