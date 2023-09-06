@@ -22,6 +22,7 @@
 #include <noether_gui/widgets/tool_path_modifiers/standard_edge_paths_organization_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/tool_drag_orientation_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/uniform_orientation_modifier_widget.h>
+#include <noether_gui/widgets/tool_path_modifiers/straight_approach_modifier_widget.h>
 
 #include <QWidget>
 #include <QMessageBox>
@@ -87,6 +88,9 @@ using CircularLeadInToolPathModifierWidgetPlugin =
 using CircularLeadOutToolPathModifierWidgetPlugin =
     WidgetPluginImpl<CircularLeadOutToolPathModifierWidget, ToolPathModifierWidget>;
 
+using StraightApproachToolPathModifierWidgetPlugin =
+    WidgetPluginImpl<StraightApproachToolPathModifierWidget, ToolPathModifierWidget>;
+
 // Raster Tool Path Planners
 struct PlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlugin
 {
@@ -131,5 +135,6 @@ EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::ToolDragOrientationToolPathModi
                                         ToolDragOrientationToolPathModifier)
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::CircularLeadInToolPathModifierWidgetPlugin, CircularLeadInModifier)
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::CircularLeadOutToolPathModifierWidgetPlugin, CircularLeadOutModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::StraightApproachToolPathModifierWidgetPlugin, StraightApproachModifier)
 
 EXPORT_TPP_WIDGET_PLUGIN(noether::PlaneSlicerRasterPlannerWidgetPlugin, PlaneSlicerRasterPlanner)
