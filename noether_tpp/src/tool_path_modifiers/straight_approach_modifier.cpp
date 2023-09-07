@@ -18,13 +18,13 @@ ToolPaths StraightApproachModifier::modify(ToolPaths tool_paths) const
     const Eigen::Vector3d& z = first.matrix().col(2).head<3>();
     for (ToolPathSegment& segment : tool_path)
     {
-      Eigen::Isometry3d radius_center = segment.front() * Eigen::Translation3d(0.0, 0.0, offset_height_);
+      Eigen::Isometry3d offset_point = segment.front() * Eigen::Translation3d(0.0, 0.0, offset_height_);
       ToolPathSegment new_segment;
 
       for (int i = 0; i < n_points_; i++)
       {
         Eigen::Isometry3d pt;
-        pt = radius_center * Eigen::Translation3d(0, 0, -offset_height_ + (offset_height_/(n_points_))*i);
+        pt = offset_point * Eigen::Translation3d(0, 0, -offset_height_ + (offset_height_/(n_points_))*i);
         pt.linear() = segment.front().linear();
         new_segment.push_back(pt);
       }

@@ -31,7 +31,7 @@ StraightDepartureToolPathModifierWidget::StraightDepartureToolPathModifierWidget
   n_points_->setSingleStep(1);
   n_points_->setValue(5);
   auto label_pnt = new QLabel("Lead in number of points", this);
-  label_pnt->setToolTip("Number of waypoints along the approach trajectory");
+  label_pnt->setToolTip("Number of waypoints along the departure trajectory");
   layout->addRow(label_pnt, n_points_);
 
   setLayout(layout);
