@@ -42,6 +42,7 @@ add_library(${PROJECT_NAME} SHARED
   src/tool_path_modifiers/snake_organization_modifier.cpp
   src/tool_path_modifiers/standard_edge_paths_organization_modifier.cpp
   src/tool_path_modifiers/straight_approach_modifier.cpp
+  src/tool_path_modifiers/straight_departure_modifier.cpp
   src/tool_path_modifiers/tool_drag_orientation_modifier.cpp
   src/tool_path_modifiers/uniform_orientation_modifier.cpp
   # Tool Path Planners
