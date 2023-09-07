@@ -37,6 +37,12 @@ StraightApproachToolPathModifierWidget::StraightApproachToolPathModifierWidget(Q
   setLayout(layout);
 }
 
+ToolPathModifier::ConstPtr StraightApproachToolPathModifierWidget::create() const
+{
+  return std::make_unique<StraightApproachModifier>(offset_height_->value(), n_points_->value());
+}
+
+
 void StraightApproachToolPathModifierWidget::configure(const YAML::Node& config)
 {
   offset_height_->setValue(getEntry<double>(config, OFFSET_HEIGHT_KEY));
