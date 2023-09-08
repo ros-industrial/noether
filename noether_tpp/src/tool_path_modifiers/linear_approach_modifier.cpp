@@ -1,14 +1,14 @@
-#include <noether_tpp/tool_path_modifiers/straight_approach_modifier.h>
+#include <noether_tpp/tool_path_modifiers/linear_approach_modifier.h>
 #include <noether_tpp/utils.h>
 
 namespace noether
 {
-StraightApproachModifier::StraightApproachModifier(double offset_height, double n_points)
+LinearApproachModifier::LinearApproachModifier(double offset_height, double n_points)
   : offset_height_(offset_height), n_points_(n_points)
 {
 }
 
-ToolPaths StraightApproachModifier::modify(ToolPaths tool_paths) const
+ToolPaths LinearApproachModifier::modify(ToolPaths tool_paths) const
 {
   for (ToolPath& tool_path : tool_paths)
   {

@@ -7,10 +7,10 @@ namespace noether
 /**
  * @brief Modifier that adjusts the parameters of the tool approach trajectory to the media
  */
-class StraightApproachModifier : public ToolPathModifier
+class LinearApproachModifier : public ToolPathModifier
 {
 public:
-  StraightApproachModifier(double offset_height_, double n_points);
+  LinearApproachModifier(double offset_height_, double n_points);
   ToolPaths modify(ToolPaths tool_paths) const override final;
 
 protected:

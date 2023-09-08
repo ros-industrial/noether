@@ -1,7 +1,7 @@
-#include <noether_gui/widgets/tool_path_modifiers/straight_approach_modifier_widget.h>
+#include <noether_gui/widgets/tool_path_modifiers/linear_approach_modifier_widget.h>
 #include <noether_gui/utils.h>
 
-#include <noether_tpp/tool_path_modifiers/straight_approach_modifier.h>
+#include <noether_tpp/tool_path_modifiers/linear_approach_modifier.h>
 #include <QFormLayout>
 #include <QLabel>
 #include <QDoubleSpinBox>
@@ -11,7 +11,7 @@ static const std::string N_POINTS_KEY = "n_points";
 
 namespace noether
 {
-StraightApproachToolPathModifierWidget::StraightApproachToolPathModifierWidget(QWidget* parent)
+LinearApproachToolPathModifierWidget::LinearApproachToolPathModifierWidget(QWidget* parent)
   : ToolPathModifierWidget(parent)
 {
   auto layout = new QFormLayout(this);
@@ -37,19 +37,19 @@ StraightApproachToolPathModifierWidget::StraightApproachToolPathModifierWidget(Q
   setLayout(layout);
 }
 
-ToolPathModifier::ConstPtr StraightApproachToolPathModifierWidget::create() const
+ToolPathModifier::ConstPtr LinearApproachToolPathModifierWidget::create() const
 {
-  return std::make_unique<StraightApproachModifier>(offset_height_->value(), n_points_->value());
+  return std::make_unique<LinearApproachModifier>(offset_height_->value(), n_points_->value());
 }
 
 
-void StraightApproachToolPathModifierWidget::configure(const YAML::Node& config)
+void LinearApproachToolPathModifierWidget::configure(const YAML::Node& config)
 {
   offset_height_->setValue(getEntry<double>(config, OFFSET_HEIGHT_KEY));
   n_points_->setValue(getEntry<int>(config, N_POINTS_KEY));
 }
 
-void StraightApproachToolPathModifierWidget::save(YAML::Node& config) const
+void LinearApproachToolPathModifierWidget::save(YAML::Node& config) const
 {
   config[OFFSET_HEIGHT_KEY] = offset_height_->value();
   config[N_POINTS_KEY] = n_points_->value();
