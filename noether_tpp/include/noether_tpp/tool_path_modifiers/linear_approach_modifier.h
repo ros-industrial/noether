@@ -10,12 +10,22 @@ namespace noether
 class LinearApproachModifier : public ToolPathModifier
 {
 public:
-  LinearApproachModifier(double offset_height_, double n_points);
+  enum class Axis
+  {
+    X,
+    Y,
+    Z,
+  };
+
+  LinearApproachModifier(Eigen::Vector3d offset, std::size_t n_points);
+  LinearApproachModifier(Eigen::Vector3d offset, Axis axis, std::size_t n_points);
   ToolPaths modify(ToolPaths tool_paths) const override final;
 
+
+
 protected:
-  const double offset_height_;
-  const double n_points_;
+  Eigen::Vector3d offset_;
+  const size_t n_points_;
 };
 
 }  // namespace noether
