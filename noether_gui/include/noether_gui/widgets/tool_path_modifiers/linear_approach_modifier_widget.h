@@ -6,6 +6,11 @@
 class QDoubleSpinBox;
 class QSpinBox;
 
+namespace Ui
+{
+class Vector3dEditor;
+}
+
 namespace noether
 {
 class LinearApproachToolPathModifierWidget : public ToolPathModifierWidget
@@ -20,7 +25,8 @@ public:
   void save(YAML::Node&) const override;
 
 private:
-  QDoubleSpinBox* offset_height_;
+//  QDoubleSpinBox* offset_;
+  Ui::Vector3dEditor* ui_;
   QSpinBox* n_points_;
 };
 
