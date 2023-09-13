@@ -8,23 +8,6 @@ namespace noether
   {
   }
 
-//  LinearApproachModifier::LinearApproachModifier(Eigen::Vector3d offset, Axis axis, std::size_t n_points)
-//    : n_points_(n_points)
-//  {
-//    switch(axis)
-//    {
-//      case Axis::X:
-//        offset_ = Eigen::Vector3d::UnitX().cwiseProduct(offset);
-//        offset_ = Eigen::Vector3d(offset, 0, 0);
-//      case Axis::Y:
-//        offset_ = Eigen::Vector3d::UnitY().cwiseProduct(offset);
-//      case Axis::Z:
-//        offset_ = Eigen::Vector3d::UnitZ().cwiseProduct(offset);
-//      default:
-//        throw std::runtime_error("Invalid axis enumeration");
-//    }
-//  }
-
 ToolPaths LinearApproachModifier::modify(ToolPaths tool_paths) const
 {
   for (ToolPath& tool_path : tool_paths)
