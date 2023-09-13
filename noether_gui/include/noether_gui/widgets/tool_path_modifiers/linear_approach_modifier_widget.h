@@ -3,7 +3,6 @@
 #include <noether_gui/widgets.h>
 #include <noether_tpp/core/tool_path_modifier.h>
 
-class QDoubleSpinBox;
 class QSpinBox;
 
 namespace Ui
@@ -25,7 +24,6 @@ public:
   void save(YAML::Node&) const override;
 
 private:
-//  QDoubleSpinBox* offset_;
   Ui::Vector3dEditor* ui_;
   QSpinBox* n_points_;
 };

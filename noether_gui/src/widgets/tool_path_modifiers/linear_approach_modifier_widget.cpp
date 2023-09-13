@@ -16,31 +16,6 @@ namespace noether
 LinearApproachToolPathModifierWidget::LinearApproachToolPathModifierWidget(QWidget* parent)
   : ToolPathModifierWidget(parent), ui_(new Ui::Vector3dEditor())
 {
-//  auto layout = new QFormLayout(this);
-//  // Height Offset
-////  offset_ = new QDoubleSpinBox(this);
-////  offset_->setMinimum(0.0);
-////  offset_->setSingleStep(0.01);
-////  offset_->setValue(0.1);
-////  offset_->setDecimals(3);
-////  auto label_offset = new QLabel("Height offset (m)", this);
-////  label_offset->setToolTip("Distance from the first segment point to the first point of the approach trajectory");
-////  layout->addRow(label_offset, offset_);
-//  ui_->setupUi(this);
-//  ui_->group_box->setTitle("Offset (m)");
-
-//  ui_->double_spin_box_z->setValue(0.1);
-
-//  // Number of points
-//  n_points_ = new QSpinBox(this);
-//  n_points_->setMinimum(0.0);
-//  n_points_->setSingleStep(1);
-//  n_points_->setValue(5);
-//  auto label_pnt = new QLabel("Lead in number of points", this);
-//  label_pnt->setToolTip("Number of waypoints along the approach trajectory");
-//  layout->addRow(label_pnt, n_points_);
-
-//  setLayout(layout);
   // Create a vertical layout for the entire widget
   auto mainLayout = new QVBoxLayout(this);
 
