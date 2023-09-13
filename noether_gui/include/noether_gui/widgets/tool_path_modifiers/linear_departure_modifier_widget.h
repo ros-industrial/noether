@@ -8,11 +8,11 @@ class QSpinBox;
 
 namespace noether
 {
-class StraightApproachToolPathModifierWidget : public ToolPathModifierWidget
+class LinearDepartureToolPathModifierWidget : public ToolPathModifierWidget
 {
   Q_OBJECT
 public:
-  StraightApproachToolPathModifierWidget(QWidget* parent = nullptr);
+  LinearDepartureToolPathModifierWidget(QWidget* parent = nullptr);
 
   ToolPathModifier::ConstPtr create() const override;
 
@@ -25,3 +25,4 @@ private:
 };
 
 }  // namespace noether
+
