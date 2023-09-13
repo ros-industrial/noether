@@ -22,7 +22,7 @@ public:
   LinearApproachModifier(Eigen::Vector3d offset, std::size_t n_points);
   LinearApproachModifier(double offset_height, Axis axis, std::size_t n_points);
 
-  ToolPaths modify(ToolPaths tool_paths) const override final;
+  ToolPaths modify(ToolPaths tool_paths) const override;
 
 protected:
   Eigen::Vector3d offset_;
