@@ -10,11 +10,11 @@ namespace noether
 class LinearDepartureModifier : public ToolPathModifier
 {
 public:
-  LinearDepartureModifier(double offset_height_, double n_points);
+  LinearDepartureModifier(Eigen::Vector3d offset_, double n_points);
   ToolPaths modify(ToolPaths tool_paths) const override final;
 
 protected:
-  const double offset_height_;
+  Eigen::Vector3d offset_;
   const double n_points_;
 };
 
