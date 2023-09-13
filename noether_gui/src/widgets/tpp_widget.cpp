@@ -209,7 +209,6 @@ void TPPWidget::onPlan(const bool /*checked*/)
     QApplication::setOverrideCursor(Qt::WaitCursor);
     tool_paths_ = pipeline.plan(mesh);
     QApplication::restoreOverrideCursor();
-
     // Render the tool paths
     std::for_each(tool_path_actors_.begin(), tool_path_actors_.end(), [this](vtkProp* actor) {
       renderer_->RemoveActor(actor);
