@@ -48,6 +48,7 @@ qt5_wrap_cpp(${PROJECT_NAME}_widget_mocs
 qt5_wrap_ui(${PROJECT_NAME}_widget_ui_mocs
   ui/vector3d_editor_widget.ui
   ui/plugin_loader_widget.ui
+  ui/linear_approach_modifier_widget.ui
   ui/raster_planner_widget.ui
   ui/tpp_pipeline_widget.ui
   ui/tpp_widget.ui)

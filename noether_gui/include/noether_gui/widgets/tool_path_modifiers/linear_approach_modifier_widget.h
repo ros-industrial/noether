@@ -3,11 +3,10 @@
 #include <noether_gui/widgets.h>
 #include <noether_tpp/core/tool_path_modifier.h>
 
-class QSpinBox;
-
 namespace Ui
 {
 class Vector3dEditor;
+class LinearApproachModifier;
 }
 
 namespace noether
@@ -24,8 +23,8 @@ public:
   void save(YAML::Node&) const override;
 
 private:
-  Ui::Vector3dEditor* ui_;
-  QSpinBox* n_points_;
+  Ui::LinearApproachModifier* ui_;
+  Ui::Vector3dEditor* vector_editor_ui_;
 };
 
 }  // namespace noether
