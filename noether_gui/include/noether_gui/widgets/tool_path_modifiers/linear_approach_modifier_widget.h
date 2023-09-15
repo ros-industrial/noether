@@ -22,7 +22,7 @@ public:
   void configure(const YAML::Node&) override;
   void save(YAML::Node&) const override;
 
-private:
+protected:
   Ui::LinearApproachModifier* ui_;
   Ui::Vector3dEditor* vector_editor_ui_;
 };
