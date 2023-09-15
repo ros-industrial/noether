@@ -448,9 +448,9 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
   }
 
   // Use principal component analysis (PCA) to determine the principal axes of the mesh
-  Eigen::Vector3d mesh_normal; // Unit vector along shortest mesh PCA direction
-  Eigen::Matrix3d pca_vecs;  // Principal axes, scaled to the size of the mesh in each direction
-  Eigen::Vector3d centroid;  // Mesh centroid
+  Eigen::Vector3d mesh_normal;  // Unit vector along shortest mesh PCA direction
+  Eigen::Matrix3d pca_vecs;     // Principal axes, scaled to the size of the mesh in each direction
+  Eigen::Vector3d centroid;     // Mesh centroid
   {
     // Use Original PCL point cloud
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>());

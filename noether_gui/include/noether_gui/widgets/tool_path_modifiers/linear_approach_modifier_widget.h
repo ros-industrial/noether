@@ -7,7 +7,7 @@ namespace Ui
 {
 class Vector3dEditor;
 class LinearApproachModifier;
-}
+}  // namespace Ui
 
 namespace noether
 {

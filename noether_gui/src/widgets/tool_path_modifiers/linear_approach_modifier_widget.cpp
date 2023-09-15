@@ -73,7 +73,7 @@ void LinearApproachToolPathModifierWidget::configure(const YAML::Node& config)
 
 void LinearApproachToolPathModifierWidget::save(YAML::Node& config) const
 {
-  if(ui_->combo_box_menu->currentIndex() == 0)
+  if (ui_->combo_box_menu->currentIndex() == 0)
   {
     config[AXIS_KEY] = ui_->combo_box_axis->currentIndex();
     config[OFFSET_KEY] = ui_->double_spin_box_offset->value();
