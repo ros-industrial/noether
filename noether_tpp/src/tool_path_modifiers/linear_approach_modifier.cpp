@@ -3,10 +3,30 @@
 
 namespace noether
 {
-  LinearApproachModifier::LinearApproachModifier(Eigen::Vector3d offset, std::size_t n_points)
-    : offset_(offset), n_points_(n_points)
+Eigen::Vector3d LinearApproachModifier::toVector(double offset, Axis axis)
+{
+  switch (axis)
   {
+    case Axis::X:
+      return Eigen::Vector3d::UnitX() * offset;
+    case Axis::Y:
+      return Eigen::Vector3d::UnitY() * offset;
+    case Axis::Z:
+      return Eigen::Vector3d::UnitZ() * offset;
+    default:
+      throw std::runtime_error("Invalid axis value");
   }
+}
+
+LinearApproachModifier::LinearApproachModifier(Eigen::Vector3d offset, std::size_t n_points)
+  : offset_(offset), n_points_(n_points)
+{
+}
+
+LinearApproachModifier::LinearApproachModifier(double offset, Axis axis, std::size_t n_points)
+  : offset_(toVector(offset, axis)), n_points_(n_points)
+{
+}
 
 ToolPaths LinearApproachModifier::modify(ToolPaths tool_paths) const
 {
@@ -16,8 +36,6 @@ ToolPaths LinearApproachModifier::modify(ToolPaths tool_paths) const
     {
       Eigen::Isometry3d offset_point = segment.front() * Eigen::Translation3d(offset_);
       ToolPathSegment new_segment;
-
-
       for (int i = 0; i < n_points_; i++)
       {
         Eigen::Isometry3d pt;

@@ -10,8 +10,18 @@ namespace noether
 class LinearApproachModifier : public ToolPathModifier
 {
 public:
+  enum class Axis
+  {
+    X,
+    Y,
+    Z
+  };
+
+  static Eigen::Vector3d toVector(double offset, Axis axis);
 
   LinearApproachModifier(Eigen::Vector3d offset, std::size_t n_points);
+  LinearApproachModifier(double offset_height, Axis axis, std::size_t n_points);
+
   ToolPaths modify(ToolPaths tool_paths) const override final;
 
 protected:
