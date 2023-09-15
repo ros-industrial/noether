@@ -1471,8 +1471,7 @@ void SurfaceWalkRasterGenerator::getConnectedIntersectionLine(vtkSmartPointer<vt
       // points to
       switch (order)
       {
-        case 1:
-        {
+        case 1: {
           vtkSmartPointer<vtkPoints> tmp = vtkSmartPointer<vtkPoints>::New();
 
           for (long i = lines[next_index]->GetNumberOfPoints() - 1; i >= 0; --i)
@@ -1491,16 +1490,14 @@ void SurfaceWalkRasterGenerator::getConnectedIntersectionLine(vtkSmartPointer<vt
           temp_points->DeepCopy(tmp);
           break;
         }
-        case 2:
-        {
+        case 2: {
           for (int i = 0; i < lines[next_index]->GetNumberOfPoints(); ++i)
           {
             temp_points->InsertNextPoint(lines[next_index]->GetPoint(i));
           }
           break;
         }
-        case 3:
-        {
+        case 3: {
           vtkSmartPointer<vtkPoints> tmp = vtkSmartPointer<vtkPoints>::New();
 
           for (int i = 0; i < lines[next_index]->GetNumberOfPoints(); ++i)
@@ -1519,8 +1516,7 @@ void SurfaceWalkRasterGenerator::getConnectedIntersectionLine(vtkSmartPointer<vt
           temp_points->DeepCopy(tmp);
           break;
         }
-        case 4:
-        {
+        case 4: {
           for (long i = lines[next_index]->GetNumberOfPoints() - 1; i >= 0; --i)
           {
             temp_points->InsertNextPoint(lines[next_index]->GetPoint(i));

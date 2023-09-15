@@ -130,7 +130,7 @@ bool EuclideanClustering::filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMe
     }
   }
 
-  auto is_valid_polygon = [& points = *mesh_points](const Vertices& polygon, double tol = 1e-6) -> bool {
+  auto is_valid_polygon = [&points = *mesh_points](const Vertices& polygon, double tol = 1e-6) -> bool {
     Eigen::Vector3f a, b, c, dir;
     const decltype(polygon.vertices)& vert = polygon.vertices;
     a = points[vert[0]].getVector3fMap();
