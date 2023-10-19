@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="mesh_file" default="$(find noether_examples)/data/raw_mesh.ply"/>
+  <node launch-prefix="" name="surface_walk_generator_node" pkg="noether_examples" type="surface_walk_example_node" output="screen">
+    <param name="mesh_file" value="$(arg mesh_file)"/>
+    <rosparam ns="surface_walk_rastering">
+      raster_spacing: 0.05
+      point_spacing: 0.02
+      raster_rot_offset: 0.0
+      min_hole_size: 0.02
+      min_segment_size: 0.01
+      intersection_plane_height: 0.05
+      tool_offset: 0.0
+      generate_extra_rasters: False
+      cut_direction_x: -1.0
+      cut_direction_y: 1.0
+      cut_direction_z: 0.0
+      debug: False
+    </rosparam>
+  </node>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find noether_examples)/config/tool_path_server_examples.rviz"/>
+  <include file="$(find noether)/launch/tool_path_planner_server.launch"/>
+</launch>
