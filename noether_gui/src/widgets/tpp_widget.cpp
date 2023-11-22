@@ -423,13 +423,9 @@ void TPPWidget::plan()
 {
   try
   {
-    if (mesh_file_.empty())
-      throw std::runtime_error("No mesh file selected");
-
     // Load the mesh
     pcl::PolygonMesh full_mesh;
-    if (pcl::io::loadPolygonFile(mesh_file_, full_mesh) < 1)
-      throw std::runtime_error("Failed to load mesh from file");
+    pcl::io::loadPolygonFile(mesh_file_, full_mesh);
 
     const ToolPathPlannerPipeline pipeline = pipeline_widget_->createPipeline();
     QApplication::setOverrideCursor(Qt::WaitCursor);

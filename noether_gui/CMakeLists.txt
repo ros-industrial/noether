@@ -50,6 +50,8 @@ add_library(
   src/widgets/tool_path_planners/raster/cross_hatch_plane_slicer_raster_planner.cpp
   # Half Edge Planner
   src/widgets/tool_path_planners/edge/boundary_edge_planner_widget.cpp
+  # Flat Plane Planner
+  src/widgets/tool_path_planners/flat_plane_toolpath_planner_widget.cpp
   # Tool Path Modifiers
   src/widgets/tool_path_modifiers/circular_lead_in_modifier_widget.cpp
   src/widgets/tool_path_modifiers/circular_lead_out_modifier_widget.cpp

@@ -13,6 +13,7 @@
 // Tool path planners
 #include <noether_gui/widgets/tool_path_planners/raster/raster_planner_widget.h>
 #include <noether_gui/widgets/tool_path_planners/raster/cross_hatch_plane_slicer_raster_planner_widget.h>
+#include <noether_gui/widgets/tool_path_planners/flat_plane_toolpath_planner_widget.h>
 // Tool Path Modifiers
 #include <noether_gui/widgets/tool_path_modifiers/circular_lead_in_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/circular_lead_out_modifier_widget.h>
@@ -79,6 +80,7 @@ struct Plugin_CrossHatchPlaneSlicerRasterPlannerWidget : WidgetPlugin
   }
 };
 EXPORT_TOOL_PATH_PLANNER_WIDGET_PLUGIN(noether::Plugin_CrossHatchPlaneSlicerRasterPlannerWidget, CrossHatchPlaneSlicer)
+EXPORT_SIMPLE_TOOL_PATH_PLANNER_PLUGIN(FlatPlaneToolPathPlannerWidget, FlatPlane)
 
 // Tool Path Modifiers
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(StandardEdgePathsOrganizationModifierWidget,
