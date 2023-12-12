@@ -44,7 +44,6 @@ public:
   ToolPathModifier::ConstPtr tool_path_modifier;
 
 
-private:
 
 };
 

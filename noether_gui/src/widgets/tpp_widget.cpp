@@ -11,7 +11,6 @@
 #include <QStandardPaths>
 #include <QTextStream>
 #include <yaml-cpp/yaml.h>
-#include <pcl/io/ply_io.h>
 
 // Rendering includes
 #include <QVTKWidget.h>
@@ -29,9 +28,6 @@
 #include <vtkTransform.h>
 #include <vtkTubeFilter.h>
 #include <pcl/surface/vtk_smoothing/vtk_utils.h>
-
-
-#include <vtkProp3DCollection.h>
 
 namespace noether
 {
@@ -286,35 +282,35 @@ vtkAssembly* createToolPathActors(const std::vector<ToolPaths>& tool_paths,
 }
 
 // Function to combine two pcl::PolygonMesh instances
-pcl::PolygonMesh combineMeshes(const pcl::PolygonMesh& mesh1, const pcl::PolygonMesh& mesh2) {
-    pcl::PolygonMesh combinedMesh;
+pcl::PolygonMesh combineMeshes(const pcl::PolygonMesh& mesh_1, const pcl::PolygonMesh& mesh_2) {
+    pcl::PolygonMesh combined_mesh;
 
     // Combine vertices
-    pcl::PointCloud<pcl::PointXYZ> combinedCloud;
-    pcl::fromPCLPointCloud2(mesh1.cloud, combinedCloud);
-    pcl::PointCloud<pcl::PointXYZ> cloud2;
-    pcl::fromPCLPointCloud2(mesh2.cloud, cloud2);
+    pcl::PointCloud<pcl::PointXYZ> combined_cloud;
+    pcl::fromPCLPointCloud2(mesh_1.cloud, combined_cloud);
+    pcl::PointCloud<pcl::PointXYZ> cloud_2;
+    pcl::fromPCLPointCloud2(mesh_2.cloud, cloud_2);
 
-    combinedCloud += cloud2;
+    combined_cloud += cloud_2;
 
-    pcl::toPCLPointCloud2(combinedCloud, combinedMesh.cloud);
+    pcl::toPCLPointCloud2(combined_cloud, combined_mesh.cloud);
 
     // Combine faces
     // Add faces for mesh 1
-    combinedMesh.polygons.insert(
-        combinedMesh.polygons.end(), mesh1.polygons.begin(), mesh1.polygons.end());
+    combined_mesh.polygons.insert(
+        combined_mesh.polygons.end(), mesh_1.polygons.begin(), mesh_1.polygons.end());
 
     // Offset the indices of the second mesh's faces to account for the combined vertices
-    size_t offset = mesh1.cloud.width * mesh1.cloud.height;
-    for (auto& polygon : mesh2.polygons) {
-        pcl::Vertices newPolygon;
+    size_t offset = mesh_1.cloud.width * mesh_1.cloud.height;
+    for (auto& polygon : mesh_2.polygons) {
+        pcl::Vertices new_polygon;
         for (auto index : polygon.vertices) {
-            newPolygon.vertices.push_back(index + offset);
+            new_polygon.vertices.push_back(index + offset);
         }
-        combinedMesh.polygons.push_back(newPolygon);
+        combined_mesh.polygons.push_back(new_polygon);
     }
 
-    return combinedMesh;
+    return combined_mesh;
 }
 
 void TPPWidget::onPlan(const bool /*checked*/)
@@ -338,24 +334,12 @@ void TPPWidget::onPlan(const bool /*checked*/)
 
     tool_paths_.clear();
     tool_paths_.reserve(meshes.size());
-
     pcl::PolygonMesh combined_mesh_fragments;
     std::vector<ToolPaths> unmodified_tool_paths;
-    std::string file_name = "/tmp/comb_frag_mesh_test";
     for(std::size_t i = 0; i < meshes.size(); ++i)
     {
       const pcl::PolygonMesh& mesh = meshes[i];
-      if (i == 0)
-      {
-        combined_mesh_fragments = mesh;
-      }
-
-      else
-      {
-        combined_mesh_fragments = combineMeshes(combined_mesh_fragments, mesh);
-      }
-
-      pcl::io::savePLYFile(file_name + std::to_string(i) + ".ply", combined_mesh_fragments);
+      combined_mesh_fragments = combineMeshes(combined_mesh_fragments, mesh);
 
       // Plan the tool path
       ToolPaths path = pipeline.planner->plan(mesh);

@@ -2,7 +2,6 @@
 
 #include <noether_tpp/core/types.h>
 #include <QWidget>
-#include <QCheckBox>
 #include <vtkSmartPointer.h>
 
 class QVTKWidget;
@@ -51,8 +50,7 @@ public:
   void setMeshFile(const QString& file);
   void setConfigurationFile(const QString& file);
 
-//private slots:
-//  void onShowOriginalMesh(const bool /*checked*/);
+
 
 
 private:
@@ -84,7 +82,6 @@ private:
   vtkTubeFilter* tube_filter_;
 
   std::vector<ToolPaths> tool_paths_;
-//  QPushButton *push_button_show_original_mesh;
 
 };
 
