@@ -281,36 +281,37 @@ vtkAssembly* createToolPathActors(const std::vector<ToolPaths>& tool_paths,
   return assembly;
 }
 
-// Function to combine two pcl::PolygonMesh instances
-pcl::PolygonMesh combineMeshes(const pcl::PolygonMesh& mesh_1, const pcl::PolygonMesh& mesh_2) {
-    pcl::PolygonMesh combined_mesh;
+/**
+ * @brief Corrected version of pcl::PolygonMesh::concatenate to support PCL versions before 1.12
+ */
+static bool concatenate (pcl::PolygonMesh &mesh1, const pcl::PolygonMesh &mesh2)
+{
+  // Compute point offset with mesh1 before modifying mesh1
+  const auto point_offset = mesh1.cloud.width * mesh1.cloud.height;
 
-    // Combine vertices
-    pcl::PointCloud<pcl::PointXYZ> combined_cloud;
-    pcl::fromPCLPointCloud2(mesh_1.cloud, combined_cloud);
-    pcl::PointCloud<pcl::PointXYZ> cloud_2;
-    pcl::fromPCLPointCloud2(mesh_2.cloud, cloud_2);
+  bool success = pcl::PCLPointCloud2::concatenate(mesh1.cloud, mesh2.cloud);
+  if (success == false) {
+    return false;
+  }
+  // Make the resultant polygon mesh take the newest stamp
+  mesh1.header.stamp = std::max(mesh1.header.stamp, mesh2.header.stamp);
 
-    combined_cloud += cloud_2;
+  std::transform(mesh2.polygons.begin (),
+                 mesh2.polygons.end (),
+                 std::back_inserter (mesh1.polygons),
+                 [point_offset](auto polygon)
+                 {
+                    std::transform(polygon.vertices.begin (),
+                                   polygon.vertices.end (),
+                                   polygon.vertices.begin (),
+                                   [point_offset](auto& point_idx)
+                                   {
+                                     return point_idx + point_offset;
+                                   });
+                    return polygon;
+                  });
 
-    pcl::toPCLPointCloud2(combined_cloud, combined_mesh.cloud);
-
-    // Combine faces
-    // Add faces for mesh 1
-    combined_mesh.polygons.insert(
-        combined_mesh.polygons.end(), mesh_1.polygons.begin(), mesh_1.polygons.end());
-
-    // Offset the indices of the second mesh's faces to account for the combined vertices
-    size_t offset = mesh_1.cloud.width * mesh_1.cloud.height;
-    for (auto& polygon : mesh_2.polygons) {
-        pcl::Vertices new_polygon;
-        for (auto index : polygon.vertices) {
-            new_polygon.vertices.push_back(index + offset);
-        }
-        combined_mesh.polygons.push_back(new_polygon);
-    }
-
-    return combined_mesh;
+  return true;
 }
 
 void TPPWidget::onPlan(const bool /*checked*/)
@@ -336,10 +337,11 @@ void TPPWidget::onPlan(const bool /*checked*/)
     tool_paths_.reserve(meshes.size());
     pcl::PolygonMesh combined_mesh_fragments;
     std::vector<ToolPaths> unmodified_tool_paths;
-    for(std::size_t i = 0; i < meshes.size(); ++i)
+    unmodified_tool_paths.reserve(meshes.size());
+
+    for(const pcl::PolygonMesh& mesh : meshes)
     {
-      const pcl::PolygonMesh& mesh = meshes[i];
-      combined_mesh_fragments = combineMeshes(combined_mesh_fragments, mesh);
+      concatenate(combined_mesh_fragments, mesh);
 
       // Plan the tool path
       ToolPaths path = pipeline.planner->plan(mesh);
