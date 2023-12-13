@@ -42,9 +42,6 @@ public:
   MeshModifier::ConstPtr mesh_modifier;
   ToolPathPlanner::ConstPtr planner;
   ToolPathModifier::ConstPtr tool_path_modifier;
-
-
-
 };
 
 }  // namespace noether

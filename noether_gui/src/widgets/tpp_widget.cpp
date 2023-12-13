@@ -284,32 +284,27 @@ vtkAssembly* createToolPathActors(const std::vector<ToolPaths>& tool_paths,
 /**
  * @brief Corrected version of pcl::PolygonMesh::concatenate to support PCL versions before 1.12
  */
-static bool concatenate (pcl::PolygonMesh &mesh1, const pcl::PolygonMesh &mesh2)
+static bool concatenate(pcl::PolygonMesh& mesh1, const pcl::PolygonMesh& mesh2)
 {
   // Compute point offset with mesh1 before modifying mesh1
   const auto point_offset = mesh1.cloud.width * mesh1.cloud.height;
 
   bool success = pcl::PCLPointCloud2::concatenate(mesh1.cloud, mesh2.cloud);
-  if (success == false) {
+  if (success == false)
+  {
     return false;
   }
   // Make the resultant polygon mesh take the newest stamp
   mesh1.header.stamp = std::max(mesh1.header.stamp, mesh2.header.stamp);
 
-  std::transform(mesh2.polygons.begin (),
-                 mesh2.polygons.end (),
-                 std::back_inserter (mesh1.polygons),
-                 [point_offset](auto polygon)
-                 {
-                    std::transform(polygon.vertices.begin (),
-                                   polygon.vertices.end (),
-                                   polygon.vertices.begin (),
-                                   [point_offset](auto& point_idx)
-                                   {
-                                     return point_idx + point_offset;
-                                   });
-                    return polygon;
-                  });
+  std::transform(
+      mesh2.polygons.begin(), mesh2.polygons.end(), std::back_inserter(mesh1.polygons), [point_offset](auto polygon) {
+        std::transform(polygon.vertices.begin(),
+                       polygon.vertices.end(),
+                       polygon.vertices.begin(),
+                       [point_offset](auto& point_idx) { return point_idx + point_offset; });
+        return polygon;
+      });
 
   return true;
 }
@@ -339,7 +334,7 @@ void TPPWidget::onPlan(const bool /*checked*/)
     std::vector<ToolPaths> unmodified_tool_paths;
     unmodified_tool_paths.reserve(meshes.size());
 
-    for(const pcl::PolygonMesh& mesh : meshes)
+    for (const pcl::PolygonMesh& mesh : meshes)
     {
       concatenate(combined_mesh_fragments, mesh);
 
@@ -357,7 +352,6 @@ void TPPWidget::onPlan(const bool /*checked*/)
       pcl::VTKUtils::mesh2vtk(combined_mesh_fragments, combined_mesh_fragments_);
       mesh_fragment_mapper_->Update();
       mesh_fragment_mapper_->SetInputData(combined_mesh_fragments_);
-
     }
 
     // Render the unmodified tool paths

@@ -50,9 +50,6 @@ public:
   void setMeshFile(const QString& file);
   void setConfigurationFile(const QString& file);
 
-
-
-
 private:
   void onLoadMesh(const bool /*checked*/);
   void onLoadConfiguration(const bool /*checked*/);
@@ -82,7 +79,6 @@ private:
   vtkTubeFilter* tube_filter_;
 
   std::vector<ToolPaths> tool_paths_;
-
 };
 
 }  // namespace noether
