@@ -38,7 +38,6 @@ class TPPWidget : public QWidget
   Q_OBJECT
 public:
   TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent = nullptr);
-  virtual ~TPPWidget();
 
   /**
    * @brief Get the planned tool paths
@@ -65,18 +64,16 @@ private:
 
   // Viewer rendering
   QVTKWidget* render_widget_;
-  vtkRenderer* renderer_;
-  vtkPolyDataMapper* mesh_mapper_;
-  vtkActor* mesh_actor_;
+  vtkSmartPointer<vtkRenderer> renderer_;
+  vtkSmartPointer<vtkPolyDataMapper> mesh_mapper_;
+  vtkSmartPointer<vtkActor> mesh_actor_;
 
-  vtkPolyDataMapper* mesh_fragment_mapper_;
-  vtkActor* mesh_fragment_actor_;
-  vtkSmartPointer<vtkPolyData> combined_mesh_fragments_;
+  vtkSmartPointer<vtkAssembly> tool_path_actor_;
+  vtkSmartPointer<vtkAssembly> unmodified_tool_path_actor_;
+  vtkSmartPointer<vtkAssembly> mesh_fragment_actor_;
 
-  vtkAssembly* tool_path_actor_;
-  vtkAssembly* unmodified_tool_path_actor_;
-  vtkAxes* axes_;
-  vtkTubeFilter* tube_filter_;
+  vtkSmartPointer<vtkAxes> axes_;
+  vtkSmartPointer<vtkTubeFilter> tube_filter_;
 
   std::vector<ToolPaths> tool_paths_;
 };

@@ -36,16 +36,14 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   , ui_(new Ui::TPP())
   , pipeline_widget_(new TPPPipelineWidget(std::move(loader), this))
   , render_widget_(new QVTKWidget(this))
-  , renderer_(vtkOpenGLRenderer::New())
-  , mesh_mapper_(vtkOpenGLPolyDataMapper::New())
-  , mesh_actor_(vtkOpenGLActor::New())
-  , mesh_fragment_mapper_(vtkOpenGLPolyDataMapper::New())
-  , mesh_fragment_actor_(vtkOpenGLActor::New())
-  , combined_mesh_fragments_(vtkSmartPointer<vtkPolyData>::New())
-  , tool_path_actor_(vtkAssembly::New())
-  , unmodified_tool_path_actor_(vtkAssembly::New())
-  , axes_(vtkAxes::New())
-  , tube_filter_(vtkTubeFilter::New())
+  , renderer_(vtkSmartPointer<vtkOpenGLRenderer>::New())
+  , mesh_mapper_(vtkSmartPointer<vtkOpenGLPolyDataMapper>::New())
+  , mesh_actor_(vtkSmartPointer<vtkOpenGLActor>::New())
+  , mesh_fragment_actor_(vtkSmartPointer<vtkAssembly>::New())
+  , tool_path_actor_(vtkSmartPointer<vtkAssembly>::New())
+  , unmodified_tool_path_actor_(vtkSmartPointer<vtkAssembly>::New())
+  , axes_(vtkSmartPointer<vtkAxes>::New())
+  , tube_filter_(vtkSmartPointer<vtkTubeFilter>::New())
 {
   ui_->setupUi(this);
 
@@ -60,8 +58,6 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   renderer_->AddActor(mesh_actor_);
 
   // Mesh fragment mapper/actor
-  mesh_fragment_mapper_->SetInputData(combined_mesh_fragments_);
-  mesh_fragment_actor_->SetMapper(mesh_fragment_mapper_);
   renderer_->AddActor(mesh_fragment_actor_);
 
   // Tool path axis display object
@@ -97,19 +93,6 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
     render_widget_->GetRenderWindow()->Render();
     render_widget_->GetRenderWindow()->Render();
   });
-}
-
-TPPWidget::~TPPWidget()
-{
-  renderer_->Delete();
-  mesh_mapper_->Delete();
-  mesh_actor_->Delete();
-  mesh_fragment_mapper_->Delete();
-  mesh_fragment_actor_->Delete();
-  tool_path_actor_->Delete();
-  unmodified_tool_path_actor_->Delete();
-  axes_->Delete();
-  tube_filter_->Delete();
 }
 
 void TPPWidget::onShowOriginalMesh(const bool checked)
@@ -250,10 +233,10 @@ vtkSmartPointer<vtkTransform> toVTK(const Eigen::Isometry3d& mat)
   return t;
 }
 
-vtkAssembly* createToolPathActors(const std::vector<ToolPaths>& tool_paths,
-                                  vtkAlgorithmOutput* waypoint_shape_output_port)
+vtkSmartPointer<vtkAssembly> createToolPathActors(const std::vector<ToolPaths>& tool_paths,
+                                                  vtkAlgorithmOutput* waypoint_shape_output_port)
 {
-  auto assembly = vtkAssembly::New();
+  auto assembly = vtkSmartPointer<vtkAssembly>::New();
   for (const ToolPaths& fragment : tool_paths)
   {
     for (const ToolPath& tool_path : fragment)
@@ -281,32 +264,24 @@ vtkAssembly* createToolPathActors(const std::vector<ToolPaths>& tool_paths,
   return assembly;
 }
 
-/**
- * @brief Corrected version of pcl::PolygonMesh::concatenate to support PCL versions before 1.12
- */
-static bool concatenate(pcl::PolygonMesh& mesh1, const pcl::PolygonMesh& mesh2)
+vtkSmartPointer<vtkAssembly> createMeshActors(const std::vector<pcl::PolygonMesh>& meshes)
 {
-  // Compute point offset with mesh1 before modifying mesh1
-  const auto point_offset = mesh1.cloud.width * mesh1.cloud.height;
-
-  bool success = pcl::PCLPointCloud2::concatenate(mesh1.cloud, mesh2.cloud);
-  if (success == false)
+  auto assembly = vtkSmartPointer<vtkAssembly>::New();
+  for (const pcl::PolygonMesh& mesh : meshes)
   {
-    return false;
+    vtkSmartPointer<vtkPolyData> mesh_poly_data = vtkSmartPointer<vtkPolyData>::New();
+    pcl::VTKUtils::mesh2vtk(mesh, mesh_poly_data);
+
+    auto map = vtkSmartPointer<vtkPolyDataMapper>::New();
+    map->SetInputData(mesh_poly_data);
+
+    auto actor = vtkSmartPointer<vtkActor>::New();
+    actor->SetMapper(map);
+
+    assembly->AddPart(actor);
   }
-  // Make the resultant polygon mesh take the newest stamp
-  mesh1.header.stamp = std::max(mesh1.header.stamp, mesh2.header.stamp);
 
-  std::transform(
-      mesh2.polygons.begin(), mesh2.polygons.end(), std::back_inserter(mesh1.polygons), [point_offset](auto polygon) {
-        std::transform(polygon.vertices.begin(),
-                       polygon.vertices.end(),
-                       polygon.vertices.begin(),
-                       [point_offset](auto& point_idx) { return point_idx + point_offset; });
-        return polygon;
-      });
-
-  return true;
+  return assembly;
 }
 
 void TPPWidget::onPlan(const bool /*checked*/)
@@ -330,14 +305,11 @@ void TPPWidget::onPlan(const bool /*checked*/)
 
     tool_paths_.clear();
     tool_paths_.reserve(meshes.size());
-    pcl::PolygonMesh combined_mesh_fragments;
     std::vector<ToolPaths> unmodified_tool_paths;
     unmodified_tool_paths.reserve(meshes.size());
 
     for (const pcl::PolygonMesh& mesh : meshes)
     {
-      concatenate(combined_mesh_fragments, mesh);
-
       // Plan the tool path
       ToolPaths path = pipeline.planner->plan(mesh);
 
@@ -349,15 +321,15 @@ void TPPWidget::onPlan(const bool /*checked*/)
 
     // Reset
     {
-      pcl::VTKUtils::mesh2vtk(combined_mesh_fragments, combined_mesh_fragments_);
-      mesh_fragment_mapper_->Update();
-      mesh_fragment_mapper_->SetInputData(combined_mesh_fragments_);
+      renderer_->RemoveActor(mesh_fragment_actor_);
+      mesh_fragment_actor_ = createMeshActors(meshes);
+      renderer_->AddActor(mesh_fragment_actor_);
+      mesh_fragment_actor_->SetVisibility(ui_->check_box_show_modified_mesh->isChecked());
     }
 
     // Render the unmodified tool paths
     {
       renderer_->RemoveActor(unmodified_tool_path_actor_);
-      unmodified_tool_path_actor_->Delete();
       unmodified_tool_path_actor_ = createToolPathActors(unmodified_tool_paths, tube_filter_->GetOutputPort());
       renderer_->AddActor(unmodified_tool_path_actor_);
       unmodified_tool_path_actor_->SetVisibility(ui_->check_box_show_original_tool_path->isChecked());
@@ -366,7 +338,6 @@ void TPPWidget::onPlan(const bool /*checked*/)
     // Render the modified tool paths
     {
       renderer_->RemoveActor(tool_path_actor_);
-      tool_path_actor_->Delete();
       tool_path_actor_ = createToolPathActors(tool_paths_, tube_filter_->GetOutputPort());
       renderer_->AddActor(tool_path_actor_);
       tool_path_actor_->SetVisibility(ui_->check_box_show_modified_tool_path->isChecked());
