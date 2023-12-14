@@ -2,6 +2,7 @@
 
 #include <noether_tpp/core/types.h>
 #include <QWidget>
+#include <vtkSmartPointer.h>
 
 class QVTKWidget;
 class vtkActor;
@@ -10,6 +11,8 @@ class vtkProp;
 class vtkRenderer;
 class vtkAxes;
 class vtkTubeFilter;
+class vtkAssembly;
+class vtkPolyData;
 
 namespace boost_plugin_loader
 {
@@ -35,7 +38,6 @@ class TPPWidget : public QWidget
   Q_OBJECT
 public:
   TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent = nullptr);
-  virtual ~TPPWidget();
 
   /**
    * @brief Get the planned tool paths
@@ -52,18 +54,26 @@ private:
   void onLoadConfiguration(const bool /*checked*/);
   void onSaveConfiguration(const bool /*checked*/);
   void onPlan(const bool /*checked*/);
+  void onShowOriginalMesh(const bool);
+  void onShowModifiedMesh(const bool);
+  void onShowUnmodifiedToolPath(const bool);
+  void onShowModifiedToolPath(const bool);
 
   Ui::TPP* ui_;
   TPPPipelineWidget* pipeline_widget_;
 
   // Viewer rendering
   QVTKWidget* render_widget_;
-  vtkRenderer* renderer_;
-  vtkPolyDataMapper* mesh_mapper_;
-  vtkActor* mesh_actor_;
-  std::vector<vtkProp*> tool_path_actors_;
-  vtkAxes* axes_;
-  vtkTubeFilter* tube_filter_;
+  vtkSmartPointer<vtkRenderer> renderer_;
+  vtkSmartPointer<vtkPolyDataMapper> mesh_mapper_;
+  vtkSmartPointer<vtkActor> mesh_actor_;
+
+  vtkSmartPointer<vtkAssembly> tool_path_actor_;
+  vtkSmartPointer<vtkAssembly> unmodified_tool_path_actor_;
+  vtkSmartPointer<vtkAssembly> mesh_fragment_actor_;
+
+  vtkSmartPointer<vtkAxes> axes_;
+  vtkSmartPointer<vtkTubeFilter> tube_filter_;
 
   std::vector<ToolPaths> tool_paths_;
 };

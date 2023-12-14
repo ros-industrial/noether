@@ -7,20 +7,20 @@ namespace noether
 ToolPathPlannerPipeline::ToolPathPlannerPipeline(MeshModifier::ConstPtr mesh_mod,
                                                  ToolPathPlanner::ConstPtr planner,
                                                  ToolPathModifier::ConstPtr tool_path_mod)
-  : mesh_modifier_(std::move(mesh_mod)), planner_(std::move(planner)), tool_path_modifier_(std::move(tool_path_mod))
+  : mesh_modifier(std::move(mesh_mod)), planner(std::move(planner)), tool_path_modifier(std::move(tool_path_mod))
 {
 }
 
 std::vector<ToolPaths> ToolPathPlannerPipeline::plan(pcl::PolygonMesh mesh) const
 {
-  std::vector<pcl::PolygonMesh> meshes = mesh_modifier_->modify(mesh);
+  std::vector<pcl::PolygonMesh> meshes = mesh_modifier->modify(mesh);
 
   std::vector<ToolPaths> output;
   output.reserve(meshes.size());
   for (const pcl::PolygonMesh& mesh : meshes)
   {
-    ToolPaths path = planner_->plan(mesh);
-    output.push_back(tool_path_modifier_->modify(path));
+    ToolPaths path = planner->plan(mesh);
+    output.push_back(tool_path_modifier->modify(path));
   }
 
   return output;
