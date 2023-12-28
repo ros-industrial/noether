@@ -135,4 +135,18 @@ target_compile_definitions(${PROJECT_NAME}_app PRIVATE NOETHER_GUI_PLUGINS="${PR
 install(DIRECTORY include/${PROJECT_NAME}/ DESTINATION include/${PROJECT_NAME})
 
 # Package configuration
-configure_package(NAMESPACE noether TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_plugins ${PROJECT_NAME}_app)
+configure_package(
+  NAMESPACE noether
+  TARGETS
+    ${PROJECT_NAME}
+    ${PROJECT_NAME}_plugins
+    ${PROJECT_NAME}_app
+  DEPENDENCIES
+    Eigen3
+    "Boost REQUIRED COMPONENTS program_options"
+    boost_plugin_loader
+    noether_tpp
+    "PCL REQUIRED COMPONENTS io surface"
+    "Qt5 REQUIRED COMPONENTS Widgets"
+    yaml-cpp
+)
