@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1070</width>
-    <height>614</height>
+    <width>215</width>
+    <height>344</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -63,36 +63,7 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
-           <widget class="QScrollArea" name="scroll_area">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>1024</height>
-             </size>
-            </property>
-            <property name="horizontalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
-            </property>
-            <property name="widgetResizable">
-             <bool>true</bool>
-            </property>
-            <widget class="QWidget" name="content">
-             <property name="geometry">
-              <rect>
-               <x>0</x>
-               <y>0</y>
-               <width>1024</width>
-               <height>278</height>
-              </rect>
-             </property>
-            </widget>
-           </widget>
+           <widget class="QWidget" name="widget" native="true"/>
           </item>
           <item>
            <widget class="QPushButton" name="push_button_plan">
@@ -186,7 +157,6 @@
  <tabstops>
   <tabstop>line_edit_mesh</tabstop>
   <tabstop>push_button_load_mesh</tabstop>
-  <tabstop>scroll_area</tabstop>
   <tabstop>push_button_plan</tabstop>
   <tabstop>double_spin_box_axis_size</tabstop>
   <tabstop>check_box_show_original_mesh</tabstop>

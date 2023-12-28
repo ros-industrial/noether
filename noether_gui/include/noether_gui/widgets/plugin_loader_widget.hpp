@@ -13,9 +13,11 @@ template <typename PluginT>
 PluginLoaderWidget<PluginT>::PluginLoaderWidget(boost_plugin_loader::PluginLoader loader,
                                                 const QString& title,
                                                 QWidget* parent)
-  : QWidget(parent), ui_(new Ui::PluginLoader()), loader_(std::move(loader))
+  : QWidget(parent), ui_(new Ui::PluginLoader()), widgets_layout_(new QVBoxLayout()), loader_(std::move(loader))
 {
   ui_->setupUi(this);
+
+  ui_->contents->setLayout(widgets_layout_);
 
   ui_->group_box->setTitle(title);
   ui_->combo_box->addItems(getAvailablePlugins<PluginT>(loader_));
@@ -45,7 +47,7 @@ void PluginLoaderWidget<PluginT>::addWidget(const QString& plugin_name, const YA
   collapsible_area->setWidget(plugin->create(this, config));
   collapsible_area->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
 
-  ui_->vertical_layout_plugins->addWidget(collapsible_area);
+  widgets_layout_->addWidget(collapsible_area);
 
   // Add a right click menu option for deleting this tool path modifier widget
   connect(collapsible_area, &QWidget::customContextMenuRequested, [this, collapsible_area](const QPoint& pos) {
@@ -54,7 +56,7 @@ void PluginLoaderWidget<PluginT>::addWidget(const QString& plugin_name, const YA
     QAction* action = context_menu.exec(collapsible_area->mapToGlobal(pos));
     if (action == remove_action)
     {
-      ui_->vertical_layout_plugins->removeWidget(collapsible_area);
+      widgets_layout_->removeWidget(collapsible_area);
       delete collapsible_area;
     }
   });
@@ -67,9 +69,9 @@ template <typename PluginT>
 QWidgetList PluginLoaderWidget<PluginT>::getWidgets() const
 {
   QWidgetList widgets;
-  for (int i = 0; i < ui_->vertical_layout_plugins->count(); ++i)
+  for (int i = 0; i < widgets_layout_->count(); ++i)
   {
-    QLayoutItem* item = ui_->vertical_layout_plugins->itemAt(i);
+    QLayoutItem* item = widgets_layout_->itemAt(i);
     if (item)
     {
       auto collapsible_area = dynamic_cast<CollapsibleArea*>(item->widget());
@@ -96,9 +98,9 @@ void PluginLoaderWidget<PluginT>::configure(const YAML::Node& config)
 template <typename PluginT>
 void PluginLoaderWidget<PluginT>::save(YAML::Node& config) const
 {
-  for (int i = 0; i < ui_->vertical_layout_plugins->count(); ++i)
+  for (int i = 0; i < widgets_layout_->count(); ++i)
   {
-    QLayoutItem* item = ui_->vertical_layout_plugins->itemAt(i);
+    QLayoutItem* item = widgets_layout_->itemAt(i);
     if (item)
     {
       auto collapsible_area = dynamic_cast<const CollapsibleArea*>(item->widget());
@@ -121,9 +123,9 @@ void PluginLoaderWidget<PluginT>::save(YAML::Node& config) const
 template <typename PluginT>
 void PluginLoaderWidget<PluginT>::removeWidgets()
 {
-  for (int i = 0; i < ui_->vertical_layout_plugins->count(); ++i)
+  for (int i = 0; i < widgets_layout_->count(); ++i)
   {
-    ui_->vertical_layout_plugins->itemAt(i)->widget()->deleteLater();
+    widgets_layout_->itemAt(i)->widget()->deleteLater();
   }
 }
 

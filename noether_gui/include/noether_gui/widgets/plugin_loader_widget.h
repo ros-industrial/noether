@@ -13,6 +13,8 @@ namespace YAML
 class Node;
 }
 
+class QVBoxLayout;
+
 namespace noether
 {
 /**
@@ -35,6 +37,7 @@ private:
   void addWidget(const QString& plugin_name, const YAML::Node& config);
 
   Ui::PluginLoader* ui_;
+  QVBoxLayout* widgets_layout_;
   const boost_plugin_loader::PluginLoader loader_;
 };
 

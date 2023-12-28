@@ -48,7 +48,7 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
 {
   ui_->setupUi(this);
 
-  ui_->scroll_area->setWidget(pipeline_widget_);
+  overwriteWidget(ui_->group_box_configuration->layout(), ui_->widget, pipeline_widget_);
   ui_->splitter->addWidget(render_widget_);
 
   // Set up the VTK objects
