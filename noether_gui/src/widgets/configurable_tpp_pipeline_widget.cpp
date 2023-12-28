@@ -32,6 +32,28 @@ ToolPathPlannerPipeline ConfigurableTPPPipelineWidget::createPipeline() const
 
 void ConfigurableTPPPipelineWidget::configure(const YAML::Node& config) { return pipeline_widget_->configure(config); }
 
+void ConfigurableTPPPipelineWidget::configure(const QString& file)
+{
+  try
+  {
+    configure(YAML::LoadFile(file.toStdString()));
+    ui_->line_edit->setText(file);
+  }
+  catch (const YAML::BadFile&)
+  {
+    QString message;
+    QTextStream ss(&message);
+    ss << "Failed to open YAML file at '" << file << "'";
+    QMessageBox::warning(this, "Configuration Error", message);
+  }
+  catch (const std::exception& ex)
+  {
+    std::stringstream ss;
+    noether::printException(ex, ss);
+    QMessageBox::warning(this, "Configuration Error", QString::fromStdString(ss.str()));
+  }
+}
+
 void ConfigurableTPPPipelineWidget::save(YAML::Node& config) const { return pipeline_widget_->save(config); }
 
 void ConfigurableTPPPipelineWidget::setConfigurationFile(const QString& file)

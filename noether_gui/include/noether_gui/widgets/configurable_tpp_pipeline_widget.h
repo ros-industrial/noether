@@ -28,6 +28,7 @@ public:
 
   ToolPathPlannerPipeline createPipeline() const;
   void configure(const YAML::Node& config);
+  void configure(const QString& file);
   void save(YAML::Node& config) const;
 
 private:
