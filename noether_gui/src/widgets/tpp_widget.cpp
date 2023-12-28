@@ -234,7 +234,7 @@ void TPPWidget::onPlan(const bool /*checked*/)
     if (pcl::io::loadPolygonFile(mesh_file, full_mesh) < 1)
       throw std::runtime_error("Failed to load mesh from file");
 
-    const ToolPathPlannerPipeline pipeline = pipeline_widget_->pipeline_widget->createPipeline();
+    const ToolPathPlannerPipeline pipeline = pipeline_widget_->createPipeline();
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
     // Run the mesh modifier
