@@ -20,6 +20,7 @@ option(NOETHER_ENABLE_TESTING "Enables compilation of unit tests" OFF)
 qt5_wrap_cpp(${PROJECT_NAME}_widget_mocs
   include/${PROJECT_NAME}/widgets/collapsible_area_widget.h
   include/${PROJECT_NAME}/widgets/tpp_pipeline_widget.h
+  include/${PROJECT_NAME}/widgets/configurable_tpp_pipeline_widget.h
   include/${PROJECT_NAME}/widgets/tpp_widget.h
   # Tool Path Planners
   #   Raster
@@ -52,6 +53,7 @@ qt5_wrap_ui(${PROJECT_NAME}_widget_ui_mocs
   ui/linear_approach_modifier_widget.ui
   ui/raster_planner_widget.ui
   ui/tpp_pipeline_widget.ui
+  ui/configurable_tpp_pipeline_widget.ui
   ui/tpp_widget.ui)
 
 include_directories(include ${CMAKE_CURRENT_BINARY_DIR})
@@ -63,6 +65,7 @@ add_library(${PROJECT_NAME} SHARED
   src/widgets/collapsible_area_widget.cpp
   src/widgets/plugin_loader_widget.cpp
   src/widgets/tpp_pipeline_widget.cpp
+  src/widgets/configurable_tpp_pipeline_widget.cpp
   src/widgets/tpp_widget.cpp
   # Tool Path Planners
   #   Raster Planner
