@@ -63,31 +63,6 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
-            <item>
-             <widget class="QLineEdit" name="line_edit_configuration">
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="push_button_load_configuration">
-              <property name="text">
-               <string>Load</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QPushButton" name="push_button_save_configuration">
-            <property name="text">
-             <string>Save</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QScrollArea" name="scroll_area">
             <property name="sizePolicy">
              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
@@ -113,7 +88,7 @@
                <x>0</x>
                <y>0</y>
                <width>1024</width>
-               <height>220</height>
+               <height>278</height>
               </rect>
              </property>
             </widget>
@@ -211,9 +186,6 @@
  <tabstops>
   <tabstop>line_edit_mesh</tabstop>
   <tabstop>push_button_load_mesh</tabstop>
-  <tabstop>line_edit_configuration</tabstop>
-  <tabstop>push_button_load_configuration</tabstop>
-  <tabstop>push_button_save_configuration</tabstop>
   <tabstop>scroll_area</tabstop>
   <tabstop>push_button_plan</tabstop>
   <tabstop>double_spin_box_axis_size</tabstop>

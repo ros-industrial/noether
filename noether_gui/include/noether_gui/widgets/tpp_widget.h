@@ -26,7 +26,7 @@ class TPP;
 
 namespace noether
 {
-class TPPPipelineWidget;
+class ConfigurableTPPPipelineWidget;
 
 /**
  * @brief Basic tool path planning widget
@@ -51,8 +51,6 @@ public:
 
 private:
   void onLoadMesh(const bool /*checked*/);
-  void onLoadConfiguration(const bool /*checked*/);
-  void onSaveConfiguration(const bool /*checked*/);
   void onPlan(const bool /*checked*/);
   void onShowOriginalMesh(const bool);
   void onShowModifiedMesh(const bool);
@@ -60,7 +58,7 @@ private:
   void onShowModifiedToolPath(const bool);
 
   Ui::TPP* ui_;
-  TPPPipelineWidget* pipeline_widget_;
+  ConfigurableTPPPipelineWidget* pipeline_widget_;
 
   // Viewer rendering
   QVTKWidget* render_widget_;
