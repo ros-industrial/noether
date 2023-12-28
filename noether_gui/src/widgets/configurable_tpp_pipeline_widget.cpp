@@ -14,16 +14,25 @@ namespace noether
 {
 ConfigurableTPPPipelineWidget::ConfigurableTPPPipelineWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   : QWidget(parent)
-  , pipeline_widget(new TPPPipelineWidget(std::move(loader), this))
   , ui_(new Ui::ConfigurableTPPPipeline())
+  , pipeline_widget_(new TPPPipelineWidget(std::move(loader), this))
 {
   ui_->setupUi(this);
-  layout()->addWidget(pipeline_widget);
+  layout()->addWidget(pipeline_widget_);
 
   // Connect
   connect(ui_->push_button_load, &QPushButton::clicked, this, &ConfigurableTPPPipelineWidget::onLoadConfiguration);
   connect(ui_->push_button_save, &QPushButton::clicked, this, &ConfigurableTPPPipelineWidget::onSaveConfiguration);
 }
+
+ToolPathPlannerPipeline ConfigurableTPPPipelineWidget::createPipeline() const
+{
+  return pipeline_widget_->createPipeline();
+}
+
+void ConfigurableTPPPipelineWidget::configure(const YAML::Node& config) { return pipeline_widget_->configure(config); }
+
+void ConfigurableTPPPipelineWidget::save(YAML::Node& config) const { return pipeline_widget_->save(config); }
 
 void ConfigurableTPPPipelineWidget::setConfigurationFile(const QString& file)
 {
@@ -31,7 +40,7 @@ void ConfigurableTPPPipelineWidget::setConfigurationFile(const QString& file)
 
   try
   {
-    pipeline_widget->configure(YAML::LoadFile(file.toStdString()));
+    configure(YAML::LoadFile(file.toStdString()));
   }
   catch (const YAML::BadFile&)
   {
@@ -72,7 +81,7 @@ void ConfigurableTPPPipelineWidget::onSaveConfiguration(const bool /*checked*/)
       return;
 
     YAML::Node config;
-    pipeline_widget->save(config);
+    save(config);
 
     std::ofstream ofh(file.toStdString());
     if (!ofh)
