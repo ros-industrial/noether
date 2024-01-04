@@ -44,6 +44,8 @@ CollapsibleArea::CollapsibleArea(const QString& label, QWidget* parent)
   content->setStyleSheet("QScrollArea { border: none; }");
   content->setMaximumHeight(0);
   content->setMinimumHeight(0);
+  content->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  content->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
   animation_->addAnimation(new QPropertyAnimation(this, "minimumHeight"));
   animation_->addAnimation(new QPropertyAnimation(this, "maximumHeight"));

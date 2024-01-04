@@ -68,12 +68,12 @@ TPPPipelineWidget::TPPPipelineWidget(boost_plugin_loader::PluginLoader loader, Q
       ui_->group_box_tpp->setTitle(text);
       if (text.isEmpty())
       {
-        overwriteWidget(ui_->group_box_tpp->layout(), ui_->widget_tpp, new QWidget(this));
+        ui_->scroll_area->setWidget(new QWidget(this));
       }
       else
       {
         auto plugin = loader_.createInstance<ToolPathPlannerWidgetPlugin>(text.toStdString());
-        overwriteWidget(ui_->group_box_tpp->layout(), ui_->widget_tpp, plugin->create(this));
+        ui_->scroll_area->setWidget(plugin->create(this));
       }
     }
     catch (const std::exception& ex)
@@ -98,7 +98,7 @@ void TPPPipelineWidget::configure(const YAML::Node& config)
       auto tpp_config = config[TOOL_PATH_PLANNER_KEY];
       auto name = getEntry<std::string>(tpp_config, "name");
       auto plugin = loader_.createInstance<ToolPathPlannerWidgetPlugin>(name);
-      overwriteWidget(ui_->group_box_tpp->layout(), ui_->widget_tpp, plugin->create(this, tpp_config));
+      ui_->scroll_area->setWidget(plugin->create(this, tpp_config));
       ui_->group_box_tpp->setTitle(QString::fromStdString(name));
     }
     catch (const std::exception&)
@@ -112,7 +112,7 @@ void TPPPipelineWidget::configure(const YAML::Node& config)
   catch (const std::exception&)
   {
     // Clear the widgets
-    overwriteWidget(ui_->group_box_tpp->layout(), ui_->widget_tpp, new QWidget(this));
+    ui_->scroll_area->setWidget(new QWidget(this));
     mesh_modifier_loader_widget_->removeWidgets();
     tool_path_modifier_loader_widget_->removeWidgets();
 
@@ -131,7 +131,7 @@ void TPPPipelineWidget::save(YAML::Node& config) const
 
   // Tool path planner
   {
-    auto tpp_widget = dynamic_cast<const ToolPathPlannerWidget*>(ui_->widget_tpp);
+    auto tpp_widget = dynamic_cast<const ToolPathPlannerWidget*>(ui_->scroll_area->widget());
     if (tpp_widget)
     {
       YAML::Node tpp_config;
@@ -151,7 +151,7 @@ void TPPPipelineWidget::save(YAML::Node& config) const
 
 ToolPathPlannerPipeline TPPPipelineWidget::createPipeline() const
 {
-  auto widget_tpp = dynamic_cast<ToolPathPlannerWidget*>(ui_->widget_tpp);
+  auto widget_tpp = dynamic_cast<ToolPathPlannerWidget*>(ui_->scroll_area->widget());
   if (!widget_tpp)
     throw std::runtime_error("No tool path planner specified");
 

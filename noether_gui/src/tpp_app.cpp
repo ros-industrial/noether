@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 
   // Set the TPP widget as the central widget and show
   w.setCentralWidget(widget);
-  w.show();
+  w.showMaximized();
 
   return app.exec();
 }

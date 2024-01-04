@@ -61,9 +61,29 @@
          <property name="title">
           <string/>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
+         <layout class="QVBoxLayout" name="verticalLayout">
           <item>
-           <widget class="QWidget" name="widget_tpp" native="true"/>
+           <widget class="QScrollArea" name="scroll_area">
+            <property name="horizontalScrollBarPolicy">
+             <enum>Qt::ScrollBarAlwaysOff</enum>
+            </property>
+            <property name="widgetResizable">
+             <bool>true</bool>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignHCenter|Qt::AlignTop</set>
+            </property>
+            <widget class="QWidget" name="widget_tpp">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>364</width>
+               <height>289</height>
+              </rect>
+             </property>
+            </widget>
+           </widget>
           </item>
          </layout>
         </widget>
