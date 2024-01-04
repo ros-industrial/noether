@@ -4,9 +4,17 @@ on:
   push:
     branches:
       - master
+      - dev
   pull_request:
+    paths:
+      - 'noether**'
+      - '.github/workflows/ubuntu.yml'
   schedule:
     - cron: '0 5 * * *'
+  workflow_dispatch:
+  release:
+    types:
+      - released
 
 jobs:
   ci:
@@ -15,38 +23,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro: [noetic]
+        distro: [focal]
+    container:
+      image: ubuntu:${{ matrix.distro }}
+      env:
+        CCACHE_DIR: ${{ github.workspace }}/${{ matrix.distro }}/.ccache
+        DEBIAN_FRONTEND: noninteractive
+        TZ: Etc/UTC
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Free Disk Space
-        run: |
-          sudo swapoff -a
-          sudo rm -f /swapfile
-          sudo apt clean
-          docker rmi $(docker image ls -aq)
-          df -h
-
-      - name: Prepare ccache timestamp
-        id: ccache_cache_timestamp
-        shell: cmake -P {0}
-        run: |
-          string(TIMESTAMP current_date "%Y-%m-%d-%H;%M;%S" UTC)
-          message("::set-output name=timestamp::${current_date}")
-
-      - name: ccache cache files
-        uses: actions/cache@v1.1.0
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          path: ${{ matrix.distro }}/.ccache
-          key: ${{ matrix.distro }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
-          restore-keys: |
-            ${{ matrix.distro }}-ccache-
+          path: target_ws/src
 
-      - uses: 'ros-industrial/industrial_ci@master'
-        env:
-          ROS_DISTRO: ${{ matrix.distro }}
-          ROS_REPO: main
-          NOT_TEST_BUILD: true
-          UPSTREAM_WORKSPACE: 'dependencies.repos'
-          CCACHE_DIR: "/home/runner/work/noether/noether/${{ matrix.distro }}/.ccache"
-          TARGET_CMAKE_ARGS: "-DNURBS_FOUND=FALSE"
+      - name: Build and Tests
+        uses: tesseract-robotics/colcon-action@v5
+        with:
+          ccache-prefix: ${{ matrix.distro }}
+          vcs-file: dependencies.repos
+          target-path: target_ws/src
+          target-args: --cmake-args -DCMAKE_BUILD_TYPE=Debug
