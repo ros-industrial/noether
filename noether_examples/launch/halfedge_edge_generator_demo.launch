@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-  <arg name="mesh_file" default="$(find noether_examples)/data/raw_mesh.ply"/>
-  <node name="halfedge_example_node" pkg="noether_examples" type="halfedge_example_node" output="screen">
-    <param name="mesh_file" value="$(arg mesh_file)"/>
-  </node>
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find noether_examples)/config/tool_path_server_examples.rviz"/>
-  <include file="$(find noether)/launch/tool_path_planner_server.launch"/>
-</launch>
