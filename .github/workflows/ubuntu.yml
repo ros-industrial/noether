@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro: [focal]
+        distro: [focal, jammy]
     container:
       image: ubuntu:${{ matrix.distro }}
       env:
@@ -41,5 +41,6 @@ jobs:
         with:
           ccache-prefix: ${{ matrix.distro }}
           vcs-file: dependencies.repos
+          rosdep-install-args: '--skip-keys libvtk'
           target-path: target_ws/src
           target-args: --cmake-args -DCMAKE_BUILD_TYPE=Debug
