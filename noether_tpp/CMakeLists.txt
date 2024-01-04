@@ -30,6 +30,8 @@ add_library(${PROJECT_NAME} SHARED
   src/core/tool_path_planner_pipeline.cpp
   src/utils.cpp
   # Mesh Modifiers
+  src/mesh_modifiers/subset_extraction/subset_extractor.cpp
+  src/mesh_modifiers/subset_extraction/extruded_polygon_subset_extractor.cpp
   src/mesh_modifiers/compound_modifier.cpp
   # Tool Path Modifiers
   src/tool_path_modifiers/circular_lead_in_modifier.cpp
@@ -56,6 +58,7 @@ add_library(${PROJECT_NAME} SHARED
   src/tool_path_planners/raster/direction_generators/principal_axis_direction_generator.cpp
   src/tool_path_planners/raster/plane_slicer_raster_planner.cpp
 )
+
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
@@ -79,4 +82,4 @@ if(${NOETHER_ENABLE_TESTING})
 endif()
 
 # Package configuration
-configure_package(NAMESPACE noether DEPENDENCIES Eigen3 "PCL REQUIRED COMPONENTS common io" VTK TARGETS ${PROJECT_NAME})
+configure_package(NAMESPACE noether DEPENDENCIES Eigen3 "PCL REQUIRED COMPONENTS common io surface" VTK TARGETS ${PROJECT_NAME})
