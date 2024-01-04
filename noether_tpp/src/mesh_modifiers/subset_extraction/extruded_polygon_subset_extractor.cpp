@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <noether_filtering/subset_extraction/extruded_polygon_subset_extractor.h>
+#include <noether_tpp/mesh_modifiers/subset_extraction/extruded_polygon_subset_extractor.h>
 
 #include <pcl/common/common.h>
 #include <pcl/segmentation/extract_polygonal_prism_data.h>
@@ -29,10 +29,10 @@ namespace
 {
 #if PCL_VERSION_COMPARE(<, 1, 10, 0)
 template <typename T>
-using shared_ptr = boost::shared_ptr<T>;
+using shared_ptr = std::shared_ptr<T>;
 
 template <typename T>
-auto make_shared = boost::make_shared<T>;
+auto make_shared = std::make_shared<T>;
 #else
 template <typename T>
 using shared_ptr = pcl::shared_ptr<T>;

@@ -18,51 +18,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#pragma once
 
-#ifndef INCLUDE_NOETHER_FILTERING_MESH_FILL_HOLES_H_
-#define INCLUDE_NOETHER_FILTERING_MESH_FILL_HOLES_H_
+#include <noether_tpp/core/mesh_modifier.h>
 
-#include "noether_filtering/mesh/mesh_filter_base.h"
-
-namespace noether_filtering
-{
-namespace mesh
+namespace noether
 {
 /**
  * @class noether_filtering::mesh::FillHoles
  * @brief Applies the vtkFillHoles filter, more details can be found on
  *        https://vtk.org/doc/nightly/html/classvtkFillHolesFilter.html#details
  */
-class FillHoles : public MeshFilterBase
+class FillHoles : public MeshModifier
 {
 public:
-  FillHoles();
-  virtual ~FillHoles();
-
-  /**
-   * @brief configures the fill hole algorithm from a yaml struct with the following form
-   * - hole_size: 1.0 # Specify the maximum hole size to fill. Represented as a radius to the bounding circumsphere
-   * containing the hole.
-   *
-   * @param config the configuration
-   * @return  True on success, false otherwise
-   */
-  bool configure(XmlRpc::XmlRpcValue config) override final;
-
-  /**
-   * @brief Fills holes
-   * @param mesh_in
-   * @param mesh_out
-   * @return True always
-   */
-  bool filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMesh& mesh_out) override final;
-  std::string getName() const override final;
+  std::vector<pcl::PolygonMesh> modify(const pcl::PolygonMesh& mesh) const override;
 
 protected:
   double hole_size_ = 1.0;
 };
 
-} /* namespace mesh */
-} /* namespace noether_filtering */
-
-#endif /* INCLUDE_NOETHER_FILTERING_MESH_FILL_HOLES_H_ */
+}  // namespace noether

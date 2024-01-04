@@ -19,18 +19,13 @@
  * limitations under the License.
  */
 
-#ifndef INCLUDE_NOETHER_FILTERING_MESH_EUCLIDEAN_CLUSTERING_H_
-#define INCLUDE_NOETHER_FILTERING_MESH_EUCLIDEAN_CLUSTERING_H_
+#pragma once
 
-#include <limits>
-#include <string>
-#include "noether_filtering/mesh/mesh_filter_base.h"
+#include <noether_tpp/core/mesh_modifier.h>
 
-namespace noether_filtering
+namespace noether
 {
-namespace mesh
-{
-class EuclideanClustering : public MeshFilterBase
+class EuclideanClustering : public MeshModifier
 {
 public:
   struct Parameters
@@ -40,15 +35,10 @@ public:
     int max_cluster_size = -1;  // will use input point cloud size when negative
   };
 
-  bool configure(XmlRpc::XmlRpcValue config) override final;
-  bool filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMesh& mesh_out) override final;
-  std::string getName() const override final;
+  std::vector<pcl::PolygonMesh> modify(const pcl::PolygonMesh& mesh_in) const override;
 
 protected:
   Parameters parameters_;
 };
 
-} /* namespace mesh */
-} /* namespace noether_filtering */
-
-#endif /* INCLUDE_NOETHER_FILTERING_MESH_EUCLIDEAN_CLUSTERING_H_ */
+}  // namespace noether

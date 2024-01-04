@@ -4,10 +4,10 @@ cmake_minimum_required(VERSION 3.5.1)
 find_package(ros_industrial_cmake_boilerplate REQUIRED)
 extract_package_metadata(pkg)
 
-project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES CXX)
+project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES C CXX)
 
 find_package(Eigen3 REQUIRED)
-find_package(PCL REQUIRED COMPONENTS common io surface)
+find_package(PCL REQUIRED COMPONENTS common io surface segmentation)
 
 find_package(VTK REQUIRED NO_MODULE)
 if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 7.1))
@@ -30,7 +30,13 @@ add_library(${PROJECT_NAME} SHARED
   src/core/tool_path_planner_pipeline.cpp
   src/utils.cpp
   # Mesh Modifiers
+  src/mesh_modifiers/subset_extraction/subset_extractor.cpp
+  src/mesh_modifiers/subset_extraction/extruded_polygon_subset_extractor.cpp
   src/mesh_modifiers/compound_modifier.cpp
+  src/mesh_modifiers/clean_data_modifier.cpp
+  src/mesh_modifiers/euclidean_clustering_modifier.cpp
+  src/mesh_modifiers/fill_holes_modifier.cpp
+  src/mesh_modifiers/windowed_sinc_smoothing.cpp
   # Tool Path Modifiers
   src/tool_path_modifiers/circular_lead_in_modifier.cpp
   src/tool_path_modifiers/circular_lead_out_modifier.cpp
@@ -56,6 +62,22 @@ add_library(${PROJECT_NAME} SHARED
   src/tool_path_planners/raster/direction_generators/principal_axis_direction_generator.cpp
   src/tool_path_planners/raster/plane_slicer_raster_planner.cpp
 )
+
+if(${CMAKE_VERSION} VERSION_GREATER 3.15)
+    try_compile(
+        NURBS_FOUND
+        ${CMAKE_CURRENT_BINARY_DIR}/pcl_nurbs_try_compile
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/mesh_modifiers/test/check_pcl_nurbs.cpp
+        CMAKE_FLAGS ${CMAKE_FLAGS} -DINCLUDE_DIRECTORIES=${PCL_INCLUDE_DIRS}
+        LINK_LIBRARIES ${PCL_LIBRARIES}
+        )
+    if (${NURBS_FOUND})
+      target_sources(${PROJECT_NAME} src/mesh_modifiers/bspline_reconstruction_modifier.cpp)
+    else()
+      message("PCL NURBS not found; skipping compilation of BSpline reconstruction mesh modifier")
+    endif()
+endif()
+
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
@@ -79,4 +101,4 @@ if(${NOETHER_ENABLE_TESTING})
 endif()
 
 # Package configuration
-configure_package(NAMESPACE noether DEPENDENCIES Eigen3 "PCL REQUIRED COMPONENTS common io" VTK TARGETS ${PROJECT_NAME})
+configure_package(NAMESPACE noether DEPENDENCIES Eigen3 "PCL REQUIRED COMPONENTS common io surface segmentation" VTK TARGETS ${PROJECT_NAME})

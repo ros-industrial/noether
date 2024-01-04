@@ -15,7 +15,7 @@
  */
 #pragma once
 
-#include <noether_filtering/subset_extraction/subset_extractor.h>
+#include <noether_tpp/mesh_modifiers/subset_extraction/subset_extractor.h>
 
 namespace noether
 {

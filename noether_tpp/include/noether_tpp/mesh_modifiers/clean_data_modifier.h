@@ -19,14 +19,11 @@
  * limitations under the License.
  */
 
-#ifndef INCLUDE_NOETHER_FILTERING_MESH_CLEAN_DATA_H_
-#define INCLUDE_NOETHER_FILTERING_MESH_CLEAN_DATA_H_
+#pragma once
 
-#include "noether_filtering/mesh/mesh_filter_base.h"
+#include <noether_tpp/core/mesh_modifier.h>
 
-namespace noether_filtering
-{
-namespace mesh
+namespace noether
 {
 /**
  * @class noether_filtering::mesh::CleanData
@@ -34,30 +31,10 @@ namespace mesh
  * https://lorensen.github.io/VTKExamples/site/Cxx/PolyData/CleanPolyData/ Merges duplicate points, and/or remove unused
  * points and/or remove degenerate cells
  */
-class CleanData : public MeshFilterBase
+class CleanData : public MeshModifier
 {
 public:
-  CleanData();
-  virtual ~CleanData();
-
-  /**
-   * @brief does not require configuration
-   * @param config Here to conform to interface but can be an emtpy object
-   * @return  True always
-   */
-  bool configure(XmlRpc::XmlRpcValue config) override final;
-
-  /**
-   * @brief Merges duplicate points, and/or remove unused points and/or remove degenerate cells
-   * @param mesh_in
-   * @param mesh_out
-   * @return True always
-   */
-  bool filter(const pcl::PolygonMesh& mesh_in, pcl::PolygonMesh& mesh_out) override final;
-  std::string getName() const override final;
+  std::vector<pcl::PolygonMesh> modify(const pcl::PolygonMesh& mesh) const override;
 };
 
-} /* namespace mesh */
-} /* namespace noether_filtering */
-
-#endif /* INCLUDE_NOETHER_FILTERING_MESH_CLEAN_DATA_H_ */
+}  // namespace noether

@@ -13,7 +13,14 @@
 #include <yaml-cpp/yaml.h>
 
 // Rendering includes
+#ifndef VTK_MAJOR_VERSION
+#include <vtkVersionMacros.h>
+#endif
+#if VTK_MAJOR_VERSION > 7
+#include <QVTKOpenGLNativeWidget.h>
+#else
 #include <QVTKWidget.h>
+#endif
 #include <vtkAxesActor.h>
 #include <vtkAssembly.h>
 #include <vtkOpenGLPolyDataMapper.h>
@@ -35,7 +42,7 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   : QWidget(parent)
   , ui_(new Ui::TPP())
   , pipeline_widget_(new TPPPipelineWidget(std::move(loader), this))
-  , render_widget_(new QVTKWidget(this))
+  , render_widget_(new RenderWidget(this))
   , renderer_(vtkSmartPointer<vtkOpenGLRenderer>::New())
   , mesh_mapper_(vtkSmartPointer<vtkOpenGLPolyDataMapper>::New())
   , mesh_actor_(vtkSmartPointer<vtkOpenGLActor>::New())

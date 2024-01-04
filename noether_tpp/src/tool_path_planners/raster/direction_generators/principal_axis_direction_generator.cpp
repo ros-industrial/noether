@@ -12,7 +12,7 @@ PrincipalAxisDirectionGenerator::PrincipalAxisDirectionGenerator(double rotation
 
 Eigen::Vector3d PrincipalAxisDirectionGenerator::generate(const pcl::PolygonMesh& mesh) const
 {
-  auto vertices = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+  auto vertices = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
   pcl::fromPCLPointCloud2(mesh.cloud, *vertices);
   pcl::PCA<pcl::PointXYZ> pca;
   pca.setInputCloud(vertices);

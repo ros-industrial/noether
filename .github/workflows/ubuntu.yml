@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro: [focal]
+        distro: [focal, jammy]
     container:
       image: ubuntu:${{ matrix.distro }}
       env:
@@ -37,9 +37,10 @@ jobs:
           path: target_ws/src
 
       - name: Build and Tests
-        uses: tesseract-robotics/colcon-action@v5
+        uses: marip8/colcon-action@009925185785f6c8e8228b859d64c731ab7a62ac
         with:
           ccache-prefix: ${{ matrix.distro }}
           vcs-file: dependencies.repos
+          rosdep-install-args: '--skip-keys libvtk'
           target-path: target_ws/src
           target-args: --cmake-args -DCMAKE_BUILD_TYPE=Debug
