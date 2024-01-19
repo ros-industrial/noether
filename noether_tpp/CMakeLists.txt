@@ -9,6 +9,7 @@ project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES C CXX)
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED COMPONENTS common io surface segmentation)
 
+
 find_package(VTK REQUIRED NO_MODULE)
 if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 7.1))
   message(FATAL_ERROR "The minimum required version of VTK is 7.1, but found ${VTK_VERSION}")
@@ -61,6 +62,7 @@ add_library(${PROJECT_NAME} SHARED
   src/tool_path_planners/raster/direction_generators/fixed_direction_generator.cpp
   src/tool_path_planners/raster/direction_generators/principal_axis_direction_generator.cpp
   src/tool_path_planners/raster/plane_slicer_raster_planner.cpp
+  src/tool_path_planners/flat_plane_toolpath_planner.cpp
 )
 
 if(${CMAKE_VERSION} VERSION_GREATER 3.15)
