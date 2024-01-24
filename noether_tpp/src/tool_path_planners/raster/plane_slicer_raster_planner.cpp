@@ -397,7 +397,8 @@ bool insertNormals(const double search_radius,
 
       normal_vect /= num_normals;
     }
-    else{
+    else
+    {
       Eigen::Vector3d closest_point;
       vtkIdType cellId;
       int subid;
