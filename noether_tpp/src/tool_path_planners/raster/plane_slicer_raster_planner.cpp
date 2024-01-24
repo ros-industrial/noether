@@ -74,12 +74,6 @@ vtkSmartPointer<vtkPoints> enforcePointSpacing(const vtkSmartPointer<vtkPoints>&
 {
   vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
 
-  // create spline
-  // vtkSmartPointer<vtkParametricSpline> spline = vtkSmartPointer<vtkParametricSpline>::New();
-  // spline->SetPoints(points);
-  // spline->SetParameterizeByLength(true);
-  // spline->ClosedOff();
-
   // adding first point
 
   Eigen::Vector3d a, b, current_vector;
@@ -94,14 +88,16 @@ vtkSmartPointer<vtkPoints> enforcePointSpacing(const vtkSmartPointer<vtkPoints>&
 
   for (double desired_distance = point_spacing; desired_distance < total_length; desired_distance += point_spacing)
   {
+    // Ensure that desired distance is between previous_distances and previous_distances + current_distance
+    // This means that the desired point is between the current point and the next point
     while (desired_distance > previous_distances + current_distance)
     {
       previous_distances += current_distance;
       i += 1;
       points->GetPoint(i, a.data());
       points->GetPoint(i + 1, b.data());
-      current_distance = (b-a).norm();
-      current_vector = (b-a).normalized();
+      current_distance = (b - a).norm();
+      current_vector = (b - a).normalized();
     }
     Eigen::Vector3d np = a + current_vector * (desired_distance - previous_distances);
     new_points->InsertNextPoint(np.data());
