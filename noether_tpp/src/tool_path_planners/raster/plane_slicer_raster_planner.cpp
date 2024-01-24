@@ -1,11 +1,11 @@
 #include <noether_tpp/tool_path_planners/raster/plane_slicer_raster_planner.h>
 
-#include <algorithm>            // std::find(), std::reverse(), std::unique()
-#include <numeric>              // std::iota()
-#include <stdexcept>            // std::runtime_error
-#include <string>               // std::to_string()
-#include <utility>              // std::move()
-#include <vector>               // std::vector
+#include <algorithm>  // std::find(), std::reverse(), std::unique()
+#include <numeric>    // std::iota()
+#include <stdexcept>  // std::runtime_error
+#include <string>     // std::to_string()
+#include <utility>    // std::move()
+#include <vector>     // std::vector
 
 #include <pcl/common/common.h>  // pcl::getMinMax3d()
 #include <pcl/common/pca.h>     // pcl::PCA
