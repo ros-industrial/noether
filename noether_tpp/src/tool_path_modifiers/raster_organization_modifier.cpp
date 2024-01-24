@@ -17,13 +17,11 @@ ToolPaths RasterOrganizationModifier::modify(ToolPaths tool_paths) const
     // Sort the waypoints within each tool path segment by their distance along the reference direction
     for (ToolPathSegment& segment : tool_path)
     {
-      std::sort(segment.begin(),
-                segment.end(),
-                [segment, reference_segment_dir](const ToolPathWaypoint& a, const ToolPathWaypoint& b) {
-                  Eigen::Vector3d diff_from_start_b = b.translation() - segment.at(0).translation();
-                  Eigen::Vector3d diff_from_start_a = a.translation() - segment.at(0).translation();
-                  return diff_from_start_a.dot(reference_segment_dir) < diff_from_start_b.dot(reference_segment_dir);
-                });
+      Eigen::Vector3d diff_from_start_end = segment.at(segment.size() - 1).translation() - segment.at(0).translation();
+      if (diff_from_start_end.dot(reference_segment_dir) < 0.0)
+      {
+        std::reverse(segment.begin(), segment.end());
+      }
     }
 
     // Sort the tool path segments within each tool path by the distance of their first waypoints along the reference
