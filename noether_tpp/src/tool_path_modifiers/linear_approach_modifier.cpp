@@ -34,17 +34,17 @@ ToolPaths LinearApproachModifier::modify(ToolPaths tool_paths) const
   {
     for (ToolPathSegment& segment : tool_path)
     {
-      Eigen::Isometry3d offset_point = segment.front() * Eigen::Translation3d(offset_);
       ToolPathSegment new_segment;
       for (int i = 0; i < n_points_; i++)
       {
-        Eigen::Isometry3d pt;
-        pt = offset_point * Eigen::Translation3d(-(offset_ / (n_points_)*i));
+        Eigen::Isometry3d pt =
+            segment.front() *
+            Eigen::Translation3d(offset_ * (static_cast<double>(i + 1) / static_cast<double>(n_points_)));
         pt.linear() = segment.front().linear();
         new_segment.push_back(pt);
       }
 
-      segment.insert(segment.begin(), new_segment.begin(), new_segment.end());
+      segment.insert(segment.begin(), new_segment.rbegin(), new_segment.rend());
     }
   }
 
