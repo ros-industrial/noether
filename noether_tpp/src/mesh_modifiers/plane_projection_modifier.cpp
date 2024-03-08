@@ -11,36 +11,59 @@ namespace noether
 std::vector<pcl::PCLPointField>::const_iterator findField(const std::vector<pcl::PCLPointField>& fields,
                                                           const std::string& name)
 {
-  auto it = std::find_if(
+  return std::find_if(
       fields.begin(), fields.end(), [&name](const pcl::PCLPointField& field) { return field.name == name; });
+}
+
+std::vector<pcl::PCLPointField>::const_iterator findFieldOrThrow(const std::vector<pcl::PCLPointField>& fields,
+                                                                 const std::string& name)
+{
+  auto it = findField(fields, name);
   if (it == fields.end())
     throw std::runtime_error("Failed to find field '" + name + "'");
-
   return it;
 }
 
 void projectInPlace(pcl::PCLPointCloud2& cloud, const Eigen::Vector4f& plane_coeffs)
 {
   // Find the x, y, and z fields
-  auto x_it = findField(cloud.fields, "x");
-  auto y_it = findField(cloud.fields, "y");
-  auto z_it = findField(cloud.fields, "z");
+  auto x_it = findFieldOrThrow(cloud.fields, "x");
+  auto y_it = findFieldOrThrow(cloud.fields, "y");
+  auto z_it = findFieldOrThrow(cloud.fields, "z");
+
+  auto nx_it = findField(cloud.fields, "normal_x");
+  auto ny_it = findField(cloud.fields, "normal_y");
+  auto nz_it = findField(cloud.fields, "normal_z");
 
   // Check that the xyz fields are floats and contiguous
   if ((y_it->offset - x_it->offset != 4) || (z_it->offset - y_it->offset != 4))
     throw std::runtime_error("XYZ fields are not contiguous floats");
 
+  bool update_normals = nx_it != cloud.fields.end() && ny_it != cloud.fields.end() && nz_it != cloud.fields.end();
+
   for (std::size_t r = 0; r < cloud.height; ++r)
   {
     for (std::size_t c = 0; c < cloud.width; ++c)
     {
-      auto offset = r * cloud.row_step + c * cloud.point_step + x_it->offset;
-      float* xyz = reinterpret_cast<float*>(cloud.data.data() + offset);
+      auto offset = r * cloud.row_step + c * cloud.point_step;
+      float* xyz = reinterpret_cast<float*>(cloud.data.data() + offset + x_it->offset);
       Eigen::Map<Eigen::Vector4f> pt(xyz);
 
       // Project the point
       float d = plane_coeffs.dot(pt);
       pt.head<3>() -= d * plane_coeffs.head<3>();
+
+      if (update_normals)
+      {
+        float* nx = reinterpret_cast<float*>(cloud.data.data() + offset + nx_it->offset);
+        *nx = plane_coeffs[0];
+
+        float* ny = reinterpret_cast<float*>(cloud.data.data() + offset + ny_it->offset);
+        *ny = plane_coeffs[1];
+
+        float* nz = reinterpret_cast<float*>(cloud.data.data() + offset + nz_it->offset);
+        *nz = plane_coeffs[2];
+      }
     }
   }
 }
