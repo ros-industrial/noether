@@ -92,6 +92,12 @@ std::vector<pcl::PolygonMesh> PlaneProjectionMeshModifier::modify(const pcl::Pol
   Eigen::VectorXf plane_coeffs(4);
   ransac->getModelCoefficients(plane_coeffs);
 
+  // Project mesh origin on to plane
+  float d = plane_coeffs.dot(Eigen::Vector4f(0.0, 0.0, 0.0, 1.0));
+  if (d > 0.0)
+    plane_coeffs *= -1;
+  // Eigen::Vector3f projected_origin = origin.head<3>() - d * plane_coeffs.head<3>();
+
   // Extract the inlier submesh
   pcl::PolygonMesh output_mesh = extractSubMeshFromInlierVertices(mesh, inliers);
 
