@@ -4,9 +4,6 @@
 
 namespace noether
 {
-ToolPathModifier::ConstPtr ConcatenateModifierWidget::create() const
-{
-  return std::make_unique<ConcatenateModifier>();
-}
+ToolPathModifier::ConstPtr ConcatenateModifierWidget::create() const { return std::make_unique<ConcatenateModifier>(); }
 
 }  // namespace noether
