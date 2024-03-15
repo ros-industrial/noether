@@ -42,6 +42,7 @@ add_library(${PROJECT_NAME} SHARED
   src/tool_path_modifiers/circular_lead_in_modifier.cpp
   src/tool_path_modifiers/circular_lead_out_modifier.cpp
   src/tool_path_modifiers/compound_modifier.cpp
+  src/tool_path_modifiers/concatenate_modifier.cpp
   src/tool_path_modifiers/direction_of_travel_orientation_modifier.cpp
   src/tool_path_modifiers/fixed_orientation_modifier.cpp
   src/tool_path_modifiers/moving_average_orientation_smoothing_modifier.cpp

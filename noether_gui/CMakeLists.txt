@@ -36,6 +36,7 @@ qt5_wrap_cpp(${PROJECT_NAME}_widget_mocs
   # Tool Path Modifiers
   include/${PROJECT_NAME}/widgets/tool_path_modifiers/circular_lead_in_modifier_widget.h
   include/${PROJECT_NAME}/widgets/tool_path_modifiers/circular_lead_out_modifier_widget.h
+  include/${PROJECT_NAME}/widgets/tool_path_modifiers/concatenate_modifier_widget.h
   include/${PROJECT_NAME}/widgets/tool_path_modifiers/direction_of_travel_orientation_modifier_widget.h
   include/${PROJECT_NAME}/widgets/tool_path_modifiers/fixed_orientation_modifier_widget.h
   include/${PROJECT_NAME}/widgets/tool_path_modifiers/moving_average_orientation_smoothing_modifier_widget.h
@@ -82,6 +83,7 @@ add_library(${PROJECT_NAME} SHARED
   # Tool Path Modifiers
   src/widgets/tool_path_modifiers/circular_lead_in_modifier_widget.cpp
   src/widgets/tool_path_modifiers/circular_lead_out_modifier_widget.cpp
+  src/widgets/tool_path_modifiers/concatenate_modifier_widget.cpp
   src/widgets/tool_path_modifiers/direction_of_travel_orientation_modifier_widget.cpp
   src/widgets/tool_path_modifiers/fixed_orientation_modifier_widget.cpp
   src/widgets/tool_path_modifiers/moving_average_orientation_smoothing_modifier_widget.cpp
