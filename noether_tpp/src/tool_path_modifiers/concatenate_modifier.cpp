@@ -8,25 +8,14 @@ namespace noether
 {
 ToolPaths ConcatenateModifier::modify(ToolPaths tool_paths) const
 {
-  // Create a raster
-  RasterOrganizationModifier raster;
-  tool_paths = raster.modify(tool_paths);
   ToolPath combined_tool_path;
-  ToolPaths combined_tool_paths;
 
   // Loop through the existing toolpaths to create a single combined toolpath
-  for (std::size_t i = 0; i < tool_paths.size(); i += 1)
-  {
-    ToolPath& tool_path = tool_paths.at(i);
-
-    for (ToolPathSegment& segment : tool_path)
-    {
+  for (const ToolPath& path : tool_paths)
+    for (const ToolPathSegment& segment : path)
       combined_tool_path.push_back(segment);
-    }
-  }
-  combined_tool_paths.push_back(combined_tool_path);
 
-  return combined_tool_paths;
+  return { combined_tool_path };
 }
 
 }  // namespace noether

@@ -5,9 +5,10 @@
 namespace noether
 {
 /**
- * @brief Combines existing toolpaths into one toolpath
- * @details A RasterOrganizationModifier is first used to organize the tool paths into a raster pattern. The tool paths
- * are then looped through to create a single concatenated toolpath.
+ * @brief Concatenates all input tool paths into a single tool path
+ * @details This modifier changes the input tool paths vector (i.e., `noether::ToolPaths` with size `n`) into a single
+ * tool path (i.e., `noether::ToolPaths` with size of 1). It does not modify the structure of the underlying tool path
+ * segments.
  */
 struct ConcatenateModifier : OneTimeToolPathModifier
 {
