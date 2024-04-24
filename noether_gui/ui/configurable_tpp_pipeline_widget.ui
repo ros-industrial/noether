@@ -22,18 +22,24 @@
      <item>
       <widget class="QPushButton" name="push_button_load">
        <property name="text">
-        <string>Load</string>
+        <string>📂</string>
+       </property>
+       <property name="toolTip">
+        <string>Load Pipeline Settings</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="push_button_save">
+       <property name="text">
+        <string>💾</string>
+       </property>
+       <property name="toolTip">
+        <string>Save Pipeline Settings</string>
        </property>
       </widget>
      </item>
     </layout>
-   </item>
-   <item>
-    <widget class="QPushButton" name="push_button_save">
-     <property name="text">
-      <string>Save</string>
-     </property>
-    </widget>
    </item>
    <item>
     <widget class="Line" name="line">

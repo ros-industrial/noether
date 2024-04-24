@@ -40,7 +40,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>Add</string>
+           <string>➕</string>
           </property>
          </widget>
         </item>

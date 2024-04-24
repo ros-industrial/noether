@@ -49,7 +49,10 @@
           <item>
            <widget class="QPushButton" name="push_button_load_mesh">
             <property name="text">
-             <string>Load</string>
+             <string>📂</string>
+            </property>
+            <property name="toolTip">
+             <string>Load Mesh</string>
             </property>
            </widget>
           </item>
