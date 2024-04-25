@@ -13,7 +13,7 @@ OffsetModifierWidget::OffsetModifierWidget(QWidget* parent)
 {
   // Print text on created widget
   ui_->setupUi(this);
-  ui_->group_box->setTitle("Offset to apply to each tool path");
+  ui_->group_box->setTitle("Local offset applied to each toolpath");
 }
 
 void OffsetModifierWidget::configure(const YAML::Node& config)

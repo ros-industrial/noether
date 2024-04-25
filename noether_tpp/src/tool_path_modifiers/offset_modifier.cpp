@@ -3,24 +3,22 @@
 
 namespace noether
 {
-OffsetModifier::OffsetModifier(Eigen::Vector3d offset) : offset_(offset)
-{
-}
+OffsetModifier::OffsetModifier(Eigen::Vector3d offset) : offset_(offset) {}
 
 ToolPaths OffsetModifier::modify(ToolPaths tool_paths) const
 {
-    for (ToolPath& tp : tool_paths)
+  for (ToolPath& tp : tool_paths)
+  {
+    for (ToolPathSegment& tps : tp)
     {
-        for (ToolPathSegment& tps : tp)
-        {
-            for (std::size_t i = 0; i < tps.size(); ++i)
-            {
-                tps[i] = tps[i] * Eigen::Translation3d(offset_);
-            }
-        }
+      for (std::size_t i = 0; i < tps.size(); ++i)
+      {
+        tps[i] = tps[i] * Eigen::Translation3d(offset_);
+      }
     }
-    
-    return tool_paths;
+  }
+
+  return tool_paths;
 }
 
 }  // namespace noether
