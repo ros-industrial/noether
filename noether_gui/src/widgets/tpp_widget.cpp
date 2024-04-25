@@ -97,9 +97,13 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   connect(ui_->push_button_load_mesh, &QPushButton::clicked, this, &TPPWidget::onLoadMesh);
   connect(ui_->check_box_show_original_mesh, &QCheckBox::clicked, this, &TPPWidget::onShowOriginalMesh);
   connect(ui_->check_box_show_modified_mesh, &QCheckBox::clicked, this, &TPPWidget::onShowModifiedMesh);
-  connect(ui_->check_box_show_original_connected_path, &QCheckBox::clicked, this, &TPPWidget::onShowUnmodifiedConnectedPath);
+  connect(ui_->check_box_show_original_connected_path,
+          &QCheckBox::clicked,
+          this,
+          &TPPWidget::onShowUnmodifiedConnectedPath);
   connect(ui_->check_box_show_original_tool_path, &QCheckBox::clicked, this, &TPPWidget::onShowUnmodifiedToolPath);
-  connect(ui_->check_box_show_modified_connected_path, &QCheckBox::clicked, this, &TPPWidget::onShowModifiedConnectedPath);
+  connect(
+      ui_->check_box_show_modified_connected_path, &QCheckBox::clicked, this, &TPPWidget::onShowModifiedConnectedPath);
   connect(ui_->check_box_show_modified_tool_path, &QCheckBox::clicked, this, &TPPWidget::onShowModifiedToolPath);
   connect(ui_->push_button_plan, &QPushButton::clicked, this, &TPPWidget::onPlan);
   connect(ui_->double_spin_box_axis_size, &QDoubleSpinBox::editingFinished, this, [this]() {
@@ -120,28 +124,28 @@ void TPPWidget::onShowOriginalMesh(const bool checked)
 void TPPWidget::onShowModifiedMesh(const bool checked)
 {
   mesh_fragment_actor_->SetVisibility(checked);
-  
+
   render_widget_->renderWindow()->Render();
 }
 
 void TPPWidget::onShowUnmodifiedConnectedPath(const bool checked)
 {
   unmodified_connected_path_actor_->SetVisibility(checked);
-  
+
   render_widget_->renderWindow()->Render();
 }
 
 void TPPWidget::onShowUnmodifiedToolPath(const bool checked)
 {
   unmodified_tool_path_actor_->SetVisibility(checked);
-  
+
   render_widget_->renderWindow()->Render();
 }
 
 void TPPWidget::onShowModifiedConnectedPath(const bool checked)
 {
   connected_path_actor_->SetVisibility(checked);
-  
+
   render_widget_->renderWindow()->Render();
 }
 
@@ -233,59 +237,59 @@ vtkSmartPointer<vtkAssembly> createToolPathActors(const std::vector<ToolPaths>& 
 }
 
 /*
-*  Create a polyline between all points of the tool path
-*
-*  @param tool_paths The tool paths to create the polyline from
-*  @param waypoint_shape_output_port The output port of the waypoint shape
-*  @return The assembly containing the polyline
-*/
+ *  Create a polyline between all points of the tool path
+ *
+ *  @param tool_paths The tool paths to create the polyline from
+ *  @param waypoint_shape_output_port The output port of the waypoint shape
+ *  @return The assembly containing the polyline
+ */
 vtkSmartPointer<vtkAssembly> createToolPathPolylineActor(const std::vector<ToolPaths>& tool_paths,
-                                            vtkAlgorithmOutput* waypoint_shape_output_port)
+                                                         vtkAlgorithmOutput* waypoint_shape_output_port)
 {
-    auto assembly = vtkSmartPointer<vtkAssembly>::New();
-    auto polyLine = vtkSmartPointer<vtkPolyLine>::New();
-    auto points = vtkSmartPointer<vtkPoints>::New();
+  auto assembly = vtkSmartPointer<vtkAssembly>::New();
+  auto polyLine = vtkSmartPointer<vtkPolyLine>::New();
+  auto points = vtkSmartPointer<vtkPoints>::New();
 
-    for (const ToolPaths& fragment : tool_paths)
+  for (const ToolPaths& fragment : tool_paths)
+  {
+    for (const ToolPath& tool_path : fragment)
     {
-        for (const ToolPath& tool_path : fragment)
+      for (const ToolPathSegment& segment : tool_path)
+      {
+        for (const Eigen::Isometry3d& w : segment)
         {
-            for (const ToolPathSegment& segment : tool_path)
-            {
-                for (const Eigen::Isometry3d& w : segment)
-                {
-                    // Add the point to the polyline
-                    const int id = points->InsertNextPoint(w.translation().data());
-                }
-            }
+          // Add the point to the polyline
+          const int id = points->InsertNextPoint(w.translation().data());
         }
+      }
     }
+  }
 
-    // Set the number of ids for the polyline
-    polyLine->GetPointIds()->SetNumberOfIds(points->GetNumberOfPoints());
+  // Set the number of ids for the polyline
+  polyLine->GetPointIds()->SetNumberOfIds(points->GetNumberOfPoints());
 
-    // Set the ids for the polyline
-    for(vtkIdType i = 0; i < points->GetNumberOfPoints(); i++)
-    {
-        polyLine->GetPointIds()->SetId(i, i);
-    }
+  // Set the ids for the polyline
+  for (vtkIdType i = 0; i < points->GetNumberOfPoints(); i++)
+  {
+    polyLine->GetPointIds()->SetId(i, i);
+  }
 
-    // Create the polyline
-    vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New(); 
-    cells->InsertNextCell(polyLine);
-    vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
-    polyData->SetPoints(points);
-    polyData->SetLines(cells);
+  // Create the polyline
+  vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New();
+  cells->InsertNextCell(polyLine);
+  vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
+  polyData->SetPoints(points);
+  polyData->SetLines(cells);
 
-    vtkSmartPointer<vtkPolyDataMapper> lineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    lineMapper->SetInputData(polyData);
+  vtkSmartPointer<vtkPolyDataMapper> lineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  lineMapper->SetInputData(polyData);
 
-    vtkSmartPointer<vtkActor> lineActor = vtkSmartPointer<vtkActor>::New();
-    lineActor->SetMapper(lineMapper);
+  vtkSmartPointer<vtkActor> lineActor = vtkSmartPointer<vtkActor>::New();
+  lineActor->SetMapper(lineMapper);
 
-    assembly->AddPart(lineActor);
+  assembly->AddPart(lineActor);
 
-    return assembly;
+  return assembly;
 }
 
 vtkSmartPointer<vtkAssembly> createMeshActors(const std::vector<pcl::PolygonMesh>& meshes)
@@ -376,7 +380,8 @@ void TPPWidget::onPlan(const bool /*checked*/)
     // Render the unmodified connected paths
     {
       renderer_->RemoveActor(unmodified_connected_path_actor_);
-      unmodified_connected_path_actor_ = createToolPathPolylineActor(unmodified_tool_paths, tube_filter_->GetOutputPort());
+      unmodified_connected_path_actor_ =
+          createToolPathPolylineActor(unmodified_tool_paths, tube_filter_->GetOutputPort());
       renderer_->AddActor(unmodified_connected_path_actor_);
       unmodified_connected_path_actor_->SetVisibility(ui_->check_box_show_original_connected_path->isChecked());
     }
@@ -397,9 +402,7 @@ void TPPWidget::onPlan(const bool /*checked*/)
       connected_path_actor_->SetVisibility(ui_->check_box_show_modified_connected_path->isChecked());
     }
 
-    
     render_widget_->renderWindow()->Render();
-    
   }
   catch (const std::exception& ex)
   {
