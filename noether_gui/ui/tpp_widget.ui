@@ -15,24 +15,6 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
-    <widget class="QMenuBar" name="menubar">
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>30</height>
-      </size>
-     </property>
-     <widget class="QMenu" name="menuMesh">
-      <property name="title">
-       <string>⚙️ File</string>
-      </property>
-      <addaction name="action_loadConfig"/>
-      <addaction name="action_saveConfig"/>
-     </widget>
-     <addaction name="menuMesh"/>
-    </widget>
-   </item>
-   <item>
     <widget class="QToolBar" name="toolbar">
      <property name="maximumSize">
       <size>
@@ -40,6 +22,8 @@
        <height>30</height>
       </size>
      </property>
+     <addaction name="action_loadConfig"/>
+     <addaction name="action_saveConfig"/>
      <addaction name="action_loadMesh"/>
      <addaction name="action_executePipeline"/>
     </widget>
@@ -220,24 +204,24 @@
   </layout>
   <action name="action_loadConfig">
    <property name="text">
-    <string>📂 Load</string>
+    <string>⚙️ Load Config</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+L</string>
    </property>
    <property name="toolTip">
-     <string>Load configuration (Ctrl+L)</string>
+     <string>Load a ToolPath configuration file (Ctrl+L)</string>
    </property>
   </action>
   <action name="action_saveConfig">
    <property name="text">
-    <string>💾 Save</string>
+    <string>💾 Save Configs</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
    </property>
    <property name="toolTip">
-     <string>Save configuration (Ctrl+S)</string>
+     <string>Saves current ToolPath configs as configuration file (Ctrl+S)</string>
    </property>
   </action>
   <action name="action_loadMesh">
@@ -248,7 +232,7 @@
     <string>Ctrl+O</string>
    </property>
    <property name="toolTip">
-     <string>Open Mesh (Ctrl+O)</string>
+     <string>Opens up a mesh file (Ctrl+O)</string>
    </property>
   </action>
   <action name="action_executePipeline">
@@ -259,7 +243,7 @@
     <string>Ctrl+R</string>
    </property>
    <property name="toolTip">
-     <string>Calculate Traject (Ctrl+R)</string>
+     <string>Calculate Trajectory (Ctrl+R)</string>
    </property>
   </action>
  </widget>
