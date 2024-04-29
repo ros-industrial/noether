@@ -102,8 +102,7 @@ using LinearDepartureToolPathModifierWidgetPlugin =
 
 using ConcatenateModifierWidgetPlugin = WidgetPluginImpl<ConcatenateModifierWidget, ToolPathModifierWidget>;
 
-using OffsetModifierWidgetPlugin = 
-    WidgetPluginImpl<OffsetModifierWidget, ToolPathModifierWidget>;
+using OffsetModifierWidgetPlugin = WidgetPluginImpl<OffsetModifierWidget, ToolPathModifierWidget>;
 
 // Raster Tool Path Planners
 struct PlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlugin

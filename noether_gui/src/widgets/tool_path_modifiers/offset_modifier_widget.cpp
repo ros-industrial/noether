@@ -8,8 +8,7 @@
 namespace noether
 {
 OffsetModifierWidget::OffsetModifierWidget(QWidget* parent)
-  : ToolPathModifierWidget(parent)
-  , ui_(new Ui::Vector3dEditor())
+  : ToolPathModifierWidget(parent), ui_(new Ui::Vector3dEditor())
 {
   // Print text on created widget
   ui_->setupUi(this);
