@@ -22,7 +22,7 @@ class ConfigurableTPPPipelineWidget : public QWidget
 {
   Q_OBJECT
 public:
-  ConfigurableTPPPipelineWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent = nullptr);
+  ConfigurableTPPPipelineWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent = nullptr, QAction* load_action = nullptr, QAction* save_action = nullptr, QAction* save_as_action = nullptr);
 
   void setConfigurationFile(const QString& file);
 
@@ -34,6 +34,8 @@ public:
 private:
   void onLoadConfiguration(const bool /*checked*/);
   void onSaveConfiguration(const bool /*checked*/);
+
+  std::string config_file_path_;
 
   Ui::ConfigurableTPPPipeline* ui_;
   TPPPipelineWidget* pipeline_widget_;

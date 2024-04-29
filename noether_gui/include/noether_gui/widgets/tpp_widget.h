@@ -78,7 +78,6 @@ private:
   void onShowModifiedConnectedPath(const bool);
 
   std::string mesh_file_path_;
-  std::string config_file_path_;
 
   Ui::TPP* ui_;
   ConfigurableTPPPipelineWidget* pipeline_widget_;

@@ -45,7 +45,6 @@ namespace noether
 TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   : QWidget(parent)
   , ui_(new Ui::TPP())
-  , pipeline_widget_(new ConfigurableTPPPipelineWidget(std::move(loader), this))
   , render_widget_(new RenderWidget(this))
   , renderer_(vtkSmartPointer<vtkOpenGLRenderer>::New())
   , mesh_mapper_(vtkSmartPointer<vtkOpenGLPolyDataMapper>::New())
@@ -58,9 +57,10 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   , axes_(vtkSmartPointer<vtkAxes>::New())
   , tube_filter_(vtkSmartPointer<vtkTubeFilter>::New())
   , mesh_file_path_("")
-  , config_file_path_("")
 {
   ui_->setupUi(this);
+
+  pipeline_widget_ = new ConfigurableTPPPipelineWidget(std::move(loader), this, ui_->action_loadConfig, ui_->action_saveConfig);
 
   overwriteWidget(ui_->group_box_configuration->layout(), ui_->widget, pipeline_widget_);
   ui_->splitter->addWidget(render_widget_);

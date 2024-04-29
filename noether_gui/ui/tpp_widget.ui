@@ -28,7 +28,6 @@
       </property>
       <addaction name="action_loadConfig"/>
       <addaction name="action_saveConfig"/>
-      <addaction name="action_saveConfigAs"/>
      </widget>
      <addaction name="menuMesh"/>
     </widget>
@@ -227,11 +226,6 @@
   <action name="action_saveConfig">
    <property name="text">
     <string>💾 Save</string>
-   </property>
-  </action>
-  <action name="action_saveConfigAs">
-   <property name="text">
-    <string>⬇️ Save As</string>
    </property>
   </action>
   <action name="action_loadMesh">

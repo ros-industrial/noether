@@ -15,33 +15,6 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QLineEdit" name="line_edit"/>
-     </item>
-     <item>
-      <widget class="QPushButton" name="push_button_load">
-       <property name="text">
-        <string>📂</string>
-       </property>
-       <property name="toolTip">
-        <string>Load Pipeline Settings</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="push_button_save">
-       <property name="text">
-        <string>💾</string>
-       </property>
-       <property name="toolTip">
-        <string>Save Pipeline Settings</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
     <widget class="Line" name="line">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>

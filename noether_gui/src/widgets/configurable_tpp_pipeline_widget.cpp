@@ -7,22 +7,24 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QTextStream>
+#include <QAction>
 #include <QStandardPaths>
 #include <yaml-cpp/yaml.h>
 
 namespace noether
 {
-ConfigurableTPPPipelineWidget::ConfigurableTPPPipelineWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
+ConfigurableTPPPipelineWidget::ConfigurableTPPPipelineWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent, QAction* load_action, QAction* save_action, QAction* save_as_action)
   : QWidget(parent)
   , ui_(new Ui::ConfigurableTPPPipeline())
   , pipeline_widget_(new TPPPipelineWidget(std::move(loader), this))
+  , config_file_path_("")
 {
   ui_->setupUi(this);
   layout()->addWidget(pipeline_widget_);
 
   // Connect
-  connect(ui_->push_button_load, &QPushButton::clicked, this, &ConfigurableTPPPipelineWidget::onLoadConfiguration);
-  connect(ui_->push_button_save, &QPushButton::clicked, this, &ConfigurableTPPPipelineWidget::onSaveConfiguration);
+  connect(load_action, &QAction::triggered, this, &ConfigurableTPPPipelineWidget::onLoadConfiguration);
+  connect(save_action, &QAction::triggered, this, &ConfigurableTPPPipelineWidget::onSaveConfiguration);
 }
 
 ToolPathPlannerPipeline ConfigurableTPPPipelineWidget::createPipeline() const
@@ -37,7 +39,7 @@ void ConfigurableTPPPipelineWidget::configure(const QString& file)
   try
   {
     configure(YAML::LoadFile(file.toStdString()));
-    ui_->line_edit->setText(file);
+    config_file_path_ = file.toStdString();
   }
   catch (const YAML::BadFile&)
   {
@@ -58,11 +60,11 @@ void ConfigurableTPPPipelineWidget::save(YAML::Node& config) const { return pipe
 
 void ConfigurableTPPPipelineWidget::setConfigurationFile(const QString& file)
 {
-  ui_->line_edit->setText(file);
+  config_file_path_ = file.toStdString();
 
   try
   {
-    configure(YAML::LoadFile(file.toStdString()));
+    configure(YAML::LoadFile(config_file_path_));
   }
   catch (const YAML::BadFile&)
   {
@@ -81,11 +83,9 @@ void ConfigurableTPPPipelineWidget::setConfigurationFile(const QString& file)
 
 void ConfigurableTPPPipelineWidget::onLoadConfiguration(const bool /*checked*/)
 {
-  QString file = ui_->line_edit->text();
-  if (file.isEmpty())
-    file = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).at(0);
-
+  QString file = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).at(0);
   file = QFileDialog::getOpenFileName(this, "Load configuration file", file, "YAML files (*.yaml)");
+
   if (!file.isEmpty())
     setConfigurationFile(file);
 }
@@ -94,7 +94,8 @@ void ConfigurableTPPPipelineWidget::onSaveConfiguration(const bool /*checked*/)
 {
   try
   {
-    QString file = ui_->line_edit->text();
+    QString file = QString::fromStdString(config_file_path_);
+    
     if (file.isEmpty())
       file = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).at(0);
 
