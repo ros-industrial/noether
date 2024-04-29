@@ -22,7 +22,11 @@ class ConfigurableTPPPipelineWidget : public QWidget
 {
   Q_OBJECT
 public:
-  ConfigurableTPPPipelineWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent = nullptr, QAction* load_action = nullptr, QAction* save_action = nullptr, QAction* save_as_action = nullptr);
+  ConfigurableTPPPipelineWidget(boost_plugin_loader::PluginLoader loader,
+                                QWidget* parent = nullptr,
+                                QAction* load_action = nullptr,
+                                QAction* save_action = nullptr,
+                                QAction* save_as_action = nullptr);
 
   void setConfigurationFile(const QString& file);
 

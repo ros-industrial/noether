@@ -13,7 +13,11 @@
 
 namespace noether
 {
-ConfigurableTPPPipelineWidget::ConfigurableTPPPipelineWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent, QAction* load_action, QAction* save_action, QAction* save_as_action)
+ConfigurableTPPPipelineWidget::ConfigurableTPPPipelineWidget(boost_plugin_loader::PluginLoader loader,
+                                                             QWidget* parent,
+                                                             QAction* load_action,
+                                                             QAction* save_action,
+                                                             QAction* save_as_action)
   : QWidget(parent)
   , ui_(new Ui::ConfigurableTPPPipeline())
   , pipeline_widget_(new TPPPipelineWidget(std::move(loader), this))
@@ -95,7 +99,7 @@ void ConfigurableTPPPipelineWidget::onSaveConfiguration(const bool /*checked*/)
   try
   {
     QString file = QString::fromStdString(config_file_path_);
-    
+
     if (file.isEmpty())
       file = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).at(0);
 
