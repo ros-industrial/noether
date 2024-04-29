@@ -124,29 +124,29 @@ void TPPWidget::onShowOriginalMesh(const bool checked)
 void TPPWidget::onShowModifiedMesh(const bool checked)
 {
   mesh_fragment_actor_->SetVisibility(checked);
-
-  render_widget_->renderWindow()->Render();
+  render_widget_->GetRenderWindow()->Render();
+  render_widget_->GetRenderWindow()->Render();
 }
 
 void TPPWidget::onShowUnmodifiedConnectedPath(const bool checked)
 {
   unmodified_connected_path_actor_->SetVisibility(checked);
-
-  render_widget_->renderWindow()->Render();
+  render_widget_->GetRenderWindow()->Render();
+  render_widget_->GetRenderWindow()->Render();
 }
 
 void TPPWidget::onShowUnmodifiedToolPath(const bool checked)
 {
   unmodified_tool_path_actor_->SetVisibility(checked);
-
-  render_widget_->renderWindow()->Render();
+  render_widget_->GetRenderWindow()->Render();
+  render_widget_->GetRenderWindow()->Render();
 }
 
 void TPPWidget::onShowModifiedConnectedPath(const bool checked)
 {
   connected_path_actor_->SetVisibility(checked);
-
-  render_widget_->renderWindow()->Render();
+  render_widget_->GetRenderWindow()->Render();
+  render_widget_->GetRenderWindow()->Render();
 }
 
 void TPPWidget::onShowModifiedToolPath(const bool checked)
@@ -402,7 +402,9 @@ void TPPWidget::onPlan(const bool /*checked*/)
       connected_path_actor_->SetVisibility(ui_->check_box_show_modified_connected_path->isChecked());
     }
 
-    render_widget_->renderWindow()->Render();
+    // Call render twice
+    render_widget_->GetRenderWindow()->Render();
+    render_widget_->GetRenderWindow()->Render();
   }
   catch (const std::exception& ex)
   {
