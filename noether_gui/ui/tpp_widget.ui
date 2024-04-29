@@ -55,10 +55,13 @@
      <property name="childrenCollapsible">
       <bool>false</bool>
      </property>
-     <widget class="QWidget" name="group_box_configuration">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <widget class="QGroupBox" name="group_box_configuration">
+         <property name="title">
+          <string>⚙️ Pipeline</string>
+         </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
            <widget class="QWidget" name="widget" native="true"/>
@@ -256,7 +259,7 @@
     <string>Ctrl+R</string>
    </property>
    <property name="toolTip">
-     <string>Calculate Trajectory Paths (Ctrl+R)</string>
+     <string>Calculate Traject (Ctrl+R)</string>
    </property>
   </action>
  </widget>
