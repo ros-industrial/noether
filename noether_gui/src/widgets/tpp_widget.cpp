@@ -57,6 +57,8 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   , unmodified_connected_path_actor_(vtkSmartPointer<vtkAssembly>::New())
   , axes_(vtkSmartPointer<vtkAxes>::New())
   , tube_filter_(vtkSmartPointer<vtkTubeFilter>::New())
+  , mesh_file_path_("")
+  , config_file_path_("")
 {
   ui_->setupUi(this);
 
@@ -94,7 +96,9 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   connected_path_actor_->SetVisibility(ui_->check_box_show_modified_connected_path->isChecked());
 
   // Connect signals
-  connect(ui_->push_button_load_mesh, &QPushButton::clicked, this, &TPPWidget::onLoadMesh);
+  connect(ui_->action_loadMesh, &QAction::triggered, this, &TPPWidget::onLoadMesh);
+  connect(ui_->action_executePipeline, &QAction::triggered, this, &TPPWidget::onPlan);
+
   connect(ui_->check_box_show_original_mesh, &QCheckBox::clicked, this, &TPPWidget::onShowOriginalMesh);
   connect(ui_->check_box_show_modified_mesh, &QCheckBox::clicked, this, &TPPWidget::onShowModifiedMesh);
   connect(ui_->check_box_show_original_connected_path,
@@ -105,7 +109,7 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   connect(
       ui_->check_box_show_modified_connected_path, &QCheckBox::clicked, this, &TPPWidget::onShowModifiedConnectedPath);
   connect(ui_->check_box_show_modified_tool_path, &QCheckBox::clicked, this, &TPPWidget::onShowModifiedToolPath);
-  connect(ui_->push_button_plan, &QPushButton::clicked, this, &TPPWidget::onPlan);
+
   connect(ui_->double_spin_box_axis_size, &QDoubleSpinBox::editingFinished, this, [this]() {
     axes_->SetScaleFactor(ui_->double_spin_box_axis_size->value());
     tube_filter_->SetRadius(axes_->GetScaleFactor() / 10.0);
@@ -160,8 +164,6 @@ std::vector<ToolPaths> TPPWidget::getToolPaths() { return tool_paths_; }
 
 void TPPWidget::setMeshFile(const QString& file)
 {
-  ui_->line_edit_mesh->setText(file);
-
   // Render the mesh
   vtkSmartPointer<vtkAbstractPolyDataReader> reader;
   if (file.endsWith(".ply"))
@@ -170,6 +172,8 @@ void TPPWidget::setMeshFile(const QString& file)
     reader = vtkSmartPointer<vtkSTLReader>::New();
   else
     return;
+
+  mesh_file_path_ = file.toStdString();
 
   reader->SetFileName(file.toStdString().c_str());
   reader->Update();
@@ -379,7 +383,8 @@ void TPPWidget::onPlan(const bool /*checked*/)
 {
   try
   {
-    const std::string mesh_file = ui_->line_edit_mesh->text().toStdString();
+    const std::string mesh_file = mesh_file_path_;
+
     if (mesh_file.empty())
       throw std::runtime_error("No mesh file selected");
 
