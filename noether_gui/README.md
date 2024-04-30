@@ -1,4 +1,4 @@
 # Noether GUI
 
 ## Architecture
-![](docs/architecture.png)
+![](../docs/architecture_gui.png)
