@@ -20,10 +20,25 @@
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_4">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_mesh_modifier">
       <attribute name="title">
@@ -78,8 +93,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>364</width>
-               <height>289</height>
+               <width>355</width>
+               <height>328</height>
               </rect>
              </property>
             </widget>

@@ -13,7 +13,49 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_3">
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="margin">
+    <number>0</number>
+    </property>
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <item>
+    <widget class="QMenuBar" name="menubar">
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>30</height>
+      </size>
+     </property>
+      <widget class="QMenu" name="menuConfigFile">
+       <property name="title">
+        <string>File</string>
+       </property>
+       <addaction name="action_loadConfig"/>
+       <addaction name="action_saveConfig"/>
+      </widget>
+      <widget class="QMenu" name="menuView">
+       <property name="title">
+        <string>View</string>
+       </property>
+       <addaction name="action_showOriginalMesh"/>
+       <addaction name="action_showModifiedMesh"/>
+       <addaction name="action_showOriginalToolPath"/>
+       <addaction name="action_showModifiedToolPath"/>
+      </widget>
+      <widget class="QMenu" name="menuRun">
+       <property name="title">
+        <string>Run</string>
+       </property>
+       <addaction name="action_loadMesh"/>
+       <addaction name="action_executePipeline"/>
+      </widget>
+      <addaction name="menuConfigFile"/>
+      <addaction name="menuView"/>
+      <addaction name="menuRun"/>
+    </widget>
+   </item>
    <item>
     <widget class="QToolBar" name="toolbar">
      <property name="maximumSize">
@@ -22,8 +64,10 @@
        <height>30</height>
       </size>
      </property>
+     <property name="styleSheet">
+      <string>background-color: #cecece;</string>
+     </property>
      <addaction name="action_loadConfig"/>
-     <addaction name="action_saveConfig"/>
      <addaction name="action_loadMesh"/>
      <addaction name="action_executePipeline"/>
     </widget>
@@ -43,21 +87,27 @@
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <widget class="QGroupBox" name="group_box_configuration">
-         <property name="title">
-          <string>⚙️ Pipeline</string>
-         </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
-          <item>
-           <widget class="QWidget" name="widget" native="true"/>
-          </item>
+            <property name="leftMargin">
+              <number>0</number>
+            </property>
+            <property name="topMargin">
+              <number>0</number>
+            </property>
+            <property name="rightMargin">
+              <number>0</number>
+            </property>
+            <property name="bottomMargin">
+              <number>0</number>
+            </property>
+            <item>
+              <widget class="QWidget" name="widget" native="true"/>
+            </item>
          </layout>
         </widget>
        </item>
        <item>
         <widget class="QGroupBox" name="groupBox">
-         <property name="title">
-          <string>Viewer</string>
-         </property>
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
            <layout class="QFormLayout" name="formLayout">
@@ -85,114 +135,6 @@
              </widget>
             </item>
            </layout>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="check_box_show_original_mesh">
-            <property name="text">
-             <string>Show Original Mesh</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-            <property name="tristate">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="check_box_show_modified_mesh">
-            <property name="text">
-             <string>Show Modified Mesh(es)</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_originalToolPath">
-              <item>
-                <widget class="QLabel" name="label_4">
-                  <property name="text">
-                    <string>Original Tool Path:</string>
-                  </property>
-                </widget>
-              </item>
-              <item>
-                <widget class="QCheckBox" name="check_box_show_original_tool_path">
-                    <property name="text">
-                      <string>Show Points</string>
-                    </property>
-                </widget>
-              </item>
-              <item>
-                <widget class="QCheckBox" name="check_box_show_original_connected_path">
-                    <property name="text">
-                      <string>Show Line</string>
-                    </property>
-                </widget>
-              </item>
-              <item>
-              <spacer>
-                <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeType">
-                  <enum>QSizePolicy::Expanding</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                  <size>
-                    <width>0</width>
-                    <height>0</height>
-                  </size>
-                </property>
-              </spacer>
-              </item>
-            </layout>
-          </item>
-          <item>
-          <layout class="QHBoxLayout" name="horizonalLayout_modifiedToolPath">
-            <item>
-              <widget class="QLabel" name="label_3">
-                <property name="text">
-                  <string>Modified Tool Path:</string>
-                </property>
-              </widget>
-            </item>
-            <item>
-              <widget class="QCheckBox" name="check_box_show_modified_tool_path">
-                <property name="text">
-                  <string>Show Points</string>
-                </property>
-                <property name="checked">
-                  <bool>true</bool>
-                </property>
-              </widget>
-            </item>
-            <item>
-              <widget class="QCheckBox" name="check_box_show_modified_connected_path">
-                <property name="text">
-                  <string>Show Line</string>
-                </property>
-                <property name="checked">
-                  <bool>true</bool>
-                </property>
-              </widget>
-            </item>
-            <item>
-              <spacer>
-                <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeType">
-                  <enum>QSizePolicy::Expanding</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                  <size>
-                    <width>0</width>
-                    <height>0</height>
-                  </size>
-                </property>
-              </spacer>
-            </item>
-          </layout>
           </item>
          </layout>
         </widget>
@@ -246,14 +188,60 @@
      <string>Calculate Trajectory (Ctrl+R)</string>
    </property>
   </action>
+  <action name="action_showOriginalMesh">
+    <property name="text">
+     <string>👁️ Original Mesh</string>
+    </property>
+    <property name="toolTip">
+      <string>Toggle visibility of the original mesh</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+  </action>
+  <action name="action_showModifiedMesh">
+    <property name="text">
+     <string>👁️ Modified Mesh</string>
+    </property>
+    <property name="toolTip">
+      <string>Toggle visibility of the modified mesh</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+  </action>
+  <action name="action_showOriginalToolPath">
+    <property name="text">
+     <string>👁️ Original Tool Path</string>
+    </property>
+    <property name="toolTip">
+      <string>Toggle visibility of the original tool path</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+  </action>
+  <action name="action_showModifiedToolPath">
+    <property name="text">
+     <string>👁️ Modified Tool Path</string>
+    </property>
+    <property name="toolTip">
+      <string>Toggle visibility of the modified tool path</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
+    </property>
+  </action>
  </widget>
- <tabstops>
-  <tabstop>double_spin_box_axis_size</tabstop>
-  <tabstop>check_box_show_original_mesh</tabstop>
-  <tabstop>check_box_show_modified_mesh</tabstop>
-  <tabstop>check_box_show_original_tool_path</tabstop>
-  <tabstop>check_box_show_modified_tool_path</tabstop>
- </tabstops>
  <resources/>
  <connections/>
 </ui>
