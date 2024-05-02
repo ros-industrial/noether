@@ -55,6 +55,7 @@ qt5_add_resources(QRC_SOURCES resources/resource.qrc)
 
 qt5_wrap_ui(${PROJECT_NAME}_widget_ui_mocs
   ui/vector3d_editor_widget.ui
+  ui/quaternation_editor_widget.ui
   ui/plugin_loader_widget.ui
   ui/linear_approach_modifier_widget.ui
   ui/raster_planner_widget.ui

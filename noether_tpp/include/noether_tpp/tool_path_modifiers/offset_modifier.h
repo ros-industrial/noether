@@ -1,22 +1,23 @@
 #pragma once
 
 #include <noether_tpp/core/tool_path_modifier.h>
+#include <Eigen/Geometry>
 
 namespace noether
 {
 /**
- * @brief Offsets the tool path by a fixed distance
+ * @brief Offsets the tool path by a fixed pose
  */
 class OffsetModifier : public ToolPathModifier
 {
 public:
-  OffsetModifier(Eigen::Vector3d offset);
+  OffsetModifier(Eigen::Isometry3d offset);
 
   ToolPaths modify(ToolPaths tool_paths) const override;
 
 protected:
-  /** @brief In which direction to offset the tool path */
-  const Eigen::Vector3d offset_;
+  /** @brief fixed tool path offset */
+  const Eigen::Isometry3d offset_;
 };
 
 }  // namespace noether

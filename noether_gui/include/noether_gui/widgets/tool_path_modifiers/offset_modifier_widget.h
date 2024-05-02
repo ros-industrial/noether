@@ -6,7 +6,8 @@
 namespace Ui
 {
 class Vector3dEditor;
-}
+class QuaternionEditor;
+}  // namespace Ui
 
 namespace noether
 {
@@ -21,7 +22,8 @@ public:
   void save(YAML::Node&) const override;
 
 private:
-  Ui::Vector3dEditor* ui_;
+  Ui::Vector3dEditor* ui_vector_;
+  Ui::QuaternionEditor* ui_quaternion_;
 };
 
 }  // namespace noether
