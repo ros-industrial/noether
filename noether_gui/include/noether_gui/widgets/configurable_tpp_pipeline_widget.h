@@ -23,10 +23,7 @@ class ConfigurableTPPPipelineWidget : public QWidget
   Q_OBJECT
 public:
   ConfigurableTPPPipelineWidget(boost_plugin_loader::PluginLoader loader,
-                                QWidget* parent = nullptr,
-                                QAction* load_action = nullptr,
-                                QAction* save_action = nullptr,
-                                QAction* save_as_action = nullptr);
+                                QWidget* parent = nullptr);
 
   void setConfigurationFile(const QString& file);
 
@@ -34,11 +31,10 @@ public:
   void configure(const YAML::Node& config);
   void configure(const QString& file);
   void save(YAML::Node& config) const;
-
-private:
   void onLoadConfiguration(const bool /*checked*/);
   void onSaveConfiguration(const bool /*checked*/);
 
+private:
   std::string config_file_path_;
 
   Ui::ConfigurableTPPPipeline* ui_;

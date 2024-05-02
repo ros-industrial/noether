@@ -14,10 +14,7 @@
 namespace noether
 {
 ConfigurableTPPPipelineWidget::ConfigurableTPPPipelineWidget(boost_plugin_loader::PluginLoader loader,
-                                                             QWidget* parent,
-                                                             QAction* load_action,
-                                                             QAction* save_action,
-                                                             QAction* save_as_action)
+                                                             QWidget* parent)
   : QWidget(parent)
   , ui_(new Ui::ConfigurableTPPPipeline())
   , pipeline_widget_(new TPPPipelineWidget(std::move(loader), this))
@@ -25,10 +22,6 @@ ConfigurableTPPPipelineWidget::ConfigurableTPPPipelineWidget(boost_plugin_loader
 {
   ui_->setupUi(this);
   layout()->addWidget(pipeline_widget_);
-
-  // Connect
-  connect(load_action, &QAction::triggered, this, &ConfigurableTPPPipelineWidget::onLoadConfiguration);
-  connect(save_action, &QAction::triggered, this, &ConfigurableTPPPipelineWidget::onSaveConfiguration);
 }
 
 ToolPathPlannerPipeline ConfigurableTPPPipelineWidget::createPipeline() const

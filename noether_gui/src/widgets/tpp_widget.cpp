@@ -57,11 +57,9 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   , axes_(vtkSmartPointer<vtkAxes>::New())
   , tube_filter_(vtkSmartPointer<vtkTubeFilter>::New())
   , mesh_file_path_("")
+  , pipeline_widget_(new ConfigurableTPPPipelineWidget(std::move(loader), this))
 {
   ui_->setupUi(this);
-
-  pipeline_widget_ =
-      new ConfigurableTPPPipelineWidget(std::move(loader), this, ui_->action_load_config, ui_->action_save_config);
 
   overwriteWidget(ui_->group_box_configuration->layout(), ui_->widget, pipeline_widget_);
   ui_->splitter->addWidget(render_widget_);
@@ -106,6 +104,9 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   connect(ui_->action_show_modified_tool_path, &QAction::triggered, this, &TPPWidget::onShowModifiedToolPath);
   connect(ui_->action_show_original_tool_path_lines, &QAction::triggered, this, &TPPWidget::onShowUnmodifiedConnectedPath);
   connect(ui_->action_show_modified_tool_path_lines, &QAction::triggered, this, &TPPWidget::onShowModifiedConnectedPath);
+
+  connect(ui_->action_load_config, &QAction::triggered, pipeline_widget_, &ConfigurableTPPPipelineWidget::onLoadConfiguration);
+  connect(ui_->action_save_config, &QAction::triggered, pipeline_widget_, &ConfigurableTPPPipelineWidget::onSaveConfiguration);
 
   connect(ui_->double_spin_box_axis_size, &QDoubleSpinBox::editingFinished, this, [this]() {
     axes_->SetScaleFactor(ui_->double_spin_box_axis_size->value());
