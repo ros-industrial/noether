@@ -168,7 +168,7 @@
   </action>
   <action name="action_loadMesh">
    <property name="text">
-    <string>📂 Open Mesh</string>
+    <string>📂 Load Mesh</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
