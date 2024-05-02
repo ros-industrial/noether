@@ -14,13 +14,22 @@
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-   <property name="margin">
+   <property name="spacing">
     <number>0</number>
-    </property>
-    <property name="spacing">
-     <number>0</number>
-    </property>
-    <item>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
     <widget class="QMenuBar" name="menubar">
      <property name="maximumSize">
       <size>
@@ -28,32 +37,32 @@
        <height>30</height>
       </size>
      </property>
-      <widget class="QMenu" name="menuConfigFile">
-       <property name="title">
-        <string>File</string>
-       </property>
-       <addaction name="action_load_mesh"/>
-       <addaction name="action_load_config"/>
-       <addaction name="action_save_config"/>
-      </widget>
-      <widget class="QMenu" name="menuView">
-       <property name="title">
-        <string>View</string>
-       </property>
-       <addaction name="action_show_original_mesh"/>
-       <addaction name="action_show_modified_mesh"/>
-       <addaction name="action_show_original_tool_path"/>
-       <addaction name="action_show_modified_tool_path"/>
-      </widget>
-      <widget class="QMenu" name="menuRun">
-       <property name="title">
-        <string>Plan</string>
-       </property>
-       <addaction name="action_execute_pipeline"/>
-      </widget>
-      <addaction name="menuConfigFile"/>
-      <addaction name="menuView"/>
-      <addaction name="menuRun"/>
+     <widget class="QMenu" name="menuConfigFile">
+      <property name="title">
+       <string>File</string>
+      </property>
+      <addaction name="action_load_mesh"/>
+      <addaction name="action_load_config"/>
+      <addaction name="action_save_config"/>
+     </widget>
+     <widget class="QMenu" name="menuView">
+      <property name="title">
+       <string>View</string>
+      </property>
+      <addaction name="action_show_original_mesh"/>
+      <addaction name="action_show_modified_mesh"/>
+      <addaction name="action_show_original_tool_path"/>
+      <addaction name="action_show_modified_tool_path"/>
+     </widget>
+     <widget class="QMenu" name="menuRun">
+      <property name="title">
+       <string>Plan</string>
+      </property>
+      <addaction name="action_execute_pipeline"/>
+     </widget>
+     <addaction name="menuConfigFile"/>
+     <addaction name="menuView"/>
+     <addaction name="menuRun"/>
     </widget>
    </item>
    <item>
@@ -88,21 +97,21 @@
        <item>
         <widget class="QGroupBox" name="group_box_configuration">
          <layout class="QVBoxLayout" name="verticalLayout_2">
-            <property name="leftMargin">
-              <number>0</number>
-            </property>
-            <property name="topMargin">
-              <number>0</number>
-            </property>
-            <property name="rightMargin">
-              <number>0</number>
-            </property>
-            <property name="bottomMargin">
-              <number>0</number>
-            </property>
-            <item>
-              <widget class="QWidget" name="widget" native="true"/>
-            </item>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QWidget" name="widget" native="true"/>
+          </item>
          </layout>
         </widget>
        </item>
@@ -145,103 +154,137 @@
    </item>
   </layout>
   <action name="action_load_config">
+   <property name="icon">
+    <iconset resource="../resource.qrc">
+     <normaloff>:/cog.svg</normaloff>:/cog.svg</iconset>
+   </property>
    <property name="text">
-    <string>⚙️ Load Config</string>
+    <string>Load Config</string>
+   </property>
+   <property name="toolTip">
+    <string>Load a ToolPath configuration file (Ctrl+L)</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+L</string>
    </property>
-   <property name="toolTip">
-     <string>Load a ToolPath configuration file (Ctrl+L)</string>
-   </property>
   </action>
   <action name="action_save_config">
+   <property name="icon">
+    <iconset resource="../resource.qrc">
+     <normaloff>:/load.svg</normaloff>:/load.svg</iconset>
+   </property>
    <property name="text">
-    <string>💾 Save Configs</string>
+    <string>Save Configs</string>
+   </property>
+   <property name="toolTip">
+    <string>Saves current ToolPath configs as configuration file (Ctrl+S)</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
    </property>
-   <property name="toolTip">
-     <string>Saves current ToolPath configs as configuration file (Ctrl+S)</string>
-   </property>
   </action>
   <action name="action_load_mesh">
+   <property name="icon">
+    <iconset resource="../resource.qrc">
+     <normaloff>:/open-folder.svg</normaloff>:/open-folder.svg</iconset>
+   </property>
    <property name="text">
-    <string>📂 Load Mesh</string>
+    <string>Load Mesh</string>
+   </property>
+   <property name="toolTip">
+    <string>Opens up a mesh file (Ctrl+O)</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
    </property>
-   <property name="toolTip">
-     <string>Opens up a mesh file (Ctrl+O)</string>
-   </property>
   </action>
   <action name="action_execute_pipeline">
+   <property name="icon">
+    <iconset resource="../resource.qrc">
+     <normaloff>:/play-button.svg</normaloff>:/play-button.svg</iconset>
+   </property>
    <property name="text">
-    <string>▶️ Plan</string>
+    <string>Plan</string>
+   </property>
+   <property name="toolTip">
+    <string>Calculate Trajectory (Ctrl+R)</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
    </property>
-   <property name="toolTip">
-     <string>Calculate Trajectory (Ctrl+R)</string>
-   </property>
   </action>
   <action name="action_show_original_mesh">
-    <property name="text">
-     <string>👁️ Original Mesh</string>
-    </property>
-    <property name="toolTip">
-      <string>Toggle visibility of the original mesh</string>
-    </property>
-    <property name="checkable">
-     <bool>true</bool>
-    </property>
-    <property name="checked">
-     <bool>true</bool>
-    </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../resource.qrc">
+     <normaloff>:/semi-closed-eye.svg</normaloff>:/semi-closed-eye.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Original Mesh</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle visibility of the original mesh</string>
+   </property>
   </action>
   <action name="action_show_modified_mesh">
-    <property name="text">
-     <string>👁️ Modified Mesh</string>
-    </property>
-    <property name="toolTip">
-      <string>Toggle visibility of the modified mesh</string>
-    </property>
-    <property name="checkable">
-     <bool>true</bool>
-    </property>
-    <property name="checked">
-     <bool>true</bool>
-    </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../resource.qrc">
+     <normaloff>:/semi-closed-eye.svg</normaloff>:/semi-closed-eye.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Modified Mesh</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle visibility of the modified mesh</string>
+   </property>
   </action>
   <action name="action_show_original_tool_path">
-    <property name="text">
-     <string>👁️ Original Tool Path</string>
-    </property>
-    <property name="toolTip">
-      <string>Toggle visibility of the original tool path</string>
-    </property>
-    <property name="checkable">
-     <bool>true</bool>
-    </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../resource.qrc">
+     <normaloff>:/semi-closed-eye.svg</normaloff>:/semi-closed-eye.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Original Tool Path</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle visibility of the original tool path</string>
+   </property>
   </action>
   <action name="action_show_modified_tool_path">
-    <property name="text">
-     <string>👁️ Modified Tool Path</string>
-    </property>
-    <property name="toolTip">
-      <string>Toggle visibility of the modified tool path</string>
-    </property>
-    <property name="checkable">
-     <bool>true</bool>
-    </property>
-    <property name="checked">
-     <bool>true</bool>
-    </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../resource.qrc">
+     <normaloff>:/semi-closed-eye.svg</normaloff>:/semi-closed-eye.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Modified Tool Path</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle visibility of the modified tool path</string>
+   </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="../resource.qrc"/>
+ </resources>
  <connections/>
 </ui>
