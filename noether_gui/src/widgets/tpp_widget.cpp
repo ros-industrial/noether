@@ -61,7 +61,7 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   ui_->setupUi(this);
 
   pipeline_widget_ =
-      new ConfigurableTPPPipelineWidget(std::move(loader), this, ui_->action_loadConfig, ui_->action_saveConfig);
+      new ConfigurableTPPPipelineWidget(std::move(loader), this, ui_->action_load_config, ui_->action_save_config);
 
   overwriteWidget(ui_->group_box_configuration->layout(), ui_->widget, pipeline_widget_);
   ui_->splitter->addWidget(render_widget_);
@@ -89,23 +89,23 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   render_widget_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 
   // Set visibility of the actors based on the default state of the check boxes
-  mesh_actor_->SetVisibility(ui_->action_showOriginalMesh->isChecked());
-  mesh_fragment_actor_->SetVisibility(ui_->action_showModifiedMesh->isChecked());
-  unmodified_tool_path_actor_->SetVisibility(ui_->action_showOriginalToolPath->isChecked());
-  unmodified_connected_path_actor_->SetVisibility(ui_->action_showOriginalToolPathLines->isChecked());
-  tool_path_actor_->SetVisibility(ui_->action_showModifiedToolPath->isChecked());
-  connected_path_actor_->SetVisibility(ui_->action_showModifiedToolpathLines->isChecked());
+  mesh_actor_->SetVisibility(ui_->action_show_original_mesh->isChecked());
+  mesh_fragment_actor_->SetVisibility(ui_->action_show_modified_mesh->isChecked());
+  unmodified_tool_path_actor_->SetVisibility(ui_->action_show_original_tool_path->isChecked());
+  unmodified_connected_path_actor_->SetVisibility(ui_->action_show_original_tool_path_lines->isChecked());
+  tool_path_actor_->SetVisibility(ui_->action_show_modified_tool_path->isChecked());
+  connected_path_actor_->SetVisibility(ui_->action_show_modified_tool_path_lines->isChecked());
 
   // Connect signals
-  connect(ui_->action_loadMesh, &QAction::triggered, this, &TPPWidget::onLoadMesh);
-  connect(ui_->action_executePipeline, &QAction::triggered, this, &TPPWidget::onPlan);
+  connect(ui_->action_load_mesh, &QAction::triggered, this, &TPPWidget::onLoadMesh);
+  connect(ui_->action_execute_pipeline, &QAction::triggered, this, &TPPWidget::onPlan);
 
-  connect(ui_->action_showOriginalMesh, &QAction::triggered, this, &TPPWidget::onShowOriginalMesh);
-  connect(ui_->action_showModifiedMesh, &QAction::triggered, this, &TPPWidget::onShowModifiedMesh);
-  connect(ui_->action_showOriginalToolPath, &QAction::triggered, this, &TPPWidget::onShowUnmodifiedToolPath);
-  connect(ui_->action_showModifiedToolPath, &QAction::triggered, this, &TPPWidget::onShowModifiedToolPath);
-  connect(ui_->action_showOriginalToolPathLines, &QAction::triggered, this, &TPPWidget::onShowUnmodifiedConnectedPath);
-  connect(ui_->action_showModifiedToolPathLines, &QAction::triggered, this, &TPPWidget::onShowModifiedConnectedPath);
+  connect(ui_->action_show_original_mesh, &QAction::triggered, this, &TPPWidget::onShowOriginalMesh);
+  connect(ui_->action_show_modified_mesh, &QAction::triggered, this, &TPPWidget::onShowModifiedMesh);
+  connect(ui_->action_show_original_tool_path, &QAction::triggered, this, &TPPWidget::onShowUnmodifiedToolPath);
+  connect(ui_->action_show_modified_tool_path, &QAction::triggered, this, &TPPWidget::onShowModifiedToolPath);
+  connect(ui_->action_show_original_tool_path_lines, &QAction::triggered, this, &TPPWidget::onShowUnmodifiedConnectedPath);
+  connect(ui_->action_show_modified_tool_path_lines, &QAction::triggered, this, &TPPWidget::onShowModifiedConnectedPath);
 
   connect(ui_->double_spin_box_axis_size, &QDoubleSpinBox::editingFinished, this, [this]() {
     axes_->SetScaleFactor(ui_->double_spin_box_axis_size->value());
@@ -417,7 +417,7 @@ void TPPWidget::onPlan(const bool /*checked*/)
       renderer_->RemoveActor(mesh_fragment_actor_);
       mesh_fragment_actor_ = createMeshActors(meshes);
       renderer_->AddActor(mesh_fragment_actor_);
-      mesh_fragment_actor_->SetVisibility(ui_->action_showModifiedMesh->isChecked());
+      mesh_fragment_actor_->SetVisibility(ui_->action_show_modified_mesh->isChecked());
     }
 
     // Render the unmodified tool paths
@@ -425,7 +425,7 @@ void TPPWidget::onPlan(const bool /*checked*/)
       renderer_->RemoveActor(unmodified_tool_path_actor_);
       unmodified_tool_path_actor_ = createToolPathActors(unmodified_tool_paths, tube_filter_->GetOutputPort());
       renderer_->AddActor(unmodified_tool_path_actor_);
-      unmodified_tool_path_actor_->SetVisibility(ui_->action_showOriginalToolPath->isChecked());
+      unmodified_tool_path_actor_->SetVisibility(ui_->action_show_original_tool_path->isChecked());
     }
 
     // Render the unmodified connected paths
@@ -442,7 +442,7 @@ void TPPWidget::onPlan(const bool /*checked*/)
       renderer_->RemoveActor(tool_path_actor_);
       tool_path_actor_ = createToolPathActors(tool_paths_, tube_filter_->GetOutputPort());
       renderer_->AddActor(tool_path_actor_);
-      tool_path_actor_->SetVisibility(ui_->action_showModifiedToolPath->isChecked());
+      tool_path_actor_->SetVisibility(ui_->action_show_modified_tool_path->isChecked());
     }
 
     // Render the modified connected paths

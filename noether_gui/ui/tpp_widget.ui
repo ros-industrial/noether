@@ -32,24 +32,24 @@
        <property name="title">
         <string>File</string>
        </property>
-       <addaction name="action_loadConfig"/>
-       <addaction name="action_saveConfig"/>
+       <addaction name="action_load_mesh"/>
+       <addaction name="action_load_config"/>
+       <addaction name="action_save_config"/>
       </widget>
       <widget class="QMenu" name="menuView">
        <property name="title">
         <string>View</string>
        </property>
-       <addaction name="action_showOriginalMesh"/>
-       <addaction name="action_showModifiedMesh"/>
-       <addaction name="action_showOriginalToolPath"/>
-       <addaction name="action_showModifiedToolPath"/>
+       <addaction name="action_show_original_mesh"/>
+       <addaction name="action_show_modified_mesh"/>
+       <addaction name="action_show_original_tool_path"/>
+       <addaction name="action_show_modified_tool_path"/>
       </widget>
       <widget class="QMenu" name="menuRun">
        <property name="title">
-        <string>Run</string>
+        <string>Plan</string>
        </property>
-       <addaction name="action_loadMesh"/>
-       <addaction name="action_executePipeline"/>
+       <addaction name="action_execute_pipeline"/>
       </widget>
       <addaction name="menuConfigFile"/>
       <addaction name="menuView"/>
@@ -67,9 +67,9 @@
      <property name="styleSheet">
       <string>background-color: #cecece;</string>
      </property>
-     <addaction name="action_loadConfig"/>
-     <addaction name="action_loadMesh"/>
-     <addaction name="action_executePipeline"/>
+     <addaction name="action_load_config"/>
+     <addaction name="action_load_mesh"/>
+     <addaction name="action_execute_pipeline"/>
     </widget>
    </item>
    <item>
@@ -144,7 +144,7 @@
     </widget>
    </item>
   </layout>
-  <action name="action_loadConfig">
+  <action name="action_load_config">
    <property name="text">
     <string>⚙️ Load Config</string>
    </property>
@@ -155,7 +155,7 @@
      <string>Load a ToolPath configuration file (Ctrl+L)</string>
    </property>
   </action>
-  <action name="action_saveConfig">
+  <action name="action_save_config">
    <property name="text">
     <string>💾 Save Configs</string>
    </property>
@@ -166,7 +166,7 @@
      <string>Saves current ToolPath configs as configuration file (Ctrl+S)</string>
    </property>
   </action>
-  <action name="action_loadMesh">
+  <action name="action_load_mesh">
    <property name="text">
     <string>📂 Load Mesh</string>
    </property>
@@ -177,7 +177,7 @@
      <string>Opens up a mesh file (Ctrl+O)</string>
    </property>
   </action>
-  <action name="action_executePipeline">
+  <action name="action_execute_pipeline">
    <property name="text">
     <string>▶️ Plan</string>
    </property>
@@ -188,7 +188,7 @@
      <string>Calculate Trajectory (Ctrl+R)</string>
    </property>
   </action>
-  <action name="action_showOriginalMesh">
+  <action name="action_show_original_mesh">
     <property name="text">
      <string>👁️ Original Mesh</string>
     </property>
@@ -202,7 +202,7 @@
      <bool>true</bool>
     </property>
   </action>
-  <action name="action_showModifiedMesh">
+  <action name="action_show_modified_mesh">
     <property name="text">
      <string>👁️ Modified Mesh</string>
     </property>
@@ -216,7 +216,7 @@
      <bool>true</bool>
     </property>
   </action>
-  <action name="action_showOriginalToolPath">
+  <action name="action_show_original_tool_path">
     <property name="text">
      <string>👁️ Original Tool Path</string>
     </property>
@@ -227,7 +227,7 @@
      <bool>true</bool>
     </property>
   </action>
-  <action name="action_showModifiedToolPath">
+  <action name="action_show_modified_tool_path">
     <property name="text">
      <string>👁️ Modified Tool Path</string>
     </property>
