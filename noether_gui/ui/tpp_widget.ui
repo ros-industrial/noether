@@ -179,7 +179,7 @@
   </action>
   <action name="action_executePipeline">
    <property name="text">
-    <string>▶️ Run</string>
+    <string>▶️ Plan</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
