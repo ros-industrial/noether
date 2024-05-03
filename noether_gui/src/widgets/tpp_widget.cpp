@@ -37,7 +37,7 @@
 #include <vtkTubeFilter.h>
 #include <vtkProperty.h>
 #include <vtkColorSeries.h>
-#include <vtkPolyLine.h>
+#include <vtkLine.h>
 #include <pcl/surface/vtk_smoothing/vtk_utils.h>
 
 namespace noether
@@ -236,6 +236,54 @@ vtkSmartPointer<vtkAssembly> createToolPathActors(const std::vector<ToolPaths>& 
   return assembly;
 }
 
+vtkSmartPointer<vtkActor> createLineActor(const Eigen::Isometry3d& point1,
+                                          const Eigen::Isometry3d& point2,
+                                          int lineStyle)
+{
+  vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+  points->InsertNextPoint(point1.translation().data());
+  points->InsertNextPoint(point2.translation().data());
+
+  vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
+  line->GetPointIds()->SetId(0, 0);  // the second 0 is the index of the point in vtkPoints (point1)
+  line->GetPointIds()->SetId(1, 1);  // the second 1 is the index of the point in vtkPoints (point2)
+
+  vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
+  lines->InsertNextCell(line);
+
+  vtkSmartPointer<vtkPolyData> linesPolyData = vtkSmartPointer<vtkPolyData>::New();
+  linesPolyData->SetPoints(points);
+  linesPolyData->SetLines(lines);
+
+  vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  mapper->SetInputData(linesPolyData);
+
+  vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+  actor->SetMapper(mapper);
+
+  vtkSmartPointer<vtkProperty> property = vtkSmartPointer<vtkProperty>::New();
+
+  switch (lineStyle)
+  {
+    case 0:
+      property->SetLineWidth(3.0);
+      property->SetColor(0.27, 0.74, 0.2);
+      break;
+    case 1:
+      property->SetLineWidth(1.0);
+      property->SetColor(1, 0.8, 0);
+      break;
+    case 2:
+      property->SetLineWidth(0.5);
+      property->SetColor(1, 0.271, 0.043);
+      break;
+  }
+
+  actor->SetProperty(property);
+
+  return actor;
+}
+
 /*
  *  Create a polyline between all points of the tool path
  *
@@ -247,47 +295,48 @@ vtkSmartPointer<vtkAssembly> createToolPathPolylineActor(const std::vector<ToolP
                                                          vtkAlgorithmOutput* waypoint_shape_output_port)
 {
   auto assembly = vtkSmartPointer<vtkAssembly>::New();
-  auto polyLine = vtkSmartPointer<vtkPolyLine>::New();
-  auto points = vtkSmartPointer<vtkPoints>::New();
 
   for (const ToolPaths& fragment : tool_paths)
   {
-    for (const ToolPath& tool_path : fragment)
+    for (int i = 0; i < fragment.size(); i++)
     {
-      for (const ToolPathSegment& segment : tool_path)
+      const ToolPath& tool_path = fragment[i];
+
+      for (int j = 0; j < tool_path.size(); j++)
       {
-        for (const Eigen::Isometry3d& w : segment)
+        const ToolPathSegment& segment = tool_path[j];
+
+        for (int k = 0; k < segment.size() - 1; k++)
         {
-          // Add the point to the polyline
-          const int id = points->InsertNextPoint(w.translation().data());
+          const Eigen::Isometry3d& point = segment[k];
+          const Eigen::Isometry3d& next_point = segment[k + 1];
+
+          auto actor = createLineActor(point, next_point, 0);
+          assembly->AddPart(actor);
         }
+
+        if (j < tool_path.size() - 1)
+        {
+          const ToolPathSegment& next_segment = tool_path[j + 1];
+          const Eigen::Isometry3d& w1 = segment.back();
+          const Eigen::Isometry3d& w2 = next_segment.front();
+
+          auto actor = createLineActor(w1, w2, 1);
+          assembly->AddPart(actor);
+        }
+      }
+
+      if (i < fragment.size() - 1)
+      {
+        const ToolPath& next_tool_path = fragment[i + 1];
+        const Eigen::Isometry3d& w1 = tool_path.back().back();
+        const Eigen::Isometry3d& w2 = next_tool_path.front().front();
+
+        auto actor = createLineActor(w1, w2, 2);
+        assembly->AddPart(actor);
       }
     }
   }
-
-  // Set the number of ids for the polyline
-  polyLine->GetPointIds()->SetNumberOfIds(points->GetNumberOfPoints());
-
-  // Set the ids for the polyline
-  for (vtkIdType i = 0; i < points->GetNumberOfPoints(); i++)
-  {
-    polyLine->GetPointIds()->SetId(i, i);
-  }
-
-  // Create the polyline
-  vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New();
-  cells->InsertNextCell(polyLine);
-  vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
-  polyData->SetPoints(points);
-  polyData->SetLines(cells);
-
-  vtkSmartPointer<vtkPolyDataMapper> lineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  lineMapper->SetInputData(polyData);
-
-  vtkSmartPointer<vtkActor> lineActor = vtkSmartPointer<vtkActor>::New();
-  lineActor->SetMapper(lineMapper);
-
-  assembly->AddPart(lineActor);
 
   return assembly;
 }
