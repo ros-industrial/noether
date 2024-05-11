@@ -27,6 +27,7 @@
 #include <noether_gui/widgets/tool_path_modifiers/linear_departure_modifier_widget.h>
 // Mesh Modifiers
 #include <noether_gui/widgets/mesh_modifiers/plane_projection_modifier_widget.h>
+#include <noether_gui/widgets/mesh_modifiers/euclidean_clustering_modifier_widget.h>
 
 #include <QWidget>
 #include <QMessageBox>
@@ -122,6 +123,8 @@ struct PlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlugin
 
 // Mesh Modifiers
 using PlaneProjectionMeshModifierWidgetPlugin = WidgetPluginImpl<PlaneProjectionMeshModifierWidget, MeshModifierWidget>;
+using EuclideanClusteringMeshModifierWidgetPlugin =
+    WidgetPluginImpl<EuclideanClusteringMeshModifierWidget, MeshModifierWidget>;
 
 }  // namespace noether
 
@@ -154,3 +157,4 @@ EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::ConcatenateModifierWidgetPlugin
 EXPORT_TPP_WIDGET_PLUGIN(noether::PlaneSlicerRasterPlannerWidgetPlugin, PlaneSlicerRasterPlanner)
 
 EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(noether::PlaneProjectionMeshModifierWidgetPlugin, PlaneProjectionModifier)
+EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(noether::EuclideanClusteringMeshModifierWidgetPlugin, EuclideanClusteringModifier)

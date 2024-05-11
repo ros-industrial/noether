@@ -25,20 +25,17 @@
 
 namespace noether
 {
-class EuclideanClustering : public MeshModifier
+class EuclideanClusteringMeshModifier : public MeshModifier
 {
 public:
-  struct Parameters
-  {
-    double tolerance = 0.02;  // meters
-    int min_cluster_size = 100;
-    int max_cluster_size = -1;  // will use input point cloud size when negative
-  };
+  EuclideanClusteringMeshModifier(double tolerance, int min_cluster_size = 1, int max_cluster_size = -1);
 
   std::vector<pcl::PolygonMesh> modify(const pcl::PolygonMesh& mesh_in) const override;
 
 protected:
-  Parameters parameters_;
+  double tolerance_;
+  int min_cluster_size_;
+  int max_cluster_size_;
 };
 
 }  // namespace noether
