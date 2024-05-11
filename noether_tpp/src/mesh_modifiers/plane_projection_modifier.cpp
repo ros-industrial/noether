@@ -1,9 +1,9 @@
 #include <noether_tpp/mesh_modifiers/plane_projection_modifier.h>
 #include <noether_tpp/mesh_modifiers/subset_extraction/subset_extractor.h>
 
+#include <numeric>
 #include <pcl/sample_consensus/sac_model_plane.h>
 #include <pcl/sample_consensus/ransac.h>
-
 #include <pcl/conversions.h>
 
 namespace noether
