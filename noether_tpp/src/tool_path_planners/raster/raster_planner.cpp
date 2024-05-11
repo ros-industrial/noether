@@ -17,6 +17,8 @@ ToolPaths RasterPlanner::plan(const pcl::PolygonMesh& mesh) const
 {
   // Call the raster planner implementation
   ToolPaths tool_paths = planImpl(mesh);
+  if (tool_paths.empty())
+    return tool_paths;
 
   // Apply the modifications necessary to produce the "default" behavior
   // First, organize the position of the waypoints into a raster pattern
