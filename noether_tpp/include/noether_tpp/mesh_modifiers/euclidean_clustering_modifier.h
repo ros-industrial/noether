@@ -28,7 +28,7 @@ namespace noether
 class EuclideanClusteringMeshModifier : public MeshModifier
 {
 public:
-  EuclideanClusteringMeshModifier(double tolerance, int min_cluster_size = 0, int max_cluster_size = -1);
+  EuclideanClusteringMeshModifier(double tolerance, int min_cluster_size = 1, int max_cluster_size = -1);
 
   std::vector<pcl::PolygonMesh> modify(const pcl::PolygonMesh& mesh_in) const override;
 
