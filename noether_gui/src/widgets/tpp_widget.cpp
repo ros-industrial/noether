@@ -35,6 +35,8 @@
 #include <vtkTransformFilter.h>
 #include <vtkTransform.h>
 #include <vtkTubeFilter.h>
+#include <vtkProperty.h>
+#include <vtkColorSeries.h>
 #include <pcl/surface/vtk_smoothing/vtk_utils.h>
 
 namespace noether
@@ -211,16 +213,30 @@ vtkSmartPointer<vtkAssembly> createToolPathActors(const std::vector<ToolPaths>& 
 vtkSmartPointer<vtkAssembly> createMeshActors(const std::vector<pcl::PolygonMesh>& meshes)
 {
   auto assembly = vtkSmartPointer<vtkAssembly>::New();
-  for (const pcl::PolygonMesh& mesh : meshes)
+
+  // Create a color series to differentiate the meshes
+  auto color_series = vtkSmartPointer<vtkColorSeries>::New();
+  color_series->SetColorScheme(vtkColorSeries::ColorSchemes::BREWER_QUALITATIVE_SET1);
+  color_series->SetNumberOfColors(meshes.size());
+
+  for (std::size_t i = 0; i < meshes.size(); ++i)
   {
     vtkSmartPointer<vtkPolyData> mesh_poly_data = vtkSmartPointer<vtkPolyData>::New();
-    pcl::VTKUtils::mesh2vtk(mesh, mesh_poly_data);
+    pcl::VTKUtils::mesh2vtk(meshes[i], mesh_poly_data);
 
     auto map = vtkSmartPointer<vtkPolyDataMapper>::New();
     map->SetInputData(mesh_poly_data);
+    map->SetScalarVisibility(false);
 
     auto actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(map);
+
+    // Set the color of the actor from the color series
+    vtkTuple<double, 3> color = color_series->GetColorRepeating(i).Cast<double>();
+    double r = color[0] / 255.0;
+    double g = color[1] / 255.0;
+    double b = color[2] / 255.0;
+    actor->GetProperty()->SetColor(r, g, b);
 
     assembly->AddPart(actor);
   }
