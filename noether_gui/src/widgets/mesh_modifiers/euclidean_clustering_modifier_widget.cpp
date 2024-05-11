@@ -24,9 +24,9 @@ EuclideanClusteringMeshModifierWidget::EuclideanClusteringMeshModifierWidget(QWi
   tolerance_->setSingleStep(0.010);
   tolerance_->setValue(0.010);
 
-  min_cluster_size_->setMinimum(0);
+  min_cluster_size_->setMinimum(1);
   min_cluster_size_->setMaximum(std::numeric_limits<int>::max());
-  min_cluster_size_->setValue(0);
+  min_cluster_size_->setValue(1);
 
   max_cluster_size_->setMinimum(-1);
   max_cluster_size_->setMaximum(std::numeric_limits<int>::max());
