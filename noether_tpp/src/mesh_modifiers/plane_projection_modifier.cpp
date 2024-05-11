@@ -68,43 +68,79 @@ void projectInPlace(pcl::PCLPointCloud2& cloud, const Eigen::Vector4f& plane_coe
   }
 }
 
-PlaneProjectionMeshModifier::PlaneProjectionMeshModifier(double distance_threshold)
-  : MeshModifier(), distance_threshold_(distance_threshold)
+PlaneProjectionMeshModifier::PlaneProjectionMeshModifier(double distance_threshold, int max_planes, int min_vertices)
+  : MeshModifier()
+  , distance_threshold_(distance_threshold)
+  , max_planes_(max_planes < 0 ? std::numeric_limits<int>::max() : max_planes)
+  , min_vertices_(min_vertices)
 {
 }
 
 std::vector<pcl::PolygonMesh> PlaneProjectionMeshModifier::modify(const pcl::PolygonMesh& mesh) const
 {
+  // Convert the mesh vertices to a point cloud
   auto cloud = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
   pcl::fromPCLPointCloud2(mesh.cloud, *cloud);
 
-  // Fit a plane model to the vertices using RANSAC
+  // Set up the output data structure
+  std::vector<pcl::PolygonMesh> output;
+
+  // Set up the RANSAC plane fit model
   auto model = pcl::make_shared<pcl::SampleConsensusModelPlane<pcl::PointXYZ>>(cloud);
   auto ransac = pcl::make_shared<pcl::RandomSampleConsensus<pcl::PointXYZ>>(model);
   ransac->setDistanceThreshold(distance_threshold_);
-  ransac->computeModel();
 
-  // Extract the inliers
-  std::vector<int> inliers;
-  ransac->getInliers(inliers);
+  // Create a vector of indices for the remaining indices to which a plane model can be fit
+  std::vector<int> remaining_indices(cloud->size());
+  std::iota(remaining_indices.begin(), remaining_indices.end(), 0);
 
-  // Get the optimized model coefficients
-  Eigen::VectorXf plane_coeffs(4);
-  ransac->getModelCoefficients(plane_coeffs);
+  while (remaining_indices.size() >= min_vertices_ && output.size() < max_planes_)
+  {
+    // Fit a plane model to the vertices using RANSAC
+    model->setIndices(remaining_indices);
+    ransac->computeModel();
 
-  // Project mesh origin on to plane
-  float d = plane_coeffs.dot(Eigen::Vector4f(0.0, 0.0, 0.0, 1.0));
-  if (d > 0.0)
-    plane_coeffs *= -1;
-  // Eigen::Vector3f projected_origin = origin.head<3>() - d * plane_coeffs.head<3>();
+    // Extract the inliers
+    std::vector<int> inliers;
+    ransac->getInliers(inliers);
+    if (inliers.size() <= min_vertices_)
+      break;
 
-  // Extract the inlier submesh
-  pcl::PolygonMesh output_mesh = extractSubMeshFromInlierVertices(mesh, inliers);
+    // Get the optimized model coefficients
+    Eigen::VectorXf plane_coeffs(4);
+    ransac->getModelCoefficients(plane_coeffs);
 
-  // Project the inlier vertices onto the plane
-  projectInPlace(output_mesh.cloud, plane_coeffs);
+    // Project mesh origin on to plane
+    float d = plane_coeffs.dot(Eigen::Vector4f(0.0, 0.0, 0.0, 1.0));
+    if (d > 0.0)
+      plane_coeffs *= -1;
+    // Eigen::Vector3f projected_origin = origin.head<3>() - d * plane_coeffs.head<3>();
 
-  return { output_mesh };
+    // Extract the inlier submesh
+    pcl::PolygonMesh output_mesh = extractSubMeshFromInlierVertices(mesh, inliers);
+
+    // Project the inlier vertices onto the plane
+    projectInPlace(output_mesh.cloud, plane_coeffs);
+
+    // Append the extracted and projected mesh to the vector of output meshes
+    output.push_back(output_mesh);
+
+    // Remove the inlier indices from the list of remaining indices
+    std::size_t num_outliers = remaining_indices.size() - inliers.size();
+    if (num_outliers <= min_vertices_)
+      break;
+
+    std::vector<int> outliers;
+    outliers.reserve(num_outliers);
+    std::set_difference(remaining_indices.begin(),
+                        remaining_indices.end(),
+                        inliers.begin(),
+                        inliers.end(),
+                        std::back_inserter(outliers));
+    remaining_indices = outliers;
+  }
+
+  return output;
 }
 
 }  // namespace noether
