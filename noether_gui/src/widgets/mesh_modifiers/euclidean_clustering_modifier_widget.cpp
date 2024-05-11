@@ -7,9 +7,9 @@
 #include <QFormLayout>
 #include <QLabel>
 
-static std::string DIST_THRESH_KEY = "distance_threshold";
-static std::string MIN_SIZE_KEY = "min_cluster_size";
-static std::string MAX_SIZE_KEY = "max_cluster_size";
+static const std::string DIST_THRESH_KEY = "distance_threshold";
+static const std::string MIN_SIZE_KEY = "min_cluster_size";
+static const std::string MAX_SIZE_KEY = "max_cluster_size";
 
 namespace noether
 {
