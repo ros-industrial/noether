@@ -28,7 +28,14 @@
 
 namespace noether
 {
-std::vector<pcl::PolygonMesh> EuclideanClustering::modify(const pcl::PolygonMesh& mesh_in) const
+EuclideanClusteringMeshModifier::EuclideanClusteringMeshModifier(double tolerance,
+                                                                 int min_cluster_size,
+                                                                 int max_cluster_size)
+  : tolerance_(tolerance), min_cluster_size_(min_cluster_size), max_cluster_size_(max_cluster_size)
+{
+}
+
+std::vector<pcl::PolygonMesh> EuclideanClusteringMeshModifier::modify(const pcl::PolygonMesh& mesh_in) const
 {
   // converting to point cloud
   auto mesh_points = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
@@ -39,15 +46,12 @@ std::vector<pcl::PolygonMesh> EuclideanClustering::modify(const pcl::PolygonMesh
   tree->setInputCloud(mesh_points);
   std::vector<pcl::PointIndices> cluster_indices;
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-  ec.setClusterTolerance(parameters_.tolerance);
-  ec.setMinClusterSize(parameters_.min_cluster_size);
-  ec.setMaxClusterSize(parameters_.max_cluster_size <= 0 ? mesh_points->size() : parameters_.max_cluster_size);
+  ec.setClusterTolerance(tolerance_);
+  ec.setMinClusterSize(min_cluster_size_);
+  ec.setMaxClusterSize(max_cluster_size_ <= 0 ? mesh_points->size() : max_cluster_size_);
   ec.setSearchMethod(tree);
   ec.setInputCloud(mesh_points);
   ec.extract(cluster_indices);
-
-  if (cluster_indices.empty())
-    throw std::runtime_error("No clusters found");
 
   std::vector<pcl::PolygonMesh> meshes;
   meshes.reserve(cluster_indices.size());
