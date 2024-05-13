@@ -4,6 +4,7 @@
 #include <noether_tpp/core/mesh_modifier.h>
 
 class QDoubleSpinBox;
+class QSpinBox;
 
 namespace noether
 {
@@ -20,6 +21,8 @@ public:
 
 private:
   QDoubleSpinBox* distance_threshold_;
+  QSpinBox* max_planes_;
+  QSpinBox* min_vertices_;
 };
 
 }  // namespace noether
