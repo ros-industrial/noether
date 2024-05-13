@@ -7,9 +7,9 @@
 #include <QFormLayout>
 #include <QLabel>
 
-static std::string DIST_THRESH_KEY = "distance_threshold";
-static std::string MAX_PLANES_KEY = "max_planes";
-static std::string MIN_VERTICES_KEY = "min_vertices";
+static const std::string DIST_THRESH_KEY = "distance_threshold";
+static const std::string MAX_PLANES_KEY = "max_planes";
+static const std::string MIN_VERTICES_KEY = "min_vertices";
 
 namespace noether
 {
@@ -24,13 +24,13 @@ PlaneProjectionMeshModifierWidget::PlaneProjectionMeshModifierWidget(QWidget* pa
   distance_threshold_->setSingleStep(0.010);
   distance_threshold_->setValue(0.010);
 
-  max_planes_->setMinimum(-1);
+  max_planes_->setMinimum(0);
   max_planes_->setMaximum(std::numeric_limits<int>::max());
   max_planes_->setValue(1);
 
-  min_vertices_->setMinimum(0);
+  min_vertices_->setMinimum(1);
   min_vertices_->setMaximum(std::numeric_limits<int>::max());
-  min_vertices_->setValue(0);
+  min_vertices_->setValue(1);
 
   auto layout = new QFormLayout(this);
   layout->addRow(new QLabel("Distance threshold (m)", this), distance_threshold_);
@@ -40,8 +40,9 @@ PlaneProjectionMeshModifierWidget::PlaneProjectionMeshModifierWidget(QWidget* pa
 
 MeshModifier::ConstPtr PlaneProjectionMeshModifierWidget::create() const
 {
-  return std::make_unique<PlaneProjectionMeshModifier>(
-      distance_threshold_->value(), max_planes_->value(), min_vertices_->value());
+  return std::make_unique<PlaneProjectionMeshModifier>(distance_threshold_->value(),
+                                                       static_cast<unsigned>(max_planes_->value()),
+                                                       static_cast<unsigned>(min_vertices_->value()));
 }
 
 void PlaneProjectionMeshModifierWidget::configure(const YAML::Node& node)

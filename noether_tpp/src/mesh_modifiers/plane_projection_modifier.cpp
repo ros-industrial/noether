@@ -68,10 +68,12 @@ void projectInPlace(pcl::PCLPointCloud2& cloud, const Eigen::Vector4f& plane_coe
   }
 }
 
-PlaneProjectionMeshModifier::PlaneProjectionMeshModifier(double distance_threshold, int max_planes, int min_vertices)
+PlaneProjectionMeshModifier::PlaneProjectionMeshModifier(double distance_threshold,
+                                                         unsigned max_planes,
+                                                         unsigned min_vertices)
   : MeshModifier()
   , distance_threshold_(distance_threshold)
-  , max_planes_(max_planes < 0 ? std::numeric_limits<int>::max() : max_planes)
+  , max_planes_(max_planes < 1 ? std::numeric_limits<int>::max() : max_planes)
   , min_vertices_(min_vertices)
 {
 }
@@ -103,7 +105,7 @@ std::vector<pcl::PolygonMesh> PlaneProjectionMeshModifier::modify(const pcl::Pol
     // Extract the inliers
     std::vector<int> inliers;
     ransac->getInliers(inliers);
-    if (inliers.size() <= min_vertices_)
+    if (inliers.size() < min_vertices_)
       break;
 
     // Get the optimized model coefficients
@@ -127,7 +129,7 @@ std::vector<pcl::PolygonMesh> PlaneProjectionMeshModifier::modify(const pcl::Pol
 
     // Remove the inlier indices from the list of remaining indices
     std::size_t num_outliers = remaining_indices.size() - inliers.size();
-    if (num_outliers <= min_vertices_)
+    if (num_outliers < min_vertices_)
       break;
 
     std::vector<int> outliers;

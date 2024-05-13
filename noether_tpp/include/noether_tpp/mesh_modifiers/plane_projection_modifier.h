@@ -7,14 +7,14 @@ namespace noether
 class PlaneProjectionMeshModifier : public MeshModifier
 {
 public:
-  PlaneProjectionMeshModifier(double distance_threshold, int max_planes = 1, int min_vertices = 0);
+  PlaneProjectionMeshModifier(double distance_threshold, unsigned max_planes = 1, unsigned min_vertices = 1);
 
   std::vector<pcl::PolygonMesh> modify(const pcl::PolygonMesh& mesh) const override;
 
 protected:
   double distance_threshold_;
-  int max_planes_;
-  int min_vertices_;
+  unsigned max_planes_;
+  unsigned min_vertices_;
 };
 
 }  // namespace noether
