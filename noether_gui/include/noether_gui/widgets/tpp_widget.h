@@ -39,6 +39,12 @@ namespace noether
 {
 class ConfigurableTPPPipelineWidget;
 
+enum class LineStyle{  
+  INTRA_SEGMENT = 0, /*@brief between waypoints in a segment*/
+  INTER_SEGMENT, /*@brief between tool path segments*/
+  INTER_PATH, /*@brief between tool paths*/
+};
+
 /**
  * @brief Basic tool path planning widget
  * @details Allows the user to laod a mesh from file, configure a tool path planning pipeline, and generate tool paths

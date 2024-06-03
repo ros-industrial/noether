@@ -238,7 +238,7 @@ vtkSmartPointer<vtkAssembly> createToolPathActors(const std::vector<ToolPaths>& 
 
 vtkSmartPointer<vtkActor> createLineActor(const Eigen::Isometry3d& point1,
                                           const Eigen::Isometry3d& point2,
-                                          int lineStyle)
+                                          LineStyle lineStyle)
 {
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
   points->InsertNextPoint(point1.translation().data());
@@ -265,15 +265,15 @@ vtkSmartPointer<vtkActor> createLineActor(const Eigen::Isometry3d& point1,
 
   switch (lineStyle)
   {
-    case 0:
+    case LineStyle::INTRA_SEGMENT:
       property->SetLineWidth(3.0);
       property->SetColor(0.27, 0.74, 0.2);
       break;
-    case 1:
+    case LineStyle::INTER_SEGMENT:
       property->SetLineWidth(1.0);
       property->SetColor(1, 0.8, 0);
       break;
-    case 2:
+    case LineStyle::INTER_PATH:
       property->SetLineWidth(0.5);
       property->SetColor(1, 0.271, 0.043);
       break;
@@ -311,7 +311,7 @@ vtkSmartPointer<vtkAssembly> createToolPathPolylineActor(const std::vector<ToolP
           const Eigen::Isometry3d& point = segment[k];
           const Eigen::Isometry3d& next_point = segment[k + 1];
 
-          auto actor = createLineActor(point, next_point, 0);
+          auto actor = createLineActor(point, next_point, LineStyle::INTRA_SEGMENT);
           assembly->AddPart(actor);
         }
 
@@ -321,7 +321,7 @@ vtkSmartPointer<vtkAssembly> createToolPathPolylineActor(const std::vector<ToolP
           const Eigen::Isometry3d& w1 = segment.back();
           const Eigen::Isometry3d& w2 = next_segment.front();
 
-          auto actor = createLineActor(w1, w2, 1);
+          auto actor = createLineActor(w1, w2, LineStyle::INTER_SEGMENT);
           assembly->AddPart(actor);
         }
       }
@@ -332,7 +332,7 @@ vtkSmartPointer<vtkAssembly> createToolPathPolylineActor(const std::vector<ToolP
         const Eigen::Isometry3d& w1 = tool_path.back().back();
         const Eigen::Isometry3d& w2 = next_tool_path.front().front();
 
-        auto actor = createLineActor(w1, w2, 2);
+        auto actor = createLineActor(w1, w2, LineStyle::INTER_PATH);     
         assembly->AddPart(actor);
       }
     }
