@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>340</width>
-    <height>159</height>
+    <height>165</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -39,8 +39,8 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-          <property name="text">
-           <string>➕</string>
+          <property name="icon">
+           <iconset theme="list-add"/>
           </property>
          </widget>
         </item>
