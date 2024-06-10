@@ -101,11 +101,21 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   connect(ui_->action_show_modified_mesh, &QAction::triggered, this, &TPPWidget::onShowModifiedMesh);
   connect(ui_->action_show_unmodified_tool_path, &QAction::triggered, this, &TPPWidget::onShowUnmodifiedToolPath);
   connect(ui_->action_show_modified_tool_path, &QAction::triggered, this, &TPPWidget::onShowModifiedToolPath);
-  connect(ui_->action_show_unmodified_tool_path_lines, &QAction::triggered, this, &TPPWidget::onShowUnmodifiedConnectedPath);
-  connect(ui_->action_show_modified_tool_path_lines, &QAction::triggered, this, &TPPWidget::onShowModifiedConnectedPath);
+  connect(ui_->action_show_unmodified_tool_path_lines,
+          &QAction::triggered,
+          this,
+          &TPPWidget::onShowUnmodifiedConnectedPath);
+  connect(
+      ui_->action_show_modified_tool_path_lines, &QAction::triggered, this, &TPPWidget::onShowModifiedConnectedPath);
 
-  connect(ui_->action_load_config, &QAction::triggered, pipeline_widget_, &ConfigurableTPPPipelineWidget::onLoadConfiguration);
-  connect(ui_->action_save_config, &QAction::triggered, pipeline_widget_, &ConfigurableTPPPipelineWidget::onSaveConfiguration);
+  connect(ui_->action_load_config,
+          &QAction::triggered,
+          pipeline_widget_,
+          &ConfigurableTPPPipelineWidget::onLoadConfiguration);
+  connect(ui_->action_save_config,
+          &QAction::triggered,
+          pipeline_widget_,
+          &ConfigurableTPPPipelineWidget::onSaveConfiguration);
 
   connect(ui_->double_spin_box_axis_size, &QDoubleSpinBox::editingFinished, this, [this]() {
     axes_->SetScaleFactor(ui_->double_spin_box_axis_size->value());
