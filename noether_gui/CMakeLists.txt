@@ -50,11 +50,7 @@ qt5_wrap_cpp(${PROJECT_NAME}_widget_mocs
   # Mesh Modifiers
   include/${PROJECT_NAME}/widgets/mesh_modifiers/plane_projection_modifier_widget.h)
 
-set(QRC_FILES
-  resource.qrc
-)
-
-qt5_add_resources(QRC_SOURCES ${QRC_FILES})
+qt5_add_resources(QRC_SOURCES resources/resource.qrc)
 
 qt5_wrap_ui(${PROJECT_NAME}_widget_ui_mocs
   ui/vector3d_editor_widget.ui
