@@ -38,7 +38,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab_mesh_modifier">
       <attribute name="title">
@@ -93,8 +93,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>355</width>
-               <height>328</height>
+               <width>382</width>
+               <height>301</height>
               </rect>
              </property>
             </widget>
