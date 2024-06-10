@@ -8,7 +8,6 @@
 #include <QMessageBox>
 #include <QTextStream>
 #include <QAction>
-#include <QStandardPaths>
 #include <yaml-cpp/yaml.h>
 
 namespace noether
@@ -80,8 +79,7 @@ void ConfigurableTPPPipelineWidget::setConfigurationFile(const QString& file)
 
 void ConfigurableTPPPipelineWidget::onLoadConfiguration(const bool /*checked*/)
 {
-  QString file = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).at(0);
-  file = QFileDialog::getOpenFileName(this, "Load configuration file", file, "YAML files (*.yaml)");
+  QString file = QFileDialog::getOpenFileName(this, "Load configuration file", "", "YAML files (*.yaml)");
 
   if (!file.isEmpty())
     setConfigurationFile(file);
@@ -91,12 +89,7 @@ void ConfigurableTPPPipelineWidget::onSaveConfiguration(const bool /*checked*/)
 {
   try
   {
-    QString file = QString::fromStdString(config_file_path_);
-
-    if (file.isEmpty())
-      file = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).at(0);
-
-    file = QFileDialog::getSaveFileName(this, "Save configuration file", file, "YAML files (*.yaml)");
+    QString file = QFileDialog::getSaveFileName(this, "Save configuration file", "", "YAML files (*.yaml)");
     if (file.isEmpty())
       return;
 
