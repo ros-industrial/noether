@@ -332,7 +332,7 @@ vtkSmartPointer<vtkAssembly> createToolPathPolylineActor(const std::vector<ToolP
         const Eigen::Isometry3d& w1 = tool_path.back().back();
         const Eigen::Isometry3d& w2 = next_tool_path.front().front();
 
-        auto actor = createLineActor(w1, w2, LineStyle::INTER_PATH);     
+        auto actor = createLineActor(w1, w2, LineStyle::INTER_PATH);
         assembly->AddPart(actor);
       }
     }

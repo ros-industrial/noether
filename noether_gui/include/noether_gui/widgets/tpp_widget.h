@@ -39,10 +39,11 @@ namespace noether
 {
 class ConfigurableTPPPipelineWidget;
 
-enum class LineStyle{  
+enum class LineStyle
+{
   INTRA_SEGMENT = 0, /*@brief between waypoints in a segment*/
-  INTER_SEGMENT, /*@brief between tool path segments*/
-  INTER_PATH, /*@brief between tool paths*/
+  INTER_SEGMENT,     /*@brief between tool path segments*/
+  INTER_PATH,        /*@brief between tool paths*/
 };
 
 /**
