@@ -1,290 +1,309 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>TPP</class>
- <widget class="QWidget" name="TPP">
+ <widget class="QMainWindow" name="TPP">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>328</width>
-    <height>403</height>
+    <width>327</width>
+    <height>319</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>MainWindow</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <property name="spacing">
-    <number>0</number>
-   </property>
-   <property name="leftMargin">
-    <number>0</number>
-   </property>
-   <property name="topMargin">
-    <number>0</number>
-   </property>
-   <property name="rightMargin">
-    <number>0</number>
-   </property>
-   <property name="bottomMargin">
-    <number>0</number>
-   </property>
-   <item>
-    <widget class="QMenuBar" name="menubar">
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>30</height>
-      </size>
-     </property>
-     <widget class="QMenu" name="menuConfigFile">
-      <property name="title">
-       <string>File</string>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <item>
+     <widget class="QSplitter" name="splitter">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
       </property>
-      <addaction name="action_load_mesh"/>
-      <addaction name="action_load_config"/>
-      <addaction name="action_save_config"/>
+      <widget class="QWidget" name="verticalLayoutWidget">
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QWidget" name="widget" native="true"/>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox">
+          <property name="title">
+           <string>View</string>
+          </property>
+          <layout class="QFormLayout" name="formLayout">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>Axis size (m)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QDoubleSpinBox" name="double_spin_box_axis_size">
+             <property name="decimals">
+              <number>3</number>
+             </property>
+             <property name="maximum">
+              <double>1.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.010000000000000</double>
+             </property>
+             <property name="value">
+              <double>0.025000000000000</double>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
-     <widget class="QMenu" name="menuView">
-      <property name="title">
-       <string>View</string>
-      </property>
-      <addaction name="action_show_original_mesh"/>
-      <addaction name="action_show_modified_mesh"/>
-      <addaction name="action_show_original_tool_path"/>
-      <addaction name="action_show_modified_tool_path"/>
-     </widget>
-     <widget class="QMenu" name="menuRun">
-      <property name="title">
-       <string>Plan</string>
-      </property>
-      <addaction name="action_execute_pipeline"/>
-     </widget>
-     <addaction name="menuConfigFile"/>
-     <addaction name="menuView"/>
-     <addaction name="menuRun"/>
-    </widget>
-   </item>
-   <item>
-    <widget class="QToolBar" name="toolbar">
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>30</height>
-      </size>
-     </property>
-     <property name="styleSheet">
-      <string>background-color: #cecece;</string>
-     </property>
-     <addaction name="action_load_config"/>
-     <addaction name="action_load_mesh"/>
-     <addaction name="action_execute_pipeline"/>
-    </widget>
-   </item>
-   <item>
-    <widget class="QSplitter" name="splitter">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="handleWidth">
-      <number>10</number>
-     </property>
-     <property name="childrenCollapsible">
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>327</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="tearOffEnabled">
+     <bool>false</bool>
+    </property>
+    <property name="title">
+     <string>File</string>
+    </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
+    <addaction name="action_load_mesh"/>
+    <addaction name="action_load_config"/>
+    <addaction name="action_save_config"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="tearOffEnabled">
+     <bool>false</bool>
+    </property>
+    <property name="title">
+     <string>View</string>
+    </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
+    <widget class="QMenu" name="menuMesh">
+     <property name="tearOffEnabled">
       <bool>false</bool>
      </property>
-     <widget class="QWidget" name="layoutWidget">
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <item>
-        <widget class="QGroupBox" name="group_box_configuration">
-         <layout class="QVBoxLayout" name="verticalLayout_2">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QWidget" name="widget" native="true"/>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox">
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <item>
-           <layout class="QFormLayout" name="formLayout">
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_2">
-              <property name="text">
-               <string>Axis Size (m)</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QDoubleSpinBox" name="double_spin_box_axis_size">
-              <property name="decimals">
-               <number>3</number>
-              </property>
-              <property name="maximum">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="singleStep">
-               <double>0.001000000000000</double>
-              </property>
-              <property name="value">
-               <double>0.010000000000000</double>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </widget>
-       </item>
-      </layout>
-     </widget>
+     <property name="title">
+      <string>Mesh</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
+     </property>
+     <addaction name="action_show_unmodified_mesh"/>
+     <addaction name="action_show_modified_mesh"/>
     </widget>
-   </item>
-  </layout>
-  <action name="action_load_config">
-   <property name="icon">
-    <iconset resource="../resource.qrc">
-     <normaloff>:/cog.svg</normaloff>:/cog.svg</iconset>
+    <widget class="QMenu" name="menuTool_Path">
+     <property name="tearOffEnabled">
+      <bool>false</bool>
+     </property>
+     <property name="title">
+      <string>Tool path waypoints</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
+     </property>
+     <addaction name="action_show_unmodified_tool_path"/>
+     <addaction name="action_show_modified_tool_path"/>
+    </widget>
+    <widget class="QMenu" name="menuTool_path_lines">
+     <property name="tearOffEnabled">
+      <bool>false</bool>
+     </property>
+     <property name="title">
+      <string>Tool path lines</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
+     </property>
+     <addaction name="action_show_unmodified_tool_path_lines"/>
+     <addaction name="action_show_modified_tool_path_lines"/>
+    </widget>
+    <addaction name="menuMesh"/>
+    <addaction name="menuTool_Path"/>
+    <addaction name="menuTool_path_lines"/>
+   </widget>
+   <widget class="QMenu" name="menuTPP">
+    <property name="tearOffEnabled">
+     <bool>false</bool>
+    </property>
+    <property name="title">
+     <string>TPP</string>
+    </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
+    <addaction name="action_execute_pipeline"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuView"/>
+   <addaction name="menuTPP"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
    </property>
-   <property name="text">
-    <string>Load Config</string>
-   </property>
-   <property name="toolTip">
-    <string>Load a ToolPath configuration file (Ctrl+L)</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+L</string>
-   </property>
-  </action>
-  <action name="action_save_config">
-   <property name="icon">
-    <iconset resource="../resource.qrc">
-     <normaloff>:/load.svg</normaloff>:/load.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Save Configs</string>
-   </property>
-   <property name="toolTip">
-    <string>Saves current ToolPath configs as configuration file (Ctrl+S)</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+S</string>
-   </property>
-  </action>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="action_load_mesh"/>
+   <addaction name="action_load_config"/>
+   <addaction name="action_save_config"/>
+   <addaction name="separator"/>
+   <addaction name="action_execute_pipeline"/>
+  </widget>
   <action name="action_load_mesh">
    <property name="icon">
-    <iconset resource="../resource.qrc">
-     <normaloff>:/open-folder.svg</normaloff>:/open-folder.svg</iconset>
+    <iconset theme="document-open"/>
    </property>
    <property name="text">
-    <string>Load Mesh</string>
+    <string>Load mesh...</string>
    </property>
    <property name="toolTip">
-    <string>Opens up a mesh file (Ctrl+O)</string>
+    <string>Load mesh from file...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
    </property>
   </action>
-  <action name="action_execute_pipeline">
+  <action name="action_load_config">
    <property name="icon">
-    <iconset resource="../resource.qrc">
-     <normaloff>:/play-button.svg</normaloff>:/play-button.svg</iconset>
+    <iconset theme="document-properties"/>
    </property>
    <property name="text">
-    <string>Plan</string>
+    <string>Load TPP configuration...</string>
    </property>
    <property name="toolTip">
-    <string>Calculate Trajectory (Ctrl+R)</string>
+    <string>Load TPP configuration from file...</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+R</string>
+    <string>Ctrl+C</string>
    </property>
   </action>
-  <action name="action_show_original_mesh">
+  <action name="action_show_unmodified_mesh">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="checked">
     <bool>true</bool>
    </property>
-   <property name="icon">
-    <iconset resource="../resource.qrc">
-     <normaloff>:/semi-closed-eye.svg</normaloff>:/semi-closed-eye.svg</iconset>
-   </property>
    <property name="text">
-    <string>Original Mesh</string>
+    <string>Unmodified</string>
    </property>
    <property name="toolTip">
-    <string>Toggle visibility of the original mesh</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show mesh &lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;before&lt;/span&gt; modification step&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="action_show_modified_mesh">
    <property name="checkable">
     <bool>true</bool>
    </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="../resource.qrc">
-     <normaloff>:/semi-closed-eye.svg</normaloff>:/semi-closed-eye.svg</iconset>
-   </property>
    <property name="text">
-    <string>Modified Mesh</string>
+    <string>Modified</string>
    </property>
    <property name="toolTip">
-    <string>Toggle visibility of the modified mesh</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show mesh &lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;after&lt;/span&gt; modification step&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
-  <action name="action_show_original_tool_path">
+  <action name="action_show_unmodified_tool_path">
    <property name="checkable">
     <bool>true</bool>
    </property>
-   <property name="icon">
-    <iconset resource="../resource.qrc">
-     <normaloff>:/semi-closed-eye.svg</normaloff>:/semi-closed-eye.svg</iconset>
+   <property name="checked">
+    <bool>true</bool>
    </property>
    <property name="text">
-    <string>Original Tool Path</string>
+    <string>Unmodified</string>
    </property>
    <property name="toolTip">
-    <string>Toggle visibility of the original tool path</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show tool path waypoints &lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;before&lt;/span&gt; modification step&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="action_show_modified_tool_path">
    <property name="checkable">
     <bool>true</bool>
    </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="../resource.qrc">
-     <normaloff>:/semi-closed-eye.svg</normaloff>:/semi-closed-eye.svg</iconset>
-   </property>
    <property name="text">
-    <string>Modified Tool Path</string>
+    <string>Modified</string>
    </property>
    <property name="toolTip">
-    <string>Toggle visibility of the modified tool path</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show tool path waypoints &lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;after&lt;/span&gt; modification step&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="action_execute_pipeline">
+   <property name="icon">
+    <iconset theme="media-playback-start"/>
+   </property>
+   <property name="text">
+    <string>Plan</string>
+   </property>
+   <property name="toolTip">
+    <string>Plan tool path</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="action_save_config">
+   <property name="icon">
+    <iconset theme="document-save"/>
+   </property>
+   <property name="text">
+    <string>Save TPP configuration...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save TPP configuration...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="action_show_unmodified_tool_path_lines">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Unmodified</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show tool path lines &lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;before&lt;/span&gt; modification step&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="action_show_modified_tool_path_lines">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Modified</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show tool path lines &lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;after&lt;/span&gt; modification step&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
  </widget>
- <resources>
-  <include location="../resource.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>
