@@ -129,21 +129,92 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="check_box_show_original_tool_path">
-            <property name="text">
-             <string>Show Original Tool Path</string>
-            </property>
-           </widget>
+            <layout class="QHBoxLayout" name="horizontalLayout_originalToolPath">
+              <item>
+                <widget class="QLabel" name="label_4">
+                  <property name="text">
+                    <string>Original Tool Path:</string>
+                  </property>
+                </widget>
+              </item>
+              <item>
+                <widget class="QCheckBox" name="check_box_show_original_tool_path">
+                    <property name="text">
+                      <string>Show Points</string>
+                    </property>
+                </widget>
+              </item>
+              <item>
+                <widget class="QCheckBox" name="check_box_show_original_connected_path">
+                    <property name="text">
+                      <string>Show Line</string>
+                    </property>
+                </widget>
+              </item>
+              <item>
+              <spacer>
+                <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                  <enum>QSizePolicy::Expanding</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                  <size>
+                    <width>0</width>
+                    <height>0</height>
+                  </size>
+                </property>
+              </spacer>
+              </item>
+            </layout>
           </item>
           <item>
-           <widget class="QCheckBox" name="check_box_show_modified_tool_path">
-            <property name="text">
-             <string>Show Modified Tool Path</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
+          <layout class="QHBoxLayout" name="horizonalLayout_modifiedToolPath">
+            <item>
+              <widget class="QLabel" name="label_3">
+                <property name="text">
+                  <string>Modified Tool Path:</string>
+                </property>
+              </widget>
+            </item>
+            <item>
+              <widget class="QCheckBox" name="check_box_show_modified_tool_path">
+                <property name="text">
+                  <string>Show Points</string>
+                </property>
+                <property name="checked">
+                  <bool>true</bool>
+                </property>
+              </widget>
+            </item>
+            <item>
+              <widget class="QCheckBox" name="check_box_show_modified_connected_path">
+                <property name="text">
+                  <string>Show Line</string>
+                </property>
+                <property name="checked">
+                  <bool>true</bool>
+                </property>
+              </widget>
+            </item>
+            <item>
+              <spacer>
+                <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                  <enum>QSizePolicy::Expanding</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                  <size>
+                    <width>0</width>
+                    <height>0</height>
+                  </size>
+                </property>
+              </spacer>
+            </item>
+          </layout>
           </item>
          </layout>
         </widget>

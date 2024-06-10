@@ -39,6 +39,13 @@ namespace noether
 {
 class ConfigurableTPPPipelineWidget;
 
+enum class LineStyle
+{
+  INTRA_SEGMENT = 0, /*@brief between waypoints in a segment*/
+  INTER_SEGMENT,     /*@brief between tool path segments*/
+  INTER_PATH,        /*@brief between tool paths*/
+};
+
 /**
  * @brief Basic tool path planning widget
  * @details Allows the user to laod a mesh from file, configure a tool path planning pipeline, and generate tool paths
@@ -66,7 +73,9 @@ private:
   void onShowOriginalMesh(const bool);
   void onShowModifiedMesh(const bool);
   void onShowUnmodifiedToolPath(const bool);
+  void onShowUnmodifiedConnectedPath(const bool);
   void onShowModifiedToolPath(const bool);
+  void onShowModifiedConnectedPath(const bool);
 
   Ui::TPP* ui_;
   ConfigurableTPPPipelineWidget* pipeline_widget_;
@@ -78,7 +87,9 @@ private:
   vtkSmartPointer<vtkActor> mesh_actor_;
 
   vtkSmartPointer<vtkAssembly> tool_path_actor_;
+  vtkSmartPointer<vtkAssembly> connected_path_actor_;
   vtkSmartPointer<vtkAssembly> unmodified_tool_path_actor_;
+  vtkSmartPointer<vtkAssembly> unmodified_connected_path_actor_;
   vtkSmartPointer<vtkAssembly> mesh_fragment_actor_;
 
   vtkSmartPointer<vtkAxes> axes_;
