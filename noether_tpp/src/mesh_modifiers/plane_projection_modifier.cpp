@@ -120,12 +120,14 @@ std::vector<pcl::PolygonMesh> PlaneProjectionMeshModifier::modify(const pcl::Pol
 
     // Extract the inlier submesh
     pcl::PolygonMesh output_mesh = extractSubMeshFromInlierVertices(mesh, inliers);
+    if (!output_mesh.polygons.empty())
+    {
+      // Project the inlier vertices onto the plane
+      projectInPlace(output_mesh.cloud, plane_coeffs);
 
-    // Project the inlier vertices onto the plane
-    projectInPlace(output_mesh.cloud, plane_coeffs);
-
-    // Append the extracted and projected mesh to the vector of output meshes
-    output.push_back(output_mesh);
+      // Append the extracted and projected mesh to the vector of output meshes
+      output.push_back(output_mesh);
+    }
 
     // Remove the inlier indices from the list of remaining indices
     std::size_t num_outliers = remaining_indices.size() - inliers.size();
