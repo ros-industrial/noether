@@ -47,6 +47,7 @@ qt5_wrap_cpp(${PROJECT_NAME}_widget_mocs
   include/${PROJECT_NAME}/widgets/tool_path_modifiers/linear_departure_modifier_widget.h
   include/${PROJECT_NAME}/widgets/tool_path_modifiers/tool_drag_orientation_modifier_widget.h
   include/${PROJECT_NAME}/widgets/tool_path_modifiers/uniform_orientation_modifier_widget.h
+  include/${PROJECT_NAME}/widgets/tool_path_modifiers/offset_modifier_widget.h
   # Mesh Modifiers
   include/${PROJECT_NAME}/widgets/mesh_modifiers/plane_projection_modifier_widget.h)
 
@@ -54,6 +55,7 @@ qt5_add_resources(QRC_SOURCES resources/resource.qrc)
 
 qt5_wrap_ui(${PROJECT_NAME}_widget_ui_mocs
   ui/vector3d_editor_widget.ui
+  ui/quaternion_editor_widget.ui
   ui/plugin_loader_widget.ui
   ui/linear_approach_modifier_widget.ui
   ui/raster_planner_widget.ui
@@ -96,6 +98,7 @@ add_library(${PROJECT_NAME} SHARED
   src/widgets/tool_path_modifiers/linear_departure_modifier_widget.cpp
   src/widgets/tool_path_modifiers/tool_drag_orientation_modifier_widget.cpp
   src/widgets/tool_path_modifiers/uniform_orientation_modifier_widget.cpp
+  src/widgets/tool_path_modifiers/offset_modifier_widget.cpp
   # Mesh Modifiers
   src/widgets/mesh_modifiers/plane_projection_modifier_widget.cpp
   src/widgets/mesh_modifiers/euclidean_clustering_modifier_widget.cpp

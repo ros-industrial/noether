@@ -53,6 +53,7 @@ add_library(${PROJECT_NAME} SHARED
   src/tool_path_modifiers/linear_departure_modifier.cpp
   src/tool_path_modifiers/tool_drag_orientation_modifier.cpp
   src/tool_path_modifiers/uniform_orientation_modifier.cpp
+  src/tool_path_modifiers/offset_modifier.cpp
   # Tool Path Planners
   src/tool_path_planners/edge/edge_planner.cpp
   src/tool_path_planners/raster/raster_planner.cpp
