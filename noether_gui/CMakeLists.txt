@@ -23,6 +23,7 @@ qt5_wrap_cpp(${PROJECT_NAME}_widget_mocs
   include/${PROJECT_NAME}/widgets/configurable_tpp_pipeline_widget.h
   include/${PROJECT_NAME}/widgets/tpp_widget.h
   # Tool Path Planners
+  include/${PROJECT_NAME}/widgets/tool_path_planners/flat_plane_toolpath_planner_widget.h
   #   Raster
   #   Direction Generator
   include/${PROJECT_NAME}/widgets/tool_path_planners/raster/direction_generators/fixed_direction_generator_widget.h
@@ -54,6 +55,8 @@ qt5_add_resources(QRC_SOURCES resources/resource.qrc)
 
 qt5_wrap_ui(${PROJECT_NAME}_widget_ui_mocs
   ui/vector3d_editor_widget.ui
+  ui/isometry3d_editor_widget.ui
+  ui/vector2d_editor_widget.ui
   ui/plugin_loader_widget.ui
   ui/linear_approach_modifier_widget.ui
   ui/raster_planner_widget.ui
@@ -71,6 +74,7 @@ add_library(${PROJECT_NAME} SHARED
   src/widgets/configurable_tpp_pipeline_widget.cpp
   src/widgets/tpp_widget.cpp
   # Tool Path Planners
+  src/widgets/tool_path_planners/flat_plane_toolpath_planner_widget.cpp
   #   Raster Planner
   src/widgets/tool_path_planners/raster/raster_planner_widget.cpp
   #   Direction Generator
