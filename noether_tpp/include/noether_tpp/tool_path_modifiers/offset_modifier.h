@@ -11,7 +11,7 @@ namespace noether
 class OffsetModifier : public ToolPathModifier
 {
 public:
-  OffsetModifier(Eigen::Isometry3d offset);
+  OffsetModifier(const Eigen::Isometry3d& offset);
 
   ToolPaths modify(ToolPaths tool_paths) const override;
 

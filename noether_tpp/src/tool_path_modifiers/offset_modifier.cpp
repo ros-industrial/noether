@@ -3,7 +3,7 @@
 
 namespace noether
 {
-OffsetModifier::OffsetModifier(Eigen::Isometry3d offset) : offset_(offset) {}
+OffsetModifier::OffsetModifier(const Eigen::Isometry3d& offset) : offset_(offset) {}
 
 ToolPaths OffsetModifier::modify(ToolPaths tool_paths) const
 {
@@ -13,7 +13,7 @@ ToolPaths OffsetModifier::modify(ToolPaths tool_paths) const
     {
       for (Eigen::Isometry3d& w : tps)
       {
-        w = offset_ * w;
+        w = w * offset_;
       }
     }
   }

@@ -16,12 +16,12 @@ OffsetModifierWidget::OffsetModifierWidget(QWidget* parent)
   // Print text on created widget
   auto page_vector = new QWidget(this);
   ui_vector_->setupUi(page_vector);
-  ui_vector_->group_box->setTitle("local offset");
+  ui_vector_->group_box->setTitle("Translation");
   layout->addWidget(page_vector);
 
   auto page_quaternion = new QWidget(this);
   ui_quaternion_->setupUi(page_quaternion);
-  ui_quaternion_->group_box->setTitle("local rotation");
+  ui_quaternion_->group_box->setTitle("Rotation");
   layout->addWidget(page_quaternion);
 
   setLayout(layout);
@@ -29,22 +29,13 @@ OffsetModifierWidget::OffsetModifierWidget(QWidget* parent)
 
 void OffsetModifierWidget::configure(const YAML::Node& config)
 {
-  Eigen::Vector3d dir(getEntry<double>(config, "x"), getEntry<double>(config, "y"), getEntry<double>(config, "z"));
-  dir.normalize();
-
-  ui_vector_->double_spin_box_x->setValue(dir.x());
-  ui_vector_->double_spin_box_y->setValue(dir.y());
-  ui_vector_->double_spin_box_z->setValue(dir.z());
-
-  Eigen::Quaterniond q(getEntry<double>(config, "qx"),
-                       getEntry<double>(config, "qy"),
-                       getEntry<double>(config, "qz"),
-                       getEntry<double>(config, "qw"));
-
-  ui_quaternion_->double_spin_box_qx->setValue(q.x());
-  ui_quaternion_->double_spin_box_qy->setValue(q.y());
-  ui_quaternion_->double_spin_box_qz->setValue(q.z());
-  ui_quaternion_->double_spin_box_qw->setValue(q.w());
+  ui_vector_->double_spin_box_x->setValue(getEntry<double>(config, "x"));
+  ui_vector_->double_spin_box_y->setValue(getEntry<double>(config, "y"));
+  ui_vector_->double_spin_box_z->setValue(getEntry<double>(config, "z"));
+  ui_quaternion_->double_spin_box_qx->setValue(getEntry<double>(config, "qx"));
+  ui_quaternion_->double_spin_box_qy->setValue(getEntry<double>(config, "qy"));
+  ui_quaternion_->double_spin_box_qz->setValue(getEntry<double>(config, "qz"));
+  ui_quaternion_->double_spin_box_qw->setValue(getEntry<double>(config, "qw"));
 }
 
 void OffsetModifierWidget::save(YAML::Node& config) const
