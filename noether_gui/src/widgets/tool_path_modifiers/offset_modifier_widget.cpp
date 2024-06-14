@@ -59,6 +59,9 @@ ToolPathModifier::ConstPtr OffsetModifierWidget::create() const
                        ui_quaternion_->double_spin_box_qy->value(),
                        ui_quaternion_->double_spin_box_qz->value());
 
+  // Normalize the quaternion in case the values are not unit length
+  q.normalize();
+
   Eigen::Isometry3d offset = Eigen::Isometry3d::Identity();
   offset.translation() = position;
   offset.linear() = q.toRotationMatrix();
