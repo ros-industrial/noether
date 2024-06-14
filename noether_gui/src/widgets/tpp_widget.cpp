@@ -4,7 +4,6 @@
 #include <noether_gui/widgets/tpp_pipeline_widget.h>
 #include <noether_gui/utils.h>
 
-#include <fstream>
 #include <pcl/io/vtk_lib_io.h>
 #include <QColorDialog>
 #include <QFileDialog>
@@ -43,7 +42,7 @@
 namespace noether
 {
 TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
-  : QWidget(parent)
+  : QMainWindow(parent)
   , ui_(new Ui::TPP())
   , pipeline_widget_(new ConfigurableTPPPipelineWidget(std::move(loader), this))
   , render_widget_(new RenderWidget(this))
@@ -60,7 +59,7 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
 {
   ui_->setupUi(this);
 
-  overwriteWidget(ui_->group_box_configuration->layout(), ui_->widget, pipeline_widget_);
+  overwriteWidget(ui_->verticalLayout, ui_->widget, pipeline_widget_);
   ui_->splitter->addWidget(render_widget_);
 
   // Set up the VTK objects
@@ -86,26 +85,37 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   render_widget_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 
   // Set visibility of the actors based on the default state of the check boxes
-  mesh_actor_->SetVisibility(ui_->check_box_show_original_mesh->isChecked());
-  mesh_fragment_actor_->SetVisibility(ui_->check_box_show_modified_mesh->isChecked());
-  unmodified_tool_path_actor_->SetVisibility(ui_->check_box_show_original_tool_path->isChecked());
-  unmodified_connected_path_actor_->SetVisibility(ui_->check_box_show_original_connected_path->isChecked());
-  tool_path_actor_->SetVisibility(ui_->check_box_show_modified_tool_path->isChecked());
-  connected_path_actor_->SetVisibility(ui_->check_box_show_modified_connected_path->isChecked());
+  mesh_actor_->SetVisibility(ui_->action_show_unmodified_mesh->isChecked());
+  mesh_fragment_actor_->SetVisibility(ui_->action_show_modified_mesh->isChecked());
+  unmodified_tool_path_actor_->SetVisibility(ui_->action_show_unmodified_tool_path->isChecked());
+  tool_path_actor_->SetVisibility(ui_->action_show_modified_tool_path->isChecked());
+  unmodified_connected_path_actor_->SetVisibility(ui_->action_show_unmodified_tool_path_lines->isChecked());
+  connected_path_actor_->SetVisibility(ui_->action_show_modified_tool_path_lines->isChecked());
 
   // Connect signals
-  connect(ui_->push_button_load_mesh, &QPushButton::clicked, this, &TPPWidget::onLoadMesh);
-  connect(ui_->check_box_show_original_mesh, &QCheckBox::clicked, this, &TPPWidget::onShowOriginalMesh);
-  connect(ui_->check_box_show_modified_mesh, &QCheckBox::clicked, this, &TPPWidget::onShowModifiedMesh);
-  connect(ui_->check_box_show_original_connected_path,
-          &QCheckBox::clicked,
+  connect(ui_->action_load_mesh, &QAction::triggered, this, &TPPWidget::onLoadMesh);
+  connect(ui_->action_execute_pipeline, &QAction::triggered, this, &TPPWidget::onPlan);
+
+  connect(ui_->action_show_unmodified_mesh, &QAction::triggered, this, &TPPWidget::onShowOriginalMesh);
+  connect(ui_->action_show_modified_mesh, &QAction::triggered, this, &TPPWidget::onShowModifiedMesh);
+  connect(ui_->action_show_unmodified_tool_path, &QAction::triggered, this, &TPPWidget::onShowUnmodifiedToolPath);
+  connect(ui_->action_show_modified_tool_path, &QAction::triggered, this, &TPPWidget::onShowModifiedToolPath);
+  connect(ui_->action_show_unmodified_tool_path_lines,
+          &QAction::triggered,
           this,
           &TPPWidget::onShowUnmodifiedConnectedPath);
-  connect(ui_->check_box_show_original_tool_path, &QCheckBox::clicked, this, &TPPWidget::onShowUnmodifiedToolPath);
   connect(
-      ui_->check_box_show_modified_connected_path, &QCheckBox::clicked, this, &TPPWidget::onShowModifiedConnectedPath);
-  connect(ui_->check_box_show_modified_tool_path, &QCheckBox::clicked, this, &TPPWidget::onShowModifiedToolPath);
-  connect(ui_->push_button_plan, &QPushButton::clicked, this, &TPPWidget::onPlan);
+      ui_->action_show_modified_tool_path_lines, &QAction::triggered, this, &TPPWidget::onShowModifiedConnectedPath);
+
+  connect(ui_->action_load_config,
+          &QAction::triggered,
+          pipeline_widget_,
+          &ConfigurableTPPPipelineWidget::onLoadConfiguration);
+  connect(ui_->action_save_config,
+          &QAction::triggered,
+          pipeline_widget_,
+          &ConfigurableTPPPipelineWidget::onSaveConfiguration);
+
   connect(ui_->double_spin_box_axis_size, &QDoubleSpinBox::editingFinished, this, [this]() {
     axes_->SetScaleFactor(ui_->double_spin_box_axis_size->value());
     tube_filter_->SetRadius(axes_->GetScaleFactor() / 10.0);
@@ -160,8 +170,6 @@ std::vector<ToolPaths> TPPWidget::getToolPaths() { return tool_paths_; }
 
 void TPPWidget::setMeshFile(const QString& file)
 {
-  ui_->line_edit_mesh->setText(file);
-
   // Render the mesh
   vtkSmartPointer<vtkAbstractPolyDataReader> reader;
   if (file.endsWith(".ply"))
@@ -170,6 +178,8 @@ void TPPWidget::setMeshFile(const QString& file)
     reader = vtkSmartPointer<vtkSTLReader>::New();
   else
     return;
+
+  mesh_file_ = file.toStdString();
 
   reader->SetFileName(file.toStdString().c_str());
   reader->Update();
@@ -187,8 +197,7 @@ void TPPWidget::setMeshFile(const QString& file)
 
 void TPPWidget::onLoadMesh(const bool /*checked*/)
 {
-  const QString home = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).at(0);
-  const QString file = QFileDialog::getOpenFileName(this, "Load mesh file", home, "Mesh files (*.ply *.stl)");
+  const QString file = QFileDialog::getOpenFileName(this, "Load mesh file", "", "Mesh files (*.ply *.stl)");
   if (!file.isNull())
     setMeshFile(file);
 }
@@ -379,13 +388,12 @@ void TPPWidget::onPlan(const bool /*checked*/)
 {
   try
   {
-    const std::string mesh_file = ui_->line_edit_mesh->text().toStdString();
-    if (mesh_file.empty())
+    if (mesh_file_.empty())
       throw std::runtime_error("No mesh file selected");
 
     // Load the mesh
     pcl::PolygonMesh full_mesh;
-    if (pcl::io::loadPolygonFile(mesh_file, full_mesh) < 1)
+    if (pcl::io::loadPolygonFile(mesh_file_, full_mesh) < 1)
       throw std::runtime_error("Failed to load mesh from file");
 
     const ToolPathPlannerPipeline pipeline = pipeline_widget_->createPipeline();
@@ -415,7 +423,7 @@ void TPPWidget::onPlan(const bool /*checked*/)
       renderer_->RemoveActor(mesh_fragment_actor_);
       mesh_fragment_actor_ = createMeshActors(meshes);
       renderer_->AddActor(mesh_fragment_actor_);
-      mesh_fragment_actor_->SetVisibility(ui_->check_box_show_modified_mesh->isChecked());
+      mesh_fragment_actor_->SetVisibility(ui_->action_show_modified_mesh->isChecked());
     }
 
     // Render the unmodified tool paths
@@ -423,7 +431,7 @@ void TPPWidget::onPlan(const bool /*checked*/)
       renderer_->RemoveActor(unmodified_tool_path_actor_);
       unmodified_tool_path_actor_ = createToolPathActors(unmodified_tool_paths, tube_filter_->GetOutputPort());
       renderer_->AddActor(unmodified_tool_path_actor_);
-      unmodified_tool_path_actor_->SetVisibility(ui_->check_box_show_original_tool_path->isChecked());
+      unmodified_tool_path_actor_->SetVisibility(ui_->action_show_unmodified_tool_path->isChecked());
     }
 
     // Render the unmodified connected paths
@@ -432,7 +440,7 @@ void TPPWidget::onPlan(const bool /*checked*/)
       unmodified_connected_path_actor_ =
           createToolPathPolylineActor(unmodified_tool_paths, tube_filter_->GetOutputPort());
       renderer_->AddActor(unmodified_connected_path_actor_);
-      unmodified_connected_path_actor_->SetVisibility(ui_->check_box_show_original_connected_path->isChecked());
+      unmodified_connected_path_actor_->SetVisibility(ui_->action_show_unmodified_tool_path_lines->isChecked());
     }
 
     // Render the modified tool paths
@@ -440,7 +448,7 @@ void TPPWidget::onPlan(const bool /*checked*/)
       renderer_->RemoveActor(tool_path_actor_);
       tool_path_actor_ = createToolPathActors(tool_paths_, tube_filter_->GetOutputPort());
       renderer_->AddActor(tool_path_actor_);
-      tool_path_actor_->SetVisibility(ui_->check_box_show_modified_tool_path->isChecked());
+      tool_path_actor_->SetVisibility(ui_->action_show_modified_tool_path->isChecked());
     }
 
     // Render the modified connected paths
@@ -448,7 +456,7 @@ void TPPWidget::onPlan(const bool /*checked*/)
       renderer_->RemoveActor(connected_path_actor_);
       connected_path_actor_ = createToolPathPolylineActor(tool_paths_, tube_filter_->GetOutputPort());
       renderer_->AddActor(connected_path_actor_);
-      connected_path_actor_->SetVisibility(ui_->check_box_show_modified_connected_path->isChecked());
+      connected_path_actor_->SetVisibility(ui_->action_show_modified_tool_path_lines->isChecked());
     }
 
     // Call render twice

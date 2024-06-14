@@ -30,11 +30,10 @@ public:
   void configure(const YAML::Node& config);
   void configure(const QString& file);
   void save(YAML::Node& config) const;
-
-private:
   void onLoadConfiguration(const bool /*checked*/);
   void onSaveConfiguration(const bool /*checked*/);
 
+private:
   Ui::ConfigurableTPPPipeline* ui_;
   TPPPipelineWidget* pipeline_widget_;
 };

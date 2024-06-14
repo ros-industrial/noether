@@ -37,19 +37,16 @@ int main(int argc, char** argv)
   loader.search_libraries_env = NOETHER_GUI_PLUGIN_LIBS_ENV;
   loader.search_paths_env = NOETHER_GUI_PLUGIN_PATHS_ENV;
 
-  // Create the main window
-  QMainWindow w;
-
   // Create (and optionally configure) the TPP widget
-  auto* widget = new noether::TPPWidget(std::move(loader), &w);
-  if (!mesh_file.empty())
-    widget->setMeshFile(QString::fromStdString(mesh_file));
-  if (!config_file.empty())
-    widget->setConfigurationFile(QString::fromStdString(config_file));
+  auto widget = noether::TPPWidget(std::move(loader));
+  widget.setWindowIcon(QIcon(":/icons/icon.jpg"));
+  widget.setWindowTitle("Tool Path Planner");
+  widget.showMaximized();
 
-  // Set the TPP widget as the central widget and show
-  w.setCentralWidget(widget);
-  w.showMaximized();
+  if (!mesh_file.empty())
+    widget.setMeshFile(QString::fromStdString(mesh_file));
+  if (!config_file.empty())
+    widget.setConfigurationFile(QString::fromStdString(config_file));
 
   return app.exec();
 }

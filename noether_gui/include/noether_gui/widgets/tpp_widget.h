@@ -1,7 +1,7 @@
 #pragma once
 
 #include <noether_tpp/core/types.h>
-#include <QWidget>
+#include <QMainWindow>
 #include <vtkSmartPointer.h>
 
 #ifndef VTK_MAJOR_VERSION
@@ -51,7 +51,7 @@ enum class LineStyle
  * @details Allows the user to laod a mesh from file, configure a tool path planning pipeline, and generate tool paths
  * from the input mesh
  */
-class TPPWidget : public QWidget
+class TPPWidget : public QMainWindow
 {
   Q_OBJECT
 public:
@@ -76,6 +76,8 @@ private:
   void onShowUnmodifiedConnectedPath(const bool);
   void onShowModifiedToolPath(const bool);
   void onShowModifiedConnectedPath(const bool);
+
+  std::string mesh_file_;
 
   Ui::TPP* ui_;
   ConfigurableTPPPipelineWidget* pipeline_widget_;

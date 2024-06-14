@@ -7,7 +7,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QTextStream>
-#include <QStandardPaths>
+#include <QAction>
 #include <yaml-cpp/yaml.h>
 
 namespace noether
@@ -19,10 +19,6 @@ ConfigurableTPPPipelineWidget::ConfigurableTPPPipelineWidget(boost_plugin_loader
 {
   ui_->setupUi(this);
   layout()->addWidget(pipeline_widget_);
-
-  // Connect
-  connect(ui_->push_button_load, &QPushButton::clicked, this, &ConfigurableTPPPipelineWidget::onLoadConfiguration);
-  connect(ui_->push_button_save, &QPushButton::clicked, this, &ConfigurableTPPPipelineWidget::onSaveConfiguration);
 }
 
 ToolPathPlannerPipeline ConfigurableTPPPipelineWidget::createPipeline() const
@@ -37,7 +33,6 @@ void ConfigurableTPPPipelineWidget::configure(const QString& file)
   try
   {
     configure(YAML::LoadFile(file.toStdString()));
-    ui_->line_edit->setText(file);
   }
   catch (const YAML::BadFile&)
   {
@@ -58,8 +53,6 @@ void ConfigurableTPPPipelineWidget::save(YAML::Node& config) const { return pipe
 
 void ConfigurableTPPPipelineWidget::setConfigurationFile(const QString& file)
 {
-  ui_->line_edit->setText(file);
-
   try
   {
     configure(YAML::LoadFile(file.toStdString()));
@@ -81,11 +74,8 @@ void ConfigurableTPPPipelineWidget::setConfigurationFile(const QString& file)
 
 void ConfigurableTPPPipelineWidget::onLoadConfiguration(const bool /*checked*/)
 {
-  QString file = ui_->line_edit->text();
-  if (file.isEmpty())
-    file = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).at(0);
+  QString file = QFileDialog::getOpenFileName(this, "Load configuration file", "", "YAML files (*.yaml)");
 
-  file = QFileDialog::getOpenFileName(this, "Load configuration file", file, "YAML files (*.yaml)");
   if (!file.isEmpty())
     setConfigurationFile(file);
 }
@@ -94,11 +84,7 @@ void ConfigurableTPPPipelineWidget::onSaveConfiguration(const bool /*checked*/)
 {
   try
   {
-    QString file = ui_->line_edit->text();
-    if (file.isEmpty())
-      file = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).at(0);
-
-    file = QFileDialog::getSaveFileName(this, "Save configuration file", file, "YAML files (*.yaml)");
+    QString file = QFileDialog::getSaveFileName(this, "Save configuration file", "", "YAML files (*.yaml)");
     if (file.isEmpty())
       return;
 
