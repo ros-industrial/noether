@@ -34,8 +34,6 @@ public:
   void onSaveConfiguration(const bool /*checked*/);
 
 private:
-  std::string config_file_path_;
-
   Ui::ConfigurableTPPPipeline* ui_;
   TPPPipelineWidget* pipeline_widget_;
 };

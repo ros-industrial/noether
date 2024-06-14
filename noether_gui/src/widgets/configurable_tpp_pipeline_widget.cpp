@@ -16,7 +16,6 @@ ConfigurableTPPPipelineWidget::ConfigurableTPPPipelineWidget(boost_plugin_loader
   : QWidget(parent)
   , ui_(new Ui::ConfigurableTPPPipeline())
   , pipeline_widget_(new TPPPipelineWidget(std::move(loader), this))
-  , config_file_path_("")
 {
   ui_->setupUi(this);
   layout()->addWidget(pipeline_widget_);
@@ -34,7 +33,6 @@ void ConfigurableTPPPipelineWidget::configure(const QString& file)
   try
   {
     configure(YAML::LoadFile(file.toStdString()));
-    config_file_path_ = file.toStdString();
   }
   catch (const YAML::BadFile&)
   {
@@ -55,11 +53,9 @@ void ConfigurableTPPPipelineWidget::save(YAML::Node& config) const { return pipe
 
 void ConfigurableTPPPipelineWidget::setConfigurationFile(const QString& file)
 {
-  config_file_path_ = file.toStdString();
-
   try
   {
-    configure(YAML::LoadFile(config_file_path_));
+    configure(YAML::LoadFile(file.toStdString()));
   }
   catch (const YAML::BadFile&)
   {

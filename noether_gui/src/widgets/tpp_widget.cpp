@@ -44,6 +44,7 @@ namespace noether
 TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   : QMainWindow(parent)
   , ui_(new Ui::TPP())
+  , pipeline_widget_(new ConfigurableTPPPipelineWidget(std::move(loader), this))
   , render_widget_(new RenderWidget(this))
   , renderer_(vtkSmartPointer<vtkOpenGLRenderer>::New())
   , mesh_mapper_(vtkSmartPointer<vtkOpenGLPolyDataMapper>::New())
@@ -55,8 +56,6 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   , unmodified_connected_path_actor_(vtkSmartPointer<vtkAssembly>::New())
   , axes_(vtkSmartPointer<vtkAxes>::New())
   , tube_filter_(vtkSmartPointer<vtkTubeFilter>::New())
-  , mesh_file_path_("")
-  , pipeline_widget_(new ConfigurableTPPPipelineWidget(std::move(loader), this))
 {
   ui_->setupUi(this);
 
@@ -180,7 +179,7 @@ void TPPWidget::setMeshFile(const QString& file)
   else
     return;
 
-  mesh_file_path_ = file.toStdString();
+  mesh_file_ = file.toStdString();
 
   reader->SetFileName(file.toStdString().c_str());
   reader->Update();
@@ -389,14 +388,12 @@ void TPPWidget::onPlan(const bool /*checked*/)
 {
   try
   {
-    const std::string mesh_file = mesh_file_path_;
-
-    if (mesh_file.empty())
+    if (mesh_file_.empty())
       throw std::runtime_error("No mesh file selected");
 
     // Load the mesh
     pcl::PolygonMesh full_mesh;
-    if (pcl::io::loadPolygonFile(mesh_file, full_mesh) < 1)
+    if (pcl::io::loadPolygonFile(mesh_file_, full_mesh) < 1)
       throw std::runtime_error("Failed to load mesh from file");
 
     const ToolPathPlannerPipeline pipeline = pipeline_widget_->createPipeline();
