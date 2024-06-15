@@ -17,40 +17,6 @@ find_package(yaml-cpp REQUIRED)
 option(NOETHER_ENABLE_CLANG_TIDY "Enables compilation with clang-tidy" OFF)
 option(NOETHER_ENABLE_TESTING "Enables compilation of unit tests" OFF)
 
-qt5_wrap_cpp(${PROJECT_NAME}_widget_mocs
-  include/${PROJECT_NAME}/widgets/collapsible_area_widget.h
-  include/${PROJECT_NAME}/widgets/tpp_pipeline_widget.h
-  include/${PROJECT_NAME}/widgets/configurable_tpp_pipeline_widget.h
-  include/${PROJECT_NAME}/widgets/tpp_widget.h
-  # Tool Path Planners
-  #   Raster
-  #   Direction Generator
-  include/${PROJECT_NAME}/widgets/tool_path_planners/raster/direction_generators/fixed_direction_generator_widget.h
-  include/${PROJECT_NAME}/widgets/tool_path_planners/raster/direction_generators/principal_axis_direction_generator_widget.h
-  #   Origin Generator
-  include/${PROJECT_NAME}/widgets/tool_path_planners/raster/origin_generators/fixed_origin_generator_widget.h
-  include/${PROJECT_NAME}/widgets/tool_path_planners/raster/origin_generators/aabb_origin_generator_widget.h
-  include/${PROJECT_NAME}/widgets/tool_path_planners/raster/origin_generators/centroid_origin_generator_widget.h
-  #   Plane Slicer Raster Planner
-  include/${PROJECT_NAME}/widgets/tool_path_planners/raster/plane_slicer_raster_planner_widget.h
-  # Tool Path Modifiers
-  include/${PROJECT_NAME}/widgets/tool_path_modifiers/circular_lead_in_modifier_widget.h
-  include/${PROJECT_NAME}/widgets/tool_path_modifiers/circular_lead_out_modifier_widget.h
-  include/${PROJECT_NAME}/widgets/tool_path_modifiers/concatenate_modifier_widget.h
-  include/${PROJECT_NAME}/widgets/tool_path_modifiers/direction_of_travel_orientation_modifier_widget.h
-  include/${PROJECT_NAME}/widgets/tool_path_modifiers/fixed_orientation_modifier_widget.h
-  include/${PROJECT_NAME}/widgets/tool_path_modifiers/moving_average_orientation_smoothing_modifier_widget.h
-  include/${PROJECT_NAME}/widgets/tool_path_modifiers/raster_organization_modifier_widget.h
-  include/${PROJECT_NAME}/widgets/tool_path_modifiers/snake_organization_modifier_widget.h
-  include/${PROJECT_NAME}/widgets/tool_path_modifiers/standard_edge_paths_organization_modifier_widget.h
-  include/${PROJECT_NAME}/widgets/tool_path_modifiers/linear_approach_modifier_widget.h
-  include/${PROJECT_NAME}/widgets/tool_path_modifiers/linear_departure_modifier_widget.h
-  include/${PROJECT_NAME}/widgets/tool_path_modifiers/tool_drag_orientation_modifier_widget.h
-  include/${PROJECT_NAME}/widgets/tool_path_modifiers/uniform_orientation_modifier_widget.h
-  include/${PROJECT_NAME}/widgets/tool_path_modifiers/offset_modifier_widget.h
-  # Mesh Modifiers
-  include/${PROJECT_NAME}/widgets/mesh_modifiers/plane_projection_modifier_widget.h)
-
 qt5_add_resources(QRC_SOURCES resources/resource.qrc)
 
 qt5_wrap_ui(${PROJECT_NAME}_widget_ui_mocs
@@ -102,7 +68,6 @@ add_library(${PROJECT_NAME} SHARED
   # Mesh Modifiers
   src/widgets/mesh_modifiers/plane_projection_modifier_widget.cpp
   src/widgets/mesh_modifiers/euclidean_clustering_modifier_widget.cpp
-  ${${PROJECT_NAME}_widget_mocs}
   ${${PROJECT_NAME}_widget_ui_mocs}
   ${QRC_SOURCES}
 )

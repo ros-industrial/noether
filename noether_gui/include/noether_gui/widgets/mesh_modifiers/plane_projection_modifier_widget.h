@@ -10,7 +10,6 @@ namespace noether
 {
 class PlaneProjectionMeshModifierWidget : public MeshModifierWidget
 {
-  Q_OBJECT
 public:
   PlaneProjectionMeshModifierWidget(QWidget* parent = nullptr);
 

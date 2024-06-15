@@ -10,7 +10,6 @@ namespace noether
 {
 class ToolDragOrientationToolPathModifierWidget : public ToolPathModifierWidget
 {
-  Q_OBJECT
 public:
   ToolDragOrientationToolPathModifierWidget(QWidget* parent = nullptr);
 

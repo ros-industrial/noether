@@ -8,7 +8,6 @@ namespace noether
 {
 struct CentroidOriginGeneratorWidget : public OriginGeneratorWidget
 {
-  Q_OBJECT
 public:
   using BaseWidget::BaseWidget;
 

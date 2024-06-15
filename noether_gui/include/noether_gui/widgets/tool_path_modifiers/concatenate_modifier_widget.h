@@ -8,7 +8,6 @@ namespace noether
 {
 struct ConcatenateModifierWidget : public ToolPathModifierWidget
 {
-  Q_OBJECT
 public:
   using ToolPathModifierWidget::ToolPathModifierWidget;
 

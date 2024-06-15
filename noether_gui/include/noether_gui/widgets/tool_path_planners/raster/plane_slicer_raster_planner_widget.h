@@ -8,7 +8,6 @@ namespace noether
 {
 class PlaneSlicerRasterPlannerWidget : public RasterPlannerWidget
 {
-  Q_OBJECT
 public:
   PlaneSlicerRasterPlannerWidget(boost_plugin_loader::PluginLoader&& loader, QWidget* parent = nullptr);
 

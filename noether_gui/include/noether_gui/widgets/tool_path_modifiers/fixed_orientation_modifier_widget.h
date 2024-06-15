@@ -13,7 +13,6 @@ namespace noether
 {
 class FixedOrientationModifierWidget : public ToolPathModifierWidget
 {
-  Q_OBJECT
 public:
   FixedOrientationModifierWidget(QWidget* parent = nullptr);
   ToolPathModifier::ConstPtr create() const override;

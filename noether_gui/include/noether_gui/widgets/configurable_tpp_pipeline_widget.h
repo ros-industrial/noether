@@ -20,7 +20,6 @@ class TPPPipelineWidget;
 
 class ConfigurableTPPPipelineWidget : public QWidget
 {
-  Q_OBJECT
 public:
   ConfigurableTPPPipelineWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent = nullptr);
 

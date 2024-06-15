@@ -8,7 +8,6 @@ namespace noether
 {
 struct SnakeOrganizationModifierWidget : public ToolPathModifierWidget
 {
-  Q_OBJECT
 public:
   using ToolPathModifierWidget::ToolPathModifierWidget;
 

@@ -16,7 +16,6 @@ namespace noether
  */
 class CollapsibleArea : public QWidget
 {
-  Q_OBJECT
 public:
   CollapsibleArea(QWidget* parent = nullptr);
   CollapsibleArea(const QString& label, QWidget* parent = nullptr);

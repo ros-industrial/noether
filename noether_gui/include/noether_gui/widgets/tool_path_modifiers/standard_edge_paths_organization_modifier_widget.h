@@ -13,7 +13,6 @@ namespace noether
 {
 class StandardEdgePathsOrganizationModifierWidget : public ToolPathModifierWidget
 {
-  Q_OBJECT
 public:
   StandardEdgePathsOrganizationModifierWidget(QWidget* parent = nullptr);
 
