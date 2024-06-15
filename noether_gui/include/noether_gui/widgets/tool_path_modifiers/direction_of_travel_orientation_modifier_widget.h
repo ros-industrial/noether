@@ -8,7 +8,6 @@ namespace noether
 {
 struct DirectionOfTravelOrientationModifierWidget : public ToolPathModifierWidget
 {
-  Q_OBJECT
   using ToolPathModifierWidget::ToolPathModifierWidget;
   ToolPathModifier::ConstPtr create() const override;
 };

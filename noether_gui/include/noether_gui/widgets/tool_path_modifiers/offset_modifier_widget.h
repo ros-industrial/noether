@@ -13,7 +13,6 @@ namespace noether
 {
 class OffsetModifierWidget : public ToolPathModifierWidget
 {
-  Q_OBJECT
 public:
   OffsetModifierWidget(QWidget* parent = nullptr);
   ToolPathModifier::ConstPtr create() const override;

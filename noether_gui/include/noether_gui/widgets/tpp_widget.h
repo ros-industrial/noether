@@ -53,7 +53,6 @@ enum class LineStyle
  */
 class TPPWidget : public QMainWindow
 {
-  Q_OBJECT
 public:
   TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent = nullptr);
 
