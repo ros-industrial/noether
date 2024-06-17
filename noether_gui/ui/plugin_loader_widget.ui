@@ -53,11 +53,6 @@
           <property name="alternatingRowColors">
            <bool>true</bool>
           </property>
-          <item>
-           <property name="text">
-            <string/>
-           </property>
-          </item>
          </widget>
         </item>
         <item>
@@ -165,9 +160,7 @@
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <item>
-          <widget class="QStackedWidget" name="stacked_widget">
-           <widget class="QWidget" name="widget_empty"/>
-          </widget>
+          <widget class="QStackedWidget" name="stacked_widget"/>
          </item>
         </layout>
        </widget>

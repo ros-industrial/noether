@@ -40,15 +40,12 @@ PluginLoaderWidget<PluginT>::PluginLoaderWidget(boost_plugin_loader::PluginLoade
   // Remove current widget
   connect(ui_->tool_button_remove, &QAbstractButton::clicked, [this](bool /*clicked*/) {
     int current_row = ui_->list_widget->currentIndex().row();
-    if (current_row > 0)
-    {
-      QListWidgetItem* item = ui_->list_widget->takeItem(current_row);
-      delete item;
+    QListWidgetItem* item = ui_->list_widget->takeItem(current_row);
+    delete item;
 
-      QWidget* w = ui_->stacked_widget->widget(current_row);
-      ui_->stacked_widget->removeWidget(w);
-      w->deleteLater();
-    }
+    QWidget* w = ui_->stacked_widget->widget(current_row);
+    ui_->stacked_widget->removeWidget(w);
+    w->deleteLater();
   });
 
   // Remove all widgets
@@ -67,8 +64,12 @@ void PluginLoaderWidget<PluginT>::addWidget(const QString& plugin_name, const YA
 {
   auto plugin = loader_.createInstance<PluginT>(plugin_name.toStdString());
 
+  // Update the list widget and stacked widget
   ui_->list_widget->addItem(plugin_name);
   ui_->stacked_widget->addWidget(plugin->create(this, config));
+
+  // Set the current row of the list widget to trigger an update in the stacked widget
+  ui_->list_widget->setCurrentRow(ui_->list_widget->count() - 1);
 
   // Reset the combo box to the blank value
   ui_->combo_box->setCurrentIndex(0);
@@ -80,7 +81,7 @@ void PluginLoaderWidget<PluginT>::shiftCurrentWidget(const int offset)
   int current_row = ui_->list_widget->currentIndex().row();
   int new_row = current_row + offset;
 
-  if (new_row > 0 && new_row < ui_->list_widget->count())
+  if (new_row > -1 && new_row < ui_->list_widget->count())
   {
     // Update the list widget
     ui_->list_widget->insertItem(new_row, ui_->list_widget->takeItem(current_row));
@@ -99,9 +100,7 @@ template <typename PluginT>
 QWidgetList PluginLoaderWidget<PluginT>::getWidgets() const
 {
   QWidgetList widgets;
-
-  // Iterate starting at 1 to skip the blank placeholder item
-  for (int i = 1; i < ui_->stacked_widget->count(); ++i)
+  for (int i = 0; i < ui_->stacked_widget->count(); ++i)
     widgets.push_back(ui_->stacked_widget->widget(i));
 
   return widgets;
@@ -120,8 +119,7 @@ void PluginLoaderWidget<PluginT>::configure(const YAML::Node& config)
 template <typename PluginT>
 void PluginLoaderWidget<PluginT>::save(YAML::Node& config) const
 {
-  // Iterate starting at 1 to skip the blank placeholder item
-  for (int i = 1; i < ui_->stacked_widget->count(); ++i)
+  for (int i = 0; i < ui_->stacked_widget->count(); ++i)
   {
     auto widget = dynamic_cast<const typename PluginT::WidgetT*>(ui_->stacked_widget->widget(i));
     if (widget)
@@ -138,14 +136,11 @@ void PluginLoaderWidget<PluginT>::save(YAML::Node& config) const
 template <typename PluginT>
 void PluginLoaderWidget<PluginT>::removeWidgets()
 {
-  // Clear the list widget and add a blank placeholder to correspond to the blank widget at the 0 index of the stacked
-  // widget
+  // Clear the list widget
   ui_->list_widget->clear();
-  ui_->list_widget->addItem("");
 
   // Clear the stacked widget
-  // Iterate starting at 1 to skip the blank placeholder item
-  for (int i = ui_->stacked_widget->count(); i >= 1; i--)
+  for (int i = ui_->stacked_widget->count(); i >= 0; i--)
   {
     QWidget* widget = ui_->stacked_widget->widget(i);
     ui_->stacked_widget->removeWidget(widget);
