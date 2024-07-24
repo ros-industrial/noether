@@ -12,6 +12,12 @@ namespace noether
 class OffsetOriginGenerator : public OriginGenerator
 {
 public:
+  OffsetOriginGenerator(const OffsetOriginGenerator&) = delete;
+  OffsetOriginGenerator(OffsetOriginGenerator&&) = delete;
+
+  OffsetOriginGenerator& operator=(const OffsetOriginGenerator&) = delete;
+  OffsetOriginGenerator& operator=(OffsetOriginGenerator&&) = delete;
+
   OffsetOriginGenerator(OriginGenerator::ConstPtr&& generator, const Eigen::Vector3d& offset);
   Eigen::Vector3d generate(const pcl::PolygonMesh& mesh) const override final;
 

@@ -33,6 +33,12 @@ namespace noether
 class CompoundModifier : public ToolPathModifier
 {
 public:
+  CompoundModifier(const CompoundModifier&) = delete;
+  CompoundModifier(CompoundModifier&&) = delete;
+
+  CompoundModifier& operator=(const CompoundModifier&) = delete;
+  CompoundModifier& operator=(CompoundModifier&&) = delete;
+
   CompoundModifier(std::vector<ToolPathModifier::ConstPtr> modifiers);
   ToolPaths modify(ToolPaths tool_paths) const override;
 
