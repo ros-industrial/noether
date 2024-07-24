@@ -11,6 +11,7 @@
 #include <noether_gui/widgets/tool_path_planners/raster/origin_generators/centroid_origin_generator_widget.h>
 //   Plane Slicer Raster Planner
 #include <noether_gui/widgets/tool_path_planners/raster/plane_slicer_raster_planner_widget.h>
+#include <noether_gui/widgets/tool_path_planners/raster/cross_hatch_plane_slicer_raster_planner_widget.h>
 // Tool Path Modifiers
 #include <noether_gui/widgets/tool_path_modifiers/circular_lead_in_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/circular_lead_out_modifier_widget.h>
@@ -124,6 +125,25 @@ struct PlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlugin
   }
 };
 
+struct CrossHatchPlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlugin
+{
+  QWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
+  {
+    boost_plugin_loader::PluginLoader loader;
+    loader.search_libraries.insert(NOETHER_GUI_PLUGINS);
+    loader.search_libraries_env = NOETHER_GUI_PLUGIN_LIBS_ENV;
+    loader.search_paths_env = NOETHER_GUI_PLUGIN_PATHS_ENV;
+
+    auto widget = new CrossHatchPlaneSlicerRasterPlannerWidget(std::move(loader), parent);
+
+    // Attempt to configure the widget
+    if (!config.IsNull())
+      widget->configure(config);
+
+    return widget;
+  }
+};
+
 // Mesh Modifiers
 using PlaneProjectionMeshModifierWidgetPlugin = WidgetPluginImpl<PlaneProjectionMeshModifierWidget, MeshModifierWidget>;
 using EuclideanClusteringMeshModifierWidgetPlugin =
@@ -159,6 +179,7 @@ EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::ConcatenateModifierWidgetPlugin
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::OffsetModifierWidgetPlugin, OffsetModifier)
 
 EXPORT_TPP_WIDGET_PLUGIN(noether::PlaneSlicerRasterPlannerWidgetPlugin, PlaneSlicerRasterPlanner)
+EXPORT_TPP_WIDGET_PLUGIN(noether::CrossHatchPlaneSlicerRasterPlannerWidgetPlugin, CrossHatchPlaneSlicerRasterPlanner)
 
 EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(noether::PlaneProjectionMeshModifierWidgetPlugin, PlaneProjectionModifier)
 EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(noether::EuclideanClusteringMeshModifierWidgetPlugin, EuclideanClusteringModifier)
