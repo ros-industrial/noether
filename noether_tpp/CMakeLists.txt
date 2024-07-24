@@ -55,6 +55,7 @@ add_library(${PROJECT_NAME} SHARED
   src/tool_path_modifiers/uniform_orientation_modifier.cpp
   src/tool_path_modifiers/offset_modifier.cpp
   # Tool Path Planners
+  src/tool_path_planners/multi_tool_path_planner.cpp
   src/tool_path_planners/edge/edge_planner.cpp
   src/tool_path_planners/raster/raster_planner.cpp
   src/tool_path_planners/raster/origin_generators/aabb_origin_generator.cpp
