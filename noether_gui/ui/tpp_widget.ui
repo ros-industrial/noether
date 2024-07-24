@@ -213,6 +213,9 @@
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show mesh &lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;before&lt;/span&gt; modification step&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+M</string>
+   </property>
   </action>
   <action name="action_show_modified_mesh">
    <property name="checkable">
@@ -223,6 +226,9 @@
    </property>
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show mesh &lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;after&lt;/span&gt; modification step&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+M</string>
    </property>
   </action>
   <action name="action_show_unmodified_tool_path">
@@ -238,6 +244,9 @@
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show tool path waypoints &lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;before&lt;/span&gt; modification step&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+T</string>
+   </property>
   </action>
   <action name="action_show_modified_tool_path">
    <property name="checkable">
@@ -251,6 +260,9 @@
    </property>
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show tool path waypoints &lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;after&lt;/span&gt; modification step&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
    </property>
   </action>
   <action name="action_execute_pipeline">
