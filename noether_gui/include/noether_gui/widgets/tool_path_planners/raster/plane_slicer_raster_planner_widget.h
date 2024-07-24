@@ -11,12 +11,12 @@ class PlaneSlicerRasterPlannerWidget : public RasterPlannerWidget
 public:
   PlaneSlicerRasterPlannerWidget(boost_plugin_loader::PluginLoader&& loader, QWidget* parent = nullptr);
 
-  ToolPathPlanner::ConstPtr create() const override final;
+  ToolPathPlanner::ConstPtr create() const override;
 
   void configure(const YAML::Node&) override;
   void save(YAML::Node&) const override;
 
-private:
+protected:
   QDoubleSpinBox* search_radius_;
   QDoubleSpinBox* min_segment_size_;
 };
