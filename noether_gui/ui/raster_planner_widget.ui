@@ -30,9 +30,12 @@
           <widget class="QComboBox" name="combo_box_dir_gen"/>
          </item>
          <item>
-          <widget class="QPushButton" name="push_button_dir_gen">
+          <widget class="QToolButton" name="tool_button_dir_gen">
            <property name="text">
-            <string>Select</string>
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset theme="list-add"/>
            </property>
           </widget>
          </item>
@@ -70,9 +73,12 @@
           <widget class="QComboBox" name="combo_box_origin_gen"/>
          </item>
          <item>
-          <widget class="QPushButton" name="push_button_origin_gen">
+          <widget class="QToolButton" name="tool_button_origin_gen">
            <property name="text">
-            <string>Select</string>
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset theme="list-add"/>
            </property>
           </widget>
          </item>

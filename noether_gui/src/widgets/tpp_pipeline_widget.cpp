@@ -60,7 +60,7 @@ TPPPipelineWidget::TPPPipelineWidget(boost_plugin_loader::PluginLoader loader, Q
     ui_->tab_mesh_modifier->setLayout(layout);
   }
 
-  connect(ui_->push_button_select_tpp, &QPushButton::clicked, [this](const bool /*checked*/) {
+  connect(ui_->tool_button_select_tpp, &QAbstractButton::clicked, [this](const bool /*checked*/) {
     try
     {
       const QString text = ui_->combo_box_tpp->currentText();
