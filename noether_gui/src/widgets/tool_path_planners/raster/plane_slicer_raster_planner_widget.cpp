@@ -1,6 +1,5 @@
 #include <noether_gui/widgets/tool_path_planners/raster/plane_slicer_raster_planner_widget.h>
 #include "ui_raster_planner_widget.h"
-#include <noether_gui/widgets/collapsible_area_widget.h>
 #include <noether_gui/utils.h>
 
 #include <noether_tpp/tool_path_planners/raster/plane_slicer_raster_planner.h>
@@ -18,29 +17,19 @@ PlaneSlicerRasterPlannerWidget::PlaneSlicerRasterPlannerWidget(boost_plugin_load
   , search_radius_(new QDoubleSpinBox(this))
   , min_segment_size_(new QDoubleSpinBox(this))
 {
-  auto layout = new QFormLayout();
-
   // Search radius
   search_radius_->setMinimum(0.0);
   search_radius_->setSingleStep(0.1);
   search_radius_->setValue(0.1);
   search_radius_->setDecimals(3);
-  layout->addRow(new QLabel("Search radius (m)", this), search_radius_);
+  ui_->form_layout->addRow(new QLabel("Search radius (m)", this), search_radius_);
 
   // Min segment length
   min_segment_size_->setMinimum(0.0);
   min_segment_size_->setSingleStep(0.1);
   min_segment_size_->setValue(0.1);
   min_segment_size_->setDecimals(3);
-  layout->addRow(new QLabel("Min. segment length", this), min_segment_size_);
-
-  auto widget = new QWidget(this);
-  widget->setLayout(layout);
-
-  auto collapsible_area = new CollapsibleArea("PlaneSlicerRasterPlanner", this);
-  collapsible_area->setWidget(widget);
-
-  ui_->group_box_raster_planner->layout()->addWidget(collapsible_area);
+  ui_->form_layout->addRow(new QLabel("Min. segment length", this), min_segment_size_);
 }
 
 void PlaneSlicerRasterPlannerWidget::configure(const YAML::Node& config)
