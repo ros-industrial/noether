@@ -23,7 +23,7 @@ RasterPlannerWidget::RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loa
   ui_->combo_box_dir_gen->addItems(getAvailablePlugins<DirectionGeneratorWidgetPlugin>(loader_));
   ui_->combo_box_origin_gen->addItems(getAvailablePlugins<OriginGeneratorWidgetPlugin>(loader_));
 
-  connect(ui_->push_button_dir_gen, &QAbstractButton::clicked, [this](const bool /*clicked*/) {
+  connect(ui_->tool_button_dir_gen, &QAbstractButton::clicked, [this](const bool /*clicked*/) {
     try
     {
       QString text = ui_->combo_box_dir_gen->currentText();
@@ -41,7 +41,7 @@ RasterPlannerWidget::RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loa
     }
   });
 
-  connect(ui_->push_button_origin_gen, &QAbstractButton::clicked, [this](const bool /*clicked*/) {
+  connect(ui_->tool_button_origin_gen, &QAbstractButton::clicked, [this](const bool /*clicked*/) {
     try
     {
       QString text = ui_->combo_box_origin_gen->currentText();

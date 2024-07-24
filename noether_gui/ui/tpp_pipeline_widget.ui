@@ -56,9 +56,12 @@
           <widget class="QComboBox" name="combo_box_tpp"/>
          </item>
          <item>
-          <widget class="QPushButton" name="push_button_select_tpp">
+          <widget class="QToolButton" name="tool_button_select_tpp">
            <property name="text">
-            <string>Select</string>
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset theme="list-add"/>
            </property>
           </widget>
          </item>
