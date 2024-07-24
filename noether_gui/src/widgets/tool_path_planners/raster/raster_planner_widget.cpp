@@ -1,7 +1,6 @@
 #include <noether_gui/widgets/tool_path_planners/raster/raster_planner_widget.h>
 #include "ui_raster_planner_widget.h"
 #include <noether_gui/plugin_interface.h>
-#include <noether_gui/widgets/collapsible_area_widget.h>
 #include <noether_gui/utils.h>
 
 #include <QMessageBox>
@@ -24,7 +23,7 @@ RasterPlannerWidget::RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loa
   ui_->combo_box_dir_gen->addItems(getAvailablePlugins<DirectionGeneratorWidgetPlugin>(loader_));
   ui_->combo_box_origin_gen->addItems(getAvailablePlugins<OriginGeneratorWidgetPlugin>(loader_));
 
-  connect(ui_->push_button_dir_gen, &QPushButton::clicked, [this](const bool /*clicked*/) {
+  connect(ui_->push_button_dir_gen, &QAbstractButton::clicked, [this](const bool /*clicked*/) {
     try
     {
       QString text = ui_->combo_box_dir_gen->currentText();
@@ -42,7 +41,7 @@ RasterPlannerWidget::RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loa
     }
   });
 
-  connect(ui_->push_button_origin_gen, &QPushButton::clicked, [this](const bool /*clicked*/) {
+  connect(ui_->push_button_origin_gen, &QAbstractButton::clicked, [this](const bool /*clicked*/) {
     try
     {
       QString text = ui_->combo_box_origin_gen->currentText();
@@ -64,21 +63,15 @@ RasterPlannerWidget::RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loa
 void RasterPlannerWidget::setDirectionGeneratorWidget(const QString& plugin_name, const YAML::Node& config)
 {
   auto plugin = loader_.createInstance<DirectionGeneratorWidgetPlugin>(plugin_name.toStdString());
-
-  auto collapsible_area = new CollapsibleArea(plugin_name, this);
-  collapsible_area->setWidget(plugin->create(this, config));
-
-  overwriteWidget(ui_->group_box_dir_gen->layout(), ui_->widget_dir_gen, collapsible_area);
+  overwriteWidget(ui_->group_box_dir_gen->layout(), ui_->widget_dir_gen, plugin->create(this, config));
+  ui_->group_box_dir_gen->setTitle(plugin_name);
 }
 
 void RasterPlannerWidget::setOriginGeneratorWidget(const QString& plugin_name, const YAML::Node& config)
 {
   auto plugin = loader_.createInstance<OriginGeneratorWidgetPlugin>(plugin_name.toStdString());
-
-  auto collapsible_area = new CollapsibleArea(plugin_name, this);
-  collapsible_area->setWidget(plugin->create(this, config));
-
-  overwriteWidget(ui_->group_box_origin_gen->layout(), ui_->widget_origin_gen, collapsible_area);
+  overwriteWidget(ui_->group_box_origin_gen->layout(), ui_->widget_origin_gen, plugin->create(this, config));
+  ui_->group_box_origin_gen->setTitle(plugin_name);
 }
 
 void RasterPlannerWidget::configure(const YAML::Node& config)
@@ -139,18 +132,12 @@ void RasterPlannerWidget::save(YAML::Node& config) const
 
 DirectionGeneratorWidget* RasterPlannerWidget::getDirectionGeneratorWidget() const
 {
-  auto collapsible_area = dynamic_cast<CollapsibleArea*>(ui_->widget_dir_gen);
-  if (!collapsible_area)
-    throw std::runtime_error("No direction generator specified");
-  return collapsible_area->getWidget<DirectionGeneratorWidget>();
+  return dynamic_cast<DirectionGeneratorWidget*>(ui_->widget_dir_gen);
 }
 
 OriginGeneratorWidget* RasterPlannerWidget::getOriginGeneratorWidget() const
 {
-  auto collapsible_area = dynamic_cast<CollapsibleArea*>(ui_->widget_origin_gen);
-  if (!collapsible_area)
-    throw std::runtime_error("No origin generator specified");
-  return collapsible_area->getWidget<OriginGeneratorWidget>();
+  return dynamic_cast<OriginGeneratorWidget*>(ui_->widget_origin_gen);
 }
 
 }  // namespace noether

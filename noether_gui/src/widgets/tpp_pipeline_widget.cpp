@@ -2,7 +2,6 @@
 #include "ui_tpp_pipeline_widget.h"
 #include <noether_gui/widgets/plugin_loader_widget.h>
 #include <noether_gui/plugin_interface.h>
-#include <noether_gui/widgets/collapsible_area_widget.h>
 #include <noether_gui/utils.h>
 
 #include <noether_tpp/core/tool_path_planner_pipeline.h>
