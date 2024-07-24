@@ -33,7 +33,6 @@ qt5_wrap_ui(${PROJECT_NAME}_widget_ui_mocs
 add_library(${PROJECT_NAME} SHARED
   src/plugin_interface.cpp
   # Widgets
-  src/widgets/collapsible_area_widget.cpp
   src/widgets/plugin_loader_widget.cpp
   src/widgets/tpp_pipeline_widget.cpp
   src/widgets/configurable_tpp_pipeline_widget.cpp
