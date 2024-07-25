@@ -49,6 +49,7 @@ add_library(${PROJECT_NAME} SHARED
   src/widgets/tool_path_planners/raster/origin_generators/centroid_origin_generator_widget.cpp
   #   Plane Slicer Tool Path Planner
   src/widgets/tool_path_planners/raster/plane_slicer_raster_planner_widget.cpp
+    src/widgets/tool_path_planners/raster/cross_hatch_plane_slicer_raster_planner.cpp
   # Tool Path Modifiers
   src/widgets/tool_path_modifiers/circular_lead_in_modifier_widget.cpp
   src/widgets/tool_path_modifiers/circular_lead_out_modifier_widget.cpp

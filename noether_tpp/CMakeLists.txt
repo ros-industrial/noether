@@ -64,6 +64,7 @@ add_library(${PROJECT_NAME} SHARED
   src/tool_path_planners/raster/origin_generators/fixed_origin_generator.cpp
   src/tool_path_planners/raster/direction_generators/fixed_direction_generator.cpp
   src/tool_path_planners/raster/direction_generators/principal_axis_direction_generator.cpp
+    src/tool_path_planners/raster/direction_generators/pca_rotated_direction_generator.cpp
   src/tool_path_planners/raster/plane_slicer_raster_planner.cpp
 )
 
