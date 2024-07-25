@@ -1,4 +1,4 @@
-name: Ubuntu
+name: Ubuntu [Focal, Jammy, Noble]
 
 on:
   push:
@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro: [focal, jammy]
+        distro: [focal, jammy, noble]
     container:
       image: ubuntu:${{ matrix.distro }}
       env:
@@ -38,9 +38,10 @@ jobs:
           path: target_ws/src
 
       - name: Build and Tests
-        uses: tesseract-robotics/colcon-action@v6
+        uses: tesseract-robotics/colcon-action@v9
         with:
           ccache-prefix: ${{ matrix.distro }}
+          add-ros-ppa: true
           vcs-file: dependencies.repos
           rosdep-install-args: '--skip-keys libvtk'
           target-path: target_ws/src
