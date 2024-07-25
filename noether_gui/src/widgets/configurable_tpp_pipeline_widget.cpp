@@ -96,7 +96,6 @@ void ConfigurableTPPPipelineWidget::onSaveConfiguration(const bool /*checked*/)
       throw std::runtime_error("Failed to open output file at '" + file.toStdString() + "'");
 
     ofh << config;
-    QMessageBox::information(this, "Configuration", "Successfully saved tool path planning pipeline configuration");
   }
   catch (const std::exception& ex)
   {
