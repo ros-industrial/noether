@@ -51,59 +51,32 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
-         <item>
-          <widget class="QComboBox" name="combo_box_tpp"/>
-         </item>
-         <item>
-          <widget class="QToolButton" name="tool_button_select_tpp">
-           <property name="text">
-            <string>...</string>
-           </property>
-           <property name="icon">
-            <iconset theme="list-add"/>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <widget class="QComboBox" name="combo_box_tpp"/>
        </item>
        <item>
-        <widget class="Line" name="line">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+        <widget class="QScrollArea" name="scrollArea">
+         <property name="widgetResizable">
+          <bool>true</bool>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="group_box_tpp">
-         <property name="title">
-          <string/>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
-           <widget class="QScrollArea" name="scroll_area">
-            <property name="horizontalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
-            </property>
-            <property name="widgetResizable">
-             <bool>true</bool>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignHCenter|Qt::AlignTop</set>
-            </property>
-            <widget class="QWidget" name="widget_tpp">
-             <property name="geometry">
-              <rect>
-               <x>0</x>
-               <y>0</y>
-               <width>382</width>
-               <height>301</height>
-              </rect>
+         <widget class="QWidget" name="scrollAreaWidgetContents">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>406</width>
+            <height>339</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <item>
+            <widget class="QStackedWidget" name="stacked_widget">
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
              </property>
             </widget>
-           </widget>
-          </item>
-         </layout>
+           </item>
+          </layout>
+         </widget>
         </widget>
        </item>
       </layout>

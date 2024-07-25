@@ -20,58 +20,54 @@ RasterPlannerWidget::RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loa
   ui_->setupUi(this);
 
   // Populate the combo boxes
-  ui_->combo_box_dir_gen->addItems(getAvailablePlugins<DirectionGeneratorWidgetPlugin>(loader_));
-  ui_->combo_box_origin_gen->addItems(getAvailablePlugins<OriginGeneratorWidgetPlugin>(loader_));
+  // Direction generator
+  {
+    QStringList plugin_names = getAvailablePlugins<DirectionGeneratorWidgetPlugin>(loader_);
+    plugin_names.sort();
+    ui_->combo_box_dir_gen->addItems(plugin_names);
 
-  connect(ui_->tool_button_dir_gen, &QAbstractButton::clicked, [this](const bool /*clicked*/) {
-    try
+    for (const QString& plugin_name : plugin_names)
     {
-      QString text = ui_->combo_box_dir_gen->currentText();
-      ui_->group_box_dir_gen->setTitle(text);
-      if (text.isEmpty())
-        overwriteWidget(ui_->group_box_dir_gen->layout(), ui_->widget_dir_gen, new QWidget(this));
+      if (plugin_name.isEmpty())
+      {
+        ui_->stacked_widget_dir_gen->addWidget(new QWidget(this));
+      }
       else
-        setDirectionGeneratorWidget(text, {});
+      {
+        auto plugin = loader_.createInstance<DirectionGeneratorWidgetPlugin>(plugin_name.toStdString());
+        ui_->stacked_widget_dir_gen->addWidget(plugin->create(this, {}));
+      }
     }
-    catch (const std::exception& ex)
-    {
-      std::stringstream ss;
-      printException(ex, ss);
-      QMessageBox::warning(this, "Configuration Error", QString::fromStdString(ss.str()));
-    }
-  });
+  }
 
-  connect(ui_->tool_button_origin_gen, &QAbstractButton::clicked, [this](const bool /*clicked*/) {
-    try
+  // Origin generator
+  {
+    QStringList plugin_names = getAvailablePlugins<OriginGeneratorWidgetPlugin>(loader_);
+    plugin_names.sort();
+    ui_->combo_box_origin_gen->addItems(plugin_names);
+
+    for (const QString& plugin_name : plugin_names)
     {
-      QString text = ui_->combo_box_origin_gen->currentText();
-      ui_->group_box_origin_gen->setTitle(text);
-      if (text.isEmpty())
-        overwriteWidget(ui_->group_box_origin_gen->layout(), ui_->widget_origin_gen, new QWidget(this));
+      if (plugin_name.isEmpty())
+      {
+        ui_->stacked_widget_origin_gen->addWidget(new QWidget(this));
+      }
       else
-        setOriginGeneratorWidget(text, {});
+      {
+        auto plugin = loader_.createInstance<OriginGeneratorWidgetPlugin>(plugin_name.toStdString());
+        ui_->stacked_widget_origin_gen->addWidget(plugin->create(this, {}));
+      }
     }
-    catch (const std::exception& ex)
-    {
-      std::stringstream ss;
-      printException(ex, ss);
-      QMessageBox::warning(this, "Configuration Error", QString::fromStdString(ss.str()));
-    }
-  });
-}
+  }
 
-void RasterPlannerWidget::setDirectionGeneratorWidget(const QString& plugin_name, const YAML::Node& config)
-{
-  auto plugin = loader_.createInstance<DirectionGeneratorWidgetPlugin>(plugin_name.toStdString());
-  overwriteWidget(ui_->group_box_dir_gen->layout(), ui_->widget_dir_gen, plugin->create(this, config));
-  ui_->group_box_dir_gen->setTitle(plugin_name);
-}
-
-void RasterPlannerWidget::setOriginGeneratorWidget(const QString& plugin_name, const YAML::Node& config)
-{
-  auto plugin = loader_.createInstance<OriginGeneratorWidgetPlugin>(plugin_name.toStdString());
-  overwriteWidget(ui_->group_box_origin_gen->layout(), ui_->widget_origin_gen, plugin->create(this, config));
-  ui_->group_box_origin_gen->setTitle(plugin_name);
+  connect(ui_->combo_box_dir_gen,
+          QOverload<int>::of(&QComboBox::currentIndexChanged),
+          ui_->stacked_widget_dir_gen,
+          &QStackedWidget::setCurrentIndex);
+  connect(ui_->combo_box_origin_gen,
+          QOverload<int>::of(&QComboBox::currentIndexChanged),
+          ui_->stacked_widget_origin_gen,
+          &QStackedWidget::setCurrentIndex);
 }
 
 void RasterPlannerWidget::configure(const YAML::Node& config)
@@ -81,29 +77,43 @@ void RasterPlannerWidget::configure(const YAML::Node& config)
   ui_->double_spin_box_minimum_hole_size->setValue(getEntry<double>(config, MIN_HOLE_SIZE_KEY));
 
   // Direction generator
-  try
   {
     const YAML::Node dir_gen_config = config[DIRECTION_GENERATOR_KEY];
     QString plugin_name = QString::fromStdString(getEntry<std::string>(dir_gen_config, "name"));
-    setDirectionGeneratorWidget(plugin_name, dir_gen_config);
-    ui_->group_box_dir_gen->setTitle(plugin_name);
-  }
-  catch (const std::exception&)
-  {
-    std::throw_with_nested(std::runtime_error("Error configuring direction generator: "));
+
+    const int index = ui_->combo_box_dir_gen->findText(plugin_name);
+    if (index >= 0)
+    {
+      ui_->combo_box_dir_gen->setCurrentIndex(index);
+      auto* dir_gen_widget = dynamic_cast<DirectionGeneratorWidget*>(ui_->stacked_widget_dir_gen->widget(index));
+      if (dir_gen_widget)
+        dir_gen_widget->configure(dir_gen_config);
+    }
+    else
+    {
+      ui_->combo_box_dir_gen->setCurrentIndex(0);
+      QMessageBox::warning(this, "Error", "Error setting direction generator '" + plugin_name + "'");
+    }
   }
 
   // Origin generator
-  try
   {
     const YAML::Node origin_gen_config = config[ORIGIN_GENERATOR_KEY];
     QString plugin_name = QString::fromStdString(getEntry<std::string>(origin_gen_config, "name"));
-    setOriginGeneratorWidget(plugin_name, origin_gen_config);
-    ui_->group_box_origin_gen->setTitle(plugin_name);
-  }
-  catch (const std::exception&)
-  {
-    std::throw_with_nested(std::runtime_error("Error configuring origin generator: "));
+
+    const int index = ui_->combo_box_origin_gen->findText(plugin_name);
+    if (index >= 0)
+    {
+      ui_->combo_box_origin_gen->setCurrentIndex(index);
+      auto* origin_gen_widget = dynamic_cast<OriginGeneratorWidget*>(ui_->stacked_widget_origin_gen->widget(index));
+      if (origin_gen_widget)
+        origin_gen_widget->configure(origin_gen_config);
+    }
+    else
+    {
+      ui_->combo_box_origin_gen->setCurrentIndex(0);
+      QMessageBox::warning(this, "Error", "Error setting origin generator '" + plugin_name + "'");
+    }
   }
 }
 
@@ -112,7 +122,7 @@ void RasterPlannerWidget::save(YAML::Node& config) const
   // Direction generator
   {
     YAML::Node dir_gen_config;
-    dir_gen_config["name"] = ui_->group_box_dir_gen->title().toStdString();
+    dir_gen_config["name"] = ui_->combo_box_dir_gen->currentText().toStdString();
     getDirectionGeneratorWidget()->save(dir_gen_config);
     config[DIRECTION_GENERATOR_KEY] = dir_gen_config;
   }
@@ -120,7 +130,7 @@ void RasterPlannerWidget::save(YAML::Node& config) const
   // Origin generator
   {
     YAML::Node origin_gen_config;
-    origin_gen_config["name"] = ui_->group_box_origin_gen->title().toStdString();
+    origin_gen_config["name"] = ui_->combo_box_origin_gen->currentText().toStdString();
     getOriginGeneratorWidget()->save(origin_gen_config);
     config[ORIGIN_GENERATOR_KEY] = origin_gen_config;
   }
@@ -132,12 +142,20 @@ void RasterPlannerWidget::save(YAML::Node& config) const
 
 DirectionGeneratorWidget* RasterPlannerWidget::getDirectionGeneratorWidget() const
 {
-  return dynamic_cast<DirectionGeneratorWidget*>(ui_->widget_dir_gen);
+  auto* widget = dynamic_cast<DirectionGeneratorWidget*>(ui_->stacked_widget_dir_gen->currentWidget());
+  if (!widget)
+    throw std::runtime_error("Invalid direction generator");
+
+  return widget;
 }
 
 OriginGeneratorWidget* RasterPlannerWidget::getOriginGeneratorWidget() const
 {
-  return dynamic_cast<OriginGeneratorWidget*>(ui_->widget_origin_gen);
+  auto* widget = dynamic_cast<OriginGeneratorWidget*>(ui_->stacked_widget_origin_gen->currentWidget());
+  if (!widget)
+    throw std::runtime_error("Invalid origin generator");
+
+  return widget;
 }
 
 }  // namespace noether

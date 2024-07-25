@@ -44,7 +44,29 @@ TPPPipelineWidget::TPPPipelineWidget(boost_plugin_loader::PluginLoader loader, Q
   ui_->setupUi(this);
 
   // Populate the combo boxes
-  ui_->combo_box_tpp->addItems(getAvailablePlugins<ToolPathPlannerWidgetPlugin>(loader_));
+  QStringList plugin_names = getAvailablePlugins<ToolPathPlannerWidgetPlugin>(loader_);
+  plugin_names.sort();
+  ui_->combo_box_tpp->addItems(plugin_names);
+
+  // Add the TPP plugins
+  for (const QString& plugin_name : plugin_names)
+  {
+    if (plugin_name.isEmpty())
+    {
+      ui_->stacked_widget->addWidget(new QWidget(this));
+    }
+    else
+    {
+      auto plugin = loader_.createInstance<ToolPathPlannerWidgetPlugin>(plugin_name.toStdString());
+      ui_->stacked_widget->addWidget(plugin->create(this, {}));
+    }
+  }
+
+  // // Change the stacked widget with the combo box
+  connect(ui_->combo_box_tpp,
+          QOverload<int>::of(&QComboBox::currentIndexChanged),
+          ui_->stacked_widget,
+          &QStackedWidget::setCurrentIndex);
 
   // Add the tool path modifier loader widget
   {
@@ -59,29 +81,6 @@ TPPPipelineWidget::TPPPipelineWidget(boost_plugin_loader::PluginLoader loader, Q
     layout->addWidget(mesh_modifier_loader_widget_);
     ui_->tab_mesh_modifier->setLayout(layout);
   }
-
-  connect(ui_->tool_button_select_tpp, &QAbstractButton::clicked, [this](const bool /*checked*/) {
-    try
-    {
-      const QString text = ui_->combo_box_tpp->currentText();
-      ui_->group_box_tpp->setTitle(text);
-      if (text.isEmpty())
-      {
-        ui_->scroll_area->setWidget(new QWidget(this));
-      }
-      else
-      {
-        auto plugin = loader_.createInstance<ToolPathPlannerWidgetPlugin>(text.toStdString());
-        ui_->scroll_area->setWidget(plugin->create(this));
-      }
-    }
-    catch (const std::exception& ex)
-    {
-      std::stringstream ss;
-      printException(ex, ss);
-      QMessageBox::warning(this, "Configuration Error", QString::fromStdString(ss.str()));
-    }
-  });
 }
 
 void TPPPipelineWidget::configure(const YAML::Node& config)
@@ -96,12 +95,23 @@ void TPPPipelineWidget::configure(const YAML::Node& config)
     {
       auto tpp_config = config[TOOL_PATH_PLANNER_KEY];
       auto name = getEntry<std::string>(tpp_config, "name");
-      auto plugin = loader_.createInstance<ToolPathPlannerWidgetPlugin>(name);
-      ui_->scroll_area->setWidget(plugin->create(this, tpp_config));
-      ui_->group_box_tpp->setTitle(QString::fromStdString(name));
+
+      int index = ui_->combo_box_tpp->findText(QString::fromStdString(name));
+      if (index >= 0)
+      {
+        ui_->combo_box_tpp->setCurrentIndex(index);
+        auto* tpp_widget = dynamic_cast<ToolPathPlannerWidget*>(ui_->stacked_widget->widget(index));
+        if (tpp_widget)
+          tpp_widget->configure(tpp_config);
+      }
+      else
+      {
+        throw std::runtime_error("Failed to find tool path planner '" + name + "'");
+      }
     }
     catch (const std::exception&)
     {
+      ui_->combo_box_tpp->setCurrentIndex(0);
       std::throw_with_nested(std::runtime_error("Error configuring tool path planner: "));
     }
 
@@ -111,7 +121,7 @@ void TPPPipelineWidget::configure(const YAML::Node& config)
   catch (const std::exception&)
   {
     // Clear the widgets
-    ui_->scroll_area->setWidget(new QWidget(this));
+    ui_->combo_box_tpp->setCurrentIndex(0);
     mesh_modifier_loader_widget_->removeWidgets();
     tool_path_modifier_loader_widget_->removeWidgets();
 
@@ -130,14 +140,14 @@ void TPPPipelineWidget::save(YAML::Node& config) const
 
   // Tool path planner
   {
-    auto tpp_widget = dynamic_cast<const ToolPathPlannerWidget*>(ui_->scroll_area->widget());
-    if (tpp_widget)
-    {
-      YAML::Node tpp_config;
-      tpp_config["name"] = ui_->group_box_tpp->title().toStdString();
-      tpp_widget->save(tpp_config);
-      config[TOOL_PATH_PLANNER_KEY] = tpp_config;
-    }
+    auto tpp_widget = dynamic_cast<const ToolPathPlannerWidget*>(ui_->stacked_widget->currentWidget());
+    if (!tpp_widget)
+      throw std::runtime_error("No tool path planner selected");
+
+    YAML::Node tpp_config;
+    tpp_config["name"] = ui_->combo_box_tpp->currentText().toStdString();
+    tpp_widget->save(tpp_config);
+    config[TOOL_PATH_PLANNER_KEY] = tpp_config;
   }
 
   // Tool path modifiers
@@ -150,7 +160,7 @@ void TPPPipelineWidget::save(YAML::Node& config) const
 
 ToolPathPlannerPipeline TPPPipelineWidget::createPipeline() const
 {
-  auto widget_tpp = dynamic_cast<ToolPathPlannerWidget*>(ui_->scroll_area->widget());
+  auto widget_tpp = dynamic_cast<ToolPathPlannerWidget*>(ui_->stacked_widget->currentWidget());
   if (!widget_tpp)
     throw std::runtime_error("No tool path planner specified");
 
