@@ -306,6 +306,9 @@
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show tool path lines &lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;before&lt;/span&gt; modification step&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+L</string>
+   </property>
   </action>
   <action name="action_show_modified_tool_path_lines">
    <property name="checkable">
@@ -316,6 +319,9 @@
    </property>
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show tool path lines &lt;span style=&quot; font-weight:700; font-style:italic;&quot;&gt;after&lt;/span&gt; modification step&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
    </property>
   </action>
  </widget>
