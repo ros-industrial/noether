@@ -130,3 +130,6 @@ configure_package(
     "Qt5 REQUIRED COMPONENTS Widgets"
     yaml-cpp
 )
+
+# Install the executable(s) for access by ROS
+install(TARGETS ${PROJECT_NAME}_app DESTINATION lib/${PROJECT_NAME})
