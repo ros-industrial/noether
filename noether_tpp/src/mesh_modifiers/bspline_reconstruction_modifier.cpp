@@ -37,7 +37,7 @@ static pcl::on_nurbs::vector_vec3d createNurbData(pcl::PointCloud<pcl::PointXYZ>
 
 namespace noether
 {
-pcl::PolygonMesh BSplineReconstruction::modify(const pcl::PolygonMesh& mesh_in) const
+std::vector<pcl::PolygonMesh> BSplineReconstruction::modify(const pcl::PolygonMesh& mesh_in) const
 {
   using Cloud = pcl::PointCloud<pcl::PointXYZ>;
 
