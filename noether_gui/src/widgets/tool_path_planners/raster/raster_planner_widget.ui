@@ -85,8 +85,11 @@
        <layout class="QFormLayout" name="form_layout">
         <item row="0" column="0">
          <widget class="QLabel" name="label_line_spacing">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Distance between raster lines&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
           <property name="text">
-           <string>Line Spacing</string>
+           <string>Line Spacing (m)</string>
           </property>
          </widget>
         </item>
@@ -124,15 +127,21 @@
         </item>
         <item row="1" column="0">
          <widget class="QLabel" name="label_point_spacing">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Distance between tool path waypoints on a raster line&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
           <property name="text">
-           <string>Point Spacing</string>
+           <string>Point Spacing (m)</string>
           </property>
          </widget>
         </item>
         <item row="2" column="0">
          <widget class="QLabel" name="label_min_hole_size">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The size of the smallest hole that the tool path planner should not jump over&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
           <property name="text">
-           <string>Minimum Hole Size</string>
+           <string>Minimum Hole Size (m)</string>
           </property>
          </widget>
         </item>
