@@ -71,7 +71,7 @@ if(${CMAKE_VERSION} VERSION_GREATER 3.15)
         LINK_LIBRARIES ${PCL_LIBRARIES}
         )
     if (${NURBS_FOUND})
-      target_sources(${PROJECT_NAME} src/mesh_modifiers/bspline_reconstruction_modifier.cpp)
+      target_sources(${PROJECT_NAME} PUBLIC src/mesh_modifiers/bspline_reconstruction_modifier.cpp)
     else()
       message("PCL NURBS not found; skipping compilation of BSpline reconstruction mesh modifier")
     endif()
