@@ -9,13 +9,7 @@ project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES C CXX)
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED COMPONENTS common io surface segmentation)
 
-find_package(VTK REQUIRED NO_MODULE)
-if(VTK_FOUND AND ("${VTK_VERSION}" VERSION_LESS 7.1))
-  message(FATAL_ERROR "The minimum required version of VTK is 7.1, but found ${VTK_VERSION}")
-  set(VTK_FOUND FALSE)
-else()
-  include(${VTK_USE_FILE})
-endif()
+find_package(VTK 7.1 REQUIRED NO_MODULE)
 
 # Create targets if necessary
 if(NOT TARGET Eigen3::Eigen)
