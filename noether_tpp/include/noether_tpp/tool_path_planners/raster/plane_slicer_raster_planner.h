@@ -25,6 +25,9 @@ namespace noether
 /**
  * @brief An implementation of the Raster Planner using a series of parallel cutting planes.
  * This implementation works best on approximately planar parts.
+ * The direction generator defines the direction of the raster cut.
+ * The cut normal (i.e., the raster step direction) is defined by the cross product of the cut direction and the
+ * smallest principal axis of the mesh.
  */
 class PlaneSlicerRasterPlanner : public RasterPlanner
 {
@@ -33,6 +36,7 @@ public:
 
   void setSearchRadius(const double search_radius);
   void setMinSegmentSize(const double min_segment_size);
+  void generateRastersBidirectionally(const bool bidirectional);
 
 protected:
   /**
@@ -42,7 +46,9 @@ protected:
    */
   ToolPaths planImpl(const pcl::PolygonMesh& mesh) const;
 
-private:
+  /** @brief Flag indicating whether rasters should be generated in the direction of both the cut normal and its
+   * negation */
+  bool bidirectional_ = true;
   /** @brief Minimum length of valid segment (m) */
   double min_segment_size_;
   /** @brief Search radius for calculating normals (m) */
