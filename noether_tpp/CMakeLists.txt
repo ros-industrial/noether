@@ -65,7 +65,8 @@ add_library(${PROJECT_NAME} SHARED
 if(${CMAKE_VERSION} VERSION_GREATER 3.15)
     try_compile(
         NURBS_FOUND
-        SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/mesh_modifiers/test/check_pcl_nurbs.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/mesh_modifiers/test/check_pcl_nurbs.cpp
         CMAKE_FLAGS ${CMAKE_FLAGS} -DINCLUDE_DIRECTORIES=${PCL_INCLUDE_DIRS}
         LINK_LIBRARIES pcl_surface
         )
