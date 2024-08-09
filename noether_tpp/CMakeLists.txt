@@ -65,10 +65,10 @@ add_library(${PROJECT_NAME} SHARED
 if(${CMAKE_VERSION} VERSION_GREATER 3.15)
     try_compile(
         NURBS_FOUND
-        ${CMAKE_CURRENT_BINARY_DIR}/pcl_nurbs_try_compile
+        ${CMAKE_CURRENT_BINARY_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/src/mesh_modifiers/test/check_pcl_nurbs.cpp
         CMAKE_FLAGS ${CMAKE_FLAGS} -DINCLUDE_DIRECTORIES=${PCL_INCLUDE_DIRS}
-        LINK_LIBRARIES ${PCL_LIBRARIES}
+        LINK_LIBRARIES pcl_surface
         )
     if (${NURBS_FOUND})
       target_sources(${PROJECT_NAME} PUBLIC src/mesh_modifiers/bspline_reconstruction_modifier.cpp)

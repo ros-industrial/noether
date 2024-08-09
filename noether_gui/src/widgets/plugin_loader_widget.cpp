@@ -1,4 +1,4 @@
-#include <noether_gui/widgets/plugin_loader_widget.hpp>
+#include "plugin_loader_widget.hpp"
 #include <noether_gui/plugin_interface.h>
 
 #include <noether_tpp/core/mesh_modifier.h>

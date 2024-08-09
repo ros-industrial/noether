@@ -1,5 +1,5 @@
 #include <noether_gui/widgets/tool_path_planners/raster/origin_generators/fixed_origin_generator_widget.h>
-#include "ui_vector3d_editor_widget.h"
+#include "../../../ui_vector3d_editor_widget.h"
 #include <noether_gui/utils.h>
 
 #include <noether_tpp/tool_path_planners/raster/origin_generators/fixed_origin_generator.h>
