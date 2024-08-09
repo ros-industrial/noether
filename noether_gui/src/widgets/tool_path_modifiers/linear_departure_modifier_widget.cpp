@@ -2,7 +2,7 @@
 #include <noether_gui/utils.h>
 
 #include <noether_tpp/tool_path_modifiers/linear_departure_modifier.h>
-#include "ui_vector3d_editor_widget.h"
+#include "../ui_vector3d_editor_widget.h"
 #include "ui_linear_approach_modifier_widget.h"
 
 namespace noether

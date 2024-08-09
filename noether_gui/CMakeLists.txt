@@ -17,17 +17,9 @@ find_package(yaml-cpp REQUIRED)
 option(NOETHER_ENABLE_CLANG_TIDY "Enables compilation with clang-tidy" OFF)
 option(NOETHER_ENABLE_TESTING "Enables compilation of unit tests" OFF)
 
-qt5_add_resources(QRC_SOURCES resources/resource.qrc)
-
-qt5_wrap_ui(${PROJECT_NAME}_widget_ui_mocs
-  ui/vector3d_editor_widget.ui
-  ui/quaternion_editor_widget.ui
-  ui/plugin_loader_widget.ui
-  ui/linear_approach_modifier_widget.ui
-  ui/raster_planner_widget.ui
-  ui/tpp_pipeline_widget.ui
-  ui/configurable_tpp_pipeline_widget.ui
-  ui/tpp_widget.ui)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
 
 # Core Library
 add_library(${PROJECT_NAME} SHARED
@@ -68,8 +60,8 @@ add_library(${PROJECT_NAME} SHARED
   # Mesh Modifiers
   src/widgets/mesh_modifiers/plane_projection_modifier_widget.cpp
   src/widgets/mesh_modifiers/euclidean_clustering_modifier_widget.cpp
-  ${${PROJECT_NAME}_widget_ui_mocs}
-  ${QRC_SOURCES}
+  # Resources
+  resources/resource.qrc
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
