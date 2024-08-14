@@ -402,6 +402,60 @@ bool insertNormals(const double search_radius,
   data->GetPointData()->SetNormals(new_normals);
   return true;
 }
+
+/**
+ * @brief Gets the distances (normal to the cut plane) from the cut origin to the closest and furthest corners of the
+ * mesh
+ * @param obb_size Column-wise matrix of the object-aligned size vectors of the mesh (from PCA), relative to the mesh
+ * origin
+ * @param pca_centroid Centroid of the mesh determined by PCA, relative to the mesh origin
+ * @param origin Origin of the raster pattern, relative to the mesh origin
+ * @param dir Raster cut plane normal, relative to the mesh origin
+ * @return Tuple of (min distance, max distance)
+ */
+static std::tuple<double, double> getDistancesToMinMaxCuts(const Eigen::Matrix3d& obb_size,
+                                                           const Eigen::Vector3d& obb_centroid,
+                                                           const Eigen::Vector3d& cut_origin,
+                                                           const Eigen::Vector3d& cut_normal)
+{
+  /* Create the 8 corners of the object-aligned bounding box using vectorization
+   *
+   * | x0  x1  x2 | * | 1 -1  1 -1  1 -1  1 -1 | +  | ox | = | cx0  cx1  ... |
+   * | y0  y1  y2 |   | 1  1 -1 -1  1  1 -1 -1 |    | oy |   | cy0  cy1  ... |
+   * | z0  z1  zz |   | 1  1  1  1 -1 -1 -1 -1 |    | oz |   | cz0  cz1  ... |
+   */
+  Eigen::MatrixXi corner_mask(3, 8);
+  // clang-format off
+  corner_mask <<
+      1, -1, 1, -1, 1, -1, 1, -1,
+      1, 1, -1, -1, 1, 1, -1, -1,
+      1, 1, 1, 1, -1, -1, -1, -1;
+  // clang-format on
+  Eigen::MatrixXd corners = (obb_size / 2.0) * corner_mask.cast<double>();
+  corners.colwise() += obb_centroid;
+
+  // For each corner, compute the distance from the raster origin to a plane that passes through the OBB corner and
+  // whose normal is the input raster direction. Save the largest and smallest distances to the corners
+  double d_max = -std::numeric_limits<double>::max();
+  double d_min = std::numeric_limits<double>::max();
+  for (Eigen::Index col = 0; col < corners.cols(); ++col)
+  {
+    Eigen::Hyperplane<double, 3> plane(cut_normal, corners.col(col));
+    double d = plane.signedDistance(cut_origin);
+
+    // Negate the signed distance because points "in front" of the cut plane have to travel in the negative plane
+    // direction to get back to the plane
+    d *= -1;
+
+    if (d > d_max)
+      d_max = d;
+    else if (d < d_min)
+      d_min = d;
+  }
+
+  return std::make_tuple(d_min, d_max);
+}
+
 }  // namespace
 
 namespace noether
@@ -416,6 +470,7 @@ void PlaneSlicerRasterPlanner::setMinSegmentSize(const double min_segment_size)
 {
   min_segment_size_ = min_segment_size;
 }
+
 void PlaneSlicerRasterPlanner::setSearchRadius(const double search_radius) { search_radius_ = search_radius; }
 
 ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
@@ -476,16 +531,17 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
   }
 
   // Get the initial cutting plane
-  Eigen::Vector3d cut_direction = dir_gen_->generate(mesh);
-  Eigen::Vector3d cut_normal = (cut_direction.normalized().cross(mesh_normal)).normalized();
+  const Eigen::Vector3d cut_direction = dir_gen_->generate(mesh);
+  const Eigen::Vector3d cut_normal = (cut_direction.normalized().cross(mesh_normal)).normalized();
 
-  // Calculate the number of planes needed to cover the mesh according to the length of the principle axes
-  double max_extent =
-      std::sqrt(pca_vecs.col(0).squaredNorm() + pca_vecs.col(1).squaredNorm() + pca_vecs.col(2).squaredNorm());
-  std::size_t num_planes = static_cast<std::size_t>(max_extent / line_spacing_);
+  // Get the initial plane starting location
+  const Eigen::Vector3d cut_origin = origin_gen_->generate(mesh);
 
-  // Calculate the start location as the centroid less half the full diagonal of the bounding box
-  Eigen::Vector3d start_loc = centroid - (max_extent / 2.0) * cut_normal;
+  double d_min_cut, d_max_cut;
+  std::tie(d_min_cut, d_max_cut) = getDistancesToMinMaxCuts(pca_vecs, centroid, cut_origin, cut_normal);
+
+  const std::size_t num_planes = static_cast<std::size_t>(std::abs(d_max_cut - d_min_cut) / line_spacing_);
+  const Eigen::Vector3d start_loc = cut_origin + cut_normal * d_min_cut;
 
   // Generate each plane and collect the intersection points
   vtkSmartPointer<vtkAppendPolyData> raster_data = vtkSmartPointer<vtkAppendPolyData>::New();
