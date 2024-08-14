@@ -26,8 +26,11 @@
 namespace noether
 {
 /**
- * @brief Interface for various methods to generate the direction of raster paths.  The direction
- * generated will move along the line from the first point to the second, then third, etc.
+ * @brief Interface for generating the direction of raster paths. This direction represents the line along which
+ * waypoints in a raster path will lie.
+ * @details This interface only defines the raster path direction. It is overconstrained to also define the raster step
+ * direction, which is typically normal to the raster path direction. As such, we leave it up to the individual raster
+ * planners to determine how propagate sequential rasters normal to the path direction.
  */
 struct DirectionGenerator
 {

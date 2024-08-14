@@ -3,6 +3,7 @@
 #include <noether_gui/widgets/tool_path_planners/raster/raster_planner_widget.h>
 
 class QDoubleSpinBox;
+class QCheckBox;
 
 namespace noether
 {
@@ -19,6 +20,7 @@ public:
 protected:
   QDoubleSpinBox* search_radius_;
   QDoubleSpinBox* min_segment_size_;
+  QCheckBox* bidirectional_;
 };
 
 }  // namespace noether

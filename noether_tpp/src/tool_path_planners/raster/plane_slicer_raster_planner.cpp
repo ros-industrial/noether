@@ -473,6 +473,11 @@ void PlaneSlicerRasterPlanner::setMinSegmentSize(const double min_segment_size)
 
 void PlaneSlicerRasterPlanner::setSearchRadius(const double search_radius) { search_radius_ = search_radius; }
 
+void PlaneSlicerRasterPlanner::generateRastersBidirectionally(const bool bidirectional)
+{
+  bidirectional_ = bidirectional;
+}
+
 ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
 {
   // Convert input mesh to VTK type & calculate normals if necessary
@@ -540,7 +545,21 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
   double d_min_cut, d_max_cut;
   std::tie(d_min_cut, d_max_cut) = getDistancesToMinMaxCuts(pca_vecs, centroid, cut_origin, cut_normal);
 
-  const std::size_t num_planes = static_cast<std::size_t>(std::abs(d_max_cut - d_min_cut) / line_spacing_);
+  // If we don't want to generate rasters bidirectionally...
+  if (!bidirectional_)
+  {
+    // ... and the furthest cut distance is behind the cutting plane, then don't make any cuts
+    if (d_max_cut < 0.0)
+      return {};
+
+    // ... and the closest cut distance is behined the cutting plane, set the distance to the closest cutting plane
+    // equal to zero (i.e., at the nominal cut origin)
+    if (d_min_cut < 0.0)
+      d_min_cut = 0.0;
+  }
+
+  const double cut_span = std::abs(d_max_cut - d_min_cut);
+  const auto num_planes = static_cast<std::size_t>(std::ceil(cut_span / line_spacing_));
   const Eigen::Vector3d start_loc = cut_origin + cut_normal * d_min_cut;
 
   // Generate each plane and collect the intersection points
