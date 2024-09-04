@@ -67,8 +67,8 @@ bool clusterComparator(const pcl::PointIndices& a,
     pcl::PointCloud<pcl::PointXYZ> index_cloud;
     extract.filter(index_cloud);
 
-    float avg_dist =
-        (index_cloud.getMatrixXfMap(3, 4, 0).rowwise() - boundary_centroid.transpose()).colwise().mean().norm();
+    float avg_dist = (index_cloud.getMatrixXfMap(3, 4, 0).colwise() - boundary_centroid).rowwise().mean().norm();
+
     dist.push_back(avg_dist);
   }
 
