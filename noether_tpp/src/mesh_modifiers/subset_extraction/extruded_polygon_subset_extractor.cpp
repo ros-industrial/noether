@@ -67,16 +67,8 @@ bool clusterComparator(const pcl::PointIndices& a,
     pcl::PointCloud<pcl::PointXYZ> index_cloud;
     extract.filter(index_cloud);
 
-    Eigen::MatrixXf points_matrix = index_cloud.getMatrixXfMap(3, 4, 0);
-
-    // Subtract the centroid from each point
-    Eigen::MatrixXf centered = points_matrix.colwise() - boundary_centroid;
-
-    // Compute the mean of the centered points
-    Eigen::Vector3f mean_vector = centered.rowwise().mean();
-
-    // Compute the norm of the mean vector
-    float avg_dist = mean_vector.norm();
+    float avg_dist =
+            (index_cloud.getMatrixXfMap(3, 4, 0).colwise() - boundary_centroid).rowwise().mean().norm();
 
     dist.push_back(avg_dist);
   }
