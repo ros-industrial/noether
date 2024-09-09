@@ -23,8 +23,9 @@ ToolPaths ToolDragOrientationToolPathModifier::modify(ToolPaths tool_paths) cons
     {
       for (Eigen::Isometry3d& waypoint : segment)
       {
-        waypoint.rotate(Eigen::AngleAxisd(sign * -angle_offset_, Eigen::Vector3d::UnitY()))
-            .translate(Eigen::Vector3d(sign * tool_radius_, 0, 0));
+        double z_offset = tool_radius_ * std::sin(angle_offset_);
+        waypoint.translate(Eigen::Vector3d(0.0, 0.0, z_offset))
+            .rotate(Eigen::AngleAxisd(sign * -angle_offset_, Eigen::Vector3d::UnitY()));
       }
     }
   }
