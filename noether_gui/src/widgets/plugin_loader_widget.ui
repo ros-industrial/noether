@@ -37,7 +37,7 @@
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add a new object to the list&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
-           <string>...</string>
+           <string>+</string>
           </property>
           <property name="icon">
            <iconset theme="list-add"/>
@@ -76,7 +76,7 @@
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Move the object up in the list order&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>...</string>
+             <string>^</string>
             </property>
             <property name="icon">
              <iconset theme="go-up"/>
@@ -89,7 +89,7 @@
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Move the object down in the list order&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>...</string>
+             <string>v</string>
             </property>
             <property name="icon">
              <iconset theme="go-down"/>
@@ -109,7 +109,7 @@
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove the current selection&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>...</string>
+             <string>-</string>
             </property>
             <property name="icon">
              <iconset theme="list-remove"/>
@@ -122,7 +122,7 @@
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove all items&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>...</string>
+             <string>clr</string>
             </property>
             <property name="icon">
              <iconset theme="edit-delete"/>
