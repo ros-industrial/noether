@@ -49,7 +49,15 @@ void PlaneSlicerRasterPlannerWidget::configure(const YAML::Node& config)
   RasterPlannerWidget::configure(config);
   search_radius_->setValue(getEntry<double>(config, "search_radius"));
   min_segment_size_->setValue(getEntry<double>(config, "min_segment_size"));
-  bidirectional_->setChecked(getEntry<bool>(config, "bidirectional"));
+
+  // Optionally get bidirectional parameter to maintain backwards compatibility
+  try
+  {
+    bidirectional_->setChecked(getEntry<bool>(config, "bidirectional"));
+  }
+  catch (const std::exception& ex)
+  {
+  }
 }
 
 void PlaneSlicerRasterPlannerWidget::save(YAML::Node& config) const
