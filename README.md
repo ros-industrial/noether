@@ -34,7 +34,7 @@ The generated tool path can then be saved to a YAML file for use in other applic
 
 ![GUI](docs/gui.png)
 
-To open the Noether gui application, use the following command:
+To open the Noether GUI application, use the following command:
 `ros2 run noether_gui noether_gui_app`
 
 ## Architecture
