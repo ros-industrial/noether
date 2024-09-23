@@ -18,7 +18,6 @@
 #include <vtkPolyDataNormals.h>
 #include <vtkSmartPointer.h>
 
-
 namespace noether
 {
 
@@ -458,4 +457,4 @@ vtkSmartPointer<vtkPolyData> convertMeshToVTKPolyData(const pcl::PolygonMesh& me
   return mesh_data;
 }
 
-} // namespace noether
+}  // namespace noether

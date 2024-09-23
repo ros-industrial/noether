@@ -105,8 +105,10 @@ bool insertNormals(const double search_radius,
                    vtkSmartPointer<vtkPolyData>& data);
 
 /**
- * @brief Gets the distances (normal to the cut plane) from the cut origin to the closest and furthest corners of the mesh
- * @param obb_size Column-wise matrix of the object-aligned size vectors of the mesh (from PCA), relative to the mesh origin
+ * @brief Gets the distances (normal to the cut plane) from the cut origin to the closest and furthest corners of the
+ * mesh
+ * @param obb_size Column-wise matrix of the object-aligned size vectors of the mesh (from PCA), relative to the mesh
+ * origin
  * @param pca_centroid Centroid of the mesh determined by PCA, relative to the mesh origin
  * @param cut_origin Origin of the raster pattern, relative to the mesh origin
  * @param cut_normal Raster cut plane normal, relative to the mesh origin
@@ -124,7 +126,6 @@ std::tuple<double, double> getDistancesToMinMaxCuts(const Eigen::Matrix3d& obb_s
  */
 vtkSmartPointer<vtkPolyData> convertMeshToVTKPolyData(const pcl::PolygonMesh& mesh);
 
+}  // namespace noether
 
-} // namespace noether
-
-#endif // NOETHER_RASTER_UTILS_H
+#endif  // NOETHER_RASTER_UTILS_H
