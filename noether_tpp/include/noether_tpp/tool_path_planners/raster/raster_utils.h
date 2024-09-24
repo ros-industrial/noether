@@ -18,7 +18,6 @@
 
 namespace noether
 {
-
 // Constants
 constexpr double EPSILON = 1e-6;
 

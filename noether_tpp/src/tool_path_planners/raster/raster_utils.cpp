@@ -20,7 +20,6 @@
 
 namespace noether
 {
-
 Eigen::Matrix3d computeRotation(const Eigen::Vector3d& vx, const Eigen::Vector3d& vy, const Eigen::Vector3d& vz)
 {
   Eigen::Matrix3d m;
