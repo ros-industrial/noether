@@ -1,11 +1,7 @@
 #pragma once
 
 #include <QWidget>
-
-namespace YAML
-{
-class Node;
-}
+#include <yaml-cpp/yaml.h>
 
 namespace noether
 {

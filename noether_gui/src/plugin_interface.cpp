@@ -5,6 +5,7 @@
 #include <noether_tpp/core/tool_path_modifier.h>
 #include <noether_tpp/tool_path_planners/raster/raster_planner.h>
 #include <boost_plugin_loader/plugin_loader.hpp>
+#include <yaml-cpp/yaml.h>
 
 using namespace noether;
 
