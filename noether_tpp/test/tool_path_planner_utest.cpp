@@ -10,8 +10,8 @@
 #include <noether_tpp/core/tool_path_planner.h>
 // Raster planner
 #include <noether_tpp/tool_path_planners/raster/raster_planner.h>
-#include <noether_tpp/tool_path_planners/raster/direction_generators.h>
-#include <noether_tpp/tool_path_planners/raster/origin_generators.h>
+#include <noether_tpp/tool_path_planners/raster/direction_generators/fixed_direction_generator.h>
+#include <noether_tpp/tool_path_planners/raster/origin_generators/fixed_origin_generator.h>
 // Edge planner
 #include <noether_tpp/tool_path_planners/edge/edge_planner.h>
 // Planner implementations
