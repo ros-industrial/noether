@@ -12,6 +12,8 @@
 //   Plane Slicer Raster Planner
 #include <noether_gui/widgets/tool_path_planners/raster/plane_slicer_raster_planner_widget.h>
 #include <noether_gui/widgets/tool_path_planners/raster/cross_hatch_plane_slicer_raster_planner_widget.h>
+//   Edge
+#include <noether_gui/widgets/tool_path_planners/edge/half_edge_planner_widget.h>
 // Tool Path Modifiers
 #include <noether_gui/widgets/tool_path_modifiers/circular_lead_in_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/circular_lead_out_modifier_widget.h>
@@ -144,6 +146,9 @@ struct CrossHatchPlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlu
   }
 };
 
+// Edge Tool Path Planners
+using HalfEdgePlannerWidgetPlugin = WidgetPluginImpl<HalfEdgePlannerWidget, ToolPathPlannerWidget>;
+
 // Mesh Modifiers
 using PlaneProjectionMeshModifierWidgetPlugin = WidgetPluginImpl<PlaneProjectionMeshModifierWidget, MeshModifierWidget>;
 using EuclideanClusteringMeshModifierWidgetPlugin =
@@ -180,6 +185,7 @@ EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::OffsetModifierWidgetPlugin, Off
 
 EXPORT_TPP_WIDGET_PLUGIN(noether::PlaneSlicerRasterPlannerWidgetPlugin, PlaneSlicerRasterPlanner)
 EXPORT_TPP_WIDGET_PLUGIN(noether::CrossHatchPlaneSlicerRasterPlannerWidgetPlugin, CrossHatchPlaneSlicerRasterPlanner)
+EXPORT_TPP_WIDGET_PLUGIN(noether::HalfEdgePlannerWidgetPlugin, HalfEdgePlanner)
 
 EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(noether::PlaneProjectionMeshModifierWidgetPlugin, PlaneProjectionModifier)
 EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(noether::EuclideanClusteringMeshModifierWidgetPlugin, EuclideanClusteringModifier)
