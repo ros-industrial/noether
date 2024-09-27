@@ -26,14 +26,31 @@ pcl::PolygonMesh createPlaneMesh(const float dim, const Eigen::Isometry3d& trans
   pcl::PolygonMesh mesh;
 
   // Add 4 vertices "counter clockwise"
-  pcl::PointCloud<pcl::PointXYZ> cloud;
-  cloud.push_back(pcl::PointXYZ(0.0, 0.0, 0.0));
-  cloud.push_back(pcl::PointXYZ(dim, 0.0, 0.0));
-  cloud.push_back(pcl::PointXYZ(dim, dim, 0.0));
-  cloud.push_back(pcl::PointXYZ(0.0, dim, 0.0));
+  pcl::PointCloud<pcl::PointNormal> cloud;
+
+  pcl::PointNormal p1;
+  p1.getVector3fMap() = Eigen::Vector3f(0.0, 0.0, 0.0);
+  p1.getNormalVector3fMap() = Eigen::Vector3f::UnitZ();
+
+  pcl::PointNormal p2;
+  p1.getVector3fMap() = Eigen::Vector3f(dim, 0.0, 0.0);
+  p1.getNormalVector3fMap() = Eigen::Vector3f::UnitZ();
+
+  pcl::PointNormal p3;
+  p1.getVector3fMap() = Eigen::Vector3f(dim, dim, 0.0);
+  p1.getNormalVector3fMap() = Eigen::Vector3f::UnitZ();
+
+  pcl::PointNormal p4;
+  p1.getVector3fMap() = Eigen::Vector3f(0.0, dim, 0.0);
+  p1.getNormalVector3fMap() = Eigen::Vector3f::UnitZ();
+
+  cloud.push_back(p1);
+  cloud.push_back(p2);
+  cloud.push_back(p3);
+  cloud.push_back(p4);
 
   // Apply the transform offset
-  pcl::PointCloud<pcl::PointXYZ> transformed_cloud;
+  pcl::PointCloud<pcl::PointNormal> transformed_cloud;
   pcl::transformPointCloud(cloud, transformed_cloud, transform.matrix());
 
   // Convert to message format
