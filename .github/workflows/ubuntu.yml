@@ -45,4 +45,4 @@ jobs:
           vcs-file: dependencies.repos
           rosdep-install-args: '--skip-keys libvtk'
           target-path: target_ws/src
-          target-args: --cmake-args -DCMAKE_BUILD_TYPE=Debug
+          target-args: --cmake-args -DCMAKE_BUILD_TYPE=Debug -DNOETHER_ENABLE_TESTING=ON -DNOETHER_ENABLE_RUN_TESTING=OFF
