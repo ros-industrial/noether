@@ -51,6 +51,7 @@ add_library(${PROJECT_NAME} SHARED
   # Tool Path Planners
   src/tool_path_planners/multi_tool_path_planner.cpp
   src/tool_path_planners/edge/edge_planner.cpp
+  src/tool_path_planners/edge/half_edge_planner.cpp
   src/tool_path_planners/raster/raster_planner.cpp
   src/tool_path_planners/raster/origin_generators/aabb_origin_generator.cpp
   src/tool_path_planners/raster/origin_generators/centroid_origin_generator.cpp
@@ -58,7 +59,7 @@ add_library(${PROJECT_NAME} SHARED
   src/tool_path_planners/raster/origin_generators/fixed_origin_generator.cpp
   src/tool_path_planners/raster/direction_generators/fixed_direction_generator.cpp
   src/tool_path_planners/raster/direction_generators/principal_axis_direction_generator.cpp
-    src/tool_path_planners/raster/direction_generators/pca_rotated_direction_generator.cpp
+  src/tool_path_planners/raster/direction_generators/pca_rotated_direction_generator.cpp
   src/tool_path_planners/raster/plane_slicer_raster_planner.cpp
 )
 
