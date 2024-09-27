@@ -240,7 +240,6 @@ INSTANTIATE_TEST_SUITE_P(RasterPlannerTests,
 
 //   // Configure the planning factory
 //   std::shared_ptr<EdgePlannerFactory> factory = GetParam();
-//   factory->point_spacing = dim / (n_points - 1);
 
 //   // Plan
 //   std::unique_ptr<const ToolPathPlanner> planner = factory->create();
@@ -255,11 +254,9 @@ INSTANTIATE_TEST_SUITE_P(RasterPlannerTests,
 // {
 //   // Load the test mesh
 //   pcl::PolygonMesh mesh = loadWavyMeshWithHole();
-//   const double dim = 10.0;  // The square dimension of the mesh
 
 //   // Configure the planning factory
 //   std::shared_ptr<EdgePlannerFactory> factory = GetParam();
-//   factory->point_spacing = dim / (n_points - 1);
 
 //   // Plan
 //   std::unique_ptr<const ToolPathPlanner> planner = factory->create();
