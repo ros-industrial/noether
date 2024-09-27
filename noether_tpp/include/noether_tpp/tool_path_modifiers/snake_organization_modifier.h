@@ -6,12 +6,13 @@ namespace noether
 {
 /**
  * @brief Organizes a tool path into a snake-style pattern
- * @details A RasterOrganizationModifier is first used to organize the tool paths into a raster pattern. The tool paths
- * at odd indices are then reversed to produce the snake pattern.
+ * @details The tool paths at odd indices are the reversed to produce the snake pattern. This modifier typically needs
+ * to be run behind a modifier that can organize tool path segments properly (e.g., raster organization tool path
+ * modifier)
  */
-struct SnakeOrganizationModifier : OneTimeToolPathModifier
+struct SnakeOrganizationModifier : ToolPathModifier
 {
-  using OneTimeToolPathModifier::OneTimeToolPathModifier;
+  using ToolPathModifier::ToolPathModifier;
 
   ToolPaths modify(ToolPaths) const override;
 };

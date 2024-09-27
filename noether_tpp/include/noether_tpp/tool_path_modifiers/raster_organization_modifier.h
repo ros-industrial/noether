@@ -10,9 +10,9 @@ namespace noether
  * are sorted within each tool path in ascending order by the x-axis value of their first waypoint. Tool paths are
  * sorted in ascending order by the y-axis value of the first waypoint in the first tool path segment.
  */
-struct RasterOrganizationModifier : OneTimeToolPathModifier
+struct RasterOrganizationModifier : ToolPathModifier
 {
-  using OneTimeToolPathModifier::OneTimeToolPathModifier;
+  using ToolPathModifier::ToolPathModifier;
 
   ToolPaths modify(ToolPaths) const override;
 };
