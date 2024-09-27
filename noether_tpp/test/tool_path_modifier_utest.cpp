@@ -164,8 +164,8 @@ ToolPaths shuffle(ToolPaths tool_paths, const bool shuffle_waypoints, const std:
     std::shuffle(tool_path.begin(), tool_path.end(), rand);
   }
 
-  // Shuffle the order of tool paths within the container
-  std::shuffle(tool_paths.begin(), tool_paths.end(), rand);
+  // Shuffle the order of tool paths 1 through n within the container. Keep the original first tool path first
+  std::shuffle(tool_paths.begin() + 1, tool_paths.end(), rand);
 
   return tool_paths;
 }
@@ -306,9 +306,9 @@ TEST(ToolPathModifierTests, OrganizationModifiersTest)
   raster_tool_paths = raster.modify(shuffled_tool_paths);
   compare(tool_paths, raster_tool_paths);
 
-  // Create a snake pattern from the shuffled tool paths
+  // Create a snake pattern from the raster tool paths
   SnakeOrganizationModifier snake;
-  const ToolPaths snake_tool_paths = snake.modify(shuffled_tool_paths);
+  const ToolPaths snake_tool_paths = snake.modify(raster_tool_paths);
 
   // Check the snake pattern
   for (unsigned i = 0; i < n_paths - 1; ++i)
