@@ -207,4 +207,6 @@ ToolPaths HalfEdgePlanner::planImpl(const pcl::PolygonMesh& mesh) const
   return tool_paths;
 }
 
+ToolPathPlanner::ConstPtr HalfEdgePlannerFactory::create() const { return std::make_unique<HalfEdgePlanner>(); }
+
 }  // namespace noether

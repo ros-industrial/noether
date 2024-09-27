@@ -16,4 +16,9 @@ public:
   ToolPaths planImpl(const pcl::PolygonMesh&) const override;
 };
 
+struct HalfEdgePlannerFactory : public EdgePlannerFactory
+{
+  ToolPathPlanner::ConstPtr create() const override;
+};
+
 }  // namespace noether
