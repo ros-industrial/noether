@@ -49,75 +49,6 @@ Eigen::Matrix3d computeRotation(const Eigen::Vector3d& vx, const Eigen::Vector3d
   return m;
 }
 
-double computeLength(const vtkSmartPointer<vtkPoints>& points)
-{
-  const vtkIdType num_points = points->GetNumberOfPoints();
-  double total_length = 0.0;
-  if (num_points < 2)
-  {
-    return total_length;
-  }
-
-  Eigen::Vector3d p0, pf;
-  for (vtkIdType i = 1; i < num_points; i++)
-  {
-    points->GetPoint(i - 1, p0.data());
-    points->GetPoint(i, pf.data());
-
-    total_length += (pf - p0).norm();
-  }
-  return total_length;
-}
-
-vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vtkPoints>& points,
-                                                 double total_length,
-                                                 double point_spacing)
-{
-  vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
-
-  // create spline
-  vtkSmartPointer<vtkParametricSpline> spline = vtkSmartPointer<vtkParametricSpline>::New();
-  spline->SetPoints(points);
-  spline->SetParameterizeByLength(true);
-  spline->ClosedOff();
-
-  // adding first point
-  Eigen::Vector3d pt_prev;
-  points->GetPoint(0, pt_prev.data());
-  new_points->InsertNextPoint(pt_prev.data());
-
-  // adding remaining points by evaluating spline
-  std::size_t num_points = static_cast<std::size_t>(std::ceil(total_length / point_spacing) + 1);
-  double du[9];
-  Eigen::Vector3d u, pt;
-  for (unsigned i = 1; i < num_points; i++)
-  {
-    double interv = static_cast<double>(i) / static_cast<double>(num_points - 1);
-    interv = interv > 1.0 ? 1.0 : interv;
-    if (std::abs(interv - 1.0) < EPSILON)
-    {
-      break;  // reach end
-    }
-
-    u = interv * Eigen::Vector3d::Ones();
-    std::tie(u[0], u[1], u[2]) = std::make_tuple(interv, interv, interv);
-    spline->Evaluate(u.data(), pt.data(), du);
-
-    // check distance
-    if ((pt - pt_prev).norm() >= point_spacing)
-    {
-      new_points->InsertNextPoint(pt.data());
-      pt_prev = pt;
-    }
-  }
-
-  // add last point
-  points->GetPoint(points->GetNumberOfPoints() - 1, pt_prev.data());
-  new_points->InsertNextPoint(pt_prev.data());
-
-  return new_points;
-}
-
 /**
  * @brief removes points that appear in multiple lists such that only one instance of that point
  *        index remains
@@ -629,29 +560,6 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
         raster_lines->GetPoint(id, p.data());
         points->InsertNextPoint(p.data());
       });
-
-      // compute length and add points if segment length is greater than threshold
-      double line_length = ::computeLength(points);
-      if (line_length > min_segment_size_ && points->GetNumberOfPoints() > 1)
-      {
-        // enforce point spacing
-        vtkSmartPointer<vtkPoints> new_points = applyParametricSpline(points, line_length, point_spacing_);
-
-        // add points to segment now
-        vtkSmartPointer<vtkPolyData> segment_data = vtkSmartPointer<vtkPolyData>::New();
-        segment_data->SetPoints(new_points);
-
-        // inserting normals
-        if (!insertNormals(search_radius_, mesh_data_, kd_tree_, segment_data))
-        {
-          throw std::runtime_error("Could not insert normals for segment " + std::to_string(r.raster_segments.size()) +
-                                   " of raster " + std::to_string(i));
-        }
-
-        // saving into raster
-        r.raster_segments.push_back(segment_data);
-        r.segment_lengths.push_back(line_length);
-      }
     }
 
     // Save raster
