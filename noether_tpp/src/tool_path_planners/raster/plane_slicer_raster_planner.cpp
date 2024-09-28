@@ -260,43 +260,14 @@ void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points,
   });
 }
 
-void rectifyDirection(const vtkSmartPointer<vtkPoints>& points,
-                      const Eigen::Vector3d& ref_point,
-                      std::vector<std::vector<vtkIdType>>& points_lists)
-{
-  Eigen::Vector3d p0, pf;
-  if (points_lists.size() < 2)
-    return;
-
-  // getting first and last points
-  points->GetPoint(points_lists.front().front(), p0.data());
-  points->GetPoint(points_lists.back().back(), pf.data());
-
-  bool reverse = (ref_point - p0).norm() > (ref_point - pf).norm();
-  if (reverse)
-  {
-    for (auto& s : points_lists)
-    {
-      std::reverse(s.begin(), s.end());
-    }
-    std::reverse(points_lists.begin(), points_lists.end());
-  }
-}
-
 noether::ToolPaths convertToPoses(const std::vector<RasterConstructData>& rasters_data)
 {
   noether::ToolPaths rasters_array;
-  bool reverse = true;
   for (const RasterConstructData& rd : rasters_data)
   {
-    reverse = !reverse;
     noether::ToolPath raster_path;
     std::vector<vtkSmartPointer<vtkPolyData>> raster_segments;
     raster_segments.assign(rd.raster_segments.begin(), rd.raster_segments.end());
-    if (reverse)
-    {
-      std::reverse(raster_segments.begin(), raster_segments.end());
-    }
 
     for (const vtkSmartPointer<vtkPolyData>& polydata : raster_segments)
     {
@@ -306,10 +277,6 @@ noether::ToolPaths convertToPoses(const std::vector<RasterConstructData>& raster
       Eigen::Isometry3d pose;
       std::vector<int> indices(num_points);
       std::iota(indices.begin(), indices.end(), 0);
-      if (reverse)
-      {
-        std::reverse(indices.begin(), indices.end());
-      }
       for (std::size_t i = 0; i < indices.size() - 1; i++)
       {
         int idx = indices[i];
@@ -666,14 +633,6 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
 
     // merging segments
     mergeRasterSegments(raster_lines->GetPoints(), min_hole_size_, raster_ids);
-
-    // rectifying
-    if (rasters_data_vec.size() > 1)
-    {
-      Eigen::Vector3d ref_point;
-      rasters_data_vec.back().raster_segments.front()->GetPoint(0, ref_point.data());  // first point in previous raster
-      rectifyDirection(raster_lines->GetPoints(), ref_point, raster_ids);
-    }
 
     for (auto& rpoint_ids : raster_ids)
     {
