@@ -223,99 +223,97 @@ INSTANTIATE_TEST_SUITE_P(RasterPlannerTests,
                          testing::ValuesIn(createRasterPlannerFactories()),
                          print<RasterPlannerFactory>);
 
-class EdgePlannerTestFixture : public testing::TestWithParam<std::shared_ptr<EdgePlannerFactory>>
-{
-public:
-  const unsigned n_points{ 11 };
-};
+// TODO: Uncomment when implementations are added to test
 
-TEST_P(EdgePlannerTestFixture, FlatSquareMesh)
-{
-  // Create a flat plane mesh with 2 triangles
-  double dim = 1.0;
-  Eigen::Isometry3d transform = createRandomTransform(dim * 5.0, M_PI);
-  pcl::PolygonMesh mesh = createPlaneMesh(static_cast<float>(dim), transform);
+// class EdgePlannerTestFixture : public testing::TestWithParam<std::shared_ptr<EdgePlannerFactory>>
+// {
+// public:
+//   const unsigned n_points{ 11 };
+// };
 
-  // Configure the planning factory
-  std::shared_ptr<EdgePlannerFactory> factory = GetParam();
-  factory->point_spacing = dim / (n_points - 1);
+// TEST_P(EdgePlannerTestFixture, FlatSquareMesh)
+// {
+//   // Create a flat plane mesh with 2 triangles
+//   double dim = 1.0;
+//   Eigen::Isometry3d transform = createRandomTransform(dim * 5.0, M_PI);
+//   pcl::PolygonMesh mesh = createPlaneMesh(static_cast<float>(dim), transform);
 
-  // Plan
-  std::unique_ptr<const ToolPathPlanner> planner = factory->create();
-  ToolPaths tool_paths;
-  ASSERT_NO_THROW(tool_paths = planner->plan(mesh));
+//   // Configure the planning factory
+//   std::shared_ptr<EdgePlannerFactory> factory = GetParam();
+//   factory->point_spacing = dim / (n_points - 1);
 
-  // There should only be one edge path that goes around the border of the mesh
-  EXPECT_EQ(tool_paths.size(), 1);
-}
+//   // Plan
+//   std::unique_ptr<const ToolPathPlanner> planner = factory->create();
+//   ToolPaths tool_paths;
+//   ASSERT_NO_THROW(tool_paths = planner->plan(mesh));
 
-TEST_P(EdgePlannerTestFixture, SemiPlanarMeshFile)
-{
-  // Load the test mesh
-  pcl::PolygonMesh mesh = loadWavyMeshWithHole();
-  const double dim = 10.0;  // The square dimension of the mesh
+//   // There should only be one edge path that goes around the border of the mesh
+//   EXPECT_EQ(tool_paths.size(), 1);
+// }
 
-  // Configure the planning factory
-  std::shared_ptr<EdgePlannerFactory> factory = GetParam();
-  factory->point_spacing = dim / (n_points - 1);
+// TEST_P(EdgePlannerTestFixture, SemiPlanarMeshFile)
+// {
+//   // Load the test mesh
+//   pcl::PolygonMesh mesh = loadWavyMeshWithHole();
+//   const double dim = 10.0;  // The square dimension of the mesh
 
-  // Plan
-  std::unique_ptr<const ToolPathPlanner> planner = factory->create();
-  ToolPaths tool_paths;
-  ASSERT_NO_THROW(tool_paths = planner->plan(mesh));
+//   // Configure the planning factory
+//   std::shared_ptr<EdgePlannerFactory> factory = GetParam();
+//   factory->point_spacing = dim / (n_points - 1);
 
-  // There should only be two edge paths, one that goes around the border of the mesh and one that goes around the
-  // border of the hole
-  const std::size_t n_paths = 2;
-  EXPECT_EQ(tool_paths.size(), n_paths);
+//   // Plan
+//   std::unique_ptr<const ToolPathPlanner> planner = factory->create();
+//   ToolPaths tool_paths;
+//   ASSERT_NO_THROW(tool_paths = planner->plan(mesh));
 
-  std::vector<double> path_lengths;
-  path_lengths.reserve(n_paths);
-  for (const ToolPath& path : tool_paths)
-  {
-    // Check that the path has at least one segment
-    EXPECT_GE(path.size(), 1);
+//   // There should only be two edge paths, one that goes around the border of the mesh and one that goes around the
+//   // border of the hole
+//   const std::size_t n_paths = 2;
+//   EXPECT_EQ(tool_paths.size(), n_paths);
 
-    // Compute the length of the path
-    double len = 0.0;
-    for (const ToolPathSegment& segment : path)
-    {
-      for (std::size_t i = 0; i < path.size() - 1; ++i)
-      {
-        const Eigen::Isometry3d& first = path.front()[i];
-        const Eigen::Isometry3d& second = path.front()[i + 1];
-        len += (second.translation() - first.translation()).norm();
-      }
-    }
-    path_lengths.push_back(len);
-  }
+//   std::vector<double> path_lengths;
+//   path_lengths.reserve(n_paths);
+//   for (const ToolPath& path : tool_paths)
+//   {
+//     // Check that the path has at least one segment
+//     EXPECT_GE(path.size(), 1);
 
-  // Create a vector of indices representing the order in which the tool paths should have been sorted
-  std::vector<std::size_t> expected_order(n_paths);
-  std::iota(expected_order.begin(), expected_order.end(), 0);
+//     // Compute the length of the path
+//     double len = 0.0;
+//     for (const ToolPathSegment& segment : path)
+//     {
+//       for (std::size_t i = 0; i < path.size() - 1; ++i)
+//       {
+//         const Eigen::Isometry3d& first = path.front()[i];
+//         const Eigen::Isometry3d& second = path.front()[i + 1];
+//         len += (second.translation() - first.translation()).norm();
+//       }
+//     }
+//     path_lengths.push_back(len);
+//   }
 
-  // Argsort the paths in descending order by length
-  std::vector<std::size_t> sorted_order(expected_order);
-  std::sort(sorted_order.begin(), sorted_order.end(), [&path_lengths](const std::size_t& a, const std::size_t& b) {
-    return path_lengths.at(a) > path_lengths.at(b);
-  });
+//   // Create a vector of indices representing the order in which the tool paths should have been sorted
+//   std::vector<std::size_t> expected_order(n_paths);
+//   std::iota(expected_order.begin(), expected_order.end(), 0);
 
-  // Ensure the paths are ordered correctly by length
-  EXPECT_TRUE(std::equal(expected_order.begin(), expected_order.end(), sorted_order.begin()));
-}
+//   // Argsort the paths in descending order by length
+//   std::vector<std::size_t> sorted_order(expected_order);
+//   std::sort(sorted_order.begin(), sorted_order.end(), [&path_lengths](const std::size_t& a, const std::size_t& b) {
+//     return path_lengths.at(a) > path_lengths.at(b);
+//   });
+
+//   // Ensure the paths are ordered correctly by length
+//   EXPECT_TRUE(std::equal(expected_order.begin(), expected_order.end(), sorted_order.begin()));
+// }
 
 /** @brief Returns a list of edge planner factory implementations */
-std::vector<std::shared_ptr<EdgePlannerFactory>> createEdgePlannerFactories()
-{
-  std::vector<std::shared_ptr<EdgePlannerFactory>> v;
-  return v;
-}
+// std::vector<std::shared_ptr<EdgePlannerFactory>> createEdgePlannerFactories() { return {}; }
 
 // Instantiate the implementations of the edge planner factories to test
-INSTANTIATE_TEST_SUITE_P(EdgePlannerTests,
-                         EdgePlannerTestFixture,
-                         testing::ValuesIn(createEdgePlannerFactories()),
-                         print<EdgePlannerFactory>);
+// INSTANTIATE_TEST_SUITE_P(EdgePlannerTests,
+//                          EdgePlannerTestFixture,
+//                          testing::ValuesIn(createEdgePlannerFactories()),
+//                          print<EdgePlannerFactory>);
 
 int main(int argc, char** argv)
 {
