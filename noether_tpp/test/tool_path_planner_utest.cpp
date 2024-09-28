@@ -15,7 +15,7 @@
 #include <noether_tpp/tool_path_planners/raster/plane_slicer_raster_planner.h>
 // Edge planner
 #include <noether_tpp/tool_path_planners/edge/edge_planner.h>
-#include <noether_tpp/tool_path_planners/edge/half_edge_planner.h>
+#include <noether_tpp/tool_path_planners/edge/boundary_edge_planner.h>
 // Planner implementations
 // Utilities
 #include "utils.h"
@@ -299,7 +299,7 @@ TEST_P(EdgePlannerTestFixture, SemiPlanarMeshFile)
 std::vector<std::shared_ptr<EdgePlannerFactory>> createEdgePlannerFactories()
 {
   return {
-    std::make_shared<HalfEdgePlannerFactory>(),
+    std::make_shared<BoundaryEdgePlannerFactory>(),
   };
 }
 

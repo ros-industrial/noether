@@ -4,7 +4,7 @@
 
 namespace noether
 {
-class HalfEdgePlannerWidget : public EdgePlannerWidget
+class BoundaryEdgePlannerWidget : public EdgePlannerWidget
 {
 public:
   using EdgePlannerWidget::configure;

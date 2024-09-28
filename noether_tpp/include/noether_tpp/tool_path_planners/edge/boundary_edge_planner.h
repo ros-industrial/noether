@@ -8,15 +8,15 @@ namespace noether
  * @brief Edge tool path planner that creates paths around the boundary edges of a mesh (exterior and interior) as
  * identified by half-edge triangle mesh representation of the mesh
  */
-class HalfEdgePlanner : public EdgePlanner
+class BoundaryEdgePlanner : public EdgePlanner
 {
 public:
-  HalfEdgePlanner();
+  BoundaryEdgePlanner();
 
   ToolPaths planImpl(const pcl::PolygonMesh&) const override;
 };
 
-struct HalfEdgePlannerFactory : public EdgePlannerFactory
+struct BoundaryEdgePlannerFactory : public EdgePlannerFactory
 {
   ToolPathPlanner::ConstPtr create() const override;
 };

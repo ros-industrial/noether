@@ -1,4 +1,4 @@
-#include <noether_tpp/tool_path_planners/edge/half_edge_planner.h>
+#include <noether_tpp/tool_path_planners/edge/boundary_edge_planner.h>
 #include <noether_tpp/utils.h>
 
 #include <pcl/geometry/mesh_traits.h>
@@ -153,9 +153,9 @@ Eigen::Matrix3f setOrientation(const Eigen::Vector3f& z_axis, const Eigen::Vecto
 
 namespace noether
 {
-HalfEdgePlanner::HalfEdgePlanner() : EdgePlanner() {}
+BoundaryEdgePlanner::BoundaryEdgePlanner() : EdgePlanner() {}
 
-ToolPaths HalfEdgePlanner::planImpl(const pcl::PolygonMesh& mesh) const
+ToolPaths BoundaryEdgePlanner::planImpl(const pcl::PolygonMesh& mesh) const
 {
   // Create a triangle mesh representation of the input mesh, compatible with half-edge calcuation
   TriangleMesh tri_mesh = createTriangleMesh(mesh);
@@ -207,6 +207,6 @@ ToolPaths HalfEdgePlanner::planImpl(const pcl::PolygonMesh& mesh) const
   return tool_paths;
 }
 
-ToolPathPlanner::ConstPtr HalfEdgePlannerFactory::create() const { return std::make_unique<HalfEdgePlanner>(); }
+ToolPathPlanner::ConstPtr BoundaryEdgePlannerFactory::create() const { return std::make_unique<BoundaryEdgePlanner>(); }
 
 }  // namespace noether
