@@ -60,9 +60,33 @@ PluginLoaderWidget<PluginT>::PluginLoaderWidget(boost_plugin_loader::PluginLoade
 }
 
 template <typename PluginT>
+PluginLoaderWidget<PluginT>::~PluginLoaderWidget()
+{
+  /* By default Qt maintains ownership of all widgets and deletes them automatically in the destructor of the QWidget
+   * parent class (which occurs after the execution of the destructor of this class). When the plugins are deleted
+   * during the destruction of this class (before the QWidget parent class deletes the widgets created by them), the
+   * library in which the plugins (and the widgets they create) are defined will be unloaded. Then when the QWidget base
+   * class tries to invoke the destructor of the widget(s) created by the plugin(s), a segfault will occur because the
+   * library defining those destructor(s) will have already been unloaded.
+   *
+   * The solution to this issue is to delete all widgets loaded from plugin(s) before deleting the plugins and plugin
+   * loader.
+   */
+  while (ui_->stacked_widget->count() > 0)
+  {
+    QWidget* widget = ui_->stacked_widget->widget(0);
+    ui_->stacked_widget->removeWidget(widget);
+    delete widget;
+  }
+}
+
+template <typename PluginT>
 void PluginLoaderWidget<PluginT>::addWidget(const QString& plugin_name, const YAML::Node& config)
 {
   auto plugin = loader_.createInstance<PluginT>(plugin_name.toStdString());
+
+  // Store the plugin to prevent it from going out of scope and unloading the plugin library
+  plugins_.insert(plugin);
 
   // Update the list widget and stacked widget
   ui_->list_widget->addItem(plugin_name);

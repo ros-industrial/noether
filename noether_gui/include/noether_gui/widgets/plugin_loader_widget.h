@@ -23,6 +23,7 @@ class PluginLoaderWidget : public QWidget
 {
 public:
   PluginLoaderWidget(boost_plugin_loader::PluginLoader loader, const QString& title, QWidget* parent = nullptr);
+  ~PluginLoaderWidget();
 
   QWidgetList getWidgets() const;
 
@@ -36,6 +37,13 @@ private:
   void shiftCurrentWidget(const int offset);
 
   Ui::PluginLoader* ui_;
+
+  /**
+   * @brief Container for holding all loaded plugins
+   * @details All loaded plugins must be held in scope in order to prevent the plugin libraries from being unloaded
+   */
+  std::set<std::shared_ptr<PluginT>> plugins_;
+
   const boost_plugin_loader::PluginLoader loader_;
 };
 
