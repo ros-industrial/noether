@@ -719,4 +719,17 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
   return tool_paths;
 }
 
+ToolPathPlanner::ConstPtr PlaneSlicerRasterPlannerFactory::create() const
+{
+  auto planner = std::make_unique<PlaneSlicerRasterPlanner>(direction_gen(), origin_gen());
+  planner->setLineSpacing(line_spacing);
+  planner->setPointSpacing(point_spacing);
+  planner->setMinHoleSize(min_hole_size);
+  planner->setSearchRadius(search_radius);
+  planner->setMinSegmentSize(min_segment_size);
+  planner->generateRastersBidirectionally(bidirectional);
+
+  return std::move(planner);
+}
+
 }  // namespace noether

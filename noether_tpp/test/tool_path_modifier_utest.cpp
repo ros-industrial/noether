@@ -1,11 +1,22 @@
 #include <gtest/gtest.h>
 #include <random>
-#include <regex>
 
 #include <noether_tpp/core/tool_path_modifier.h>
 // Implementations
-#include <noether_tpp/tool_path_modifiers/waypoint_orientation_modifiers.h>
-#include <noether_tpp/tool_path_modifiers/organization_modifiers.h>
+#include <noether_tpp/tool_path_modifiers/circular_lead_in_modifier.h>
+#include <noether_tpp/tool_path_modifiers/circular_lead_out_modifier.h>
+#include <noether_tpp/tool_path_modifiers/concatenate_modifier.h>
+#include <noether_tpp/tool_path_modifiers/direction_of_travel_orientation_modifier.h>
+#include <noether_tpp/tool_path_modifiers/fixed_orientation_modifier.h>
+#include <noether_tpp/tool_path_modifiers/linear_approach_modifier.h>
+#include <noether_tpp/tool_path_modifiers/linear_departure_modifier.h>
+#include <noether_tpp/tool_path_modifiers/moving_average_orientation_smoothing_modifier.h>
+#include <noether_tpp/tool_path_modifiers/offset_modifier.h>
+#include <noether_tpp/tool_path_modifiers/raster_organization_modifier.h>
+#include <noether_tpp/tool_path_modifiers/snake_organization_modifier.h>
+#include <noether_tpp/tool_path_modifiers/standard_edge_paths_organization_modifier.h>
+#include <noether_tpp/tool_path_modifiers/tool_drag_orientation_modifier.h>
+#include <noether_tpp/tool_path_modifiers/uniform_orientation_modifier.h>
 #include "utils.h"
 
 using namespace noether;
@@ -153,8 +164,8 @@ ToolPaths shuffle(ToolPaths tool_paths, const bool shuffle_waypoints, const std:
     std::shuffle(tool_path.begin(), tool_path.end(), rand);
   }
 
-  // Shuffle the order of tool paths within the container
-  std::shuffle(tool_paths.begin(), tool_paths.end(), rand);
+  // Shuffle the order of tool paths 1 through n within the container. Keep the original first tool path first
+  std::shuffle(tool_paths.begin() + 1, tool_paths.end(), rand);
 
   return tool_paths;
 }
@@ -229,13 +240,22 @@ TEST_P(OneTimeToolPathModifierTestFixture, TestOperation)
 // Create a vector of implementations for the modifiers
 std::vector<std::shared_ptr<const ToolPathModifier>> createModifiers()
 {
-  return { std::make_shared<FixedOrientationModifier>(Eigen::Vector3d(1, 0, 0)),
-           std::make_shared<UniformOrientationModifier>(),
+  return { std::make_shared<CircularLeadInModifier>(M_PI / 2.0, 0.1, 5),
+           std::make_shared<CircularLeadOutModifier>(M_PI / 2.0, 0.1, 5),
+           std::make_shared<ConcatenateModifier>(),
            std::make_shared<DirectionOfTravelOrientationModifier>(),
+           std::make_shared<FixedOrientationModifier>(Eigen::Vector3d(1, 0, 0)),
+           std::make_shared<LinearApproachModifier>(Eigen::Vector3d(0.1, 0.2, 0.3), 5),
+           std::make_shared<LinearApproachModifier>(0.1, LinearApproachModifier::Axis::Z, 5),
+           std::make_shared<LinearDepartureModifier>(Eigen::Vector3d(0.1, 0.2, 0.3), 5),
+           std::make_shared<LinearDepartureModifier>(0.1, LinearDepartureModifier::Axis::Z, 5),
+           std::make_shared<MovingAverageOrientationSmoothingModifier>(3),
+           std::make_shared<OffsetModifier>(Eigen::Isometry3d::Identity()),
            std::make_shared<RasterOrganizationModifier>(),
            std::make_shared<SnakeOrganizationModifier>(),
            std::make_shared<StandardEdgePathsOrganizationModifier>(),
-           std::make_shared<MovingAverageOrientationSmoothingModifier>(3) };
+           std::make_shared<ToolDragOrientationToolPathModifier>(10 * M_PI / 180.0, 0.025),
+           std::make_shared<UniformOrientationModifier>() };
 }
 
 std::vector<std::shared_ptr<const OneTimeToolPathModifier>> createOneTimeModifiers()
@@ -286,9 +306,9 @@ TEST(ToolPathModifierTests, OrganizationModifiersTest)
   raster_tool_paths = raster.modify(shuffled_tool_paths);
   compare(tool_paths, raster_tool_paths);
 
-  // Create a snake pattern from the shuffled tool paths
+  // Create a snake pattern from the raster tool paths
   SnakeOrganizationModifier snake;
-  const ToolPaths snake_tool_paths = snake.modify(shuffled_tool_paths);
+  const ToolPaths snake_tool_paths = snake.modify(raster_tool_paths);
 
   // Check the snake pattern
   for (unsigned i = 0; i < n_paths - 1; ++i)

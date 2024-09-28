@@ -42,7 +42,7 @@ struct ToolPathPlanner
 struct ToolPathPlannerFactory
 {
   virtual ~ToolPathPlannerFactory() = default;
-  virtual std::unique_ptr<const ToolPathPlanner> create() const = 0;
+  virtual ToolPathPlanner::ConstPtr create() const = 0;
 };
 
 }  // namespace noether
