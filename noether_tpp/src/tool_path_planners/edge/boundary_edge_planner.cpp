@@ -1,66 +1,8 @@
 #include <noether_tpp/tool_path_planners/edge/boundary_edge_planner.h>
 #include <noether_tpp/utils.h>
 
-#include <pcl/geometry/mesh_traits.h>
-#include <pcl/geometry/triangle_mesh.h>
-
 namespace
 {
-using MeshTraits = pcl::geometry::DefaultMeshTraits<std::uint32_t>;
-using TriangleMesh = pcl::geometry::TriangleMesh<MeshTraits>;
-
-/**
- * @brief Creates a triangle mesh representation of the input polygon mesh
- */
-TriangleMesh createTriangleMesh(const pcl::PolygonMesh& input)
-{
-  TriangleMesh mesh;
-
-  // Add the vertices
-  for (std::uint32_t i = 0; i < input.cloud.width * input.cloud.height; ++i)
-  {
-    mesh.addVertex(i);
-  }
-
-  // Add the faces
-  for (auto poly = input.polygons.begin(); poly != input.polygons.end(); ++poly)
-  {
-    if (poly->vertices.size() < 3)
-      throw std::runtime_error("Polygon has fewer than 3 vertices");
-
-    // Create individual triangles from the polygon (n_vert - 2 total triangles)
-    for (std::size_t tri = 0; tri < poly->vertices.size() - 2; ++tri)
-    {
-      TriangleMesh::VertexIndices triangle;
-      triangle.resize(3);
-
-      // Get the vertices of a triangle with the first point as the common point
-      for (std::uint32_t i = 0; i < 3; ++i)
-      {
-        std::uint32_t v_ind;
-        switch (i)
-        {
-          case 0:
-            v_ind = poly->vertices[0];
-            break;
-          case 1:
-            v_ind = poly->vertices[tri + 1];
-            break;
-          case 2:
-            v_ind = poly->vertices[tri + 2];
-            break;
-        }
-
-        triangle[i] = TriangleMesh::VertexIndex(v_ind);
-      }
-
-      mesh.addFace(triangle);
-    }
-  }
-
-  return mesh;
-}
-
 /**
  * @brief Returns a collection of half-edges of the mesh that are on its boundaries
  * @ref https://github.com/PointCloudLibrary/pcl/blob/pcl-1.10.0/examples/geometry/example_half_edge_mesh.cpp#L188-L199
@@ -98,39 +40,6 @@ std::vector<typename MeshT::HalfEdgeIndices> getBoundaryHalfEdges(const MeshT& m
   }
 
   return boundary_he_collection;
-}
-
-Eigen::Vector3f getPoint(const pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
-{
-  // Find the x, y, and z fields
-  auto x_it = noether::findFieldOrThrow(cloud.fields, "x");
-  auto y_it = noether::findFieldOrThrow(cloud.fields, "y");
-  auto z_it = noether::findFieldOrThrow(cloud.fields, "z");
-
-  // Check that the xyz fields are floats and contiguous
-  if ((y_it->offset - x_it->offset != 4) || (z_it->offset - y_it->offset != 4))
-    throw std::runtime_error("XYZ fields are not contiguous floats");
-
-  const std::uint32_t offset = pt_idx * cloud.point_step;
-  const auto* xyz = reinterpret_cast<const float*>(cloud.data.data() + offset + x_it->offset);
-  return Eigen::Map<const Eigen::Vector3f>(xyz);
-}
-
-Eigen::Vector3f getNormal(const pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
-{
-  auto nx_it = noether::findField(cloud.fields, "normal_x");
-  auto ny_it = noether::findField(cloud.fields, "normal_y");
-  auto nz_it = noether::findField(cloud.fields, "normal_z");
-
-  if (nx_it == cloud.fields.end() || ny_it == cloud.fields.end() || nz_it == cloud.fields.end())
-    throw std::runtime_error("Not all normals exist");
-
-  const std::uint32_t offset = pt_idx * cloud.point_step;
-  const auto* nx = reinterpret_cast<const float*>(cloud.data.data() + offset + nx_it->offset);
-  const auto* ny = reinterpret_cast<const float*>(cloud.data.data() + offset + ny_it->offset);
-  const auto* nz = reinterpret_cast<const float*>(cloud.data.data() + offset + nz_it->offset);
-
-  return Eigen::Vector3f(*nx, *ny, *nz);
 }
 
 Eigen::Matrix3f setOrientation(const Eigen::Vector3f& z_axis, const Eigen::Vector3f& x_dir)
