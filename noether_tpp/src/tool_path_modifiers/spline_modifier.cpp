@@ -36,7 +36,6 @@ vtkSmartPointer<vtkQuaternionInterpolator> createQuaternionInterpolator(const To
 {
   auto interpolator = vtkSmartPointer<vtkQuaternionInterpolator>::New();
   interpolator->SetInterpolationTypeToLinear();
-  interpolator->SetSearchMethod(vtkQuaternionInterpolator::LinearSearch);
 
   for (std::size_t i = 0; i < segment.size(); ++i)
   {

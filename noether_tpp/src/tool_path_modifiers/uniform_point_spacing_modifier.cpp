@@ -42,7 +42,7 @@ ToolPaths UniformPointSpacingModifier::modify(ToolPaths tool_paths) const
         const Eigen::Isometry3d& waypoint = segment.at(i);
 
         auto mat = vtkSmartPointer<vtkMatrix4x4>::New();
-        Eigen::Map<Eigen::Matrix<double, 4, 4, Eigen::RowMajor>> map(mat->GetData());
+        Eigen::Map<Eigen::Matrix<double, 4, 4, Eigen::RowMajor>> map(*mat->Element);
         map = waypoint.matrix();
 
         interpolator->AddTransform(dists.at(i), mat.Get());
@@ -53,7 +53,7 @@ ToolPaths UniformPointSpacingModifier::modify(ToolPaths tool_paths) const
         auto vtk_transform = vtkSmartPointer<vtkTransform>::New();
         interpolator->InterpolateTransform(l, vtk_transform.Get());
 
-        Eigen::Map<Eigen::Matrix<double, 4, 4, Eigen::RowMajor>> map(vtk_transform->GetMatrix()->GetData());
+        Eigen::Map<Eigen::Matrix<double, 4, 4, Eigen::RowMajor>> map(*vtk_transform->GetMatrix()->Element);
         Eigen::Isometry3d waypoint;
         waypoint.matrix() = map;
 
