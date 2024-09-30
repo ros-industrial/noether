@@ -1,4 +1,5 @@
 #include <noether_tpp/tool_path_planners/raster/plane_slicer_raster_planner.h>
+#include <noether_tpp/utils.h>
 
 #include <algorithm>  // std::find(), std::reverse(), std::unique()
 #include <numeric>    // std::iota()
@@ -447,35 +448,14 @@ void PlaneSlicerRasterPlanner::generateRastersBidirectionally(const bool bidirec
 
 ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
 {
+  if (!hasNormals(mesh))
+    throw std::runtime_error("Mesh does not have vertex normals");
+
   // Convert input mesh to VTK type & calculate normals if necessary
   vtkSmartPointer<vtkPolyData> mesh_data_ = vtkSmartPointer<vtkPolyData>::New();
   pcl::VTKUtils::mesh2vtk(mesh, mesh_data_);
   mesh_data_->BuildLinks();
   mesh_data_->BuildCells();
-  if (!mesh_data_->GetPointData()->GetNormals() || !mesh_data_->GetCellData()->GetNormals())
-  {
-    vtkSmartPointer<vtkPolyDataNormals> normal_generator = vtkSmartPointer<vtkPolyDataNormals>::New();
-    normal_generator->SetInputData(mesh_data_);
-    normal_generator->ComputePointNormalsOn();
-    normal_generator->SetComputeCellNormals(!mesh_data_->GetCellData()->GetNormals());
-    normal_generator->SetFeatureAngle(M_PI_2);
-    normal_generator->SetSplitting(true);
-    normal_generator->SetConsistency(true);
-    normal_generator->SetAutoOrientNormals(false);
-    normal_generator->SetFlipNormals(false);
-    normal_generator->SetNonManifoldTraversal(false);
-    normal_generator->Update();
-
-    if (!mesh_data_->GetPointData()->GetNormals())
-    {
-      mesh_data_->GetPointData()->SetNormals(normal_generator->GetOutput()->GetPointData()->GetNormals());
-    }
-
-    if (!mesh_data_->GetCellData()->GetNormals())
-    {
-      mesh_data_->GetCellData()->SetNormals(normal_generator->GetOutput()->GetCellData()->GetNormals());
-    }
-  }
 
   // Use principal component analysis (PCA) to determine the principal axes of the mesh
   Eigen::Vector3d mesh_normal;  // Unit vector along shortest mesh PCA direction

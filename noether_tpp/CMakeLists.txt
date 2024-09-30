@@ -32,6 +32,8 @@ add_library(${PROJECT_NAME} SHARED
   src/mesh_modifiers/fill_holes_modifier.cpp
   src/mesh_modifiers/windowed_sinc_smoothing.cpp
   src/mesh_modifiers/plane_projection_modifier.cpp
+  src/mesh_modifiers/normal_estimation_pcl.cpp
+  src/mesh_modifiers/normals_from_mesh_faces_modifier.cpp
   # Tool Path Modifiers
   src/tool_path_modifiers/circular_lead_in_modifier.cpp
   src/tool_path_modifiers/circular_lead_out_modifier.cpp

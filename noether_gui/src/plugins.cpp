@@ -32,6 +32,8 @@
 // Mesh Modifiers
 #include <noether_gui/widgets/mesh_modifiers/plane_projection_modifier_widget.h>
 #include <noether_gui/widgets/mesh_modifiers/euclidean_clustering_modifier_widget.h>
+#include <noether_gui/widgets/mesh_modifiers/normal_estimation_pcl_widget.h>
+#include <noether_gui/widgets/mesh_modifiers/normals_from_mesh_faces_modifier_widget.h>
 
 #include <QWidget>
 #include <QMessageBox>
@@ -153,6 +155,10 @@ using BoundaryEdgePlannerWidgetPlugin = WidgetPluginImpl<BoundaryEdgePlannerWidg
 using PlaneProjectionMeshModifierWidgetPlugin = WidgetPluginImpl<PlaneProjectionMeshModifierWidget, MeshModifierWidget>;
 using EuclideanClusteringMeshModifierWidgetPlugin =
     WidgetPluginImpl<EuclideanClusteringMeshModifierWidget, MeshModifierWidget>;
+using NormalEstimationPCLMeshModifierWidgetPlugin =
+    WidgetPluginImpl<NormalEstimationPCLMeshModifierWidget, MeshModifierWidget>;
+using NormalsFromMeshFacesMeshModifierWidgetPlugin =
+    WidgetPluginImpl<NormalsFromMeshFacesMeshModifierWidget, MeshModifierWidget>;
 
 }  // namespace noether
 
@@ -189,3 +195,5 @@ EXPORT_TPP_WIDGET_PLUGIN(noether::BoundaryEdgePlannerWidgetPlugin, BoundaryEdgeP
 
 EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(noether::PlaneProjectionMeshModifierWidgetPlugin, PlaneProjectionModifier)
 EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(noether::EuclideanClusteringMeshModifierWidgetPlugin, EuclideanClusteringModifier)
+EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(noether::NormalEstimationPCLMeshModifierWidgetPlugin, NormalEstimationPCL)
+EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(noether::NormalsFromMeshFacesMeshModifierWidgetPlugin, NormalsFromMeshFaces)

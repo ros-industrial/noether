@@ -62,6 +62,8 @@ add_library(${PROJECT_NAME} SHARED
   # Mesh Modifiers
   src/widgets/mesh_modifiers/plane_projection_modifier_widget.cpp
   src/widgets/mesh_modifiers/euclidean_clustering_modifier_widget.cpp
+  src/widgets/mesh_modifiers/normal_estimation_pcl_widget.cpp
+  src/widgets/mesh_modifiers/normals_from_mesh_faces_modifier_widget.cpp
   # Resources
   resources/resource.qrc
 )
