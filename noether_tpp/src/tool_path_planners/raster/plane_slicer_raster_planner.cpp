@@ -1,4 +1,5 @@
 #include <noether_tpp/tool_path_planners/raster/plane_slicer_raster_planner.h>
+#include <noether_tpp/utils.h>
 
 #include <algorithm>  // std::find(), std::reverse(), std::unique()
 #include <numeric>    // std::iota()
@@ -447,6 +448,9 @@ void PlaneSlicerRasterPlanner::generateRastersBidirectionally(const bool bidirec
 
 ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
 {
+  if (!hasNormals(mesh))
+    throw std::runtime_error("Mesh does not have vertex normals");
+
   // Convert input mesh to VTK type & calculate normals if necessary
   vtkSmartPointer<vtkPolyData> mesh_data_ = vtkSmartPointer<vtkPolyData>::New();
   pcl::VTKUtils::mesh2vtk(mesh, mesh_data_);
