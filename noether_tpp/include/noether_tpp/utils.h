@@ -1,4 +1,5 @@
 #include <noether_tpp/core/tool_path_modifier.h>
+#include <pcl/PCLPointField.h>
 
 namespace noether
 {
@@ -11,4 +12,11 @@ Eigen::Vector3d estimateToolPathDirection(const ToolPath& tool_path);
  * that is perpendicular to the nominal tool path direction
  */
 Eigen::Vector3d estimateRasterDirection(const ToolPaths& tool_paths, const Eigen::Vector3d& reference_tool_path_dir);
+
+std::vector<pcl::PCLPointField>::const_iterator findField(const std::vector<pcl::PCLPointField>& fields,
+                                                          const std::string& name);
+
+std::vector<pcl::PCLPointField>::const_iterator findFieldOrThrow(const std::vector<pcl::PCLPointField>& fields,
+                                                                 const std::string& name);
+
 }  // namespace noether

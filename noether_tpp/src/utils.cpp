@@ -44,4 +44,20 @@ Eigen::Vector3d estimateRasterDirection(const ToolPaths& tool_paths, const Eigen
   return raster_dir.normalized();
 }
 
+std::vector<pcl::PCLPointField>::const_iterator findField(const std::vector<pcl::PCLPointField>& fields,
+                                                          const std::string& name)
+{
+  return std::find_if(
+      fields.begin(), fields.end(), [&name](const pcl::PCLPointField& field) { return field.name == name; });
+}
+
+std::vector<pcl::PCLPointField>::const_iterator findFieldOrThrow(const std::vector<pcl::PCLPointField>& fields,
+                                                                 const std::string& name)
+{
+  auto it = findField(fields, name);
+  if (it == fields.end())
+    throw std::runtime_error("Failed to find field '" + name + "'");
+  return it;
+}
+
 }  // namespace noether

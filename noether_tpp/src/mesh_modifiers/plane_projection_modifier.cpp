@@ -1,5 +1,6 @@
 #include <noether_tpp/mesh_modifiers/plane_projection_modifier.h>
 #include <noether_tpp/mesh_modifiers/subset_extraction/subset_extractor.h>
+#include <noether_tpp/utils.h>
 
 #include <numeric>
 #include <pcl/sample_consensus/sac_model_plane.h>
@@ -8,22 +9,6 @@
 
 namespace noether
 {
-std::vector<pcl::PCLPointField>::const_iterator findField(const std::vector<pcl::PCLPointField>& fields,
-                                                          const std::string& name)
-{
-  return std::find_if(
-      fields.begin(), fields.end(), [&name](const pcl::PCLPointField& field) { return field.name == name; });
-}
-
-std::vector<pcl::PCLPointField>::const_iterator findFieldOrThrow(const std::vector<pcl::PCLPointField>& fields,
-                                                                 const std::string& name)
-{
-  auto it = findField(fields, name);
-  if (it == fields.end())
-    throw std::runtime_error("Failed to find field '" + name + "'");
-  return it;
-}
-
 void projectInPlace(pcl::PCLPointCloud2& cloud, const Eigen::Vector4f& plane_coeffs)
 {
   // Find the x, y, and z fields

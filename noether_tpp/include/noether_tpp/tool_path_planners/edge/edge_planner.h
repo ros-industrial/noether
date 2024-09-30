@@ -19,9 +19,6 @@
 
 #pragma once
 
-#include <memory>
-
-#include <noether_tpp/core/tool_path_modifier.h>
 #include <noether_tpp/core/tool_path_planner.h>
 
 namespace noether
@@ -40,27 +37,16 @@ public:
 
 protected:
   /**
-   * @brief planImpl
-   * @param mesh
-   * @return
+   * @brief Hook for inherited classes to implement the edge planning process before sending to the common edge tool
+   * path modifiers
    */
   virtual ToolPaths planImpl(const pcl::PolygonMesh& mesh) const = 0;
-
-  void setPointSpacing(const double point_spacing);
-
-private:
-  /** @brief Distance between waypoints on the same raster line (m) */
-  double point_spacing_;
 };
 
 /**
  * @brief Interface for creating instances of edge tool path planners.
  * @details This class contains the generic parameters for configuring edge tool path planners
  */
-struct EdgePlannerFactory : public ToolPathPlannerFactory
-{
-  /** @brief Distance between waypoints on the same raster line (m) */
-  double point_spacing;
-};
+using EdgePlannerFactory = ToolPathPlannerFactory;
 
 }  // namespace noether
