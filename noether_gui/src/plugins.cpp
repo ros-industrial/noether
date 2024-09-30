@@ -30,7 +30,7 @@
 #include <noether_gui/widgets/tool_path_modifiers/linear_departure_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/offset_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/spline_modifier_widget.h>
-#include <noether_gui/widgets/tool_path_modifiers/point_spacing_modifier_widget.h>
+#include <noether_gui/widgets/tool_path_modifiers/uniform_point_spacing_modifier_widget.h>
 // Mesh Modifiers
 #include <noether_gui/widgets/mesh_modifiers/plane_projection_modifier_widget.h>
 #include <noether_gui/widgets/mesh_modifiers/euclidean_clustering_modifier_widget.h>
@@ -113,7 +113,8 @@ using OffsetModifierWidgetPlugin = WidgetPluginImpl<OffsetModifierWidget, ToolPa
 
 using SplineModifierWidgetPlugin = WidgetPluginImpl<SplineModifierWidget, ToolPathModifierWidget>;
 
-using PointSpacingModifierWidgetPlugin = WidgetPluginImpl<PointSpacingModifierWidget, ToolPathModifierWidget>;
+using UniformPointSpacingModifierWidgetPlugin =
+    WidgetPluginImpl<UniformPointSpacingModifierWidget, ToolPathModifierWidget>;
 
 // Raster Tool Path Planners
 struct PlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlugin
@@ -195,7 +196,7 @@ EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::LinearDepartureToolPathModifier
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::ConcatenateModifierWidgetPlugin, ConcatenateModifier)
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::OffsetModifierWidgetPlugin, OffsetModifier)
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::SplineModifierWidgetPlugin, SplineModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::PointSpacingModifierWidgetPlugin, PointSpacingModifier);
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::UniformPointSpacingModifierWidgetPlugin, UniformPointSpacingModifier);
 
 EXPORT_TPP_WIDGET_PLUGIN(noether::PlaneSlicerRasterPlannerWidgetPlugin, PlaneSlicerRasterPlanner)
 EXPORT_TPP_WIDGET_PLUGIN(noether::CrossHatchPlaneSlicerRasterPlannerWidgetPlugin, CrossHatchPlaneSlicerRasterPlanner)
