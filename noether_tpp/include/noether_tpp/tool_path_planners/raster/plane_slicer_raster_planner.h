@@ -83,16 +83,6 @@ void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points,
                          std::vector<std::vector<vtkIdType>>& points_lists);
 
 /**
- * @brief Rectifies the direction of raster segments based on a reference point
- * @param points VTK points
- * @param ref_point Reference point for direction rectification
- * @param points_lists Vector of point index lists representing raster segments
- */
-void rectifyDirection(const vtkSmartPointer<vtkPoints>& points,
-                      const Eigen::Vector3d& ref_point,
-                      std::vector<std::vector<vtkIdType>>& points_lists);
-
-/**
  * @brief Converts raster data to tool paths with poses
  * @param rasters_data Vector of raster construction data
  * @return Tool paths generated from the raster data

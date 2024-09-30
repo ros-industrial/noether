@@ -247,29 +247,6 @@ void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points,
   });
 }
 
-void rectifyDirection(const vtkSmartPointer<vtkPoints>& points,
-                      const Eigen::Vector3d& ref_point,
-                      std::vector<std::vector<vtkIdType>>& points_lists)
-{
-  Eigen::Vector3d p0, pf;
-  if (points_lists.size() < 2)
-    return;
-
-  // getting first and last points
-  points->GetPoint(points_lists.front().front(), p0.data());
-  points->GetPoint(points_lists.back().back(), pf.data());
-
-  bool reverse = (ref_point - p0).norm() > (ref_point - pf).norm();
-  if (reverse)
-  {
-    for (auto& s : points_lists)
-    {
-      std::reverse(s.begin(), s.end());
-    }
-    std::reverse(points_lists.begin(), points_lists.end());
-  }
-}
-
 ToolPaths convertToPoses(const std::vector<RasterConstructData>& rasters_data)
 {
   ToolPaths rasters_array;
