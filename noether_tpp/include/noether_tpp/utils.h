@@ -37,4 +37,9 @@ using TriangleMesh = pcl::geometry::TriangleMesh<MeshTraits>;
  */
 TriangleMesh createTriangleMesh(const pcl::PolygonMesh& input);
 
+/**
+ * @brief Computes the length of a tool path segment
+ */
+std::tuple<double, std::vector<double>> computeLength(const ToolPathSegment& segment);
+
 }  // namespace noether

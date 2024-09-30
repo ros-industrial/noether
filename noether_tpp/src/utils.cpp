@@ -151,4 +151,27 @@ TriangleMesh createTriangleMesh(const pcl::PolygonMesh& input)
   return mesh;
 }
 
+std::tuple<double, std::vector<double>> computeLength(const ToolPathSegment& segment)
+{
+  double length = 0.0;
+
+  // Set up a container for the distance along the segment of each waypoint
+  std::vector<double> dists;
+  dists.reserve(segment.size());
+
+  // Add the distance of the first waypoint
+  dists.push_back(0.0);
+
+  for (std::size_t i = 0; i < segment.size() - 1; ++i)
+  {
+    const Eigen::Isometry3d& first = segment.at(i);
+    const Eigen::Isometry3d& second = segment.at(i + 1);
+    double d = (second.translation() - first.translation()).norm();
+    length += d;
+    dists.push_back(length);
+  }
+
+  return std::make_tuple(length, dists);
+}
+
 }  // namespace noether
