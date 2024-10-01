@@ -98,6 +98,8 @@ ToolPaths UniformSpacingSplineModifier::modify(ToolPaths tool_paths) const
 
       // Create a new tool path segment
       ToolPathSegment new_segment;
+      new_segment.reserve(static_cast<std::size_t>(std::ceil(length / point_spacing_)));
+
       double l = 0.0;
       while (l < length)
       {
@@ -112,6 +114,7 @@ ToolPaths UniformSpacingSplineModifier::modify(ToolPaths tool_paths) const
       new_segment.push_back(create_waypoint(length));
 
       // Add the new segment to the new tool path
+      new_segment.shrink_to_fit();
       new_tool_path.push_back(new_segment);
     }
 
