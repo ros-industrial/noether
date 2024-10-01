@@ -1,13 +1,13 @@
-#include <noether_gui/widgets/tool_path_modifiers/uniform_point_spacing_modifier_widget.h>
+#include <noether_gui/widgets/tool_path_modifiers/uniform_spacing_linear_modifier_widget.h>
 #include <noether_gui/utils.h>
 
-#include <noether_tpp/tool_path_modifiers/uniform_point_spacing_modifier.h>
+#include <noether_tpp/tool_path_modifiers/uniform_spacing_linear_modifier.h>
 #include <QDoubleSpinBox>
 #include <QFormLayout>
 
 namespace noether
 {
-UniformPointSpacingModifierWidget::UniformPointSpacingModifierWidget(QWidget* parent)
+UniformSpacingLinearModifierWidget::UniformSpacingLinearModifierWidget(QWidget* parent)
   : ToolPathModifierWidget(parent), point_spacing_(new QDoubleSpinBox(this))
 {
   auto* layout = new QFormLayout(this);
@@ -20,17 +20,17 @@ UniformPointSpacingModifierWidget::UniformPointSpacingModifierWidget(QWidget* pa
   layout->addRow("Point Spacing (m)", point_spacing_);
 }
 
-ToolPathModifier::ConstPtr UniformPointSpacingModifierWidget::create() const
+ToolPathModifier::ConstPtr UniformSpacingLinearModifierWidget::create() const
 {
-  return std::make_unique<UniformPointSpacingModifier>(point_spacing_->value());
+  return std::make_unique<UniformSpacingLinearModifier>(point_spacing_->value());
 }
 
-void UniformPointSpacingModifierWidget::configure(const YAML::Node& config)
+void UniformSpacingLinearModifierWidget::configure(const YAML::Node& config)
 {
   point_spacing_->setValue(getEntry<double>(config, "point_spacing"));
 }
 
-void UniformPointSpacingModifierWidget::save(YAML::Node& config) const
+void UniformSpacingLinearModifierWidget::save(YAML::Node& config) const
 {
   config["point_spacing"] = point_spacing_->value();
 }

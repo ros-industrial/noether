@@ -1,4 +1,4 @@
-#include <noether_tpp/tool_path_modifiers/uniform_point_spacing_modifier.h>
+#include <noether_tpp/tool_path_modifiers/uniform_spacing_linear_modifier.h>
 #include <noether_tpp/utils.h>
 
 #include <vtkMatrix4x4.h>
@@ -8,12 +8,12 @@
 
 namespace noether
 {
-UniformPointSpacingModifier::UniformPointSpacingModifier(const double point_spacing)
+UniformSpacingLinearModifier::UniformSpacingLinearModifier(const double point_spacing)
   : ToolPathModifier(), point_spacing_(point_spacing)
 {
 }
 
-ToolPaths UniformPointSpacingModifier::modify(ToolPaths tool_paths) const
+ToolPaths UniformSpacingLinearModifier::modify(ToolPaths tool_paths) const
 {
   ToolPaths output;
   output.reserve(tool_paths.size());

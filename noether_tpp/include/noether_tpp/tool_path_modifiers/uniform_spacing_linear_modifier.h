@@ -4,10 +4,10 @@
 
 namespace noether
 {
-class UniformPointSpacingModifier : public ToolPathModifier
+class UniformSpacingLinearModifier : public ToolPathModifier
 {
 public:
-  UniformPointSpacingModifier(const double point_spacing);
+  UniformSpacingLinearModifier(const double point_spacing);
 
   ToolPaths modify(ToolPaths tool_paths) const override;
 

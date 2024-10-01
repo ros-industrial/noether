@@ -50,8 +50,8 @@ add_library(${PROJECT_NAME} SHARED
   src/tool_path_modifiers/tool_drag_orientation_modifier.cpp
   src/tool_path_modifiers/uniform_orientation_modifier.cpp
   src/tool_path_modifiers/offset_modifier.cpp
-  src/tool_path_modifiers/spline_modifier.cpp
-  src/tool_path_modifiers/uniform_point_spacing_modifier.cpp
+  src/tool_path_modifiers/uniform_spacing_spline_modifier.cpp
+  src/tool_path_modifiers/uniform_spacing_linear_modifier.cpp
   # Tool Path Planners
   src/tool_path_planners/multi_tool_path_planner.cpp
   src/tool_path_planners/edge/edge_planner.cpp

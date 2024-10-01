@@ -59,8 +59,8 @@ add_library(${PROJECT_NAME} SHARED
   src/widgets/tool_path_modifiers/tool_drag_orientation_modifier_widget.cpp
   src/widgets/tool_path_modifiers/uniform_orientation_modifier_widget.cpp
   src/widgets/tool_path_modifiers/offset_modifier_widget.cpp
-  src/widgets/tool_path_modifiers/spline_modifier_widget.cpp
-  src/widgets/tool_path_modifiers/uniform_point_spacing_modifier_widget.cpp
+  src/widgets/tool_path_modifiers/uniform_spacing_spline_modifier_widget.cpp
+  src/widgets/tool_path_modifiers/uniform_spacing_linear_modifier_widget.cpp
   # Mesh Modifiers
   src/widgets/mesh_modifiers/plane_projection_modifier_widget.cpp
   src/widgets/mesh_modifiers/euclidean_clustering_modifier_widget.cpp

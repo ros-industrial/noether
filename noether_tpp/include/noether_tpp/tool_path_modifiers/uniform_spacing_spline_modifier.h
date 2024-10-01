@@ -2,10 +2,10 @@
 
 namespace noether
 {
-class SplineModifier : public ToolPathModifier
+class UniformSpacingSplineModifier : public ToolPathModifier
 {
 public:
-  SplineModifier(const double point_spacing);
+  UniformSpacingSplineModifier(const double point_spacing);
 
   ToolPaths modify(ToolPaths tool_paths) const override;
 

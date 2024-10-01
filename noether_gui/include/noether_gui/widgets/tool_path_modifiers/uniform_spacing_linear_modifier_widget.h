@@ -7,10 +7,10 @@ class QDoubleSpinBox;
 
 namespace noether
 {
-class SplineModifierWidget : public ToolPathModifierWidget
+class UniformSpacingLinearModifierWidget : public ToolPathModifierWidget
 {
 public:
-  SplineModifierWidget(QWidget* parent = nullptr);
+  UniformSpacingLinearModifierWidget(QWidget* parent = nullptr);
 
   ToolPathModifier::ConstPtr create() const override;
   void configure(const YAML::Node& config) override;

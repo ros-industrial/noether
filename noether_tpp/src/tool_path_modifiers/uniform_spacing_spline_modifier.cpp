@@ -1,4 +1,4 @@
-#include <noether_tpp/tool_path_modifiers/spline_modifier.h>
+#include <noether_tpp/tool_path_modifiers/uniform_spacing_spline_modifier.h>
 #include <noether_tpp/utils.h>
 
 #include <vtkParametricSpline.h>
@@ -46,9 +46,12 @@ vtkSmartPointer<vtkQuaternionInterpolator> createQuaternionInterpolator(const To
   return interpolator;
 }
 
-SplineModifier::SplineModifier(const double point_spacing) : ToolPathModifier(), point_spacing_(point_spacing) {}
+UniformSpacingSplineModifier::UniformSpacingSplineModifier(const double point_spacing)
+  : ToolPathModifier(), point_spacing_(point_spacing)
+{
+}
 
-ToolPaths SplineModifier::modify(ToolPaths tool_paths) const
+ToolPaths UniformSpacingSplineModifier::modify(ToolPaths tool_paths) const
 {
   ToolPaths output;
   output.reserve(tool_paths.size());
