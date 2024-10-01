@@ -13,14 +13,8 @@
 #include <pcl/conversions.h>    // pcl::fromPCLPointCloud2
 #include <pcl/io/vtk_lib_io.h>
 #include <vtkAppendPolyData.h>
-#include <vtkCellArray.h>
-#include <vtkCellData.h>
-#include <vtkCellLocator.h>
 #include <vtkCutter.h>
-#include <vtkDoubleArray.h>
 #include <vtkErrorCode.h>
-#include <vtkKdTreePointLocator.h>
-#include <vtkParametricSpline.h>
 #include <vtkPlane.h>
 #include <vtkPointData.h>
 #include <vtkPoints.h>
@@ -234,71 +228,6 @@ noether::ToolPaths convertToPoses(const std::vector<RasterConstructData>& raster
   return rasters_array;
 }
 
-bool insertNormals(const double search_radius,
-                   vtkSmartPointer<vtkPolyData>& mesh_data_,
-                   vtkSmartPointer<vtkKdTreePointLocator>& kd_tree_,
-                   vtkSmartPointer<vtkPolyData>& data)
-{
-  // Find closest cell to each point and uses its normal vector
-  vtkSmartPointer<vtkDoubleArray> new_normals = vtkSmartPointer<vtkDoubleArray>::New();
-  new_normals->SetNumberOfComponents(3);
-  new_normals->SetNumberOfTuples(data->GetPoints()->GetNumberOfPoints());
-
-  // get normal data
-  vtkSmartPointer<vtkDataArray> normal_data = mesh_data_->GetPointData()->GetNormals();
-
-  if (!normal_data)
-  {
-    return false;
-  }
-
-  Eigen::Vector3d normal_vect = Eigen::Vector3d::UnitZ();
-  for (int i = 0; i < data->GetPoints()->GetNumberOfPoints(); ++i)
-  {
-    // locate closest cell
-    Eigen::Vector3d query_point;
-    vtkSmartPointer<vtkIdList> id_list = vtkSmartPointer<vtkIdList>::New();
-    data->GetPoints()->GetPoint(i, query_point.data());
-    kd_tree_->FindPointsWithinRadius(search_radius, query_point.data(), id_list);
-    if (id_list->GetNumberOfIds() < 1)
-    {
-      kd_tree_->FindClosestNPoints(1, query_point.data(), id_list);
-
-      if (id_list->GetNumberOfIds() < 1)
-      {
-        return false;
-      }
-    }
-
-    // compute normal average
-    normal_vect = Eigen::Vector3d::Zero();
-    std::size_t num_normals = 0;
-    for (auto p = 0; p < id_list->GetNumberOfIds(); p++)
-    {
-      Eigen::Vector3d temp_normal, query_point, closest_point;
-      vtkIdType p_id = id_list->GetId(p);
-
-      if (p_id < 0)
-      {
-        continue;
-      }
-
-      // get normal and add it to average
-      normal_data->GetTuple(p_id, temp_normal.data());
-      normal_vect += temp_normal.normalized();
-      num_normals++;
-    }
-
-    normal_vect /= num_normals;
-    normal_vect.normalize();
-
-    // save normal
-    new_normals->SetTuple3(i, normal_vect(0), normal_vect(1), normal_vect(2));
-  }
-  data->GetPointData()->SetNormals(new_normals);
-  return true;
-}
-
 /**
  * @brief Gets the distances (normal to the cut plane) from the cut origin to the closest and furthest corners of the
  * mesh
@@ -484,14 +413,6 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
     }
   }
 
-  // build cell locator and kd_tree to recover normals later on
-  vtkSmartPointer<vtkKdTreePointLocator> kd_tree_ = vtkSmartPointer<vtkKdTreePointLocator>::New();
-  kd_tree_->SetDataSet(mesh_data_);
-  kd_tree_->BuildLocator();
-  vtkSmartPointer<vtkCellLocator> cell_locator_ = vtkSmartPointer<vtkCellLocator>::New();
-  cell_locator_->SetDataSet(mesh_data_);
-  cell_locator_->BuildLocator();
-
   // collect rasters and set direction
   raster_data->Update();
   vtkIdType num_slices = raster_data->GetTotalNumberOfInputConnections();
@@ -551,20 +472,9 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
     // merging segments
     mergeRasterSegments(raster_lines->GetPoints(), min_hole_size_, raster_ids);
 
-    for (auto& rpoint_ids : raster_ids)
-    {
-      // Populating with points
-      vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-      std::for_each(rpoint_ids.begin(), rpoint_ids.end(), [&points, &raster_lines](vtkIdType& id) {
-        std::array<double, 3> p;
-        raster_lines->GetPoint(id, p.data());
-        points->InsertNextPoint(p.data());
-      });
-    }
-
     // Save raster
-    if (!r.raster_segments.empty())
-      rasters_data_vec.push_back(r);
+    r.raster_segments.push_back(raster_lines);
+    rasters_data_vec.push_back(r);
   }
 
   // converting to poses msg now
