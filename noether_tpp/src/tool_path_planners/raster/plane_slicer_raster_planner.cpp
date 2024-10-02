@@ -625,7 +625,7 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
       });
 
       // compute length and add points if segment length is greater than threshold
-      double line_length = computeLength(points);
+      double line_length = ::computeLength(points);
       if (line_length > min_segment_size_ && points->GetNumberOfPoints() > 1)
       {
         // enforce point spacing

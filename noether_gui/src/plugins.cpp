@@ -29,6 +29,8 @@
 #include <noether_gui/widgets/tool_path_modifiers/linear_approach_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/linear_departure_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/offset_modifier_widget.h>
+#include <noether_gui/widgets/tool_path_modifiers/uniform_spacing_spline_modifier_widget.h>
+#include <noether_gui/widgets/tool_path_modifiers/uniform_spacing_linear_modifier_widget.h>
 // Mesh Modifiers
 #include <noether_gui/widgets/mesh_modifiers/plane_projection_modifier_widget.h>
 #include <noether_gui/widgets/mesh_modifiers/euclidean_clustering_modifier_widget.h>
@@ -109,6 +111,12 @@ using ConcatenateModifierWidgetPlugin = WidgetPluginImpl<ConcatenateModifierWidg
 
 using OffsetModifierWidgetPlugin = WidgetPluginImpl<OffsetModifierWidget, ToolPathModifierWidget>;
 
+using UniformSpacingSplineModifierWidgetPlugin =
+    WidgetPluginImpl<UniformSpacingSplineModifierWidget, ToolPathModifierWidget>;
+
+using UniformSpacingLinearModifierWidgetPlugin =
+    WidgetPluginImpl<UniformSpacingLinearModifierWidget, ToolPathModifierWidget>;
+
 // Raster Tool Path Planners
 struct PlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlugin
 {
@@ -188,6 +196,9 @@ EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::LinearApproachToolPathModifierW
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::LinearDepartureToolPathModifierWidgetPlugin, LinearDepartureModifier)
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::ConcatenateModifierWidgetPlugin, ConcatenateModifier)
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::OffsetModifierWidgetPlugin, OffsetModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::UniformSpacingSplineModifierWidgetPlugin, UniformSpacingSplineModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::UniformSpacingLinearModifierWidgetPlugin,
+                                        UniformSpacingLinearModifier);
 
 EXPORT_TPP_WIDGET_PLUGIN(noether::PlaneSlicerRasterPlannerWidgetPlugin, PlaneSlicerRasterPlanner)
 EXPORT_TPP_WIDGET_PLUGIN(noether::CrossHatchPlaneSlicerRasterPlannerWidgetPlugin, CrossHatchPlaneSlicerRasterPlanner)

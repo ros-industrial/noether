@@ -14,9 +14,11 @@
 #include <noether_tpp/tool_path_modifiers/offset_modifier.h>
 #include <noether_tpp/tool_path_modifiers/raster_organization_modifier.h>
 #include <noether_tpp/tool_path_modifiers/snake_organization_modifier.h>
+#include <noether_tpp/tool_path_modifiers/uniform_spacing_spline_modifier.h>
 #include <noether_tpp/tool_path_modifiers/standard_edge_paths_organization_modifier.h>
 #include <noether_tpp/tool_path_modifiers/tool_drag_orientation_modifier.h>
 #include <noether_tpp/tool_path_modifiers/uniform_orientation_modifier.h>
+#include <noether_tpp/tool_path_modifiers/uniform_spacing_linear_modifier.h>
 #include "utils.h"
 
 using namespace noether;
@@ -253,9 +255,11 @@ std::vector<std::shared_ptr<const ToolPathModifier>> createModifiers()
            std::make_shared<OffsetModifier>(Eigen::Isometry3d::Identity()),
            std::make_shared<RasterOrganizationModifier>(),
            std::make_shared<SnakeOrganizationModifier>(),
+           std::make_shared<UniformSpacingSplineModifier>(0.025),
            std::make_shared<StandardEdgePathsOrganizationModifier>(),
            std::make_shared<ToolDragOrientationToolPathModifier>(10 * M_PI / 180.0, 0.025),
-           std::make_shared<UniformOrientationModifier>() };
+           std::make_shared<UniformOrientationModifier>(),
+           std::make_shared<UniformSpacingLinearModifier>(0.025) };
 }
 
 std::vector<std::shared_ptr<const OneTimeToolPathModifier>> createOneTimeModifiers()
