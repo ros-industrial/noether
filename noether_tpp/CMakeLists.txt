@@ -57,7 +57,6 @@ add_library(${PROJECT_NAME} SHARED
   src/tool_path_planners/edge/edge_planner.cpp
   src/tool_path_planners/edge/boundary_edge_planner.cpp
   src/tool_path_planners/raster/raster_planner.cpp
-  src/tool_path_planners/raster/raster_utils.cpp
   src/tool_path_planners/raster/origin_generators/aabb_origin_generator.cpp
   src/tool_path_planners/raster/origin_generators/centroid_origin_generator.cpp
   src/tool_path_planners/raster/origin_generators/offset_origin_generator.cpp

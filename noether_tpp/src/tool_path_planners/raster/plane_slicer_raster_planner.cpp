@@ -43,26 +43,6 @@ Eigen::Matrix3d computeRotation(const Eigen::Vector3d& vx, const Eigen::Vector3d
   return m;
 }
 
-double computeLength(const vtkSmartPointer<vtkPoints>& points)
-{
-  const vtkIdType num_points = points->GetNumberOfPoints();
-  double total_length = 0.0;
-  if (num_points < 2)
-  {
-    return total_length;
-  }
-
-  Eigen::Vector3d p0, pf;
-  for (vtkIdType i = 1; i < num_points; i++)
-  {
-    points->GetPoint(i - 1, p0.data());
-    points->GetPoint(i, pf.data());
-
-    total_length += (pf - p0).norm();
-  }
-  return total_length;
-}
-
 vtkSmartPointer<vtkPoints> applyParametricSpline(const vtkSmartPointer<vtkPoints>& points,
                                                  double total_length,
                                                  double point_spacing)
@@ -369,10 +349,10 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
     throw std::runtime_error("Mesh does not have vertex normals");
 
   // Convert input mesh to VTK type & calculate normals if necessary
-  vtkSmartPointer<vtkPolyData> mesh_data_ = vtkSmartPointer<vtkPolyData>::New();
-  pcl::VTKUtils::mesh2vtk(mesh, mesh_data_);
-  mesh_data_->BuildLinks();
-  mesh_data_->BuildCells();
+  vtkSmartPointer<vtkPolyData> mesh_data = vtkSmartPointer<vtkPolyData>::New();
+  pcl::VTKUtils::mesh2vtk(mesh, mesh_data);
+  mesh_data->BuildLinks();
+  mesh_data->BuildCells();
 
   // Use principal component analysis (PCA) to determine the principal axes of the mesh
   Eigen::Vector3d mesh_normal;  // Unit vector along shortest mesh PCA direction
@@ -542,7 +522,7 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
       });
 
       // compute length and add points if segment length is greater than threshold
-      double line_length = ::computeLength(points);
+      double line_length = computeLength(points);
       if (line_length > min_segment_size_ && points->GetNumberOfPoints() > 1)
       {
         // enforce point spacing

@@ -49,13 +49,6 @@ struct RasterConstructData
 Eigen::Matrix3d computeRotation(const Eigen::Vector3d& vx, const Eigen::Vector3d& vy, const Eigen::Vector3d& vz);
 
 /**
- * @brief Computes the total length of the provided points
- * @param points VTK points
- * @return Total length
- */
-double computeLength(const vtkSmartPointer<vtkPoints>& points);
-
-/**
  * @brief Applies a parametric spline to the provided points and resamples them based on point spacing
  * @param points Input points
  * @param total_length Total length of the points
