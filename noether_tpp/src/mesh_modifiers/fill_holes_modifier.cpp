@@ -27,6 +27,8 @@
 
 namespace noether
 {
+FillHoles::FillHoles(const double max_hole_size) : max_hole_size_(max_hole_size) {}
+
 std::vector<pcl::PolygonMesh> FillHoles::modify(const pcl::PolygonMesh& mesh_in) const
 {
   vtkSmartPointer<vtkPolyData> mesh_data = vtkSmartPointer<vtkPolyData>::New();
@@ -34,7 +36,7 @@ std::vector<pcl::PolygonMesh> FillHoles::modify(const pcl::PolygonMesh& mesh_in)
 
   vtkSmartPointer<vtkFillHolesFilter> fill_holes_filter = vtkSmartPointer<vtkFillHolesFilter>::New();
   fill_holes_filter->SetInputData(mesh_data);
-  fill_holes_filter->SetHoleSize(hole_size_);
+  fill_holes_filter->SetHoleSize(max_hole_size_);
   fill_holes_filter->Update();
 
   vtkSmartPointer<vtkPolyDataNormals> normals_rectifier = vtkSmartPointer<vtkPolyDataNormals>::New();
