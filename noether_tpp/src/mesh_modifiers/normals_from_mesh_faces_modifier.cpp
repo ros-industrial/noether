@@ -52,14 +52,23 @@ std::vector<pcl::PolygonMesh> NormalsFromMeshFacesMeshModifier::modify(const pcl
 
     using FAVC = TriangleMesh::FaceAroundVertexCirculator;
     FAVC circ = tri_mesh.getFaceAroundVertexCirculator(TriangleMesh::VertexIndex(i));
+
     FAVC circ_end = circ;
     do
     {
-      TriangleMesh::FaceIndex face_idx = circ.getTargetIndex();
-      if (face_idx.isValid())
+      if (n_faces > mesh.polygons.size())
+        throw std::runtime_error("Vertex " + std::to_string(i) +
+                                 " appears to participate in more faces than exist in the mesh; this mesh likely "
+                                 "contains degenerate half-edges.");
+
+      if (circ.isValid())
       {
-        avg_face_normal += computeFaceNormal(mesh, tri_mesh, face_idx);
-        ++n_faces;
+        TriangleMesh::FaceIndex face_idx = circ.getTargetIndex();
+        if (face_idx.isValid())
+        {
+          avg_face_normal += computeFaceNormal(mesh, tri_mesh, face_idx);
+          ++n_faces;
+        }
       }
     } while (++circ != circ_end);
 
