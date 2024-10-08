@@ -85,7 +85,8 @@ std::vector<pcl::PolygonMesh> PlaneProjectionMeshModifier::modify(const pcl::Pol
   {
     // Fit a plane model to the vertices using RANSAC
     model->setIndices(remaining_indices);
-    ransac->computeModel();
+    if (!ransac->computeModel())
+      break;
 
     // Extract the inliers
     std::vector<int> inliers;
