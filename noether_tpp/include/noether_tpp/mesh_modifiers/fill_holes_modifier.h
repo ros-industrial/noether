@@ -32,10 +32,12 @@ namespace noether
 class FillHoles : public MeshModifier
 {
 public:
+  FillHoles(const double max_hole_size);
+
   std::vector<pcl::PolygonMesh> modify(const pcl::PolygonMesh& mesh) const override;
 
 protected:
-  double hole_size_ = 1.0;
+  double max_hole_size_;
 };
 
 }  // namespace noether
