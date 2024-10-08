@@ -15,9 +15,18 @@ Eigen::Vector3f computeFaceNormal(const pcl::PolygonMesh& mesh,
 
   // Get the vertices of this triangle
   VAFC v_circ = tri_mesh.getVertexAroundFaceCirculator(face_idx);
-  const Eigen::Vector3f v1 = getPoint(mesh.cloud, v_circ++.getTargetIndex().get());
-  const Eigen::Vector3f v2 = getPoint(mesh.cloud, v_circ++.getTargetIndex().get());
-  const Eigen::Vector3f v3 = getPoint(mesh.cloud, v_circ++.getTargetIndex().get());
+
+  const TriangleMesh::VertexIndex v1_idx = v_circ++.getTargetIndex();
+  const TriangleMesh::VertexIndex v2_idx = v_circ++.getTargetIndex();
+  const TriangleMesh::VertexIndex v3_idx = v_circ++.getTargetIndex();
+
+  // Check the validity of the vertices
+  if (!v1_idx.isValid() || !v2_idx.isValid() || !v3_idx.isValid())
+    return Eigen::Vector3f::Constant(std::numeric_limits<float>::quiet_NaN());
+
+  const Eigen::Vector3f v1 = getPoint(mesh.cloud, v1_idx.get());
+  const Eigen::Vector3f v2 = getPoint(mesh.cloud, v2_idx.get());
+  const Eigen::Vector3f v3 = getPoint(mesh.cloud, v3_idx.get());
 
   // Get the edges v1 -> v2 and v1 -> v3
   const Eigen::Vector3f edge_12 = v2 - v1;
