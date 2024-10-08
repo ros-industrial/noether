@@ -31,7 +31,11 @@ std::vector<typename MeshT::HalfEdgeIndices> getBoundaryHalfEdges(const MeshT& m
       IHEAFC circ_end = circ;
       do
       {
-        visited[pcl::geometry::toEdgeIndex(circ.getTargetIndex()).get()] = true;
+        HalfEdgeIndex he_idx = circ.getTargetIndex();
+        if (!he_idx.isValid())
+          break;
+
+        visited[pcl::geometry::toEdgeIndex(he_idx).get()] = true;
         boundary_he.push_back(circ.getTargetIndex());
       } while (++circ != circ_end);
 
