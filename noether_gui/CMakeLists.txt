@@ -76,6 +76,7 @@ add_library(
   src/widgets/mesh_modifiers/ransac_primitive_fit_modifier_widget.cpp
   src/widgets/mesh_modifiers/ransac_cylinder_fit_modifier_widget.cpp
   src/widgets/mesh_modifiers/ransac_plane_fit_modifier_widget.cpp
+  src/widgets/mesh_modifiers/upsampling_modifier_widget.cpp
   # Resources
   resources/resource.qrc
 )

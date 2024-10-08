@@ -38,6 +38,7 @@
 #include <noether_gui/widgets/mesh_modifiers/normals_from_mesh_faces_modifier_widget.h>
 #include <noether_gui/widgets/mesh_modifiers/ransac_cylinder_fit_modifier_widget.h>
 #include <noether_gui/widgets/mesh_modifiers/ransac_plane_fit_modifier_widget.h>
+#include <noether_gui/widgets/mesh_modifiers/upsampling_modifier_widget.h>
 
 #include <QWidget>
 #include <QMessageBox>
@@ -55,6 +56,7 @@ EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(RansacCylinderProjectionMeshModifierWi
 //! [GUI Plugin Alias Correspondence]
 EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(RansacPlaneProjectionMeshModifierWidget, RansacPlaneProjection)
 //! [GUI Plugin Alias Correspondence]
+EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(UpsamplingMeshModifierWidget, Upsampling);
 
 // Direction Generators
 EXPORT_SIMPLE_DIRECTION_GENERATOR_WIDGET_PLUGIN(FixedDirectionGeneratorWidget, FixedDirection)

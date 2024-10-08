@@ -68,6 +68,7 @@ add_library(
   src/mesh_modifiers/ransac_plane_fit_modifier.cpp
   src/mesh_modifiers/normal_estimation_pcl.cpp
   src/mesh_modifiers/normals_from_mesh_faces_modifier.cpp
+  src/mesh_modifiers/upsampling_modifier.cpp
   # Tool Path Modifiers
   src/tool_path_modifiers/biased_tool_drag_orientation_modifier.cpp
   src/tool_path_modifiers/circular_lead_in_modifier.cpp
