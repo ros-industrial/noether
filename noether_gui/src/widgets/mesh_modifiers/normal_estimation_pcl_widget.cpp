@@ -15,8 +15,9 @@ NormalEstimationPCLMeshModifierWidget::NormalEstimationPCLMeshModifierWidget(QWi
 {
   auto* layout = new QVBoxLayout(this);
 
+  // Create a form layout with the normals radius parameter
   {
-    auto* form_layout = new QFormLayout(this);
+    auto* form_layout = new QFormLayout();
 
     radius_->setMinimum(0.0);
     radius_->setValue(0.010);
@@ -30,6 +31,8 @@ NormalEstimationPCLMeshModifierWidget::NormalEstimationPCLMeshModifierWidget(QWi
   // Set up the Vector3d editor
   auto* widget = new QWidget(this);
   view_point_->setupUi(widget);
+  view_point_->group_box->setTitle("View Point");
+
   layout->addWidget(widget);
 }
 
