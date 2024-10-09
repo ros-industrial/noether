@@ -5,6 +5,10 @@
 #include <pcl/geometry/triangle_mesh.h>
 #include <pcl/PolygonMesh.h>
 
+#include <vtkSmartPointer.h>
+#include <vtkPolyData.h>
+#include <vtkKdTreePointLocator.h>
+
 namespace noether
 {
 /** @brief Estimates the direction of travel of a tool path by averaging the vectors between adjacent waypoints */
@@ -41,5 +45,25 @@ TriangleMesh createTriangleMesh(const pcl::PolygonMesh& input);
  * @brief Computes the length of a tool path segment
  */
 std::tuple<double, std::vector<double>> computeLength(const ToolPathSegment& segment);
+
+/**
+ * @brief Computes the total length of the provided points
+ * @param points VTK points
+ * @return Total length
+ */
+double computeLength(const vtkSmartPointer<vtkPoints>& points);
+
+/**
+ * @brief Inserts normals into the provided segment by averaging normals from nearby mesh points
+ * @param search_radius Radius to search for nearby points
+ * @param mesh_data_ Mesh data containing normals
+ * @param kd_tree_ Kd-tree for efficient nearest neighbor search
+ * @param segment_data Polydata defining raster segment to insert normals into
+ * @return True if normals were successfully inserted, false otherwise
+ */
+bool insertNormals(const double search_radius,
+                   vtkSmartPointer<vtkPolyData>& mesh_data_,
+                   vtkSmartPointer<vtkKdTreePointLocator>& kd_tree_,
+                   vtkSmartPointer<vtkPolyData>& segment_data);
 
 }  // namespace noether

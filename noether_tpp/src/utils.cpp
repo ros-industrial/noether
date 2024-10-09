@@ -1,5 +1,11 @@
 #include <noether_tpp/utils.h>
 
+#include <vtkCellData.h>
+#include <vtkDoubleArray.h>
+#include <vtkPointData.h>
+#include <vtkPoints.h>
+#include <vtkPolyDataNormals.h>
+
 namespace noether
 {
 Eigen::Vector3d estimateToolPathDirection(const ToolPath& tool_path)
@@ -172,6 +178,91 @@ std::tuple<double, std::vector<double>> computeLength(const ToolPathSegment& seg
   }
 
   return std::make_tuple(length, dists);
+}
+
+double computeLength(const vtkSmartPointer<vtkPoints>& points)
+{
+  const vtkIdType num_points = points->GetNumberOfPoints();
+  double total_length = 0.0;
+  if (num_points < 2)
+  {
+    return total_length;
+  }
+
+  Eigen::Vector3d p0, pf;
+  for (vtkIdType i = 1; i < num_points; i++)
+  {
+    points->GetPoint(i - 1, p0.data());
+    points->GetPoint(i, pf.data());
+
+    total_length += (pf - p0).norm();
+  }
+  return total_length;
+}
+
+bool insertNormals(const double search_radius,
+                   vtkSmartPointer<vtkPolyData>& mesh_data_,
+                   vtkSmartPointer<vtkKdTreePointLocator>& kd_tree_,
+                   vtkSmartPointer<vtkPolyData>& segment_data)
+{
+  // Find closest cell to each point and uses its normal vector
+  vtkSmartPointer<vtkDoubleArray> new_normals = vtkSmartPointer<vtkDoubleArray>::New();
+  new_normals->SetNumberOfComponents(3);
+  new_normals->SetNumberOfTuples(segment_data->GetPoints()->GetNumberOfPoints());
+
+  // get normal data
+  vtkSmartPointer<vtkDataArray> normal_data = mesh_data_->GetPointData()->GetNormals();
+
+  if (!normal_data)
+  {
+    return false;
+  }
+
+  Eigen::Vector3d normal_vect = Eigen::Vector3d::UnitZ();
+  for (int i = 0; i < segment_data->GetPoints()->GetNumberOfPoints(); ++i)
+  {
+    // locate closest cell
+    Eigen::Vector3d query_point;
+    vtkSmartPointer<vtkIdList> id_list = vtkSmartPointer<vtkIdList>::New();
+    segment_data->GetPoints()->GetPoint(i, query_point.data());
+    kd_tree_->FindPointsWithinRadius(search_radius, query_point.data(), id_list);
+    if (id_list->GetNumberOfIds() < 1)
+    {
+      kd_tree_->FindClosestNPoints(1, query_point.data(), id_list);
+
+      if (id_list->GetNumberOfIds() < 1)
+      {
+        return false;
+      }
+    }
+
+    // compute normal average
+    normal_vect = Eigen::Vector3d::Zero();
+    std::size_t num_normals = 0;
+    for (auto p = 0; p < id_list->GetNumberOfIds(); p++)
+    {
+      Eigen::Vector3d temp_normal, query_point, closest_point;
+      vtkIdType p_id = id_list->GetId(p);
+
+      if (p_id < 0)
+      {
+        continue;
+      }
+
+      // get normal and add it to average
+      normal_data->GetTuple(p_id, temp_normal.data());
+      normal_vect += temp_normal.normalized();
+      num_normals++;
+    }
+
+    normal_vect /= num_normals;
+    normal_vect.normalize();
+
+    // save normal
+    new_normals->SetTuple3(i, normal_vect(0), normal_vect(1), normal_vect(2));
+  }
+  segment_data->GetPointData()->SetNormals(new_normals);
+  return true;
 }
 
 }  // namespace noether
