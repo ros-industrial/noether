@@ -34,6 +34,12 @@ private:
   PluginLoaderWidget<MeshModifierWidgetPlugin>* mesh_modifier_loader_widget_;
   PluginLoaderWidget<ToolPathModifierWidgetPlugin>* tool_path_modifier_loader_widget_;
   Ui::TPPPipeline* ui_;
+
+  /**
+   * @brief Container for holding all loaded plugins
+   * @details All loaded plugins must be held in scope in order to prevent the plugin libraries from being unloaded
+   */
+  std::set<std::shared_ptr<ToolPathPlannerWidgetPlugin>> plugins_;
 };
 
 }  // namespace noether
