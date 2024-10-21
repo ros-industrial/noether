@@ -60,7 +60,7 @@ See the [`noether_tpp` documentation](noether_tpp/README.md) for more details on
 Custom behavior can be added by providing a class that overrides one of the interface classes.
 See the implementations in the [`mesh_modifiers`](noether_tpp/include/noether_tpp/mesh_modifiers), [`tool_path_planners`](noether_tpp/include/noether_tpp/tool_path_planners), and [`tool_path_modifiers`](noether_tpp/include/noether_tpp/tool_path_modifiers) for reference.
 
-See the [`noether_gui` documentation](noether_gui/README.md) for more details on how to a GUI plugin for a custom implementation of one of the interfaces.
+See the [`noether_gui` documentation](noether_gui/README.md) for more details on how to create a GUI plugin for a custom implementation of one of the interfaces.
 
 ## Build
 Nominally, this project is ROS-independent, but it is convenient to use the ROS dependency management and build tools to build the repository.
