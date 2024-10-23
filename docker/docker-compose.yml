@@ -8,6 +8,7 @@ services:
     environment:
       DISPLAY: $DISPLAY
       XAUTHORITY: $XAUTHORITY
+      LD_LIBRARY_PATH_ADDITIONS: /usr/lib/jvm/java-11-openjdk-amd64/lib:/usr/lib/jvm/java-11-openjdk-amd64/lib/server
     container_name: noether
     image: ghcr.io/ros-industrial/noether:jammy
     stdin_open: true
