@@ -1,0 +1,21 @@
+services:
+  noether:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        TAG: jammy
+    environment:
+      DISPLAY: $DISPLAY
+      XAUTHORITY: $XAUTHORITY
+      LD_LIBRARY_PATH_ADDITIONS: /usr/lib/jvm/java-11-openjdk-amd64/lib:/usr/lib/jvm/java-11-openjdk-amd64/lib/server
+    container_name: noether
+    image: ghcr.io/ros-industrial/noether:jammy
+    stdin_open: true
+    tty: true
+    network_mode: host
+    privileged: false
+    user: ${CURRENT_UID}  # CURRENT_UID=$(id -u):$(id -g)
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      # - <path>/<to>/<meshes>:/meshes  # Mount a local directory with meshes to /meshes in the docker container
