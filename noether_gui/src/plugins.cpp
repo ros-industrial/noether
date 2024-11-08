@@ -25,6 +25,7 @@
 #include <noether_gui/widgets/tool_path_modifiers/snake_organization_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/standard_edge_paths_organization_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/tool_drag_orientation_modifier_widget.h>
+#include <noether_gui/widgets/tool_path_modifiers/biased_tool_drag_orientation_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/uniform_orientation_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/linear_approach_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/linear_departure_modifier_widget.h>
@@ -95,6 +96,9 @@ using MovingAverageOrientationSmoothingModifierWidgetPlugin =
 
 using ToolDragOrientationToolPathModifierWidgetPlugin =
     WidgetPluginImpl<ToolDragOrientationToolPathModifierWidget, ToolPathModifierWidget>;
+
+using BiasedToolDragOrientationToolPathModifierWidgetPlugin =
+    WidgetPluginImpl<BiasedToolDragOrientationToolPathModifierWidget, ToolPathModifierWidget>;
 
 using CircularLeadInToolPathModifierWidgetPlugin =
     WidgetPluginImpl<CircularLeadInToolPathModifierWidget, ToolPathModifierWidget>;
@@ -192,6 +196,8 @@ EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::MovingAverageOrientationSmoothi
                                         MovingAverageOrientationSmoothingModifier)
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::ToolDragOrientationToolPathModifierWidgetPlugin,
                                         ToolDragOrientationToolPathModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::BiasedToolDragOrientationToolPathModifierWidgetPlugin,
+                                        BiasedToolDragOrientationToolPathModifier)
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::CircularLeadInToolPathModifierWidgetPlugin, CircularLeadInModifier)
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::CircularLeadOutToolPathModifierWidgetPlugin, CircularLeadOutModifier)
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::LinearApproachToolPathModifierWidgetPlugin, LinearApproachModifier)

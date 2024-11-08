@@ -57,6 +57,7 @@ add_library(${PROJECT_NAME} SHARED
   src/widgets/tool_path_modifiers/linear_approach_modifier_widget.cpp
   src/widgets/tool_path_modifiers/linear_departure_modifier_widget.cpp
   src/widgets/tool_path_modifiers/tool_drag_orientation_modifier_widget.cpp
+  src/widgets/tool_path_modifiers/biased_tool_drag_orientation_modifier_widget.cpp
   src/widgets/tool_path_modifiers/uniform_orientation_modifier_widget.cpp
   src/widgets/tool_path_modifiers/offset_modifier_widget.cpp
   src/widgets/tool_path_modifiers/uniform_spacing_spline_modifier_widget.cpp
