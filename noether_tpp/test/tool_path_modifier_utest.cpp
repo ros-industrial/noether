@@ -3,6 +3,7 @@
 
 #include <noether_tpp/core/tool_path_modifier.h>
 // Implementations
+#include <noether_tpp/tool_path_modifiers/biased_tool_drag_orientation_modifier.h>
 #include <noether_tpp/tool_path_modifiers/circular_lead_in_modifier.h>
 #include <noether_tpp/tool_path_modifiers/circular_lead_out_modifier.h>
 #include <noether_tpp/tool_path_modifiers/concatenate_modifier.h>
@@ -242,7 +243,8 @@ TEST_P(OneTimeToolPathModifierTestFixture, TestOperation)
 // Create a vector of implementations for the modifiers
 std::vector<std::shared_ptr<const ToolPathModifier>> createModifiers()
 {
-  return { std::make_shared<CircularLeadInModifier>(M_PI / 2.0, 0.1, 5),
+  return { std::make_shared<BiasedToolDragOrientationToolPathModifier>(10 * M_PI / 180.0, 0.025),
+           std::make_shared<CircularLeadInModifier>(M_PI / 2.0, 0.1, 5),
            std::make_shared<CircularLeadOutModifier>(M_PI / 2.0, 0.1, 5),
            std::make_shared<ConcatenateModifier>(),
            std::make_shared<DirectionOfTravelOrientationModifier>(),
