@@ -871,7 +871,7 @@ html.dark-mode iframe#MSearchResults {
 }
 
 #nav-tree .selected a {
-    color: var(--primary-color) !important;
+/*    color: var(--primary-color) !important;*/
     font-weight: bolder;
     font-weight: 600;
 }
