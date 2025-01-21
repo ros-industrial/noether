@@ -5,6 +5,7 @@
 namespace noether
 {
 /**
+ * @ingroup tool_path_modifiers
  * @brief Aligns the orientation of each waypoint with the existing waypoint normal (z-axis) and the specified reference
  * x-axis direction
  * @details The new waypoint y-axis is computed as the cross-product of the existing waypoint normal (z-axis) and the

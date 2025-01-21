@@ -25,6 +25,10 @@
 
 namespace noether
 {
+/**
+ * @ingroup mesh_modifiers
+ * @brief MeshModifier that separates the mesh into clusters
+ */
 class EuclideanClusteringMeshModifier : public MeshModifier
 {
 public:

@@ -5,7 +5,7 @@ namespace
 {
 /**
  * @brief Returns a collection of half-edges of the mesh that are on its boundaries
- * @ref https://github.com/PointCloudLibrary/pcl/blob/pcl-1.10.0/examples/geometry/example_half_edge_mesh.cpp#L188-L199
+ * @sa https://github.com/PointCloudLibrary/pcl/blob/pcl-1.10.0/examples/geometry/example_half_edge_mesh.cpp#L188-L199
  */
 template <class MeshT>
 std::vector<typename MeshT::HalfEdgeIndices> getBoundaryHalfEdges(const MeshT& mesh, const size_t expected_size = 3)

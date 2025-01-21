@@ -4,6 +4,10 @@
 
 namespace noether
 {
+/**
+ * @ingroup mesh_modifiers
+ * @brief MeshModifier that fits planes to the input mesh and projects the vertices onto the face
+ */
 class PlaneProjectionMeshModifier : public MeshModifier
 {
 public:

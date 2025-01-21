@@ -5,6 +5,7 @@
 namespace noether
 {
 /**
+ * @ingroup direction_generators
  * @brief Rotates a direction vector provided by another direction generator about the smallest principal axis of the
  * input mesh
  * @details One use for this class is for cross-hatch tool paths where the nominal direction is provided by a given

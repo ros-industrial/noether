@@ -5,6 +5,7 @@
 namespace noether
 {
 /**
+ * @ingroup direction_generators
  * @brief Generates the raster direction along the largest principal axis of the input mesh
  */
 class PrincipalAxisDirectionGenerator : public DirectionGenerator

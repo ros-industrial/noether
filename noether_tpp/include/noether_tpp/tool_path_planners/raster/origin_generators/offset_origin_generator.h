@@ -7,6 +7,7 @@
 namespace noether
 {
 /**
+ * @ingroup origin_generators
  * @brief Returns the origin as the origin of another specified origin generator plus a fixed offset
  */
 class OffsetOriginGenerator : public OriginGenerator

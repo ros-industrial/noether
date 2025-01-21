@@ -5,6 +5,7 @@
 namespace noether
 {
 /**
+ * @ingroup tool_path_modifiers
  * @brief Applies a moving average filter to waypoints in each tool path segment to smooth their orientations
  */
 class MovingAverageOrientationSmoothingModifier : public ToolPathModifier

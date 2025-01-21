@@ -5,6 +5,7 @@
 namespace noether
 {
 /**
+ * @ingroup edge_planners
  * @brief Edge tool path planner that creates paths around the boundary edges of a mesh (exterior and interior) as
  * identified by half-edge triangle mesh representation of the mesh
  */

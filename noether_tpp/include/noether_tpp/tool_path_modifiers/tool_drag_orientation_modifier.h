@@ -5,6 +5,7 @@
 namespace noether
 {
 /**
+ * @ingroup tool_path_modifiers
  * @brief Transforms the waypoints to correspond with the center of the ginding tool so that the edge
  * of the tool is in contact with the media
  */

@@ -5,6 +5,7 @@
 namespace noether
 {
 /**
+ * @ingroup tool_path_modifiers
  * @brief Modifier that adds exit waypoints in a circular arc (with fixed orientation) to the end of a trajectory
  */
 class CircularLeadOutModifier : public ToolPathModifier

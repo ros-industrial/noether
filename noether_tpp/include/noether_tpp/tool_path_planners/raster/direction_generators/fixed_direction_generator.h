@@ -5,6 +5,7 @@
 namespace noether
 {
 /**
+ * @ingroup direction_generators
  * @brief Generates the raster direction based on a fixed input
  */
 class FixedDirectionGenerator : public DirectionGenerator

@@ -28,9 +28,10 @@
 namespace noether
 {
 /**
- * @class noether_filtering::filters::BSplineReconstruction
- * @details: Smoothes a mesh by fitting a bspline surface to it.  The details of this implementation'
- * can be in found in http://pointclouds.org/documentation/tutorials/bspline_fitting.php
+ * @ingroup mesh_modifiers
+ * @brief Smoothes a mesh by fitting a bspline surface to it
+ * @details The details of this implementation can be in found in
+ * @sa http://pointclouds.org/documentation/tutorials/bspline_fitting.php
  */
 class BSplineReconstruction : public MeshModifier
 {

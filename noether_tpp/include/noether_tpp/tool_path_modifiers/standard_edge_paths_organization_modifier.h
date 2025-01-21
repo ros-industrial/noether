@@ -5,6 +5,7 @@
 namespace noether
 {
 /**
+ * @ingroup tool_path_modifiers
  * @brief Organizes a set of tool paths into a standard configuration for edge paths
  * @details Segments are ordered in a tool path such that the start of one segment is as close as
  * possible to the end of the previous segment. The first segment is chosen as the one whose first waypoint is closest

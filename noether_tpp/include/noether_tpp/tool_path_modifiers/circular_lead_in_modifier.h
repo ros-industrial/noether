@@ -5,6 +5,7 @@
 namespace noether
 {
 /**
+ * @ingroup tool_path_modifiers
  * @brief Modifier that adjusts the parameters of the tool approach trajectory to the media
  */
 class CircularLeadInModifier : public ToolPathModifier

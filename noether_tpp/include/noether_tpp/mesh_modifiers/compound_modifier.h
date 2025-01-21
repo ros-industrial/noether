@@ -4,6 +4,10 @@
 
 namespace noether
 {
+/**
+ * @ingroup mesh_modifiers
+ * @brief MeshModifier that cascades multiple MeshModifier instances in series
+ */
 class CompoundMeshModifier : public MeshModifier
 {
 public:

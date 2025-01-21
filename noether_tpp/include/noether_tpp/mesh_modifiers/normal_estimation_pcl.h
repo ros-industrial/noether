@@ -4,6 +4,10 @@
 
 namespace noether
 {
+/**
+ * @ingroup mesh_modifiers
+ * @brief Estimates vertex normals of an input mesh using PCL
+ */
 class NormalEstimationPCLMeshModifier : public MeshModifier
 {
 public:

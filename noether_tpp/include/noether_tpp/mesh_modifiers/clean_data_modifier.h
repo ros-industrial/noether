@@ -26,10 +26,10 @@
 namespace noether
 {
 /**
- * @class noether_filtering::mesh::CleanData
+ * @ingroup mesh_modifiers
+ * @brief Merges duplicate points, removes unused points, and/or removes degenerate cells
  * @details Uses the VTK capability shown in this example
- * https://lorensen.github.io/VTKExamples/site/Cxx/PolyData/CleanPolyData/ Merges duplicate points, and/or remove unused
- * points and/or remove degenerate cells
+ * @sa https://lorensen.github.io/VTKExamples/site/Cxx/PolyData/CleanPolyData
  */
 class CleanData : public MeshModifier
 {

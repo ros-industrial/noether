@@ -5,6 +5,7 @@
 namespace noether
 {
 /**
+ * @ingroup tool_path_modifiers
  * @brief Adds a series of waypoints in a linear pattern off the last waypoint in a tool path
  */
 class LinearDepartureModifier : public LinearApproachModifier
