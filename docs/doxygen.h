@@ -70,7 +70,7 @@ rasters, running that function twice would undo the desired changes. Instead, a 
 might set the direction of every even-indexed raster to the direction of the zero-indexed raster, and set the direction
 of every odd-indexed raster to the opposite. This would result in no additional change if run multiple times.
 
-@image html docs/modifier.png
+@image html static/modifier.png
 
 */
 
@@ -94,7 +94,7 @@ Clone the repository into a workspace, download the dependencies, and build the 
 
 Noether provides a GUI for configuring and operating a @ref s_pipeline.
 
-@image html docs/gui.png width=90%
+@image html static/gui.png
 
 Run the application using the following command:
 
@@ -227,7 +227,7 @@ custom implementations of Noether interfaces, including integration with the GUI
 - Segments are consistently and spatially ordered in ToolPath
 - ToolPaths are in order in top-level structure
 
-@image html docs/raster_path.png
+@image html static/raster_path.png
 
 */
 
@@ -245,7 +245,7 @@ custom implementations of Noether interfaces, including integration with the GUI
 - All loops start near some point (e.g. all in top left corner)
 - All loops process in same direction
 
-@image html docs/edge_path.png
+@image html static/edge_path.png
 
 */
 
