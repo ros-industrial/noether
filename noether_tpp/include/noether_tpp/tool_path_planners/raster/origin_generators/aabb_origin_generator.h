@@ -7,6 +7,7 @@
 namespace noether
 {
 /**
+ * @ingroup origin_generators
  * @brief Returns the center of the axis-aligned bounding box (AABB) as the origin
  */
 struct AABBCenterOriginGenerator : public OriginGenerator

@@ -2,6 +2,10 @@
 
 namespace noether
 {
+/**
+ * @ingroup tool_path_modifiers
+ * @brief The UniformSpacingSplineModifier class
+ */
 class UniformSpacingSplineModifier : public ToolPathModifier
 {
 public:

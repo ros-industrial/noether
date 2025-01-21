@@ -4,6 +4,10 @@
 
 namespace noether
 {
+/**
+ * @ingroup tool_path_modifiers
+ * @brief The UniformSpacingLinearModifier class
+ */
 class UniformSpacingLinearModifier : public ToolPathModifier
 {
 public:

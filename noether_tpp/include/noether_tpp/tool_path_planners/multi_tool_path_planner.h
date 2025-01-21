@@ -5,6 +5,7 @@
 namespace noether
 {
 /**
+ * @ingroup tool_path_planners
  * @brief Runs multiple tool path planners serially and concatenates their outputs together
  */
 class MultiToolPathPlanner : public ToolPathPlanner

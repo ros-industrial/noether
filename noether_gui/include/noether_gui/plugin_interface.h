@@ -10,13 +10,16 @@ namespace boost_plugin_loader
 {
 class PluginLoader;
 
+/** @cond */
 template <typename T>
 struct has_getSection;
+/** @endcond */
 }  // namespace boost_plugin_loader
 
 namespace noether
 {
 /**
+ * @ingroup gui_interfaces
  * @brief Base class for a plugin that can generate a Qt widget
  */
 template <typename T>
@@ -35,10 +38,34 @@ private:
   static std::string getSection();
 };
 
+/**
+ * @ingroup gui_interfaces_plugins
+ * @brief Plugin interface for creating a ToolPathPlannerWidget
+ */
 using ToolPathPlannerWidgetPlugin = WidgetPlugin<ToolPathPlannerWidget>;
+
+/**
+ * @ingroup gui_interfaces_plugins
+ * @brief Plugin interface for creating a DirectionGeneratorWidget
+ */
 using DirectionGeneratorWidgetPlugin = WidgetPlugin<DirectionGeneratorWidget>;
+
+/**
+ * @ingroup gui_interfaces_plugins
+ * @brief Plugin interface for creating an OriginGeneratorWidget
+ */
 using OriginGeneratorWidgetPlugin = WidgetPlugin<OriginGeneratorWidget>;
+
+/**
+ * @ingroup gui_interfaces_plugins
+ * @brief Plugin interface for creating a ToolPathModifierWidget
+ */
 using ToolPathModifierWidgetPlugin = WidgetPlugin<ToolPathModifierWidget>;
+
+/**
+ * @ingroup gui_interfaces_plugins
+ * @brief Plugin interface for creating a MeshModifierWidget
+ */
 using MeshModifierWidgetPlugin = WidgetPlugin<MeshModifierWidget>;
 
 }  // namespace noether

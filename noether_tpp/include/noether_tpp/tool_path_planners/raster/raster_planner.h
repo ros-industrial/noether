@@ -26,11 +26,13 @@
 namespace noether
 {
 /**
- * @brief Interface for generating the direction of raster paths. This direction represents the line along which
- * waypoints in a raster path will lie.
- * @details This interface only defines the raster path direction. It is overconstrained to also define the raster step
- * direction, which is typically normal to the raster path direction. As such, we leave it up to the individual raster
- * planners to determine how propagate sequential rasters normal to the path direction.
+ * @ingroup direction_generators
+ * @brief Interface for generating the direction of raster paths.
+ * @details This interface only defines the raster path direction.
+ * This direction represents the line along which waypoints in a raster path will lie.
+ * It is overconstrained to also define the raster step direction, which is typically normal to the raster path
+ * direction. As such, we leave it up to the individual raster planners to determine how propagate sequential rasters
+ * normal to the path direction.
  */
 struct DirectionGenerator
 {
@@ -42,6 +44,7 @@ struct DirectionGenerator
 };
 
 /**
+ * @ingroup origin_generators
  * @brief Interface for setting the start point from which to generate toolpaths
  */
 struct OriginGenerator
@@ -54,8 +57,9 @@ struct OriginGenerator
 };
 
 /**
- * @brief A specification of the tool path planner for covering surfaces
- * in repeating, evenly spaced path lines.  By default, a raster planner will produce a path with
+ * @ingroup tool_path_planners
+ * @brief A specification of the tool path planner for covering surfaces in repeating, evenly spaced path lines.
+ * @details By default, a raster planner will produce a path with
  * all points having a consistent orientation, lines which all travel in the same direction across
  * the surface, and the traversal between lines will be in a consistent direction and order.
  */
@@ -73,8 +77,6 @@ public:
 protected:
   /**
    * @brief Implementation of the tool path planning capability
-   * @param mesh
-   * @return
    */
   virtual ToolPaths planImpl(const pcl::PolygonMesh& mesh) const = 0;
 

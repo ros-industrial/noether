@@ -6,6 +6,7 @@
 namespace noether
 {
 /**
+ * @ingroup tool_path_modifiers
  * @brief Offsets the tool path by a fixed pose
  */
 class OffsetModifier : public ToolPathModifier

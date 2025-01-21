@@ -28,6 +28,7 @@
 namespace noether
 {
 /**
+ * @ingroup tool_path_modifiers
  * @brief Modifier that chains together other modifiers
  */
 class CompoundModifier : public ToolPathModifier

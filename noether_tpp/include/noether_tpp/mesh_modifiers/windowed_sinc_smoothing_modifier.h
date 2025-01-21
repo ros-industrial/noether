@@ -12,14 +12,15 @@
 namespace noether
 {
 /**
- * @class noether_filtering:;mesh::WindowedSincSmoothing
- * @details uses the vtkWindowedSincPolyDataFilter to smooth out the mesh, details of the implementation
- * and the configuration parameters can be found here
- * https://vtk.org/doc/nightly/html/classvtkWindowedSincPolyDataFilter.html
+ * @ingroup mesh_modifiers
+ * @brief Uses vtkWindowedSincPolyDataFilter to smooth the mesh
+ * @details Details of the implementation and the configuration parameters can be found here
+ * @sa https://vtk.org/doc/nightly/html/classvtkWindowedSincPolyDataFilter.html
  */
 class WindowedSincSmoothing : public MeshModifier
 {
 public:
+  /** @brief Configuration information for WindowedSincSmoothing */
   struct Config
   {
     std::size_t num_iter = 100;

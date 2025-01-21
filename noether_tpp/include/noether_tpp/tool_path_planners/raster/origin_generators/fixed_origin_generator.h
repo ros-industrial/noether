@@ -7,6 +7,7 @@
 namespace noether
 {
 /**
+ * @ingroup origin_generators
  * @brief Returns a fixed point as the origin
  * @details The default fixed point is a zero vector corresponding to the mesh coordinate system origin
  */

@@ -7,6 +7,7 @@
 namespace noether
 {
 /**
+ * @ingroup origin_generators
  * @brief Returns the centroid of the mesh vertices as the origin
  */
 struct CentroidOriginGenerator : public OriginGenerator

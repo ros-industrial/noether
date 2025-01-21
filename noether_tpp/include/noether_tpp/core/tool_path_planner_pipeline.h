@@ -27,7 +27,7 @@
 namespace noether
 {
 /**
- * @brief The ToolPathPlannerPipeline class - Collects together a set of mesh modifiers, a planner,
+ * @details Collects together a set of mesh modifiers, a planner,
  * and a set of tool path modifiers. These sub-units then can be called using a single line to
  * pre-process meshes, plan paths, and operate on the paths.
  */
