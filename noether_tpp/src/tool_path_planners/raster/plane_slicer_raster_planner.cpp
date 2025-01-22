@@ -449,7 +449,14 @@ void PlaneSlicerRasterPlanner::generateRastersBidirectionally(const bool bidirec
 ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
 {
   if (!hasNormals(mesh))
-    throw std::runtime_error("Mesh does not have vertex normals");
+  {
+    std::stringstream ss;
+    ss << "The input mesh does not have vertex normals, which are required for the plane slice raster tool path "
+          "planner. "
+       << "Use a MeshModifier to generate vertex normals for the mesh, or provide a different mesh with vertex "
+          "normals.";
+    throw std::runtime_error(ss.str());
+  }
 
   // Convert input mesh to VTK type & calculate normals if necessary
   vtkSmartPointer<vtkPolyData> mesh_data_ = vtkSmartPointer<vtkPolyData>::New();
