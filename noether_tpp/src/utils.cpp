@@ -92,7 +92,7 @@ Eigen::Vector3f getNormal(const pcl::PCLPointCloud2& cloud, const std::uint32_t 
   auto nz_it = noether::findField(cloud.fields, "normal_z");
 
   if (nx_it == cloud.fields.end() || ny_it == cloud.fields.end() || nz_it == cloud.fields.end())
-    throw std::runtime_error("Not all normals exist");
+    throw std::runtime_error("Not all vertex normal fields exist in the point cloud");
 
   const std::uint32_t offset = pt_idx * cloud.point_step;
   const auto* nx = reinterpret_cast<const float*>(cloud.data.data() + offset + nx_it->offset);
