@@ -400,20 +400,50 @@ void TPPWidget::onPlan(const bool /*checked*/)
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
     // Run the mesh modifier
-    std::vector<pcl::PolygonMesh> meshes = pipeline.mesh_modifier->modify(full_mesh);
+    std::vector<pcl::PolygonMesh> meshes;
+    try
+    {
+      meshes = pipeline.mesh_modifier->modify(full_mesh);
+    }
+    catch (const std::exception& ex)
+    {
+      std::throw_with_nested(std::runtime_error("Error invoking mesh modifier"));
+    }
 
     tool_paths_.clear();
     tool_paths_.reserve(meshes.size());
     std::vector<ToolPaths> unmodified_tool_paths;
     unmodified_tool_paths.reserve(meshes.size());
 
-    for (const pcl::PolygonMesh& mesh : meshes)
+    for (std::size_t i = 0; i < meshes.size(); ++i)
     {
+      const pcl::PolygonMesh& mesh = meshes[i];
+
       // Plan the tool path
-      ToolPaths path = pipeline.planner->plan(mesh);
+      ToolPaths path;
+      try
+      {
+        path = pipeline.planner->plan(mesh);
+      }
+      catch (const std::exception& ex)
+      {
+        std::stringstream ss;
+        ss << "Error invoking tool path planner on mesh at index " << i << " in the TPP pipeline.";
+        std::throw_with_nested(std::runtime_error(ss.str()));
+      }
 
       unmodified_tool_paths.push_back(path);
-      tool_paths_.push_back(pipeline.tool_path_modifier->modify(path));
+
+      try
+      {
+        tool_paths_.push_back(pipeline.tool_path_modifier->modify(path));
+      }
+      catch (const std::exception& ex)
+      {
+        std::stringstream ss;
+        ss << "Error invoking tool path modifier for tool path at index " << i << " in the TPP pipeline.";
+        std::throw_with_nested(std::runtime_error(ss.str()));
+      }
     }
 
     QApplication::restoreOverrideCursor();
