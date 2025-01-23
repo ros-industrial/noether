@@ -1,0 +1,182 @@
+/**
+@mainpage
+
+<a href="https://github.com/ros-industrial/noether">Noether</a> provides software for performing tool path planning on
+arbitrary mesh surfaces. See the following pages for more information on using Noether.
+
+<ul>
+  <li>@subpage page_concepts</li>
+  <li>@subpage page_getting_started</li>
+  <li>@subpage page_customization</li>
+  <li>@subpage page_additional_resources</li>
+</ul>
+
+*/
+
+// Define groups
+/**
+  @defgroup types Types
+  @defgroup interfaces Interfaces
+  @defgroup mesh_modifiers Mesh Modifiers
+  @defgroup tool_path_planners Tool Path Planners
+  @{
+    @defgroup raster_planners Raster Planners
+    @{
+      @defgroup direction_generators Direction Generators
+      @defgroup origin_generators Origin Generators
+    @}
+    @defgroup edge_planners Edge Planners
+  @}
+  @defgroup tool_path_modifiers Tool Path Modifiers
+  @defgroup gui_interfaces GUI Interfaces
+  @{
+    @defgroup gui_interfaces_widgets Widgets
+    @defgroup gui_interfaces_plugins Widget Plugins
+  @}
+*/
+
+// Documentation for types
+/**
+@addtogroup types
+
+@brief Common data types used for tool path planning
+
+*/
+
+// Documentation for interfaces
+/**
+@addtogroup interfaces
+
+@brief Abstract interfaces for the various concepts of tool path planning.
+
+@details The image below shows the architecture for the tool path planning components.
+
+@image html static/architecture.png
+
+*/
+
+// Documentation for mesh modifiers
+/**
+@addtogroup mesh_modifiers
+
+@brief Implementations of the MeshModifier interface
+
+*/
+
+// Documentation for tool path planners
+/**
+@addtogroup tool_path_planners
+
+@brief Implementations of the ToolPathPlanner interface
+
+*/
+
+// Documentation for raster planners
+/**
+@addtogroup raster_planners
+
+@brief Implementations of the RasterPlanner interface and associated components
+
+@details A RasterPlanner is a subclass of ToolPathPlanner with the following general properties:
+
+- Generally >1 raster
+- Generally covers the whole supplied surface
+- Lines are parallel
+- Repeating pattern of lines
+- All points lie on surface
+- All points have same orientation
+- Waypoints in rasters are consistently and spatially ordered
+- Segments are consistently and spatially ordered in ToolPath
+- ToolPaths are in order in top-level structure
+
+@image html static/raster_path.png
+
+*/
+
+// Documentation for edge planners
+/**
+@addtogroup edge_planners
+
+@brief Implementations of the EdgePlanner interface
+
+@details An EdgePlanner is a subclass of ToolPathPlanner with the following general properties:
+
+- A list of closed-loop edges around parts
+- Segments in sequential order in ToolPath
+- ToolPaths ordered by length of closed loop, with longest first
+- All loops start near some point (e.g. all in top left corner)
+- All loops process in same direction
+
+@image html static/edge_path.png
+
+*/
+
+// Documentation for direction generators
+/**
+@addtogroup direction_generators
+
+@brief Implementations of the DirectionGenerator interface
+
+*/
+
+// Documentation for origin generators
+/**
+@addtogroup origin_generators
+
+@brief Implementations of the OriginGenerator interface
+
+*/
+
+// Documentation for tool path modifiers
+/**
+@addtogroup tool_path_modifiers
+
+@brief Implementations of the ToolPathModifier interface
+
+*/
+
+// Documentation for GUI interfaces
+/**
+@addtogroup gui_interfaces
+
+@brief Abstract interfaces for the various components of the GUI
+
+@details The GUI package provides two template interfaces for providing UI support: BaseWidget and WidgetPlugin.
+
+@par
+BaseWidget is a Qt widget that uses its UI elements to produce an instance of one of the tool path planning concept @ref
+interfaces. Each implementation of a tool path planning concept should provide its own widget such that it can be used
+in the GUI application.
+
+@par
+WidgetPlugin is the base class for a plugin that can be dynamically loaded at run-time to provide widgets to populate
+the GUI. The GUI itself finds available WidgetPlugin classes (via the `NOETHER_PLUGIN_LIBS` environment variable), loads
+them, and uses them to produce widgets to populate the various pages of the GUI. Just as each of the tool path planning
+concept @ref interfaces should provide a BaseWidget to configure itself, each BaseWidget should also have a
+corresponding WidgetPlugin that allows it to be loaded into the GUI.
+
+@par
+See @ref page_customization for more information about how to provide a custom tool path planning elements.
+
+@par
+The image below shows the architecture of the GUI components.
+
+@image html static/architecture_gui.png
+
+*/
+
+// Documentation for the GUI widget interfaces
+/**
+@addtogroup gui_interfaces_widgets
+
+@brief Instantitations of the BaseWidget interface
+
+*/
+
+// Documentation for the GUI plugin interfaces
+/**
+@addtogroup gui_interfaces_plugins
+
+@brief Instantitations of the WidgetPlugin interface
+
+*/

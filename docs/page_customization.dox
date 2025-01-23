@@ -1,0 +1,28 @@
+/**
+@page page_customization Customization
+
+@tableofcontents
+
+Custom behavior can be added by providing a class that overrides one of the @ref interfaces.
+See the implementations in @ref mesh_modifiers, @ref tool_path_planners, and @ref tool_path_modifiers for reference.
+
+@section s_gui_plugins GUI Plugins
+
+@par
+The Noether @ref s_gui is a framework that allows user-developed plugins to provide UI elements for configuring the @ref
+s_pipeline. The GUI has hooks for displaying widgets for all available MeshModifier, ToolPathPlanner, and
+ToolPathModifier implementations.
+
+@par
+At run-time, the GUI searches for plugins that can provide the widgets to configure these tool path planning concept
+@ref interfaces. The GUI automatically finds plugins defined in this repository. User-developed plugins can also be
+found by the GUI by adding the names of the plugin libraries to the `NOETHER_PLUGIN_LIBS` environment variable.
+
+@par
+This plugin-based GUI architecture allows end-users to leverage the out-of-the-box GUI infrastructure and plugins that
+come with Noether, while still enabling private development of custom capabilities or customizations to the front-end of
+existing Noether classes. Read the following sections to learn how to implement your own plugin for the Noether GUI.
+
+@section s_gui_how_to How to create your own Noether GUI plugin
+
+*/
