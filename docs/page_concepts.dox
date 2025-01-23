@@ -1,0 +1,55 @@
+/**
+@page page_concepts Concepts
+
+@tableofcontents
+
+We define tool path planning as the generation of an ordered set of waypoints for a robotic process (e.g., painting,
+sanding, inspection, routing, etc.) based an input mesh geometry. The idea is that the tool of the robot should traverse
+through this set of waypoints in order to accomplish the desired task. Definitions of the concepts of waypoints and tool
+paths can be found in @ref types.
+
+@section s_pipeline Tool Path Planning Pipeline
+
+We think of the tool path planning process as a pipeline consisting of 3 steps:
+
+<ol>
+  <li><b>Mesh modification</b></li>
+  <li><b>Tool path planning</b></li>
+  <li><b>Tool path modification</b></li>
+</ol>
+
+@subsection ss_mesh_modifier Mesh Modification
+
+Often input geometry (specifically meshes) does not actually reflect the surface from which we want to generate tool
+paths. Usually we want to process the mesh in various ways, such as smoothing, segmentation, or primitive fitting and
+projection. A MeshModifier receives a single input mesh, applies these modification operations, and returns at least one
+output mesh.
+
+@subsection ss_tool_path_planner Tool Path Planning
+
+This is the generation of waypoints directly from the modified mesh(es).
+Planners generally create waypoints directly on the surface of the input modified mesh(es).
+A ToolPathPlanner receives a mesh and returns a set of ToolPath objects.
+
+@subsection ss_tool_path_modifier Tool Path Modification
+
+Many robot processes require application specific changes or additions to a tool path.
+These include operations like order reorganization, pose offsets, approaches/departures, etc.
+Instead of building these changes directly into customized tool path planners, we implement them as a separate step in
+the pipeline. A ToolPathModifier takes in the output type of a ToolPathPlanner (i.e. ToolPaths) and returns a modified
+ToolPaths object with these process-specific changes.
+
+@subsubsection sss_one_time_modifier One-time Tool Path Modifiers
+
+There should be a strong preference for constructing modifiers that have no additional effect when run repeatedly.
+Since some modifications (such as adding an extra raster) will not meet this requirement, it will only apply to a
+specialized subclass: OneTimeToolPathModifier.
+
+As an example: While a ToolPathModifier could be implemented via a function that reverses the direction of odd-indexed
+rasters, running that function twice would undo the desired changes. Instead, a more desirable OneTimeToolPathModifier
+might set the direction of every even-indexed raster to the direction of the zero-indexed raster, and set the direction
+of every odd-indexed raster to the opposite. This would result in no additional change if run multiple times.
+
+@image html static/modifier.png
+
+*/

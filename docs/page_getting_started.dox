@@ -1,0 +1,33 @@
+/**
+@page page_getting_started Getting Started
+
+@section Build
+
+Nominally, this project is ROS-independent, but it is convenient to use the ROS dependency management and build tools to
+build the repository.
+
+Clone the repository into a workspace, download the dependencies, and build the workspace.
+
+    cd <ws>
+    vcs import src < dependencies.repos
+    rosdep install --from-paths src -iry
+    <colcon/catkin> build
+
+@section s_gui GUI
+
+Noether provides a GUI for configuring and operating a @ref s_pipeline.
+
+@image html static/gui.png
+
+Run the application using the following command:
+
+    ros2 run noether_gui noether_gui_app
+
+@note
+If you encounter the error `error while loading shared libraries: libjawt.so: cannot open shared object file: No such
+file or directory`, try manually adding the location of the unlinked Java libraries:
+
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/jvm/java-11-openjdk-amd64/lib
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/jvm/java-11-openjdk-amd64/lib/server
+
+*/

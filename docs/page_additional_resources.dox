@@ -1,0 +1,10 @@
+/**
+@page page_additional_resources Additional Resources
+
+@section s_noether_roscon_2024 ROSCon 2024 Workshop
+
+See this <a href="https://github.com/marip8/noether_roscon_2024">repository</a> for a workshop that was put on at <a
+href="https://roscon.ros.org/2024/">ROSCon 2024</a>. The repository includes exercises and demonstrations for creating
+custom implementations of Noether interfaces, including integration with the GUI.
+
+*/
