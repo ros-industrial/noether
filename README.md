@@ -14,4 +14,4 @@ Lint  (Clang-Format) | [![Build Status](https://github.com/ros-industrial/noethe
 This repository provides software for performing tool path planning on arbitrary mesh surfaces.
 
 ## Documentation
-See the [documentation](ros-industrial.github.io/noether) for more information on the capabilities and usage of this repository.
+See the [documentation](https://ros-industrial.github.io/noether/) for more information on the capabilities and usage of this repository.
