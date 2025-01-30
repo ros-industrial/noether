@@ -18,7 +18,7 @@ std::vector<pcl::PolygonMesh> CompoundMeshModifier::modify(const pcl::PolygonMes
     const MeshModifier::ConstPtr& modifier = modifiers_[i];
 
     std::vector<pcl::PolygonMesh> tmp_meshes;
-    for (std::size_t j = 0; j < meshes.size(); ++i)
+    for (std::size_t j = 0; j < meshes.size(); ++j)
     {
       try
       {
