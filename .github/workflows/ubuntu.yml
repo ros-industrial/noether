@@ -38,11 +38,11 @@ jobs:
           path: target_ws/src
 
       - name: Build and Tests
-        uses: tesseract-robotics/colcon-action@v9
+        uses: tesseract-robotics/colcon-action@v11
         with:
           ccache-prefix: ${{ matrix.distro }}
           add-ros-ppa: true
           vcs-file: dependencies.repos
-          rosdep-install-args: '--skip-keys libvtk'
+          rosdep-install-args: '-iry --skip-keys libvtk'
           target-path: target_ws/src
           target-args: --cmake-args -DCMAKE_BUILD_TYPE=Debug -DNOETHER_ENABLE_TESTING=ON -DNOETHER_ENABLE_RUN_TESTING=OFF
