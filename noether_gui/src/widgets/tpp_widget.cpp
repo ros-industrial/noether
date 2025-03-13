@@ -28,6 +28,7 @@
 #include <vtkOpenGLRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkPLYReader.h>
+#include <vtkProp3DCollection.h>
 #include <vtkSTLReader.h>
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkAxes.h>
@@ -95,7 +96,7 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   // Connect signals
   connect(ui_->action_load_mesh, &QAction::triggered, this, &TPPWidget::onLoadMesh);
   connect(ui_->action_execute_pipeline, &QAction::triggered, this, &TPPWidget::onPlan);
-
+  connect(ui_->action_save_modified_mesh, &QAction::triggered, this, &TPPWidget::onSaveModifiedMesh);
   connect(ui_->action_show_unmodified_mesh, &QAction::triggered, this, &TPPWidget::onShowOriginalMesh);
   connect(ui_->action_show_modified_mesh, &QAction::triggered, this, &TPPWidget::onShowModifiedMesh);
   connect(ui_->action_show_unmodified_tool_path, &QAction::triggered, this, &TPPWidget::onShowUnmodifiedToolPath);
@@ -500,6 +501,56 @@ void TPPWidget::onPlan(const bool /*checked*/)
     std::stringstream ss;
     printException(ex, ss);
     QMessageBox::warning(this, "Tool Path Planning Error", QString::fromStdString(ss.str()));
+  }
+}
+
+void TPPWidget::onSaveModifiedMesh(const bool /*checked*/)
+{
+  QString file_path = QFileDialog::getSaveFileName(this, "Save modified mesh file", "", "Mesh files (*.ply *.stl)");
+
+  // Append .ply extenstion if a file does not have an extention specified
+  if (!file_path.endsWith(".ply") && !file_path.endsWith(".stl"))
+  {
+    file_path.append(".ply");
+  }
+
+  // Extract the submeshes from the actor that holds the modified meshes
+  vtkProp3DCollection* parts  = mesh_fragment_actor_->GetParts();
+  if (parts->GetNumberOfItems() == 0)
+  {
+    const QString warning_text = "No modified meshes found. \n"
+                                 "Have you planned a tool path?";
+    const int warning_box_val = QMessageBox::warning(this, "Heads up!",
+                                                     warning_text);
+    return;
+  }
+  for (vtkIdType i = 0; i < parts->GetNumberOfItems(); i++)
+  {
+    auto actor = vtkActor::SafeDownCast(parts->GetItemAsObject(i));
+    if (actor)
+    {
+      auto map = vtkPolyDataMapper::SafeDownCast(actor->GetMapper());
+      if (map)
+      {
+        auto mesh_poly_data = vtkPolyData::SafeDownCast(map->GetInput());
+        if (file_path.endsWith(".stl"))
+        {
+          auto writer = vtkSmartPointer<vtkSTLWriter>::New();
+          // Write the modified mesh to a file
+          writer->SetInputData(mesh_poly_data);
+          writer->SetFileName(file_path.toLocal8Bit().data());
+          writer->Write();
+        }
+        else // File extension is .ply
+        {
+          auto writer = vtkSmartPointer<vtkPLYWriter>::New();
+          // Write the modified mesh to a file
+          writer->SetInputData(mesh_poly_data);
+          writer->SetFileName(file_path.toLocal8Bit().data());
+          writer->Write();
+        }
+      }
+    }
   }
 }
 
