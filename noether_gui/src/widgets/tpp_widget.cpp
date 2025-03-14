@@ -28,8 +28,10 @@
 #include <vtkOpenGLRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkPLYReader.h>
+#include <vtkPLYWriter.h>
 #include <vtkProp3DCollection.h>
 #include <vtkSTLReader.h>
+#include <vtkSTLWriter.h>
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkAxes.h>
 #include <vtkTransformFilter.h>
