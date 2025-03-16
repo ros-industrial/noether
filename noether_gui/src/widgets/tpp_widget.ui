@@ -173,6 +173,8 @@
    <addaction name="action_load_config"/>
    <addaction name="action_save_config"/>
    <addaction name="separator"/>
+   <addaction name="action_save_modified_mesh"/>
+   <addaction name="separator"/>
    <addaction name="action_execute_pipeline"/>
   </widget>
   <action name="action_load_config">
