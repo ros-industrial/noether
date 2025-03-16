@@ -323,7 +323,7 @@
     <string>Save modified mesh</string>
    </property>
    <property name="shortcut">
-    <string>Shift+D</string>
+    <string>Ctrl+D</string>
    </property>
   </action>
   <action name="action_execute_pipeline">
