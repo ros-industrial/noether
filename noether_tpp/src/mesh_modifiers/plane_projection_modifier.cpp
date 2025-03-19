@@ -111,6 +111,48 @@ std::vector<pcl::PolygonMesh> PlaneProjectionMeshModifier::modify(const pcl::Pol
       // Project the inlier vertices onto the plane
       projectInPlace(output_mesh.cloud, plane_coeffs);
 
+      std::vector<Eigen::Vector3f> normals_vector;
+      normals_vector.reserve(output_mesh.cloud.height * output_mesh.cloud.width);
+
+      for (std::size_t i = 0; i < output_mesh.polygons.size(); ++i)
+      {
+        Eigen::Vector3f normal = getFaceNormal(output_mesh, output_mesh.polygons[i]);
+        normals_vector.push_back(normal);
+      }
+
+      // Compute average normal value
+      Eigen::Vector3f normals_sum;
+      for (std::size_t i = 0; i < normals_vector.size(); ++i)
+      {
+        normals_sum += normals_vector[i];
+      }
+      Eigen::Vector3f average_normal_vector = normals_sum / normals_vector.size();
+      pcl::Normal average_normal;
+      average_normal.normal_x = average_normal_vector[0];
+      average_normal.normal_y = average_normal_vector[1];
+      average_normal.normal_z = average_normal_vector[2];
+
+      // Get the normal of the plane
+      pcl::Normal plane_normal;
+      plane_normal.normal_x = plane_coeffs[0];
+      plane_normal.normal_y = plane_coeffs[1];
+      plane_normal.normal_z = plane_coeffs[2];
+
+      // Realign plane normal to average normal value if needed
+      if (average_normal.getNormalVector3fMap().dot(plane_normal.getNormalVector3fMap()) < 0)
+      {
+        plane_normal.getNormalVector3fMap() *= -1;
+      }
+
+      // Align normals of mesh faces with the plane normal
+      for (std::size_t i = 0; i < output_mesh.polygons.size(); ++i)
+      {
+        if (normals_vector[i].dot(plane_normal.getNormalVector3fMap()) < 0)
+        {
+          std::swap(output_mesh.polygons[i].vertices[1], output_mesh.polygons[i].vertices[2]);
+        }
+      }
+
       // Append the extracted and projected mesh to the vector of output meshes
       output.push_back(output_mesh);
     }
