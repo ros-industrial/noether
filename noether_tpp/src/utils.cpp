@@ -85,6 +85,19 @@ Eigen::Vector3f getPoint(const pcl::PCLPointCloud2& cloud, const std::uint32_t p
   return Eigen::Map<const Eigen::Vector3f>(xyz);
 }
 
+Eigen::Vector3f getFaceNormal(const pcl::PolygonMesh& mesh, const pcl::Vertices& triangle)
+{
+  Eigen::Vector3f pt1 = getPoint(mesh.cloud, triangle.vertices[0]);
+  Eigen::Vector3f pt2 = getPoint(mesh.cloud, triangle.vertices[1]);
+  Eigen::Vector3f pt3 = getPoint(mesh.cloud, triangle.vertices[2]);
+
+  // Get the edges pt1 -> pt2 and pt1 -> pt3
+  const Eigen::Vector3f edge_12 = pt2 - pt1;
+  const Eigen::Vector3f edge_13 = pt3 - pt1;
+
+  return edge_12.cross(edge_13).normalized();
+}
+
 Eigen::Vector3f getNormal(const pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
 {
   auto nx_it = noether::findField(cloud.fields, "normal_x");
