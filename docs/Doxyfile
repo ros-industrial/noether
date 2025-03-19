@@ -945,7 +945,7 @@ EXCLUDE_SYMBOLS        =
 # that contain example code fragments that are included (see the \include
 # command).
 
-EXAMPLE_PATH           =
+EXAMPLE_PATH           = ../noether_gui/src/widgets/tool_path_modifiers/linear_approach_modifier_widget.cpp ../noether_gui/include/noether_gui/widgets/tool_path_modifiers/linear_approach_modifier_widget.h ../noether_tpp/include/noether_tpp/tool_path_modifiers/linear_approach_modifier.h ../noether_tpp/src/tool_path_modifiers/linear_approach_modifier.cpp
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp and

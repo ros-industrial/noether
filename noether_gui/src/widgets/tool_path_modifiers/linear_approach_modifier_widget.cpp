@@ -6,12 +6,14 @@
 #include "ui_linear_approach_modifier_widget.h"
 #include <yaml-cpp/yaml.h>
 
+//! [YAML node keys]
 static const std::string N_POINTS_KEY = "n_points";
 static const std::string X_KEY = "x";
 static const std::string Y_KEY = "y";
 static const std::string Z_KEY = "z";
 static const std::string AXIS_KEY = "axis";
 static const std::string OFFSET_KEY = "offset";
+//! [YAML node keys]
 
 namespace noether
 {
@@ -20,6 +22,7 @@ LinearApproachToolPathModifierWidget::LinearApproachToolPathModifierWidget(QWidg
 {
   ui_->setupUi(this);
 
+  //! [Configure GUI]
   // Add a page to the stacked widget for the axis editor
   auto page_vector = new QWidget(this);
   vector_editor_ui_->setupUi(page_vector);
@@ -33,8 +36,10 @@ LinearApproachToolPathModifierWidget::LinearApproachToolPathModifierWidget(QWidg
 
   // Set to z-axis by default
   ui_->combo_box_axis->setCurrentIndex(2);
+  //! [Configure GUI]
 }
 
+//! [Create() method]
 ToolPathModifier::ConstPtr LinearApproachToolPathModifierWidget::create() const
 {
   if (ui_->combo_box_menu->currentIndex() == 0)
@@ -51,7 +56,9 @@ ToolPathModifier::ConstPtr LinearApproachToolPathModifierWidget::create() const
     return std::make_unique<LinearApproachModifier>(dir, ui_->spin_box_points->value());
   }
 }
+//! [Create() method]
 
+//! [Configure() method]
 void LinearApproachToolPathModifierWidget::configure(const YAML::Node& config)
 {
   ui_->spin_box_points->setValue(getEntry<int>(config, N_POINTS_KEY));
@@ -70,7 +77,9 @@ void LinearApproachToolPathModifierWidget::configure(const YAML::Node& config)
     vector_editor_ui_->double_spin_box_z->setValue(getEntry<double>(config, Z_KEY));
   }
 }
+//! [Configure() method]
 
+//! [Save() method]
 void LinearApproachToolPathModifierWidget::save(YAML::Node& config) const
 {
   if (ui_->combo_box_menu->currentIndex() == 0)
@@ -87,5 +96,7 @@ void LinearApproachToolPathModifierWidget::save(YAML::Node& config) const
 
   config[N_POINTS_KEY] = ui_->spin_box_points->value();
 }
+//! [Save() method]
+
 
 }  // namespace noether
