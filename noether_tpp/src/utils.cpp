@@ -85,17 +85,33 @@ Eigen::Vector3f getPoint(const pcl::PCLPointCloud2& cloud, const std::uint32_t p
   return Eigen::Map<const Eigen::Vector3f>(xyz);
 }
 
-Eigen::Vector3f getFaceNormal(const pcl::PolygonMesh& mesh, const pcl::Vertices& triangle)
+Eigen::Vector3f getFaceNormal(const pcl::PolygonMesh& mesh, const pcl::Vertices& polygon)
 {
-  Eigen::Vector3f pt1 = getPoint(mesh.cloud, triangle.vertices[0]);
-  Eigen::Vector3f pt2 = getPoint(mesh.cloud, triangle.vertices[1]);
-  Eigen::Vector3f pt3 = getPoint(mesh.cloud, triangle.vertices[2]);
+  if (polygon.vertices.size() < 3)
+  {
+    std::stringstream ss;
+    ss << "Polygon must have at least 3 vertices (" << polygon.vertices.size() << " provided)";
+    throw std::runtime_error(ss.str());
+  }
 
-  // Get the edges pt1 -> pt2 and pt1 -> pt3
-  const Eigen::Vector3f edge_12 = pt2 - pt1;
-  const Eigen::Vector3f edge_13 = pt3 - pt1;
+  /* Assuming the vertices of the polygon are arranged in clockwise order, the face normal should be the cross product
+   * of the vector from vertex 0 to vertex 1 with the vector from vertex 0 to the last vertex. See the examples below
+   * for a triangle and quad face.
+   *
+   *    0--2   0---3
+   *    | /    |   |
+   *    |/     |   |
+   *    1      1---2
+   *
+   */
+  const Eigen::Vector3f pt_0 = getPoint(mesh.cloud, polygon.vertices[0]);
+  const Eigen::Vector3f pt_1 = getPoint(mesh.cloud, polygon.vertices[1]);
+  const Eigen::Vector3f pt_n = getPoint(mesh.cloud, polygon.vertices.back());
 
-  return edge_12.cross(edge_13).normalized();
+  const Eigen::Vector3f edge_01 = pt_1 - pt_0;
+  const Eigen::Vector3f edge_0n = pt_n - pt_0;
+
+  return edge_01.cross(edge_0n).normalized();
 }
 
 Eigen::Vector3f getNormal(const pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
