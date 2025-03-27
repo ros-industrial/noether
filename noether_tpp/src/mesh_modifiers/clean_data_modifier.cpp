@@ -8,14 +8,14 @@
 #include <noether_tpp/mesh_modifiers/clean_data_modifier.h>
 
 #include <vtkCleanPolyData.h>
-#include <pcl/surface/vtk_smoothing/vtk_utils.h>
+#include <pcl/io/vtk_lib_io.h>
 
 namespace noether
 {
 std::vector<pcl::PolygonMesh> CleanData::modify(const pcl::PolygonMesh& mesh_in) const
 {
   vtkSmartPointer<vtkPolyData> mesh_data = vtkSmartPointer<vtkPolyData>::New();
-  pcl::VTKUtils::mesh2vtk(mesh_in, mesh_data);
+  pcl::io::mesh2vtk(mesh_in, mesh_data);
 
   mesh_data->BuildCells();
   mesh_data->BuildLinks();
@@ -26,7 +26,7 @@ std::vector<pcl::PolygonMesh> CleanData::modify(const pcl::PolygonMesh& mesh_in)
   mesh_data = cleanPolyData->GetOutput();
 
   pcl::PolygonMesh mesh_out;
-  pcl::VTKUtils::vtk2mesh(mesh_data, mesh_out);
+  pcl::io::vtk2mesh(mesh_data, mesh_out);
   return { mesh_out };
 }
 

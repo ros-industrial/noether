@@ -37,7 +37,7 @@
 #include <vtkProperty.h>
 #include <vtkColorSeries.h>
 #include <vtkLine.h>
-#include <pcl/surface/vtk_smoothing/vtk_utils.h>
+#include <pcl/io/vtk_lib_io.h>
 
 namespace noether
 {
@@ -362,7 +362,7 @@ vtkSmartPointer<vtkAssembly> createMeshActors(const std::vector<pcl::PolygonMesh
   for (std::size_t i = 0; i < meshes.size(); ++i)
   {
     vtkSmartPointer<vtkPolyData> mesh_poly_data = vtkSmartPointer<vtkPolyData>::New();
-    pcl::VTKUtils::mesh2vtk(meshes[i], mesh_poly_data);
+    pcl::io::mesh2vtk(meshes[i], mesh_poly_data);
 
     auto map = vtkSmartPointer<vtkPolyDataMapper>::New();
     map->SetInputData(mesh_poly_data);

@@ -8,14 +8,14 @@
 #include <noether_tpp/mesh_modifiers/windowed_sinc_smoothing_modifier.h>
 
 #include <vtkWindowedSincPolyDataFilter.h>
-#include <pcl/surface/vtk_smoothing/vtk_utils.h>
+#include <pcl/io/vtk_lib_io.h>
 
 namespace noether
 {
 std::vector<pcl::PolygonMesh> WindowedSincSmoothing::modify(const pcl::PolygonMesh& mesh_in) const
 {
   vtkSmartPointer<vtkPolyData> mesh_data = vtkSmartPointer<vtkPolyData>::New();
-  pcl::VTKUtils::mesh2vtk(mesh_in, mesh_data);
+  pcl::io::mesh2vtk(mesh_in, mesh_data);
 
   mesh_data->BuildCells();
   mesh_data->BuildLinks();
@@ -33,7 +33,7 @@ std::vector<pcl::PolygonMesh> WindowedSincSmoothing::modify(const pcl::PolygonMe
   smoother->Update();
 
   pcl::PolygonMesh mesh_out;
-  pcl::VTKUtils::vtk2mesh(smoother->GetOutput(), mesh_out);
+  pcl::io::vtk2mesh(smoother->GetOutput(), mesh_out);
   return { mesh_out };
 }
 
