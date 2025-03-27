@@ -11,7 +11,7 @@
 #include <pcl/common/common.h>  // pcl::getMinMax3d()
 #include <pcl/common/pca.h>     // pcl::PCA
 #include <pcl/conversions.h>    // pcl::fromPCLPointCloud2
-#include <pcl/surface/vtk_smoothing/vtk_utils.h>
+#include <pcl/io/vtk_lib_io.h>
 #include <vtkAppendPolyData.h>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
@@ -460,7 +460,7 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
 
   // Convert input mesh to VTK type & calculate normals if necessary
   vtkSmartPointer<vtkPolyData> mesh_data_ = vtkSmartPointer<vtkPolyData>::New();
-  pcl::VTKUtils::mesh2vtk(mesh, mesh_data_);
+  pcl::io::mesh2vtk(mesh, mesh_data_);
   mesh_data_->BuildLinks();
   mesh_data_->BuildCells();
 
