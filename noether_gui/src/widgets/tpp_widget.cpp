@@ -7,6 +7,7 @@
 #include <pcl/io/vtk_lib_io.h>
 #include <QColorDialog>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QMessageBox>
 #include <QStandardPaths>
 #include <QTextStream>
@@ -31,7 +32,6 @@
 #include <vtkPLYWriter.h>
 #include <vtkProp3DCollection.h>
 #include <vtkSTLReader.h>
-#include <vtkSTLWriter.h>
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkAxes.h>
 #include <vtkTransformFilter.h>
@@ -508,50 +508,40 @@ void TPPWidget::onPlan(const bool /*checked*/)
 
 void TPPWidget::onSaveModifiedMesh(const bool /*checked*/)
 {
-  QString file_path = QFileDialog::getSaveFileName(this, "Save modified mesh file", "", "Mesh files (*.ply *.stl)");
-
-  // Append .ply extenstion if a file does not have an extention specified
-  if (!file_path.endsWith(".ply") && !file_path.endsWith(".stl"))
-  {
-    file_path.append(".ply");
-  }
-
   // Extract the submeshes from the actor that holds the modified meshes
   vtkProp3DCollection* parts = mesh_fragment_actor_->GetParts();
   if (parts->GetNumberOfItems() == 0)
   {
-    const QString warning_text = "No modified meshes found. \n"
-                                 "Have you planned a tool path?";
-    const int warning_box_val = QMessageBox::warning(this, "Heads up!", warning_text);
+    QMessageBox::warning(this, "Error", "No modified meshes found; please plan a tool path first.");
     return;
   }
+
+  QDir save_dir(QFileDialog::getExistingDirectory(this, "Save modified mesh(es)"));
+
   for (vtkIdType i = 0; i < parts->GetNumberOfItems(); i++)
   {
     auto actor = vtkActor::SafeDownCast(parts->GetItemAsObject(i));
-    if (actor)
-    {
-      auto map = vtkPolyDataMapper::SafeDownCast(actor->GetMapper());
-      if (map)
-      {
-        auto mesh_poly_data = vtkPolyData::SafeDownCast(map->GetInput());
-        if (file_path.endsWith(".stl"))
-        {
-          auto writer = vtkSmartPointer<vtkSTLWriter>::New();
-          // Write the modified mesh to a file
-          writer->SetInputData(mesh_poly_data);
-          writer->SetFileName(file_path.toLocal8Bit().data());
-          writer->Write();
-        }
-        else  // File extension is .ply
-        {
-          auto writer = vtkSmartPointer<vtkPLYWriter>::New();
-          // Write the modified mesh to a file
-          writer->SetInputData(mesh_poly_data);
-          writer->SetFileName(file_path.toLocal8Bit().data());
-          writer->Write();
-        }
-      }
-    }
+    if (!actor)
+      continue;
+
+    auto map = vtkPolyDataMapper::SafeDownCast(actor->GetMapper());
+    if (!map)
+      continue;
+
+    auto mesh_poly_data = vtkPolyData::SafeDownCast(map->GetInput());
+    if (!mesh_poly_data)
+      continue;
+
+    QString file_name;
+    QTextStream ss(&file_name);
+    ss << "modified_mesh_" << i << ".ply";
+    QFileInfo file_info(save_dir, file_name);
+
+    auto writer = vtkSmartPointer<vtkPLYWriter>::New();
+    // Write the modified mesh to a file
+    writer->SetInputData(mesh_poly_data);
+    writer->SetFileName(file_info.absoluteFilePath().toLocal8Bit().data());
+    writer->Write();
   }
 }
 
