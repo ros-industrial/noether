@@ -517,6 +517,8 @@ void TPPWidget::onSaveModifiedMesh(const bool /*checked*/)
   }
 
   QDir save_dir(QFileDialog::getExistingDirectory(this, "Save modified mesh(es)"));
+  if (!save_dir.exists())
+    return;
 
   for (vtkIdType i = 0; i < parts->GetNumberOfItems(); i++)
   {

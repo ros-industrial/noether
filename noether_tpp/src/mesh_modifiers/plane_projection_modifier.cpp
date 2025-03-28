@@ -88,6 +88,9 @@ std::vector<pcl::PolygonMesh> PlaneProjectionMeshModifier::modify(const pcl::Pol
     if (!ransac->computeModel())
       break;
 
+    // Refine the model
+    ransac->refineModel();
+
     // Extract the inliers
     std::vector<int> inliers;
     ransac->getInliers(inliers);
@@ -98,18 +101,39 @@ std::vector<pcl::PolygonMesh> PlaneProjectionMeshModifier::modify(const pcl::Pol
     Eigen::VectorXf plane_coeffs(4);
     ransac->getModelCoefficients(plane_coeffs);
 
-    // Project mesh origin on to plane
-    float d = plane_coeffs.dot(Eigen::Vector4f(0.0, 0.0, 0.0, 1.0));
-    if (d > 0.0)
-      plane_coeffs *= -1;
-    // Eigen::Vector3f projected_origin = origin.head<3>() - d * plane_coeffs.head<3>();
-
     // Extract the inlier submesh
     pcl::PolygonMesh output_mesh = extractSubMeshFromInlierVertices(mesh, inliers);
     if (!output_mesh.polygons.empty())
     {
+      // Compute the unprojected face normals
+      Eigen::MatrixX3f normals(output_mesh.polygons.size(), 3);
+      for (Eigen::Index i = 0; i < normals.rows(); ++i)
+        normals.row(i) = getFaceNormal(output_mesh, output_mesh.polygons[i]);
+
+      // Compute the dot products of each unprojected face normal with the nominal plane normal
+      Eigen::VectorXf dot_products = normals * plane_coeffs.head<3>();
+
+      // Invert the fitted plane coefficients if the average face normal and plane normal do not align (i.e., their dot
+      // product is < 0)
+      if (dot_products.mean() < 0)
+      {
+        plane_coeffs *= -1;
+      }
+
       // Project the inlier vertices onto the plane
       projectInPlace(output_mesh.cloud, plane_coeffs);
+
+      // Compute the projected face normals
+      for (Eigen::Index i = 0; i < normals.rows(); ++i)
+        normals.row(i) = getFaceNormal(output_mesh, output_mesh.polygons[i]);
+
+      // Compute the dot products of each projected face normal with the plane normal
+      dot_products = normals * plane_coeffs.head<3>();
+
+      // Reverse any faces that do not align with the fitted plane normal
+      for (Eigen::Index i = 0; i < dot_products.size(); ++i)
+        if (dot_products[i] < 0.0)
+          std::reverse(output_mesh.polygons[i].vertices.begin(), output_mesh.polygons[i].vertices.end());
 
       // Append the extracted and projected mesh to the vector of output meshes
       output.push_back(output_mesh);
