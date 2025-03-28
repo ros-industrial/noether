@@ -83,8 +83,11 @@
      <bool>true</bool>
     </property>
     <addaction name="action_load_mesh"/>
+    <addaction name="separator"/>
     <addaction name="action_load_config"/>
     <addaction name="action_save_config"/>
+    <addaction name="separator"/>
+    <addaction name="action_save_modified_mesh"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="tearOffEnabled">
@@ -171,21 +174,9 @@
    <addaction name="action_save_config"/>
    <addaction name="separator"/>
    <addaction name="action_execute_pipeline"/>
+   <addaction name="separator"/>
+   <addaction name="action_save_modified_mesh"/>
   </widget>
-  <action name="action_load_mesh">
-   <property name="icon">
-    <iconset theme="document-open"/>
-   </property>
-   <property name="text">
-    <string>Load mesh...</string>
-   </property>
-   <property name="toolTip">
-    <string>Load mesh from file...</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+O</string>
-   </property>
-  </action>
   <action name="action_load_config">
    <property name="icon">
     <iconset theme="document-properties"/>
@@ -265,20 +256,6 @@
     <string>Ctrl+T</string>
    </property>
   </action>
-  <action name="action_execute_pipeline">
-   <property name="icon">
-    <iconset theme="media-playback-start"/>
-   </property>
-   <property name="text">
-    <string>Plan</string>
-   </property>
-   <property name="toolTip">
-    <string>Plan tool path</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+P</string>
-   </property>
-  </action>
   <action name="action_save_config">
    <property name="icon">
     <iconset theme="document-save"/>
@@ -322,6 +299,45 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+L</string>
+   </property>
+  </action>
+  <action name="action_load_mesh">
+   <property name="icon">
+    <iconset theme="document-open"/>
+   </property>
+   <property name="text">
+    <string>Load mesh...</string>
+   </property>
+   <property name="toolTip">
+    <string>Load mesh from file...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="action_save_modified_mesh">
+   <property name="icon">
+    <iconset theme="applications-accessories"/>
+   </property>
+   <property name="text">
+    <string>Save modified mesh(es)...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="action_execute_pipeline">
+   <property name="icon">
+    <iconset theme="media-playback-start"/>
+   </property>
+   <property name="text">
+    <string>Plan</string>
+   </property>
+   <property name="toolTip">
+    <string>Plan tool path</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
    </property>
   </action>
  </widget>
