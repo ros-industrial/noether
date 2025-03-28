@@ -88,6 +88,9 @@ std::vector<pcl::PolygonMesh> PlaneProjectionMeshModifier::modify(const pcl::Pol
     if (!ransac->computeModel())
       break;
 
+    // Refine the model
+    ransac->refineModel();
+
     // Extract the inliers
     std::vector<int> inliers;
     ransac->getInliers(inliers);
