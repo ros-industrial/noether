@@ -87,6 +87,8 @@ void ConfigurableTPPPipelineWidget::onSaveConfiguration(const bool /*checked*/)
     QString file = QFileDialog::getSaveFileName(this, "Save configuration file", "", "YAML files (*.yaml)");
     if (file.isEmpty())
       return;
+    if (!file.endsWith(".yaml"))
+      file = file.append(".yaml");
 
     YAML::Node config;
     save(config);
