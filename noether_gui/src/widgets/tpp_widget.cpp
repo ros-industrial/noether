@@ -124,6 +124,7 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   connect(ui_->action_load_mesh, &QAction::triggered, this, &TPPWidget::onLoadMesh);
   connect(ui_->action_execute_pipeline, &QAction::triggered, this, &TPPWidget::onPlan);
   connect(ui_->action_save_modified_mesh, &QAction::triggered, this, &TPPWidget::onSaveModifiedMesh);
+  connect(ui_->action_save_toolpath, &QAction::triggered, this, &TPPWidget::onSaveToolPath);
   connect(ui_->action_show_unmodified_mesh, &QAction::triggered, this, &TPPWidget::onShowOriginalMesh);
   connect(ui_->action_show_modified_mesh, &QAction::triggered, this, &TPPWidget::onShowModifiedMesh);
   connect(ui_->action_show_unmodified_tool_path, &QAction::triggered, this, &TPPWidget::onShowUnmodifiedToolPath);
@@ -586,6 +587,73 @@ void TPPWidget::onSaveModifiedMesh(const bool /*checked*/)
     writer->SetInputData(mesh_poly_data);
     writer->SetFileName(file_info.absoluteFilePath().toLocal8Bit().data());
     writer->Write();
+  }
+}
+
+void TPPWidget::onSaveToolPath(const bool /*checked*/)
+{
+  if (tool_paths_.empty())
+  {
+    QMessageBox::warning(this, "Error", "No tool paths found; please plan a tool path first.");
+    return;
+  }
+
+  QString file = QFileDialog::getSaveFileName(this, "Save trajectory", "", "YAML files (*.yaml)");
+  if (file.isEmpty())
+    return;
+
+  if (!file.endsWith(".yaml"))
+    file = file.append(".yaml");
+
+    try
+  {
+    // Open output file
+    std::ofstream out(file.toStdString());
+    if (!out)
+      throw std::runtime_error("Failed to open file for writing: " + file.toStdString());
+
+    // Write waypoints one at a time
+    for (const auto& fragment : tool_paths_)
+    {
+      for (const auto& path : fragment)
+      {
+        for (const auto& segment : path)
+        {
+          for (const auto& pose : segment)
+          {
+            // Write header
+
+            out << "---\n"; 
+            out << "header:\n";
+            out << "  stamp:\n";
+            out << "    sec: 0\n";
+            out << "    nanosec: 0\n";
+            out << "  frame_id: world\n";
+
+            // Write pose
+            out << "pose:\n";
+            out << "  position:\n";
+            out << "    x: " << pose.translation().x() << "\n";
+            out << "    y: " << pose.translation().y() << "\n";
+            out << "    z: " << pose.translation().z() << "\n";
+
+            // Convert rotation matrix to quaternion and write orientation
+            Eigen::Quaterniond q(pose.rotation());
+            out << "  orientation:\n";
+            out << "    x: " << q.x() << "\n";
+            out << "    y: " << q.y() << "\n";
+            out << "    z: " << q.z() << "\n";
+            out << "    w: " << q.w() << "\n";
+          }
+        }
+      }
+    }
+      }
+  catch (const std::exception& ex)
+  {
+        std::stringstream ss;
+    printException(ex, ss);
+    QMessageBox::warning(this, "Save Error", QString::fromStdString(ss.str()));
   }
 }
 
