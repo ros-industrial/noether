@@ -17,11 +17,29 @@ OffsetModifierWidget::OffsetModifierWidget(QWidget* parent)
   auto page_vector = new QWidget(this);
   ui_vector_->setupUi(page_vector);
   ui_vector_->group_box->setTitle("Translation");
+
+  // Configure the unit combo box with different units; default to meters
+  ui_vector_->unit_combo_box->clear();
+  ui_vector_->unit_combo_box->addItem("mm (0.001)", 0.001);
+  ui_vector_->unit_combo_box->addItem("cm (0.01)", 0.01);
+  ui_vector_->unit_combo_box->addItem("m (1.0)", 1.0);
+  ui_vector_->unit_combo_box->addItem("inches (0.0254)", 0.0254);
+  ui_vector_->unit_combo_box->addItem("feet (0.3048)", 0.3048);
+  ui_vector_->unit_combo_box->addItem("yards (0.9144)", 0.9144);
+  ui_vector_->unit_combo_box->setCurrentIndex(2);  // Set default unit to meters
+  ui_vector_->unit_combo_box->setToolTip("Select the unit for translation");
+  ui_vector_->double_spin_box_x->setToolTip("X component of the translation vector");
+  ui_vector_->double_spin_box_y->setToolTip("Y component of the translation vector");
+  ui_vector_->double_spin_box_z->setToolTip("Z component of the translation vector");
   layout->addWidget(page_vector);
 
   auto page_quaternion = new QWidget(this);
   ui_quaternion_->setupUi(page_quaternion);
   ui_quaternion_->group_box->setTitle("Rotation");
+  ui_quaternion_->double_spin_box_qx->setToolTip("X component of the quaternion");
+  ui_quaternion_->double_spin_box_qy->setToolTip("Y component of the quaternion");
+  ui_quaternion_->double_spin_box_qz->setToolTip("Z component of the quaternion");
+  ui_quaternion_->double_spin_box_qw->setToolTip("W component of the quaternion");
   layout->addWidget(page_quaternion);
 
   setLayout(layout);
@@ -58,6 +76,10 @@ ToolPathModifier::ConstPtr OffsetModifierWidget::create() const
                        ui_quaternion_->double_spin_box_qx->value(),
                        ui_quaternion_->double_spin_box_qy->value(),
                        ui_quaternion_->double_spin_box_qz->value());
+
+  // Scale the position vector by the unit multiplier
+  double unit_multiplier = ui_vector_->unit_combo_box->currentData().toDouble();
+  position *= unit_multiplier;
 
   // Normalize the quaternion in case the values are not unit length
   q.normalize();
