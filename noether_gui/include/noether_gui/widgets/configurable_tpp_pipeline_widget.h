@@ -21,7 +21,9 @@ class TPPPipelineWidget;
 class ConfigurableTPPPipelineWidget : public QWidget
 {
 public:
-  ConfigurableTPPPipelineWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent = nullptr);
+  ConfigurableTPPPipelineWidget(boost_plugin_loader::PluginLoader loader,
+                                std::string default_configuration_file_directory = "",
+                                QWidget* parent = nullptr);
 
   void setConfigurationFile(const QString& file);
 
@@ -35,6 +37,7 @@ public:
 private:
   Ui::ConfigurableTPPPipeline* ui_;
   TPPPipelineWidget* pipeline_widget_;
+  std::string default_configuration_file_directory_;
 };
 
 }  // namespace noether

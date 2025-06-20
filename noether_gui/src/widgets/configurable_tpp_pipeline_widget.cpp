@@ -12,10 +12,13 @@
 
 namespace noether
 {
-ConfigurableTPPPipelineWidget::ConfigurableTPPPipelineWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
+ConfigurableTPPPipelineWidget::ConfigurableTPPPipelineWidget(boost_plugin_loader::PluginLoader loader,
+                                                             std::string default_configuration_file_directory,
+                                                             QWidget* parent)
   : QWidget(parent)
   , ui_(new Ui::ConfigurableTPPPipeline())
   , pipeline_widget_(new TPPPipelineWidget(std::move(loader), this))
+  , default_configuration_file_directory_(default_configuration_file_directory)
 {
   ui_->setupUi(this);
   layout()->addWidget(pipeline_widget_);
@@ -74,7 +77,10 @@ void ConfigurableTPPPipelineWidget::setConfigurationFile(const QString& file)
 
 void ConfigurableTPPPipelineWidget::onLoadConfiguration(const bool /*checked*/)
 {
-  QString file = QFileDialog::getOpenFileName(this, "Load configuration file", "", "YAML files (*.yaml)");
+  QString file = QFileDialog::getOpenFileName(this,
+                                              "Load configuration file",
+                                              QString::fromStdString(default_configuration_file_directory_),
+                                              "YAML files (*.yaml)");
 
   if (!file.isEmpty())
     setConfigurationFile(file);
@@ -84,7 +90,10 @@ void ConfigurableTPPPipelineWidget::onSaveConfiguration(const bool /*checked*/)
 {
   try
   {
-    QString file = QFileDialog::getSaveFileName(this, "Save configuration file", "", "YAML files (*.yaml)");
+    QString file = QFileDialog::getSaveFileName(this,
+                                                "Save configuration file",
+                                                QString::fromStdString(default_configuration_file_directory_),
+                                                "YAML files (*.yaml)");
     if (file.isEmpty())
       return;
     if (!file.endsWith(".yaml"))
