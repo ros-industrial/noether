@@ -58,6 +58,7 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   , unmodified_tool_path_actor_(vtkSmartPointer<vtkAssembly>::New())
   , unmodified_connected_path_actor_(vtkSmartPointer<vtkAssembly>::New())
   , axes_(vtkSmartPointer<vtkAxes>::New())
+  , axes_actor_(vtkSmartPointer<vtkAxesActor>::New())
   , tube_filter_(vtkSmartPointer<vtkTubeFilter>::New())
 {
   ui_->setupUi(this);
@@ -81,6 +82,12 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   tube_filter_->SetRadius(axes_->GetScaleFactor() / 10.0);
   tube_filter_->SetNumberOfSides(10);
   tube_filter_->CappingOn();
+
+  // Zero ref frame axis display
+  axes_actor_->SetTotalLength(ui_->double_spin_box_axis_size->value(),
+                           ui_->double_spin_box_axis_size->value(),
+                           ui_->double_spin_box_axis_size->value());
+  onShowAxes(ui_->check_box_show_axes->isChecked());
 
   vtkRenderWindow* window = render_widget_->GetRenderWindow();
   window->AddRenderer(renderer_);
@@ -110,6 +117,8 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   connect(
       ui_->action_show_modified_tool_path_lines, &QAction::triggered, this, &TPPWidget::onShowModifiedConnectedPath);
 
+  connect(ui_->check_box_show_axes, &QCheckBox::toggled, this, &TPPWidget::onShowAxes);
+
   connect(ui_->action_load_config,
           &QAction::triggered,
           pipeline_widget_,
@@ -122,6 +131,9 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   connect(ui_->double_spin_box_axis_size, &QDoubleSpinBox::editingFinished, this, [this]() {
     axes_->SetScaleFactor(ui_->double_spin_box_axis_size->value());
     tube_filter_->SetRadius(axes_->GetScaleFactor() / 10.0);
+    axes_actor_->SetTotalLength(ui_->double_spin_box_axis_size->value(),
+                               ui_->double_spin_box_axis_size->value(),
+                               ui_->double_spin_box_axis_size->value());
     render_widget_->GetRenderWindow()->Render();
     render_widget_->GetRenderWindow()->Render();
   });
@@ -165,6 +177,20 @@ void TPPWidget::onShowModifiedConnectedPath(const bool checked)
 void TPPWidget::onShowModifiedToolPath(const bool checked)
 {
   tool_path_actor_->SetVisibility(checked);
+  render_widget_->GetRenderWindow()->Render();
+  render_widget_->GetRenderWindow()->Render();
+}
+
+void TPPWidget::onShowAxes(const bool checked)
+{
+  if (checked)
+  {
+    renderer_->AddActor(axes_actor_);
+  }
+  else
+  {
+    renderer_->RemoveActor(axes_actor_);
+  }
   render_widget_->GetRenderWindow()->Render();
   render_widget_->GetRenderWindow()->Render();
 }
