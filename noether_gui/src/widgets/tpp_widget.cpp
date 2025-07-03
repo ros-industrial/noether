@@ -40,6 +40,8 @@
 #include <vtkProperty.h>
 #include <vtkColorSeries.h>
 #include <vtkLine.h>
+#include <vtkCaptionActor2D.h>
+#include <vtkTextProperty.h>
 #include <pcl/io/vtk_lib_io.h>
 
 namespace noether
@@ -85,8 +87,11 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
 
   // Zero ref frame axis display
   axes_actor_->SetTotalLength(ui_->double_spin_box_axis_size->value(),
-                           ui_->double_spin_box_axis_size->value(),
-                           ui_->double_spin_box_axis_size->value());
+                              ui_->double_spin_box_axis_size->value(),
+                              ui_->double_spin_box_axis_size->value());
+  axes_actor_->SetXAxisLabelText("");
+  axes_actor_->SetYAxisLabelText("");
+  axes_actor_->SetZAxisLabelText("");
   onShowAxes(ui_->check_box_show_axes->isChecked());
 
   vtkRenderWindow* window = render_widget_->GetRenderWindow();
@@ -132,8 +137,8 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
     axes_->SetScaleFactor(ui_->double_spin_box_axis_size->value());
     tube_filter_->SetRadius(axes_->GetScaleFactor() / 10.0);
     axes_actor_->SetTotalLength(ui_->double_spin_box_axis_size->value(),
-                               ui_->double_spin_box_axis_size->value(),
-                               ui_->double_spin_box_axis_size->value());
+                                ui_->double_spin_box_axis_size->value(),
+                                ui_->double_spin_box_axis_size->value());
     render_widget_->GetRenderWindow()->Render();
     render_widget_->GetRenderWindow()->Render();
   });
