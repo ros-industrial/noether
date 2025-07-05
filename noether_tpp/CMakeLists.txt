@@ -8,6 +8,7 @@ project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES C CXX)
 
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED COMPONENTS common io surface segmentation)
+find_package(yaml-cpp REQUIRED)
 
 find_package(VTK 7.1 REQUIRED NO_MODULE)
 
