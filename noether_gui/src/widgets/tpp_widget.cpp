@@ -34,6 +34,7 @@
 #include <vtkSTLReader.h>
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkAxes.h>
+#include <vtkTextActor.h>
 #include <vtkTransformFilter.h>
 #include <vtkTransform.h>
 #include <vtkTubeFilter.h>
@@ -86,13 +87,22 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   tube_filter_->CappingOn();
 
   // Zero ref frame axis display
-  axes_actor_->SetTotalLength(ui_->double_spin_box_axis_size->value(),
-                              ui_->double_spin_box_axis_size->value(),
-                              ui_->double_spin_box_axis_size->value());
-  axes_actor_->SetXAxisLabelText("");
-  axes_actor_->SetYAxisLabelText("");
-  axes_actor_->SetZAxisLabelText("");
-  onShowAxes(ui_->check_box_show_axes->isChecked());
+  {
+    axes_actor_->SetTotalLength(ui_->double_spin_box_axis_size->value(),
+                                ui_->double_spin_box_axis_size->value(),
+                                ui_->double_spin_box_axis_size->value());
+
+    axes_actor_->SetXAxisLabelText("X");
+    axes_actor_->SetYAxisLabelText("Y");
+    axes_actor_->SetZAxisLabelText("Z");
+
+    // Set the scale mode to None such that the font size controls the size of the text
+    axes_actor_->GetXAxisCaptionActor2D()->GetTextActor()->SetTextScaleModeToNone();
+    axes_actor_->GetYAxisCaptionActor2D()->GetTextActor()->SetTextScaleModeToNone();
+    axes_actor_->GetZAxisCaptionActor2D()->GetTextActor()->SetTextScaleModeToNone();
+
+    onShowAxes(ui_->check_box_show_axes->isChecked());
+  }
 
   vtkRenderWindow* window = render_widget_->GetRenderWindow();
   window->AddRenderer(renderer_);
