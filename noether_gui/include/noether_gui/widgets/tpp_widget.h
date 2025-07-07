@@ -21,6 +21,7 @@ class vtkPolyDataMapper;
 class vtkProp;
 class vtkRenderer;
 class vtkAxes;
+class vtkAxesActor;
 class vtkTubeFilter;
 class vtkAssembly;
 class vtkPolyData;
@@ -76,6 +77,7 @@ private:
   void onShowUnmodifiedConnectedPath(const bool);
   void onShowModifiedToolPath(const bool);
   void onShowModifiedConnectedPath(const bool);
+  void onShowAxes(const bool);
 
   std::string mesh_file_;
 
@@ -95,6 +97,7 @@ private:
   vtkSmartPointer<vtkAssembly> mesh_fragment_actor_;
 
   vtkSmartPointer<vtkAxes> axes_;
+  vtkSmartPointer<vtkAxesActor> axes_actor_;
   vtkSmartPointer<vtkTubeFilter> tube_filter_;
 
   std::vector<ToolPaths> tool_paths_;

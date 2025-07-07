@@ -34,12 +34,15 @@
 #include <vtkSTLReader.h>
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkAxes.h>
+#include <vtkTextActor.h>
 #include <vtkTransformFilter.h>
 #include <vtkTransform.h>
 #include <vtkTubeFilter.h>
 #include <vtkProperty.h>
 #include <vtkColorSeries.h>
 #include <vtkLine.h>
+#include <vtkCaptionActor2D.h>
+#include <vtkTextProperty.h>
 #include <pcl/io/vtk_lib_io.h>
 
 namespace noether
@@ -58,6 +61,7 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   , unmodified_tool_path_actor_(vtkSmartPointer<vtkAssembly>::New())
   , unmodified_connected_path_actor_(vtkSmartPointer<vtkAssembly>::New())
   , axes_(vtkSmartPointer<vtkAxes>::New())
+  , axes_actor_(vtkSmartPointer<vtkAxesActor>::New())
   , tube_filter_(vtkSmartPointer<vtkTubeFilter>::New())
 {
   ui_->setupUi(this);
@@ -81,6 +85,27 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   tube_filter_->SetRadius(axes_->GetScaleFactor() / 10.0);
   tube_filter_->SetNumberOfSides(10);
   tube_filter_->CappingOn();
+
+  // Zero ref frame axis display
+  {
+    axes_actor_->SetTotalLength(ui_->double_spin_box_origin_size->value(),
+                                ui_->double_spin_box_origin_size->value(),
+                                ui_->double_spin_box_origin_size->value());
+
+    axes_actor_->SetXAxisLabelText("X");
+    axes_actor_->SetYAxisLabelText("Y");
+    axes_actor_->SetZAxisLabelText("Z");
+
+    // Set the scale mode to None such that the font size controls the size of the text
+    axes_actor_->GetXAxisCaptionActor2D()->GetTextActor()->SetTextScaleModeToNone();
+    axes_actor_->GetYAxisCaptionActor2D()->GetTextActor()->SetTextScaleModeToNone();
+    axes_actor_->GetZAxisCaptionActor2D()->GetTextActor()->SetTextScaleModeToNone();
+
+    // Add the actor
+    renderer_->AddActor(axes_actor_);
+
+    onShowAxes(ui_->check_box_show_axes->isChecked());
+  }
 
   vtkRenderWindow* window = render_widget_->GetRenderWindow();
   window->AddRenderer(renderer_);
@@ -110,6 +135,8 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   connect(
       ui_->action_show_modified_tool_path_lines, &QAction::triggered, this, &TPPWidget::onShowModifiedConnectedPath);
 
+  connect(ui_->check_box_show_axes, &QCheckBox::toggled, this, &TPPWidget::onShowAxes);
+
   connect(ui_->action_load_config,
           &QAction::triggered,
           pipeline_widget_,
@@ -122,6 +149,14 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   connect(ui_->double_spin_box_axis_size, &QDoubleSpinBox::editingFinished, this, [this]() {
     axes_->SetScaleFactor(ui_->double_spin_box_axis_size->value());
     tube_filter_->SetRadius(axes_->GetScaleFactor() / 10.0);
+    render_widget_->GetRenderWindow()->Render();
+    render_widget_->GetRenderWindow()->Render();
+  });
+
+  connect(ui_->double_spin_box_origin_size, &QDoubleSpinBox::editingFinished, this, [this]() {
+    axes_actor_->SetTotalLength(ui_->double_spin_box_origin_size->value(),
+                                ui_->double_spin_box_origin_size->value(),
+                                ui_->double_spin_box_origin_size->value());
     render_widget_->GetRenderWindow()->Render();
     render_widget_->GetRenderWindow()->Render();
   });
@@ -165,6 +200,13 @@ void TPPWidget::onShowModifiedConnectedPath(const bool checked)
 void TPPWidget::onShowModifiedToolPath(const bool checked)
 {
   tool_path_actor_->SetVisibility(checked);
+  render_widget_->GetRenderWindow()->Render();
+  render_widget_->GetRenderWindow()->Render();
+}
+
+void TPPWidget::onShowAxes(const bool checked)
+{
+  axes_actor_->SetVisibility(checked);
   render_widget_->GetRenderWindow()->Render();
   render_widget_->GetRenderWindow()->Render();
 }
