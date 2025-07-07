@@ -88,9 +88,9 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
 
   // Zero ref frame axis display
   {
-    axes_actor_->SetTotalLength(ui_->double_spin_box_axis_size->value(),
-                                ui_->double_spin_box_axis_size->value(),
-                                ui_->double_spin_box_axis_size->value());
+    axes_actor_->SetTotalLength(ui_->double_spin_box_origin_size->value(),
+                                ui_->double_spin_box_origin_size->value(),
+                                ui_->double_spin_box_origin_size->value());
 
     axes_actor_->SetXAxisLabelText("X");
     axes_actor_->SetYAxisLabelText("Y");
@@ -149,9 +149,14 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   connect(ui_->double_spin_box_axis_size, &QDoubleSpinBox::editingFinished, this, [this]() {
     axes_->SetScaleFactor(ui_->double_spin_box_axis_size->value());
     tube_filter_->SetRadius(axes_->GetScaleFactor() / 10.0);
-    axes_actor_->SetTotalLength(ui_->double_spin_box_axis_size->value(),
-                                ui_->double_spin_box_axis_size->value(),
-                                ui_->double_spin_box_axis_size->value());
+    render_widget_->GetRenderWindow()->Render();
+    render_widget_->GetRenderWindow()->Render();
+  });
+
+  connect(ui_->double_spin_box_origin_size, &QDoubleSpinBox::editingFinished, this, [this]() {
+    axes_actor_->SetTotalLength(ui_->double_spin_box_origin_size->value(),
+                                ui_->double_spin_box_origin_size->value(),
+                                ui_->double_spin_box_origin_size->value());
     render_widget_->GetRenderWindow()->Render();
     render_widget_->GetRenderWindow()->Render();
   });
