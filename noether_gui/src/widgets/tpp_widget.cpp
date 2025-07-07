@@ -101,6 +101,9 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
     axes_actor_->GetYAxisCaptionActor2D()->GetTextActor()->SetTextScaleModeToNone();
     axes_actor_->GetZAxisCaptionActor2D()->GetTextActor()->SetTextScaleModeToNone();
 
+    // Add the actor
+    renderer_->AddActor(axes_actor_);
+
     onShowAxes(ui_->check_box_show_axes->isChecked());
   }
 
@@ -198,14 +201,7 @@ void TPPWidget::onShowModifiedToolPath(const bool checked)
 
 void TPPWidget::onShowAxes(const bool checked)
 {
-  if (checked)
-  {
-    renderer_->AddActor(axes_actor_);
-  }
-  else
-  {
-    renderer_->RemoveActor(axes_actor_);
-  }
+  axes_actor_->SetVisibility(checked);
   render_widget_->GetRenderWindow()->Render();
   render_widget_->GetRenderWindow()->Render();
 }
