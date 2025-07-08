@@ -2,7 +2,6 @@
 
 #include <yaml-cpp/yaml.h>
 #include <Eigen/Geometry>
-#include <vector>
 
 namespace YAML
 {
@@ -56,30 +55,30 @@ struct convert<Eigen::Transform<FloatT, 3, Eigen::Isometry>>
   }
 };
 
-// Vector serialization helper for tool paths
+// Serialization for std::vectors with Eigen-specific allocators (e.g., ToolPath objects)
 template <typename T>
-struct convert<std::vector<T>>
+struct convert<std::vector<T, Eigen::aligned_allocator<T>>>
 {
-  static Node encode(const std::vector<T>& v)
+  static Node encode(const std::vector<T, Eigen::aligned_allocator<T>>& v)
   {
-    Node node(NodeType::Sequence);
+    Node node;
     for (const auto& elem : v)
       node.push_back(elem);
+
     return node;
   }
 
-  static bool decode(const Node& node, std::vector<T>& v)
+  static bool decode(const Node& node, std::vector<T, Eigen::aligned_allocator<T>>& v)
   {
     if (!node.IsSequence())
       return false;
 
     v.clear();
     for (const auto& elem : node)
-    {
       v.push_back(elem.as<T>());
-    }
+
     return true;
   }
 };
 
-} // namespace YAML
+}  // namespace YAML
