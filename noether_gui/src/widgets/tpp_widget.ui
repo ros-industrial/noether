@@ -393,7 +393,7 @@
     <string>Save tool path to YAML file</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Alt+S</string>
+    <string>Ctrl+S</string>
    </property>
   </action>
  </widget>
