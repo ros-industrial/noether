@@ -3,6 +3,7 @@
 #include <noether_gui/widgets/configurable_tpp_pipeline_widget.h>
 #include <noether_gui/widgets/tpp_pipeline_widget.h>
 #include <noether_gui/utils.h>
+#include <noether_tpp/serialization.h>
 
 #include <pcl/io/vtk_lib_io.h>
 #include <QColorDialog>
@@ -124,6 +125,7 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
   connect(ui_->action_load_mesh, &QAction::triggered, this, &TPPWidget::onLoadMesh);
   connect(ui_->action_execute_pipeline, &QAction::triggered, this, &TPPWidget::onPlan);
   connect(ui_->action_save_modified_mesh, &QAction::triggered, this, &TPPWidget::onSaveModifiedMesh);
+  connect(ui_->action_save_toolpath, &QAction::triggered, this, &TPPWidget::onSaveToolPath);
   connect(ui_->action_show_unmodified_mesh, &QAction::triggered, this, &TPPWidget::onShowOriginalMesh);
   connect(ui_->action_show_modified_mesh, &QAction::triggered, this, &TPPWidget::onShowModifiedMesh);
   connect(ui_->action_show_unmodified_tool_path, &QAction::triggered, this, &TPPWidget::onShowUnmodifiedToolPath);
@@ -587,6 +589,31 @@ void TPPWidget::onSaveModifiedMesh(const bool /*checked*/)
     writer->SetFileName(file_info.absoluteFilePath().toLocal8Bit().data());
     writer->Write();
   }
+}
+
+void TPPWidget::onSaveToolPath(const bool /*checked*/)
+{
+  if (tool_paths_.empty())
+  {
+    QMessageBox::warning(this, "Error", "No tool paths found; please plan a tool path first.");
+    return;
+  }
+
+  QString file = QFileDialog::getSaveFileName(this, "Save trajectory", "", "YAML files (*.yaml)");
+  if (file.isEmpty())
+    return;
+
+  if (!file.endsWith(".yaml"))
+    file = file.append(".yaml");
+  // Open output file
+  std::ofstream out(file.toStdString());
+  if (!out)
+  {
+    QMessageBox::warning(this, "Save Error", "Failed to open file for writing: " + file);
+    return;
+  }
+  // Write all tool paths at once using YAML serialization
+  out << YAML::Node(tool_paths_);
 }
 
 }  // namespace noether

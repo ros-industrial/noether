@@ -128,6 +128,7 @@
     <addaction name="action_save_config"/>
     <addaction name="separator"/>
     <addaction name="action_save_modified_mesh"/>
+    <addaction name="action_save_toolpath"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="tearOffEnabled">
@@ -216,6 +217,7 @@
    <addaction name="action_execute_pipeline"/>
    <addaction name="separator"/>
    <addaction name="action_save_modified_mesh"/>
+   <addaction name="action_save_toolpath"/>
   </widget>
   <action name="action_load_config">
    <property name="icon">
@@ -307,7 +309,7 @@
     <string>Save TPP configuration...</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+S</string>
+    <string>Ctrl+Alt+S</string>
    </property>
   </action>
   <action name="action_show_unmodified_tool_path_lines">
@@ -378,6 +380,20 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="action_save_toolpath">
+   <property name="icon">
+    <iconset theme="document-save-as"/>
+   </property>
+   <property name="text">
+    <string>Save Tool Path...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save tool path to YAML file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
  </widget>

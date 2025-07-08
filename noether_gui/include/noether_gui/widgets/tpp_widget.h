@@ -71,6 +71,7 @@ private:
   void onLoadMesh(const bool /*checked*/);
   void onPlan(const bool /*checked*/);
   void onSaveModifiedMesh(const bool /*checked*/);
+  void onSaveToolPath(const bool /*checked*/);
   void onShowOriginalMesh(const bool);
   void onShowModifiedMesh(const bool);
   void onShowUnmodifiedToolPath(const bool);

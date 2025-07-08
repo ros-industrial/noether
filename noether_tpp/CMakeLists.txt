@@ -8,6 +8,7 @@ project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES C CXX)
 
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED COMPONENTS common io surface segmentation)
+find_package(yaml-cpp REQUIRED)
 
 find_package(VTK 7.1 REQUIRED NO_MODULE)
 
@@ -87,7 +88,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC ${PCL_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen ${PCL_LIBRARIES} ${VTK_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen ${PCL_LIBRARIES} ${VTK_LIBRARIES} yaml-cpp)
 target_cxx_version(${PROJECT_NAME} PUBLIC VERSION 14)
 target_clang_tidy(${PROJECT_NAME}
   ENABLE ${NOETHER_ENABLE_CLANG_TIDY}
