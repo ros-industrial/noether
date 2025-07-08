@@ -309,7 +309,7 @@
     <string>Save TPP configuration...</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+S</string>
+    <string>Ctrl+Alt+S</string>
    </property>
   </action>
   <action name="action_show_unmodified_tool_path_lines">
