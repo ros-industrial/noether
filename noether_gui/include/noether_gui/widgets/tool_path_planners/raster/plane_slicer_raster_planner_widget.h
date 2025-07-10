@@ -2,11 +2,12 @@
 
 #include <noether_gui/widgets/tool_path_planners/raster/raster_planner_widget.h>
 
-class QDoubleSpinBox;
 class QCheckBox;
 
 namespace noether
 {
+class DistanceDoubleSpinBox;
+
 class PlaneSlicerRasterPlannerWidget : public RasterPlannerWidget
 {
 public:
@@ -18,8 +19,8 @@ public:
   void save(YAML::Node&) const override;
 
 protected:
-  QDoubleSpinBox* search_radius_;
-  QDoubleSpinBox* min_segment_size_;
+  DistanceDoubleSpinBox* search_radius_;
+  DistanceDoubleSpinBox* min_segment_size_;
   QCheckBox* bidirectional_;
 };
 

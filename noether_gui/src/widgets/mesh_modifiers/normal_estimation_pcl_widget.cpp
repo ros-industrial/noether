@@ -3,7 +3,6 @@
 #include <noether_gui/utils.h>
 
 #include <noether_tpp/mesh_modifiers/normal_estimation_pcl.h>
-#include <QDoubleSpinBox>
 #include <QFormLayout>
 #include <QVBoxLayout>
 #include <QLabel>
@@ -11,7 +10,7 @@
 namespace noether
 {
 NormalEstimationPCLMeshModifierWidget::NormalEstimationPCLMeshModifierWidget(QWidget* parent)
-  : MeshModifierWidget(parent), radius_(new QDoubleSpinBox(this)), view_point_(new Ui::Vector3dEditor())
+  : MeshModifierWidget(parent), radius_(new DistanceDoubleSpinBox(this)), view_point_(new Ui::Vector3dEditor())
 {
   auto* layout = new QVBoxLayout(this);
 
@@ -24,7 +23,7 @@ NormalEstimationPCLMeshModifierWidget::NormalEstimationPCLMeshModifierWidget(QWi
     radius_->setSingleStep(0.010);
     radius_->setDecimals(3);
 
-    form_layout->addRow("Radius (m)", radius_);
+    form_layout->addRow("Radius", radius_);
     layout->addLayout(form_layout);
   }
 

@@ -3,10 +3,10 @@
 #include <noether_gui/widgets.h>
 #include <noether_tpp/core/mesh_modifier.h>
 
-class QDoubleSpinBox;
-
 namespace noether
 {
+class DistanceDoubleSpinBox;
+
 class FillHolesModifierWidget : public MeshModifierWidget
 {
 public:
@@ -17,7 +17,7 @@ public:
   void save(YAML::Node& config) const override;
 
 protected:
-  QDoubleSpinBox* max_hole_size_;
+  DistanceDoubleSpinBox* max_hole_size_;
 };
 
 }  // namespace noether

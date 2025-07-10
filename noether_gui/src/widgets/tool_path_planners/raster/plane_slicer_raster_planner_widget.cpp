@@ -15,8 +15,8 @@ namespace noether
 PlaneSlicerRasterPlannerWidget::PlaneSlicerRasterPlannerWidget(boost_plugin_loader::PluginLoader&& loader,
                                                                QWidget* parent)
   : RasterPlannerWidget(std::move(loader), parent)
-  , search_radius_(new QDoubleSpinBox(this))
-  , min_segment_size_(new QDoubleSpinBox(this))
+  , search_radius_(new DistanceDoubleSpinBox(this))
+  , min_segment_size_(new DistanceDoubleSpinBox(this))
   , bidirectional_(new QCheckBox(this))
 {
   // Search radius
@@ -24,7 +24,7 @@ PlaneSlicerRasterPlannerWidget::PlaneSlicerRasterPlannerWidget(boost_plugin_load
   search_radius_->setSingleStep(0.1);
   search_radius_->setValue(0.1);
   search_radius_->setDecimals(3);
-  auto search_radius_label = new QLabel("Normal radius (m)", this);
+  auto search_radius_label = new QLabel("Normal Radius", this);
   search_radius_label->setToolTip("Radius with which to estimate mesh normals");
   ui_->form_layout->addRow(search_radius_label, search_radius_);
 
@@ -33,7 +33,7 @@ PlaneSlicerRasterPlannerWidget::PlaneSlicerRasterPlannerWidget(boost_plugin_load
   min_segment_size_->setSingleStep(0.1);
   min_segment_size_->setValue(0.1);
   min_segment_size_->setDecimals(3);
-  auto min_segment_label = new QLabel("Min. segment length (m)", this);
+  auto min_segment_label = new QLabel("Min Segment Length", this);
   min_segment_label->setToolTip("Tool path segments shorter than this length will not be included");
   ui_->form_layout->addRow(min_segment_label, min_segment_size_);
 

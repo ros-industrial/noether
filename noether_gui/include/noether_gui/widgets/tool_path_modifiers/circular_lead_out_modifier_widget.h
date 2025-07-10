@@ -8,6 +8,8 @@ class QSpinBox;
 
 namespace noether
 {
+class DistanceDoubleSpinBox;
+
 class CircularLeadOutToolPathModifierWidget : public ToolPathModifierWidget
 {
 public:
@@ -20,7 +22,7 @@ public:
 
 private:
   QDoubleSpinBox* arc_angle_;
-  QDoubleSpinBox* arc_radius_;
+  DistanceDoubleSpinBox* arc_radius_;
   QSpinBox* n_points_;
 };
 

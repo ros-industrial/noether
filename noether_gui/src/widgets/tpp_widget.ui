@@ -34,12 +34,12 @@
            <item row="0" column="0">
             <widget class="QLabel" name="label">
              <property name="text">
-              <string>Axis size (m)</string>
+              <string>Axis size</string>
              </property>
             </widget>
            </item>
            <item row="0" column="1">
-            <widget class="QDoubleSpinBox" name="double_spin_box_axis_size">
+            <widget class="noether::DistanceDoubleSpinBox" name="double_spin_box_axis_size">
              <property name="decimals">
               <number>3</number>
              </property>
@@ -72,7 +72,7 @@
             </widget>
            </item>
            <item row="1" column="1">
-            <widget class="QDoubleSpinBox" name="double_spin_box_origin_size">
+            <widget class="noether::DistanceDoubleSpinBox" name="double_spin_box_origin_size">
              <property name="decimals">
               <number>3</number>
              </property>
@@ -90,7 +90,7 @@
            <item row="1" column="0">
             <widget class="QLabel" name="label_3">
              <property name="text">
-              <string>Origin size (m)</string>
+              <string>Origin size</string>
              </property>
             </widget>
            </item>
@@ -109,7 +109,7 @@
      <x>0</x>
      <y>0</y>
      <width>327</width>
-     <height>23</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -397,6 +397,13 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>noether::DistanceDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header location="global">noether_gui/widgets/distance_double_spin_box.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

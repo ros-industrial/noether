@@ -1,8 +1,8 @@
 #include <noether_gui/widgets/mesh_modifiers/euclidean_clustering_modifier_widget.h>
+#include <noether_gui/widgets/distance_double_spin_box.h>
 #include <noether_gui/utils.h>
 
 #include <noether_tpp/mesh_modifiers/euclidean_clustering_modifier.h>
-#include <QDoubleSpinBox>
 #include <QSpinBox>
 #include <QFormLayout>
 #include <QLabel>
@@ -15,7 +15,7 @@ namespace noether
 {
 EuclideanClusteringMeshModifierWidget::EuclideanClusteringMeshModifierWidget(QWidget* parent)
   : MeshModifierWidget(parent)
-  , tolerance_(new QDoubleSpinBox(this))
+  , tolerance_(new DistanceDoubleSpinBox(this))
   , min_cluster_size_(new QSpinBox(this))
   , max_cluster_size_(new QSpinBox(this))
 {
@@ -33,7 +33,7 @@ EuclideanClusteringMeshModifierWidget::EuclideanClusteringMeshModifierWidget(QWi
   max_cluster_size_->setValue(-1);
 
   auto layout = new QFormLayout(this);
-  layout->addRow(new QLabel("Cluster tolerance (m)", this), tolerance_);
+  layout->addRow(new QLabel("Cluster tolerance", this), tolerance_);
   layout->addRow(new QLabel("Minimum cluster size", this), min_cluster_size_);
   layout->addRow(new QLabel("Maximum cluster size", this), max_cluster_size_);
 }

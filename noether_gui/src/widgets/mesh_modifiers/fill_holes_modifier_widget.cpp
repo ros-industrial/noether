@@ -1,14 +1,14 @@
 #include <noether_gui/widgets/mesh_modifiers/fill_holes_modifier_widget.h>
+#include <noether_gui/widgets/distance_double_spin_box.h>
 #include <noether_gui/utils.h>
 
 #include <noether_tpp/mesh_modifiers/fill_holes_modifier.h>
-#include <QDoubleSpinBox>
 #include <QFormLayout>
 
 namespace noether
 {
 FillHolesModifierWidget::FillHolesModifierWidget(QWidget* parent)
-  : MeshModifierWidget(parent), max_hole_size_(new QDoubleSpinBox(this))
+  : MeshModifierWidget(parent), max_hole_size_(new DistanceDoubleSpinBox(this))
 {
   auto* layout = new QFormLayout(this);
 
@@ -18,7 +18,7 @@ FillHolesModifierWidget::FillHolesModifierWidget(QWidget* parent)
   max_hole_size_->setDecimals(3);
   max_hole_size_->setSingleStep(0.010);
 
-  layout->addRow("Max hole size (m)", max_hole_size_);
+  layout->addRow("Max hole size", max_hole_size_);
 }
 
 MeshModifier::ConstPtr FillHolesModifierWidget::create() const

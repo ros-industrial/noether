@@ -107,7 +107,7 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QDoubleSpinBox" name="double_spin_box_offset">
+        <widget class="noether::DistanceDoubleSpinBox" name="double_spin_box_offset">
          <property name="decimals">
           <number>3</number>
          </property>
@@ -128,7 +128,7 @@
        <item row="1" column="0">
         <widget class="QLabel" name="label_offset">
          <property name="text">
-          <string>Offset (m)</string>
+          <string>Offset</string>
          </property>
         </widget>
        </item>
@@ -138,6 +138,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>noether::DistanceDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header location="global">noether_gui/widgets/distance_double_spin_box.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

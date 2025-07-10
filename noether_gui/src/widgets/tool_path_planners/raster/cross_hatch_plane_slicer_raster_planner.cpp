@@ -20,7 +20,7 @@ CrossHatchPlaneSlicerRasterPlannerWidget::CrossHatchPlaneSlicerRasterPlannerWidg
   cross_hatch_angle_->setSingleStep(1.0);
   cross_hatch_angle_->setValue(90.0);
   cross_hatch_angle_->setDecimals(3);
-  ui_->form_layout->addRow(new QLabel("Cross hatch angle (deg)", this), cross_hatch_angle_);
+  ui_->form_layout->addRow(new QLabel("Cross Hatch Angle (deg)", this), cross_hatch_angle_);
 }
 
 ToolPathPlanner::ConstPtr CrossHatchPlaneSlicerRasterPlannerWidget::create() const
