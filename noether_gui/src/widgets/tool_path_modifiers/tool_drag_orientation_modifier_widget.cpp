@@ -1,4 +1,5 @@
 #include <noether_gui/widgets/tool_path_modifiers/tool_drag_orientation_modifier_widget.h>
+#include <noether_gui/widgets/distance_double_spin_box.h>
 #include <noether_gui/utils.h>
 
 #include <noether_tpp/tool_path_modifiers/tool_drag_orientation_modifier.h>
@@ -27,12 +28,12 @@ ToolDragOrientationToolPathModifierWidget::ToolDragOrientationToolPathModifierWi
   layout->addRow(label, angle_offset_);
 
   // Radius of the tool
-  tool_radius_ = new QDoubleSpinBox(this);
+  tool_radius_ = new DistanceDoubleSpinBox(this);
   tool_radius_->setMinimum(0.0);
   tool_radius_->setSingleStep(0.01);
   tool_radius_->setValue(0.1);
   tool_radius_->setDecimals(3);
-  layout->addRow(new QLabel("Tool radius (m)", this), tool_radius_);
+  layout->addRow(new QLabel("Tool radius", this), tool_radius_);
 }
 
 ToolPathModifier::ConstPtr ToolDragOrientationToolPathModifierWidget::create() const

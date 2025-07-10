@@ -3,11 +3,12 @@
 #include <noether_gui/widgets.h>
 #include <noether_tpp/core/mesh_modifier.h>
 
-class QDoubleSpinBox;
 class QSpinBox;
 
 namespace noether
 {
+class DistanceDoubleSpinBox;
+
 class EuclideanClusteringMeshModifierWidget : public MeshModifierWidget
 {
 public:
@@ -19,7 +20,7 @@ public:
   void save(YAML::Node&) const override;
 
 private:
-  QDoubleSpinBox* tolerance_;
+  DistanceDoubleSpinBox* tolerance_;
   QSpinBox* min_cluster_size_;
   QSpinBox* max_cluster_size_;
 };

@@ -2,6 +2,8 @@
 
 #include <noether_gui/widgets/tool_path_planners/raster/plane_slicer_raster_planner_widget.h>
 
+class QDoubleSpinBox;
+
 namespace noether
 {
 class CrossHatchPlaneSlicerRasterPlannerWidget : public PlaneSlicerRasterPlannerWidget

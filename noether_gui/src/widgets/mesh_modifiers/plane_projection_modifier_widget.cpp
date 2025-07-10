@@ -1,8 +1,8 @@
 #include <noether_gui/widgets/mesh_modifiers/plane_projection_modifier_widget.h>
+#include <noether_gui/widgets/distance_double_spin_box.h>
 #include <noether_gui/utils.h>
 
 #include <noether_tpp/mesh_modifiers/plane_projection_modifier.h>
-#include <QDoubleSpinBox>
 #include <QSpinBox>
 #include <QFormLayout>
 #include <QLabel>
@@ -15,7 +15,7 @@ namespace noether
 {
 PlaneProjectionMeshModifierWidget::PlaneProjectionMeshModifierWidget(QWidget* parent)
   : MeshModifierWidget(parent)
-  , distance_threshold_(new QDoubleSpinBox(this))
+  , distance_threshold_(new DistanceDoubleSpinBox(this))
   , max_planes_(new QSpinBox(this))
   , min_vertices_(new QSpinBox(this))
 {
@@ -33,7 +33,7 @@ PlaneProjectionMeshModifierWidget::PlaneProjectionMeshModifierWidget(QWidget* pa
   min_vertices_->setValue(1);
 
   auto layout = new QFormLayout(this);
-  layout->addRow(new QLabel("Distance threshold (m)", this), distance_threshold_);
+  layout->addRow(new QLabel("Distance threshold", this), distance_threshold_);
   layout->addRow(new QLabel("Maximum number of planes", this), max_planes_);
   layout->addRow(new QLabel("Minimum vertices per plane", this), min_vertices_);
 }

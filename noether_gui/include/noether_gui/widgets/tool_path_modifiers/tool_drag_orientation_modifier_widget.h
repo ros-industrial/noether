@@ -8,6 +8,8 @@ class QDoubleSpinBox;
 
 namespace noether
 {
+class DistanceDoubleSpinBox;
+
 class ToolDragOrientationToolPathModifierWidget : public ToolPathModifierWidget
 {
 public:
@@ -20,7 +22,7 @@ public:
 
 private:
   QDoubleSpinBox* angle_offset_;
-  QDoubleSpinBox* tool_radius_;
+  DistanceDoubleSpinBox* tool_radius_;
 };
 
 }  // namespace noether

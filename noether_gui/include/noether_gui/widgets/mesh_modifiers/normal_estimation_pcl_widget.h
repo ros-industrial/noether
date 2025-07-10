@@ -3,8 +3,6 @@
 #include <noether_gui/widgets.h>
 #include <noether_tpp/core/mesh_modifier.h>
 
-class QDoubleSpinBox;
-
 namespace Ui
 {
 class Vector3dEditor;
@@ -12,6 +10,8 @@ class Vector3dEditor;
 
 namespace noether
 {
+class DistanceDoubleSpinBox;
+
 class NormalEstimationPCLMeshModifierWidget : public MeshModifierWidget
 {
 public:
@@ -22,7 +22,7 @@ public:
   void save(YAML::Node& config) const override;
 
 protected:
-  QDoubleSpinBox* radius_;
+  DistanceDoubleSpinBox* radius_;
   Ui::Vector3dEditor* view_point_;
 };
 

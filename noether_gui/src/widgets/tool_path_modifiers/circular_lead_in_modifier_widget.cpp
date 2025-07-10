@@ -1,4 +1,5 @@
 #include <noether_gui/widgets/tool_path_modifiers/circular_lead_in_modifier_widget.h>
+#include <noether_gui/widgets/distance_double_spin_box.h>
 #include <noether_gui/utils.h>
 
 #include <noether_tpp/tool_path_modifiers/circular_lead_in_modifier.h>
@@ -28,12 +29,12 @@ CircularLeadInToolPathModifierWidget::CircularLeadInToolPathModifierWidget(QWidg
   layout->addRow(label, arc_angle_);
 
   // Radius of the lead in arc
-  arc_radius_ = new QDoubleSpinBox(this);
+  arc_radius_ = new DistanceDoubleSpinBox(this);
   arc_radius_->setMinimum(0.0);
   arc_radius_->setSingleStep(0.01);
   arc_radius_->setValue(0.1);
   arc_radius_->setDecimals(3);
-  auto label_rad = new QLabel("Arc radius (m)", this);
+  auto label_rad = new QLabel("Arc radius", this);
   label_rad->setToolTip("Distance from the first segment point to the center of the approach trajectory arc");
   layout->addRow(label_rad, arc_radius_);
   // Number of points

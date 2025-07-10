@@ -1,14 +1,14 @@
 #include <noether_gui/widgets/tool_path_modifiers/uniform_spacing_spline_modifier_widget.h>
+#include <noether_gui/widgets/distance_double_spin_box.h>
 #include <noether_gui/utils.h>
 
 #include <noether_tpp/tool_path_modifiers/uniform_spacing_spline_modifier.h>
-#include <QDoubleSpinBox>
 #include <QFormLayout>
 
 namespace noether
 {
 UniformSpacingSplineModifierWidget::UniformSpacingSplineModifierWidget(QWidget* parent)
-  : ToolPathModifierWidget(parent), point_spacing_(new QDoubleSpinBox(this))
+  : ToolPathModifierWidget(parent), point_spacing_(new DistanceDoubleSpinBox(this))
 {
   auto* layout = new QFormLayout(this);
 
@@ -17,7 +17,7 @@ UniformSpacingSplineModifierWidget::UniformSpacingSplineModifierWidget(QWidget* 
   point_spacing_->setValue(0.010);
   point_spacing_->setSingleStep(0.010);
 
-  layout->addRow("Point Spacing (m)", point_spacing_);
+  layout->addRow("Point Spacing", point_spacing_);
 }
 
 ToolPathModifier::ConstPtr UniformSpacingSplineModifierWidget::create() const
