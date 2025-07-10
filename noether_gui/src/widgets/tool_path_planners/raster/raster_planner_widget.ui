@@ -89,12 +89,12 @@
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Distance between raster lines&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
-           <string>Line Spacing (m)</string>
+           <string>Line Spacing</string>
           </property>
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QDoubleSpinBox" name="double_spin_box_line_spacing">
+         <widget class="noether::DistanceDoubleSpinBox" name="double_spin_box_line_spacing">
           <property name="decimals">
            <number>3</number>
           </property>
@@ -110,7 +110,7 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QDoubleSpinBox" name="double_spin_box_point_spacing">
+         <widget class="noether::DistanceDoubleSpinBox" name="double_spin_box_point_spacing">
           <property name="decimals">
            <number>3</number>
           </property>
@@ -131,7 +131,7 @@
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Distance between tool path waypoints on a raster line&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
-           <string>Point Spacing (m)</string>
+           <string>Point Spacing</string>
           </property>
          </widget>
         </item>
@@ -141,12 +141,12 @@
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The size of the smallest hole that the tool path planner should not jump over&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="text">
-           <string>Minimum Hole Size (m)</string>
+           <string>Minimum Hole Size</string>
           </property>
          </widget>
         </item>
         <item row="2" column="1">
-         <widget class="QDoubleSpinBox" name="double_spin_box_minimum_hole_size">
+         <widget class="noether::DistanceDoubleSpinBox" name="double_spin_box_minimum_hole_size">
           <property name="decimals">
            <number>3</number>
           </property>
@@ -181,6 +181,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>noether::DistanceDoubleSpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header location="global">noether_gui/widgets/distance_double_spin_box.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
