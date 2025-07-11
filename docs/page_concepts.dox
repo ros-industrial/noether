@@ -5,8 +5,15 @@
 
 We define tool path planning as the generation of an ordered set of waypoints for a robotic process (e.g., painting,
 sanding, inspection, routing, etc.) based an input mesh geometry. The idea is that the tool of the robot should traverse
-through this set of waypoints in order to accomplish the desired task. Definitions of the concepts of waypoints and tool
-paths can be found in @ref types.
+through this set of waypoints in order to accomplish the desired task.
+
+The image below shows the high-level architecture for the tool path planning components.
+
+@image html static/architecture.png
+
+@section s_types Types
+
+Definitions of the concepts of waypoints and tool paths can be found in @ref types.
 
 @section s_pipeline Tool Path Planning Pipeline
 
@@ -18,38 +25,97 @@ We think of the tool path planning process as a pipeline consisting of 3 steps:
   <li><b>Tool path modification</b></li>
 </ol>
 
+The sections below describe each of these conceptual steps in greater detail.
+The @ref noether::ToolPathPlannerPipeline "ToolPathPlannerPipeline" class combines these three steps into a single class that can be used to streamline tool path generation.
+
 @subsection ss_mesh_modifier Mesh Modification
 
 Often input geometry (specifically meshes) does not actually reflect the surface from which we want to generate tool
 paths. Usually we want to process the mesh in various ways, such as smoothing, segmentation, or primitive fitting and
-projection. A MeshModifier receives a single input mesh, applies these modification operations, and returns at least one
+projection. A @ref noether::MeshModifier "MeshModifier" receives a single input mesh, applies these modification operations, and returns at least one
 output mesh.
 
 @subsection ss_tool_path_planner Tool Path Planning
 
 This is the generation of waypoints directly from the modified mesh(es).
 Planners generally create waypoints directly on the surface of the input modified mesh(es).
-A ToolPathPlanner receives a mesh and returns a set of ToolPath objects.
+A @ref noether::ToolPathPlanner "ToolPathPlanner" receives a mesh and returns a set of ToolPath objects.
+
+The following sub-classes of tool path planners are currently supported:
+<ul>
+  <li>@ref raster_planners</li>
+  <li>@ref edge_planners</li>
+</ul>
 
 @subsection ss_tool_path_modifier Tool Path Modification
 
 Many robot processes require application specific changes or additions to a tool path.
 These include operations like order reorganization, pose offsets, approaches/departures, etc.
 Instead of building these changes directly into customized tool path planners, we implement them as a separate step in
-the pipeline. A ToolPathModifier takes in the output type of a ToolPathPlanner (i.e. ToolPaths) and returns a modified
-ToolPaths object with these process-specific changes.
+the pipeline. A @ref noether::ToolPathModifier "ToolPathModifier" takes in the output type of a @ref noether::ToolPathPlanner "ToolPathPlanner" (i.e. @ref noether::ToolPaths "ToolPaths") and returns a modified
+@ref noether::ToolPaths "ToolPaths" object with these process-specific changes.
 
 @subsubsection sss_one_time_modifier One-time Tool Path Modifiers
 
 There should be a strong preference for constructing modifiers that have no additional effect when run repeatedly.
 Since some modifications (such as adding an extra raster) will not meet this requirement, it will only apply to a
-specialized subclass: OneTimeToolPathModifier.
+specialized subclass: @ref noether::OneTimeToolPathModifier "OneTimeToolPathModifier".
 
-As an example: While a ToolPathModifier could be implemented via a function that reverses the direction of odd-indexed
-rasters, running that function twice would undo the desired changes. Instead, a more desirable OneTimeToolPathModifier
+As an example: While a @ref noether::ToolPathModifier "ToolPathModifier" could be implemented via a function that reverses the direction of odd-indexed
+rasters, running that function twice would undo the desired changes. Instead, a more desirable @ref noether::OneTimeToolPathModifier "OneTimeToolPathModifier"
 might set the direction of every even-indexed raster to the direction of the zero-indexed raster, and set the direction
 of every odd-indexed raster to the opposite. This would result in no additional change if run multiple times.
 
 @image html static/modifier.png
+
+@subsection ss_customization Customization
+
+Custom behavior can be added by providing a class that overrides one of these defined interfaces.
+See the current implementations in @ref mesh_modifiers, @ref tool_path_planners, and @ref tool_path_modifiers for reference.
+
+@section s_gui GUI
+
+The GUI package is a `Qt`-based framework that allows user-developed plugins to provide UI elements for configuring the tool path planning components described above.
+This framework has hooks for displaying widgets for all available mesh modifiers, tool path planners, and tool path modifiers.
+
+At run-time, the GUI searches for plugins that can provide the widgets to configure these tool path planning components.
+The GUI automatically finds plugins defined in this repository.
+User-developed plugins can also be found by the GUI by adding the names of the plugin libraries to the `NOETHER_PLUGIN_LIBS` environment variable.
+
+This plugin-based GUI architecture allows end-users to leverage the out-of-the-box GUI infrastructure and plugins,
+while still enabling private development of custom capabilities or customizations to the front-end of existing classes.
+
+@subsection ss_gui_widgets Widgets
+
+The GUI package provides the definitions of `Qt` widgets that are capable of producing each type of tool path planning component described above.
+@ref noether::BaseWidget "BaseWidget" is the template class that defines this widget.
+@ref gui_interfaces_widgets "Widget Interfaces" lists the instantiations of the `BaseWidget` template for each tool path planning component type (e.g., mesh modifier, tool path planner, tool path modifier).
+Each implementation of a tool path planning component should provide a widget capable of configuring it.
+This widget must inherit from the appropriate `BaseWidget` template.
+
+For example, @ref noether::PlaneSlicerRasterPlanner "PlaneSlicerRasterPlanner" has an associated widget @ref noether::PlaneSlicerRasterPlannerWidget "PlaneSlicerRasterPlannerWidget" that inherits from @ref noether::ToolPathPlannerWidget "ToolPathPlannerWidget".
+This widget's @ref noether::PlaneSlicerRasterPlannerWidget::create "create" method produces a configured instance of a @ref noether::PlaneSlicerRasterPlanner "PlaneSlicerRasterPlanner".
+
+@subsection ss_gui_plugins Widget Plugins
+
+To allow users to develop their own private implementations of tool path planning components and have them appear in the GUI, all widgets are loaded into the GUI application at runtime via plugin.
+This plugin class is defined as the template @ref noether::WidgetPlugin "WidgetPlugin".
+@ref gui_interfaces_plugins "Widget Plugin Interfaces" lists the instantiations of the `WidgetPlugin` template for each tool path planning component type (e.g., mesh modifier, tool path planner, tool path modifier).
+
+The GUI itself finds available widget plugins (via the `NOETHER_PLUGIN_LIBS` environment variable), loads them, and uses them to produce widgets to populate the various pages of the GUI.
+Just as each of the tool path planning components has a corresponding `BaseWidget` to configure it, each `BaseWidget` should also have a corresponding `WidgetPlugin` that produces the `BaseWidget` to allow it to be loaded into the GUI.
+
+Extending the example from the previous section, the plugin that creates a `PlaneSlicerRasterPlannerWidget` is `PlaneSlicerRasterPlannerWidgetPlugin`, defined in noether_gui/src/plugins.cpp.
+
+@subsection s_gui_architecture Architecture
+
+The image below shows the architecture of the GUI components described in the previous sections.
+
+@image html static/architecture_gui.png
+
+@subsection ss_gui_customization Customization
+
+Custom behavior can be added by providing a class that overrides one of these defined interfaces.
+See the current implementations in @ref gui_widgets_mesh_modifiers, @ref gui_widgets_tool_path_planners, and @ref gui_widgets_tool_path_modifiers for reference.
 
 */
