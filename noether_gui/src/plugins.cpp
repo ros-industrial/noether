@@ -1,3 +1,7 @@
+/*! @file plugins.cpp
+ *
+ */
+
 #include <noether_gui/plugin_interface.h>
 // Tool path planners
 //   Raster
