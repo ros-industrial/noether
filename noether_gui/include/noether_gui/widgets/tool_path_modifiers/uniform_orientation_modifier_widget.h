@@ -6,6 +6,9 @@
 
 namespace noether
 {
+/**
+ * @ingroup gui_widgets_tool_path_modifiers
+ */
 struct UniformOrientationModifierWidget : public ToolPathModifierWidget
 {
   using ToolPathModifierWidget::ToolPathModifierWidget;

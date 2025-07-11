@@ -5,6 +5,9 @@
 
 namespace noether
 {
+/**
+ * @ingroup gui_widgets_mesh_modifiers
+ */
 class NormalsFromMeshFacesMeshModifierWidget : public MeshModifierWidget
 {
 public:

@@ -4,6 +4,9 @@
 
 namespace noether
 {
+/**
+ * @ingroup gui_widgets_tool_path_modifiers
+ */
 class LinearDepartureToolPathModifierWidget : public LinearApproachToolPathModifierWidget
 {
 public:

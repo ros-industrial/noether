@@ -11,6 +11,9 @@ class Vector3dEditor;
 
 namespace noether
 {
+/**
+ * @ingroup gui_widgets_tool_path_modifiers
+ */
 class FixedOrientationModifierWidget : public ToolPathModifierWidget
 {
 public:

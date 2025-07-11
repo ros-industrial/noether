@@ -17,6 +17,9 @@ class Node;
 
 namespace noether
 {
+/**
+ * @ingroup gui_widgets_tool_path_planners
+ */
 class RasterPlannerWidget : public ToolPathPlannerWidget
 {
 public:

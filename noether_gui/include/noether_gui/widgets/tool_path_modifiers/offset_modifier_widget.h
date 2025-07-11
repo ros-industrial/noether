@@ -11,6 +11,9 @@ class QuaternionEditor;
 
 namespace noether
 {
+/**
+ * @ingroup gui_widgets_tool_path_modifiers
+ */
 class OffsetModifierWidget : public ToolPathModifierWidget
 {
 public:
