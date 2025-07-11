@@ -16,7 +16,6 @@ arbitrary mesh surfaces. See the following pages for more information on using N
 // Define groups
 /**
   @defgroup types Types
-  @defgroup interfaces Interfaces
   @defgroup mesh_modifiers Mesh Modifiers
   @defgroup tool_path_planners Tool Path Planners
   @{
@@ -32,6 +31,9 @@ arbitrary mesh surfaces. See the following pages for more information on using N
   @{
     @defgroup gui_interfaces_widgets Widgets
     @defgroup gui_interfaces_plugins Widget Plugins
+    @defgroup gui_widgets_mesh_modifiers Mesh Modifier Widgets
+    @defgroup gui_widgets_tool_path_planners Tool Path Planner Widgets
+    @defgroup gui_widgets_tool_path_modifiers Tool Path Modifier Widgets
   @}
 */
 
@@ -43,23 +45,11 @@ arbitrary mesh surfaces. See the following pages for more information on using N
 
 */
 
-// Documentation for interfaces
-/**
-@addtogroup interfaces
-
-@brief Abstract interfaces for the various concepts of tool path planning.
-
-@details The image below shows the architecture for the tool path planning components.
-
-@image html static/architecture.png
-
-*/
-
 // Documentation for mesh modifiers
 /**
 @addtogroup mesh_modifiers
 
-@brief Implementations of the MeshModifier interface
+@brief Implementations of the @ref noether::MeshModifier "MeshModifier" interface
 
 */
 
@@ -67,7 +57,7 @@ arbitrary mesh surfaces. See the following pages for more information on using N
 /**
 @addtogroup tool_path_planners
 
-@brief Implementations of the ToolPathPlanner interface
+@brief Implementations of the @ref noether::ToolPathPlanner "ToolPathPlanner" interface
 
 */
 
@@ -75,9 +65,9 @@ arbitrary mesh surfaces. See the following pages for more information on using N
 /**
 @addtogroup raster_planners
 
-@brief Implementations of the RasterPlanner interface and associated components
+@brief Implementations of the @ref noether::RasterPlanner "RasterPlanner" interface and associated components
 
-@details A RasterPlanner is a subclass of ToolPathPlanner with the following general properties:
+@details A @ref noether::RasterPlanner "RasterPlanner" is a subclass of @ref noether::ToolPathPlanner "ToolPathPlanner" with the following general properties:
 
 - Generally >1 raster
 - Generally covers the whole supplied surface
@@ -85,11 +75,17 @@ arbitrary mesh surfaces. See the following pages for more information on using N
 - Repeating pattern of lines
 - All points lie on surface
 - All points have same orientation
-- Waypoints in rasters are consistently and spatially ordered
-- Segments are consistently and spatially ordered in ToolPath
-- ToolPaths are in order in top-level structure
+- @ref noether::ToolPathWaypoint "Waypoints" in rasters are consistently and spatially ordered
+- @ref noether::ToolPathSegment "Segments" are consistently and spatially ordered in @ref noether::ToolPath "ToolPath"
+- @ref noether::ToolPaths "ToolPaths" are in order in top-level structure
+
+The organization of tool path waypoints, segments, and paths in the output of a raster planner is shown the following diagram:
 
 @image html static/raster_path.png
+
+The @ref noether::RasterPlanner "RasterPlanner" interface uses two additional interfaces to generate the location and direction of the raster lines.
+@ref origin_generators are used to specify the location of the first raster line on the mesh.
+@ref direction_generators are used to specify the direction of travel of the raster lines in the tool path.
 
 */
 
@@ -97,15 +93,17 @@ arbitrary mesh surfaces. See the following pages for more information on using N
 /**
 @addtogroup edge_planners
 
-@brief Implementations of the EdgePlanner interface
+@brief Implementations of the @ref noether::EdgePlanner "EdgePlanner" interface
 
-@details An EdgePlanner is a subclass of ToolPathPlanner with the following general properties:
+@details An @ref noether::EdgePlanner "EdgePlanner" is a subclass of ToolPathPlanner with the following general properties:
 
 - A list of closed-loop edges around parts
-- Segments in sequential order in ToolPath
-- ToolPaths ordered by length of closed loop, with longest first
+- @ref noether::ToolPathSegment "Segments" in sequential order in @ref noether::ToolPath "ToolPath"
+- @ref noether::ToolPaths "ToolPaths" ordered by length of closed loop, with longest first
 - All loops start near some point (e.g. all in top left corner)
 - All loops process in same direction
+
+The organization of tool path waypoints, segments, and paths in the output of an edge planner is shown in the following diagram:
 
 @image html static/edge_path.png
 
@@ -115,7 +113,9 @@ arbitrary mesh surfaces. See the following pages for more information on using N
 /**
 @addtogroup direction_generators
 
-@brief Implementations of the DirectionGenerator interface
+@brief Implementations of the @ref noether::DirectionGenerator "DirectionGenerator" interface
+
+@details Given a mesh, this interface defines a 3D direction vector with which raster lines should be parallel.
 
 */
 
@@ -123,7 +123,9 @@ arbitrary mesh surfaces. See the following pages for more information on using N
 /**
 @addtogroup origin_generators
 
-@brief Implementations of the OriginGenerator interface
+@brief Implementations of the @ref noether::OriginGenerator "OriginGenerator" interface
+
+@details Given a mesh, this interface defines a 3D position through which the first raster line should pass.
 
 */
 
@@ -131,37 +133,7 @@ arbitrary mesh surfaces. See the following pages for more information on using N
 /**
 @addtogroup tool_path_modifiers
 
-@brief Implementations of the ToolPathModifier interface
-
-*/
-
-// Documentation for GUI interfaces
-/**
-@addtogroup gui_interfaces
-
-@brief Abstract interfaces for the various components of the GUI
-
-@details The GUI package provides two template interfaces for providing UI support: BaseWidget and WidgetPlugin.
-
-@par
-BaseWidget is a Qt widget that uses its UI elements to produce an instance of one of the tool path planning concept @ref
-interfaces. Each implementation of a tool path planning concept should provide its own widget such that it can be used
-in the GUI application.
-
-@par
-WidgetPlugin is the base class for a plugin that can be dynamically loaded at run-time to provide widgets to populate
-the GUI. The GUI itself finds available WidgetPlugin classes (via the `NOETHER_PLUGIN_LIBS` environment variable), loads
-them, and uses them to produce widgets to populate the various pages of the GUI. Just as each of the tool path planning
-concept @ref interfaces should provide a BaseWidget to configure itself, each BaseWidget should also have a
-corresponding WidgetPlugin that allows it to be loaded into the GUI.
-
-@par
-See @ref page_customization for more information about how to provide a custom tool path planning elements.
-
-@par
-The image below shows the architecture of the GUI components.
-
-@image html static/architecture_gui.png
+@brief Implementations of the @ref noether::ToolPathModifier "ToolPathModifier" interface
 
 */
 
@@ -169,7 +141,9 @@ The image below shows the architecture of the GUI components.
 /**
 @addtogroup gui_interfaces_widgets
 
-@brief Instantitations of the BaseWidget interface
+@brief Instantitations of the @ref noether::BaseWidget "BaseWidget" interface
+
+@details @ref noether::BaseWidget "BaseWidget" is a template class that defines a `Qt` widget capable of creating a tool path planning component (i.e. the template type: mesh modifier, tool path planner, tool path modifier, etc.) using the information contained in the widget itself (e.g., spin box values, etc.).
 
 */
 
@@ -177,6 +151,32 @@ The image below shows the architecture of the GUI components.
 /**
 @addtogroup gui_interfaces_plugins
 
-@brief Instantitations of the WidgetPlugin interface
+@brief Instantitations of the @ref noether::WidgetPlugin "WidgetPlugin" interface
+
+@details @ref noether::WidgetPlugin "WidgetPlugin" is a template class that defines a plugin that is capable of making a @ref noether::BaseWidget "BaseWidget" of the same template type (e.g., mesh modifier, tool path planner, tool path modifier, etc.).
+
+*/
+
+// Documentation for the mesh modifier GUI widgets
+/**
+@addtogroup gui_widgets_mesh_modifiers
+
+@brief Instantitations of the @ref noether::MeshModifierWidget "MeshModifierWidget" interface
+
+*/
+
+// Documentation for the tool path planner GUI widgets
+/**
+@addtogroup gui_widgets_tool_path_planners
+
+@brief Instantitations of the @ref noether::ToolPathPlannerWidget "ToolPathPlannerWidget" interface
+
+*/
+
+// Documentation for the tool path modifier GUI widgets
+/**
+@addtogroup gui_widgets_tool_path_modifiers
+
+@brief Instantitations of the @ref noether::ToolPathModifierWidget "ToolPathModifierWidget" interface
 
 */
