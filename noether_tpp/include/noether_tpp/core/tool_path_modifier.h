@@ -23,7 +23,7 @@
 namespace noether
 {
 /**
- * @ingroup interfaces
+ * @ingroup tool_path_modifiers
  * @brief A common interface for functions that alter a generated toolpath.
  * @details Modifiers using this interface may or may not cause additional changes on repeated
  * use.  A special interface exists for modifiers that do not cause additional changes on repeat.
@@ -39,7 +39,7 @@ struct ToolPathModifier
 };
 
 /**
- * @ingroup interfaces
+ * @ingroup tool_path_modifiers
  * @brief An extension of the ToolPathModifier interface that
  * requires a modifier to not cause additional changes if run again.
  * @details This behavior will be enforced via unit test. New modifiers should be implemented as
