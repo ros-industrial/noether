@@ -5,10 +5,9 @@
 arbitrary mesh surfaces. See the following pages for more information on using Noether.
 
 <ul>
-  <li>@subpage page_concepts</li>
-  <li>@subpage page_getting_started</li>
-  <li>@subpage page_customization</li>
-  <li>@subpage page_additional_resources</li>
+  <li> @subpage page_concepts </li>
+  <li> @subpage page_getting_started </li>
+  <li> @subpage page_additional_resources </li>
 </ul>
 
 */
@@ -17,6 +16,9 @@ arbitrary mesh surfaces. See the following pages for more information on using N
 /**
   @defgroup types Types
   @defgroup mesh_modifiers Mesh Modifiers
+  @{
+    @defgroup gui_widgets_mesh_modifiers Mesh Modifier Widgets
+  @}
   @defgroup tool_path_planners Tool Path Planners
   @{
     @defgroup raster_planners Raster Planners
@@ -25,15 +27,16 @@ arbitrary mesh surfaces. See the following pages for more information on using N
       @defgroup origin_generators Origin Generators
     @}
     @defgroup edge_planners Edge Planners
+    @defgroup gui_widgets_tool_path_planners Tool Path Planner Widgets
   @}
   @defgroup tool_path_modifiers Tool Path Modifiers
+  @{
+    @defgroup gui_widgets_tool_path_modifiers Tool Path Modifier Widgets
+  @}
   @defgroup gui_interfaces GUI Interfaces
   @{
     @defgroup gui_interfaces_widgets Widgets
     @defgroup gui_interfaces_plugins Widget Plugins
-    @defgroup gui_widgets_mesh_modifiers Mesh Modifier Widgets
-    @defgroup gui_widgets_tool_path_planners Tool Path Planner Widgets
-    @defgroup gui_widgets_tool_path_modifiers Tool Path Modifier Widgets
   @}
 */
 
@@ -137,11 +140,74 @@ The organization of tool path waypoints, segments, and paths in the output of an
 
 */
 
+// Documentation for GUI interfaces
+/**
+@addtogroup gui_interfaces
+
+The GUI package is a `Qt`-based framework that allows user-developed plugins to provide UI elements for configuring the tool path planning components described above.
+This framework has hooks for displaying widgets for all available mesh modifiers, tool path planners, and tool path modifiers.
+
+At run-time, the GUI searches for plugins that can provide the widgets to configure these tool path planning components.
+The GUI automatically finds plugins defined in this repository.
+User-developed plugins can also be found by the GUI by adding the names of the plugin libraries to the `NOETHER_PLUGIN_LIBS` environment variable.
+
+This plugin-based GUI architecture allows end-users to leverage the out-of-the-box GUI infrastructure and plugins,
+while still enabling private development of custom capabilities or customizations to the front-end of existing classes.
+
+@subsection ss_gui_widgets Widgets
+
+The GUI package provides the definitions of `Qt` widgets that are capable of producing each type of tool path planning component described above.
+@ref noether::BaseWidget "BaseWidget" is the template class that defines this widget.
+@ref gui_interfaces_widgets "Widget Interfaces" lists the instantiations of the `BaseWidget` template for each tool path planning component type (e.g., mesh modifier, tool path planner, tool path modifier).
+Each implementation of a tool path planning component should provide a widget capable of configuring it.
+This widget must inherit from the appropriate `BaseWidget` template.
+
+For example, @ref noether::PlaneSlicerRasterPlanner "PlaneSlicerRasterPlanner" has an associated widget @ref noether::PlaneSlicerRasterPlannerWidget "PlaneSlicerRasterPlannerWidget" that inherits from @ref noether::ToolPathPlannerWidget "ToolPathPlannerWidget".
+This widget's @ref noether::PlaneSlicerRasterPlannerWidget::create "create" method produces a configured instance of a @ref noether::PlaneSlicerRasterPlanner "PlaneSlicerRasterPlanner".
+
+@subsection ss_gui_plugins Widget Plugins
+
+To allow users to develop their own private implementations of tool path planning components and have them appear in the GUI, all widgets are loaded into the GUI application at runtime via plugin.
+This plugin class is defined as the template @ref noether::WidgetPlugin "WidgetPlugin".
+@ref gui_interfaces_plugins "Widget Plugin Interfaces" lists the instantiations of the `WidgetPlugin` template for each tool path planning component type (e.g., mesh modifier, tool path planner, tool path modifier).
+
+The GUI itself finds available widget plugins (via the `NOETHER_PLUGIN_LIBS` environment variable), loads them, and uses them to produce widgets to populate the various pages of the GUI.
+Just as each of the tool path planning components has a corresponding `BaseWidget` to configure it, each `BaseWidget` should also have a corresponding `WidgetPlugin` that produces the `BaseWidget` to allow it to be loaded into the GUI.
+
+Extending the example from the previous section, the plugin that creates a `PlaneSlicerRasterPlannerWidget` is `PlaneSlicerRasterPlannerWidgetPlugin`, defined in noether_gui/src/plugins.cpp.
+
+Widget plugins must be exported by calling the respective macro (based on the template type of the plugin) with the plugin class type name and an arbitrary alias name for referring to the plugin:
+
+- @ref EXPORT_TPP_WIDGET_PLUGIN
+- @ref EXPORT_DIRECTION_GENERATOR_WIDGET_PLUGIN
+- @ref EXPORT_ORIGIN_GENERATOR_PLUGIN
+- @ref EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN
+- @ref EXPORT_MESH_MODIFIER_WIDGET_PLUGIN
+
+See noether_gui/src/plugins.cpp for examples of defining and exporting GUI plugins.
+
+@note
+For custom plugins to be found at runtime, add the name of the library to the environment variable `NOETHER_PLUGIN_LIBS`.
+For example, if custom plugins were compiled in a library called `libmy_noether_plugins.so`, then set the environment variable to `export NOETHER_PLUGIN_LIBS=my_noether_plugins`.
+
+@subsection s_gui_architecture Architecture
+
+The image below shows the architecture of the GUI components described in the previous sections.
+
+@image html static/architecture_gui.png
+
+@subsection ss_gui_customization Customization
+
+Custom behavior can be added by providing a class that overrides one of these defined interfaces.
+See the current implementations in @ref gui_widgets_mesh_modifiers, @ref gui_widgets_tool_path_planners, and @ref gui_widgets_tool_path_modifiers for reference.
+
+*/
+
 // Documentation for the GUI widget interfaces
 /**
 @addtogroup gui_interfaces_widgets
 
-@brief Instantitations of the @ref noether::BaseWidget "BaseWidget" interface
+@brief Instantiations of the @ref noether::BaseWidget "BaseWidget" interface
 
 @details @ref noether::BaseWidget "BaseWidget" is a template class that defines a `Qt` widget capable of creating a tool path planning component (i.e. the template type: mesh modifier, tool path planner, tool path modifier, etc.) using the information contained in the widget itself (e.g., spin box values, etc.).
 
@@ -151,7 +217,7 @@ The organization of tool path waypoints, segments, and paths in the output of an
 /**
 @addtogroup gui_interfaces_plugins
 
-@brief Instantitations of the @ref noether::WidgetPlugin "WidgetPlugin" interface
+@brief Instantiations of the @ref noether::WidgetPlugin "WidgetPlugin" interface
 
 @details @ref noether::WidgetPlugin "WidgetPlugin" is a template class that defines a plugin that is capable of making a @ref noether::BaseWidget "BaseWidget" of the same template type (e.g., mesh modifier, tool path planner, tool path modifier, etc.).
 
@@ -161,7 +227,7 @@ The organization of tool path waypoints, segments, and paths in the output of an
 /**
 @addtogroup gui_widgets_mesh_modifiers
 
-@brief Instantitations of the @ref noether::MeshModifierWidget "MeshModifierWidget" interface
+@brief Instantiations of the @ref noether::MeshModifierWidget "MeshModifierWidget" interface
 
 */
 
@@ -169,7 +235,7 @@ The organization of tool path waypoints, segments, and paths in the output of an
 /**
 @addtogroup gui_widgets_tool_path_planners
 
-@brief Instantitations of the @ref noether::ToolPathPlannerWidget "ToolPathPlannerWidget" interface
+@brief Instantiations of the @ref noether::ToolPathPlannerWidget "ToolPathPlannerWidget" interface
 
 */
 
@@ -177,6 +243,6 @@ The organization of tool path waypoints, segments, and paths in the output of an
 /**
 @addtogroup gui_widgets_tool_path_modifiers
 
-@brief Instantitations of the @ref noether::ToolPathModifierWidget "ToolPathModifierWidget" interface
+@brief Instantiations of the @ref noether::ToolPathModifierWidget "ToolPathModifierWidget" interface
 
 */
