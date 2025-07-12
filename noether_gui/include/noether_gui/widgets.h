@@ -12,7 +12,7 @@ class OriginGenerator;
 class MeshModifier;
 
 /**
- * @ingroup gui_interfaces
+ * @ingroup gui_interfaces_widgets
  * @brief Base class for a widget "factory" that can produce classes of a specifiable type
  */
 template <typename T>
