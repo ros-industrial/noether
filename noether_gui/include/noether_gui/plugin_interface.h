@@ -19,7 +19,7 @@ struct has_getSection;
 namespace noether
 {
 /**
- * @ingroup gui_interfaces
+ * @ingroup gui_interfaces_plugins
  * @brief Base class for a plugin that can generate a Qt widget
  */
 template <typename T>
@@ -71,8 +71,32 @@ using MeshModifierWidgetPlugin = WidgetPlugin<MeshModifierWidget>;
 }  // namespace noether
 
 #include <boost_plugin_loader/macros.h>
+/**
+ * @brief Macro for exporting instances of @ref noether::ToolPathPlannerWidgetPlugin "ToolPathPlannerWidgetPlugin"
+ * @ingroup gui_widgets_tool_path_planners
+ */
 #define EXPORT_TPP_WIDGET_PLUGIN(DERIVED_CLASS, ALIAS) EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, tpp)
+
+/**
+ * @brief Macro for exporting instances of @ref noether::DirectionGeneratorWidgetPlugin "DirectionGeneratorWidgetPlugin"
+ * @ingroup gui_widgets_tool_path_planners
+ */
 #define EXPORT_DIRECTION_GENERATOR_WIDGET_PLUGIN(DERIVED_CLASS, ALIAS) EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, dg)
+
+/**
+ * @brief Macro for exporting instances of @ref noether::OriginGeneratorWidgetPlugin "OriginGeneratorWidgetPlugin"
+ * @ingroup gui_widgets_tool_path_planners
+ */
 #define EXPORT_ORIGIN_GENERATOR_PLUGIN(DERIVED_CLASS, ALIAS) EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, og)
+
+/**
+ * @brief Macro for exporting instances of @ref noether::ToolPathModifierWidgetPlugin "ToolPathModifierWidgetPlugin"
+ * @ingroup gui_widgets_tool_path_modifiers
+ */
 #define EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(DERIVED_CLASS, ALIAS) EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, mod)
+
+/**
+ * @brief Macro for exporting instances of @ref noether::MeshModifierWidgetPlugin "MeshModifierWidgetPlugin"
+ * @ingroup gui_widgets_mesh_modifiers
+ */
 #define EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(DERIVED_CLASS, ALIAS) EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, mesh)
