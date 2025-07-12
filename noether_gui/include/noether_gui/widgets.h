@@ -29,31 +29,31 @@ public:
 
 /**
  * @ingroup gui_interfaces_widgets
- * @brief Widget for configuring ToolPathPlanner implementations
+ * @brief Widget for configuring instances of ToolPathPlanner
  */
 using ToolPathPlannerWidget = BaseWidget<ToolPathPlanner>;
 
 /**
  * @ingroup gui_interfaces_widgets
- * @brief Widget for configuring DirectionGenerator implementations
+ * @brief Widget for configuring instances of DirectionGenerator
  */
 using DirectionGeneratorWidget = BaseWidget<DirectionGenerator>;
 
 /**
  * @ingroup gui_interfaces_widgets
- * @brief Widget for configuring OriginGenerator implementations
+ * @brief Widget for configuring instances of OriginGenerator
  */
 using OriginGeneratorWidget = BaseWidget<OriginGenerator>;
 
 /**
  * @ingroup gui_interfaces_widgets
- * @brief Widget for configuring ToolPathModifier implementations
+ * @brief Widget for configuring instances of ToolPathModifier
  */
 using ToolPathModifierWidget = BaseWidget<ToolPathModifier>;
 
 /**
  * @ingroup gui_interfaces_widgets
- * @brief Widget for configuring MeshModifier implementations
+ * @brief Widget for configuring instances of MeshModifier
  */
 using MeshModifierWidget = BaseWidget<MeshModifier>;
 

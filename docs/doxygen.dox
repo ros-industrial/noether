@@ -144,7 +144,7 @@ The organization of tool path waypoints, segments, and paths in the output of an
 /**
 @addtogroup gui_interfaces
 
-The GUI package is a `Qt`-based framework that allows user-developed plugins to provide UI elements for configuring the tool path planning components described above.
+The GUI package is a `Qt`-based framework that allows user-developed plugins to provide UI elements for configuring the tool path planning components.
 This framework has hooks for displaying widgets for all available mesh modifiers, tool path planners, and tool path modifiers.
 
 At run-time, the GUI searches for plugins that can provide the widgets to configure these tool path planning components.
@@ -156,7 +156,7 @@ while still enabling private development of custom capabilities or customization
 
 @subsection ss_gui_widgets Widgets
 
-The GUI package provides the definitions of `Qt` widgets that are capable of producing each type of tool path planning component described above.
+The GUI package provides the definitions of `Qt` widgets that are capable of producing each type of tool path planning component.
 @ref noether::BaseWidget "BaseWidget" is the template class that defines this widget.
 @ref gui_interfaces_widgets "Widget Interfaces" lists the instantiations of the `BaseWidget` template for each tool path planning component type (e.g., mesh modifier, tool path planner, tool path modifier).
 Each implementation of a tool path planning component should provide a widget capable of configuring it.
