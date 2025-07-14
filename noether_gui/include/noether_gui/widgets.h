@@ -21,9 +21,20 @@ class BaseWidget : public QWidget
 public:
   BaseWidget(QWidget* parent = nullptr) : QWidget(parent) {}
 
+  /**
+   * @brief Creates a tool path planning component of type `T` (e.g., mesh modifier, tool path planner, tool path
+   * modifier)
+   */
   virtual typename T::ConstPtr create() const = 0;
 
+  /**
+   * @brief Configures the elements of the widget from a YAML node
+   */
   virtual void configure(const YAML::Node&) {}
+
+  /**
+   * @brief Saves the configuration of the widget to a YAML node
+   */
   virtual void save(YAML::Node&) const {}
 };
 
