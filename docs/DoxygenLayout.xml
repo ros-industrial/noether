@@ -4,26 +4,7 @@
   <navindex>
     <tab type="mainpage" visible="yes" title=""/>
     <tab type="pages" visible="yes" title="" intro=""/>
-
-    <!-- User defined groups -->
-    <tab type="usergroup" url="@ref gui_interfaces" title="GUI Interfaces">
-      <tab type="user" url="@ref gui_interfaces_widgets" title="Widgets"/>
-      <tab type="user" url="@ref gui_interfaces_plugins" title="Widget Plugins"/>
-    </tab>
-    <tab type="usergroup" title="Mesh Modifiers" url="@ref mesh_modifiers">
-      <tab type="user" url="@ref gui_widgets_mesh_modifiers" title="Widgets"/>
-    </tab>
-    <tab type="usergroup" title="Tool Path Planners" url="@ref tool_path_planners">
-      <tab type="usergroup" url="@ref raster_planners" title="Raster Planners">
-        <tab type="user" url="@ref direction_generators" title="Direction Generators"/>
-        <tab type="user" url="@ref origin_generators" title="Origin Generators"/>
-      </tab>
-      <tab type="user" url="@ref edge_planners" title="Edge Planners"/>
-      <tab type="user" url="@ref gui_widgets_tool_path_planners" title="Widgets"/>
-    </tab>
-    <tab type="usergroup" title="Tool Path Modifiers" url="@ref tool_path_modifiers">
-      <tab type="user" url="@ref gui_widgets_tool_path_modifiers" title="Widgets"/>
-    </tab>
+    <tab type="topics" visible="yes" title="Components" intro=""/>
     <tab type="modules" visible="yes" title="" intro=""/>
     <tab type="namespaces" visible="yes" title="">
       <tab type="namespacelist" visible="yes" title="" intro=""/>
