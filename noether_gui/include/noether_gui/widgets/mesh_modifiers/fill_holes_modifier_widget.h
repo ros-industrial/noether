@@ -7,6 +7,9 @@ namespace noether
 {
 class DistanceDoubleSpinBox;
 
+/**
+ * @ingroup gui_widgets_mesh_modifiers
+ */
 class FillHolesModifierWidget : public MeshModifierWidget
 {
 public:

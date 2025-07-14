@@ -7,6 +7,9 @@ namespace noether
 {
 class DistanceDoubleSpinBox;
 
+/**
+ * @ingroup gui_widgets_tool_path_modifiers
+ */
 class UniformSpacingSplineModifierWidget : public ToolPathModifierWidget
 {
 public:

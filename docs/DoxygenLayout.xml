@@ -4,6 +4,7 @@
   <navindex>
     <tab type="mainpage" visible="yes" title=""/>
     <tab type="pages" visible="yes" title="" intro=""/>
+    <tab type="topics" visible="yes" title="Components" intro=""/>
     <tab type="modules" visible="yes" title="" intro=""/>
     <tab type="namespaces" visible="yes" title="">
       <tab type="namespacelist" visible="yes" title="" intro=""/>
@@ -39,6 +40,7 @@
   <!-- Layout definition for a class page -->
   <class>
     <briefdescription visible="yes"/>
+    <detaileddescription title=""/>
     <includes visible="$SHOW_INCLUDE_FILES"/>
     <inheritancegraph visible="$CLASS_GRAPH"/>
     <collaborationgraph visible="$COLLABORATION_GRAPH"/>
@@ -76,7 +78,6 @@
       <related title="" subtitle=""/>
       <membergroups visible="yes"/>
     </memberdecl>
-    <detaileddescription title=""/>
     <memberdef>
       <inlineclasses title=""/>
       <typedefs title=""/>

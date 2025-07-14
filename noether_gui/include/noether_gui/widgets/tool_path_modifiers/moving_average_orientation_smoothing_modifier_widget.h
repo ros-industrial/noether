@@ -10,6 +10,9 @@ class QSpinBox;
 
 namespace noether
 {
+/**
+ * @ingroup gui_widgets_tool_path_modifiers
+ */
 class MovingAverageOrientationSmoothingModifierWidget : public ToolPathModifierWidget
 {
 public:

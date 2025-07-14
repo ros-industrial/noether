@@ -24,7 +24,7 @@
 namespace noether
 {
 /**
- * @ingroup interfaces
+ * @ingroup mesh_modifiers
  * @brief A common interface for mesh modifications.
  * @details Since some modifications, such as segmentation, output multiple meshes, the function returns a list of
  * meshes. Since the return value is a list, this interface (unlike the tool path modifier) takes

@@ -9,6 +9,9 @@ namespace noether
 {
 class DistanceDoubleSpinBox;
 
+/**
+ * @ingroup gui_widgets_mesh_modifiers
+ */
 class EuclideanClusteringMeshModifierWidget : public MeshModifierWidget
 {
 public:

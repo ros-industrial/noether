@@ -26,7 +26,7 @@
 namespace noether
 {
 /**
- * @ingroup interfaces
+ * @ingroup tool_path_planners
  * @brief Interface for a tool path planner that operates on a mesh.
  */
 struct ToolPathPlanner
