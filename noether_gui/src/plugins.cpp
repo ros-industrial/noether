@@ -49,12 +49,12 @@
 
 namespace noether
 {
-template <typename T, typename BaseT>
-struct WidgetPluginImpl : WidgetPlugin<BaseT>
+template <typename WidgetT, typename BaseWidgetT>
+struct WidgetPluginImpl : WidgetPlugin<BaseWidgetT>
 {
-  QWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
+  BaseWidgetT* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
   {
-    auto widget = new T(parent);
+    auto widget = new WidgetT(parent);
 
     // Attempt to configure the widget
     if (!config.IsNull())
@@ -65,14 +65,13 @@ struct WidgetPluginImpl : WidgetPlugin<BaseT>
 };
 
 // Direction Generators
-using FixedDirectionGeneratorWidgetPlugin =
-    WidgetPluginImpl<FixedDirectionGeneratorWidget, DirectionGeneratorWidgetPlugin>;
+using FixedDirectionGeneratorWidgetPlugin = WidgetPluginImpl<FixedDirectionGeneratorWidget, DirectionGeneratorWidget>;
 
 using PrincipalAxisDirectionGeneratorWidgetPlugin =
-    WidgetPluginImpl<PrincipalAxisDirectionGeneratorWidget, DirectionGeneratorWidgetPlugin>;
+    WidgetPluginImpl<PrincipalAxisDirectionGeneratorWidget, DirectionGeneratorWidget>;
 
 // Origin Generators
-using FixedOriginGeneratorWidgetPlugin = WidgetPluginImpl<FixedOriginGeneratorWidget, OriginGeneratorWidgetPlugin>;
+using FixedOriginGeneratorWidgetPlugin = WidgetPluginImpl<FixedOriginGeneratorWidget, OriginGeneratorWidget>;
 
 using CentroidOriginGeneratorWidgetPlugin = WidgetPluginImpl<CentroidOriginGeneratorWidget, OriginGeneratorWidget>;
 
@@ -129,7 +128,7 @@ using UniformSpacingLinearModifierWidgetPlugin =
 // Raster Tool Path Planners
 struct PlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlugin
 {
-  QWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
+  ToolPathPlannerWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
   {
     boost_plugin_loader::PluginLoader loader;
     loader.search_libraries.insert(NOETHER_GUI_PLUGINS);
@@ -148,7 +147,7 @@ struct PlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlugin
 
 struct CrossHatchPlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlugin
 {
-  QWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
+  ToolPathPlannerWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
   {
     boost_plugin_loader::PluginLoader loader;
     loader.search_libraries.insert(NOETHER_GUI_PLUGINS);
