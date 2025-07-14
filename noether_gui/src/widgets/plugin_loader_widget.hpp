@@ -145,7 +145,7 @@ void PluginLoaderWidget<PluginT>::save(YAML::Node& config) const
 {
   for (int i = 0; i < ui_->stacked_widget->count(); ++i)
   {
-    auto widget = dynamic_cast<const typename PluginT::WidgetT*>(ui_->stacked_widget->widget(i));
+    auto widget = dynamic_cast<const typename PluginT::BaseWidgetT*>(ui_->stacked_widget->widget(i));
     if (widget)
     {
       YAML::Node widget_config;

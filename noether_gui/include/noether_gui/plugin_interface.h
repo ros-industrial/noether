@@ -20,17 +20,27 @@ namespace noether
 {
 /**
  * @ingroup gui_interfaces_plugins
- * @brief Base class for a plugin that can generate a Qt widget
+ * @brief Base class for a plugin that can generate a `BaseWidget<T>` for configuring a tool path planning component
+ * (e.g., mesh modifier, tool path planner, tool path modifier).
  */
 template <typename T>
 class WidgetPlugin
 {
 public:
-  using WidgetT = T;
+  /**
+   * @brief Typedef for the `BaseWidget<T>` type
+   */
+  typedef T BaseWidgetT;
   using Ptr = std::shared_ptr<WidgetPlugin>;
   virtual ~WidgetPlugin() = default;
 
-  virtual QWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const = 0;
+  /**
+   * @brief Returns a pointer to a configured `BaseWidget<T>`: a widget that can configure a tool path planning
+   * component (e.g., mesh modifier, tool path planner, tool path modifier).
+   * @param parent
+   * @param config YAML configuration node used to set the initial values of the widget
+   */
+  virtual BaseWidgetT* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const = 0;
 
 private:
   friend class boost_plugin_loader::PluginLoader;
