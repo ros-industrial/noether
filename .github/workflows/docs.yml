@@ -22,6 +22,10 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: ubuntu:24.04
+      env:
+        DEBIAN_FRONTEND: noninteractive
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,8 +36,8 @@ jobs:
       - name: Run Doxygen
         working-directory: docs
         run: |
-          sudo apt update
-          sudo apt install -y -qq doxygen graphviz
+          apt update -y -qq
+          apt install -y -qq doxygen graphviz
           doxygen Doxyfile
           touch build/html/.nojekyll
 
