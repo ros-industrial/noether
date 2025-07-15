@@ -6,6 +6,7 @@ extract_package_metadata(pkg)
 
 project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES C CXX)
 
+find_package(boost_plugin_loader REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED COMPONENTS common io surface segmentation)
 find_package(yaml-cpp REQUIRED)
@@ -26,6 +27,7 @@ add_library(${PROJECT_NAME} SHARED
   # Core
   src/core/tool_path_planner_pipeline.cpp
   src/utils.cpp
+  src/plugin_interface.cpp
   # Mesh Modifiers
   src/mesh_modifiers/subset_extraction/subset_extractor.cpp
   src/mesh_modifiers/subset_extraction/extruded_polygon_subset_extractor.cpp
@@ -86,11 +88,23 @@ if(${CMAKE_VERSION} VERSION_GREATER 3.15)
     endif()
 endif()
 
+target_compile_definitions(${PROJECT_NAME}
+  PUBLIC
+    NOETHER_PLUGINS="${PROJECT_NAME}_plugins"
+    NOETHER_TPP_SECTION="tpp"
+    NOETHER_DIRECTION_GENERATOR_SECTION="dg"
+    NOETHER_ORIGIN_GENERATOR_SECTION="og"
+    NOETHER_TOOL_PATH_MODIFIER_SECTION="mod"
+    NOETHER_MESH_MODIFIER_SECTION="mesh"
+    NOETHER_PLUGIN_LIBS_ENV="NOETHER_PLUGIN_LIBS"
+    NOETHER_PLUGIN_PATHS_ENV="NOETHER_PLUGIN_PATHS"
+)
+
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC ${PCL_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen ${PCL_LIBRARIES} ${VTK_LIBRARIES} yaml-cpp)
+target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen ${PCL_LIBRARIES} ${VTK_LIBRARIES} yaml-cpp boost_plugin_loader::boost_plugin_loader)
 target_cxx_version(${PROJECT_NAME} PUBLIC VERSION 14)
 target_clang_tidy(${PROJECT_NAME} ENABLE ${NOETHER_ENABLE_CLANG_TIDY})
 
