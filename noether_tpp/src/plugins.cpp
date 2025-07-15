@@ -10,6 +10,15 @@
 #include <noether_tpp/mesh_modifiers/plane_projection_modifier.h>
 #include <noether_tpp/mesh_modifiers/windowed_sinc_smoothing_modifier.h>
 
+// Direction Generators
+#include <noether_tpp/tool_path_planners/raster/direction_generators/fixed_direction_generator.h>
+#include <noether_tpp/tool_path_planners/raster/direction_generators/principal_axis_direction_generator.h>
+
+// Origin Generators
+#include <noether_tpp/tool_path_planners/raster/origin_generators/aabb_origin_generator.h>
+#include <noether_tpp/tool_path_planners/raster/origin_generators/centroid_origin_generator.h>
+#include <noether_tpp/tool_path_planners/raster/origin_generators/fixed_origin_generator.h>
+
 namespace noether
 {
 template <typename DerivedT, typename BaseT>
@@ -30,8 +39,18 @@ using NormalsFromMeshFacesMeshModifierPlugin = PluginImpl<NormalsFromMeshFacesMe
 using PlaneProjectionMeshModifierPlugin = PluginImpl<PlaneProjectionMeshModifier, MeshModifier>;
 using WindowedSincSmoothingMeshModifierPlugin = PluginImpl<WindowedSincSmoothing, MeshModifier>;
 
+// Direction Generators
+using FixedDirectionGeneratorPlugin = PluginImpl<FixedDirectionGenerator, DirectionGenerator>;
+using PrincipalAxisDirectionGeneratorPlugin = PluginImpl<PrincipalAxisDirectionGenerator, DirectionGenerator>;
+
+// Origin Generators
+using AABBCenterOriginGeneratorPlugin = PluginImpl<AABBCenterOriginGenerator, OriginGenerator>;
+using CentroidOriginGeneratorPlugin = PluginImpl<CentroidOriginGenerator, OriginGenerator>;
+using FixedOriginGeneratorPlugin = PluginImpl<FixedOriginGenerator, OriginGenerator>;
+
 }  // namespace noether
 
+// Mesh Modifiers
 EXPORT_MESH_MODIFIER_PLUGIN(noether::CleanDataMeshModifierPlugin, CleanData)
 EXPORT_MESH_MODIFIER_PLUGIN(noether::EuclideanClusteringMeshModifierPlugin, EuclideanClustering)
 EXPORT_MESH_MODIFIER_PLUGIN(noether::FillHolesMeshModifierPlugin, FillHoles)
@@ -39,3 +58,12 @@ EXPORT_MESH_MODIFIER_PLUGIN(noether::NormalEstimationPCLMeshModifierPlugin, Norm
 EXPORT_MESH_MODIFIER_PLUGIN(noether::NormalsFromMeshFacesMeshModifierPlugin, NormalsFromMeshFaces)
 EXPORT_MESH_MODIFIER_PLUGIN(noether::PlaneProjectionMeshModifierPlugin, PlaneProjection)
 EXPORT_MESH_MODIFIER_PLUGIN(noether::WindowedSincSmoothingMeshModifierPlugin, WindowedSincSmoothing)
+
+// Direction Generators
+EXPORT_DIRECTION_GENERATOR_PLUGIN(noether::FixedDirectionGeneratorPlugin, FixedDirection)
+EXPORT_DIRECTION_GENERATOR_PLUGIN(noether::PrincipalAxisDirectionGeneratorPlugin, PrincipalAxis)
+
+// Origin Generators
+EXPORT_ORIGIN_GENERATOR_PLUGIN(noether::AABBCenterOriginGeneratorPlugin, AABBCenter)
+EXPORT_ORIGIN_GENERATOR_PLUGIN(noether::CentroidOriginGeneratorPlugin, Centroid)
+EXPORT_ORIGIN_GENERATOR_PLUGIN(noether::FixedOriginGeneratorPlugin, FixedOrigin)
