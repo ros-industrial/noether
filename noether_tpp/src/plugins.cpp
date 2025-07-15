@@ -107,6 +107,40 @@ struct OffsetOriginGeneratorPlugin : public Plugin<OriginGenerator>
 // Tool Path Planners
 using BoundaryEdgePlannerPlugin = PluginImpl<BoundaryEdgePlanner, ToolPathPlanner>;
 
+struct PlaneSlicerRasterPlannerPlugin : public Plugin<ToolPathPlanner>
+{
+  std::unique_ptr<ToolPathPlanner> create(const YAML::Node& config = {}) const override final
+  {
+    std::unique_ptr<DirectionGenerator> dir_gen;
+    {
+      auto dir_gen_config = YAML::getMember<YAML::Node>(config, "direction_generator");
+      auto dir_gen_type = YAML::getMember<std::string>(dir_gen_config, "type");
+      auto dir_gen_params = YAML::getMember<YAML::Node>(dir_gen_config, "config");
+      auto dir_gen_loader = getPluginLoaderInstance().createInstance<DirectionGeneratorPlugin>(dir_gen_type);
+      dir_gen = dir_gen_loader->create(dir_gen_params);
+    }
+
+    std::unique_ptr<OriginGenerator> origin_gen;
+    {
+      auto origin_gen_config = YAML::getMember<YAML::Node>(config, "origin_generator");
+      auto origin_gen_type = YAML::getMember<std::string>(origin_gen_config, "type");
+      auto origin_gen_params = YAML::getMember<YAML::Node>(origin_gen_config, "config");
+      auto origin_gen_loader = getPluginLoaderInstance().createInstance<OriginGeneratorPlugin>(origin_gen_type);
+      origin_gen = origin_gen_loader->create(origin_gen_params);
+    }
+
+    auto tpp = std::make_unique<PlaneSlicerRasterPlanner>(std::move(dir_gen), std::move(origin_gen));
+    tpp->setLineSpacing(YAML::getMember<double>(config, "line_spacing"));
+    tpp->setMinHoleSize(YAML::getMember<double>(config, "min_hole_size"));
+    tpp->setPointSpacing(YAML::getMember<double>(config, "point_spacing"));
+    tpp->setMinSegmentSize(YAML::getMember<double>(config, "min_segment_size"));
+    tpp->setSearchRadius(YAML::getMember<double>(config, "search_radius"));
+    tpp->generateRastersBidirectionally(YAML::getMember<bool>(config, "bidirectional"));
+
+    return tpp;
+  }
+};
+
 }  // namespace noether
 
 // Mesh Modifiers
@@ -131,3 +165,4 @@ EXPORT_ORIGIN_GENERATOR_PLUGIN(noether::OffsetOriginGeneratorPlugin, Offset)
 
 // Tool Path Planners
 EXPORT_TOOL_PATH_PLANNER_PLUGIN(noether::BoundaryEdgePlannerPlugin, Boundary)
+EXPORT_TOOL_PATH_PLANNER_PLUGIN(noether::PlaneSlicerRasterPlannerPlugin, PlaneSlicer)
