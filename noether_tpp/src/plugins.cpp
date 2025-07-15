@@ -104,6 +104,9 @@ struct OffsetOriginGeneratorPlugin : public Plugin<OriginGenerator>
   }
 };
 
+// Tool Path Planners
+using BoundaryEdgePlannerPlugin = PluginImpl<BoundaryEdgePlanner, ToolPathPlanner>;
+
 }  // namespace noether
 
 // Mesh Modifiers
@@ -125,3 +128,6 @@ EXPORT_ORIGIN_GENERATOR_PLUGIN(noether::AABBCenterOriginGeneratorPlugin, AABBCen
 EXPORT_ORIGIN_GENERATOR_PLUGIN(noether::CentroidOriginGeneratorPlugin, Centroid)
 EXPORT_ORIGIN_GENERATOR_PLUGIN(noether::FixedOriginGeneratorPlugin, FixedOrigin)
 EXPORT_ORIGIN_GENERATOR_PLUGIN(noether::OffsetOriginGeneratorPlugin, Offset)
+
+// Tool Path Planners
+EXPORT_TOOL_PATH_PLANNER_PLUGIN(noether::BoundaryEdgePlannerPlugin, Boundary)
