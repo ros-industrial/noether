@@ -1,4 +1,7 @@
 #include <noether_tpp/plugin_interface.h>
+#include <noether_tpp/serialization.h>
+
+#include <boost_plugin_loader/plugin_loader.h>
 #include <memory>
 
 // Mesh modifiers
@@ -12,15 +15,30 @@
 
 // Direction Generators
 #include <noether_tpp/tool_path_planners/raster/direction_generators/fixed_direction_generator.h>
+#include <noether_tpp/tool_path_planners/raster/direction_generators/pca_rotated_direction_generator.h>
 #include <noether_tpp/tool_path_planners/raster/direction_generators/principal_axis_direction_generator.h>
 
 // Origin Generators
 #include <noether_tpp/tool_path_planners/raster/origin_generators/aabb_origin_generator.h>
 #include <noether_tpp/tool_path_planners/raster/origin_generators/centroid_origin_generator.h>
 #include <noether_tpp/tool_path_planners/raster/origin_generators/fixed_origin_generator.h>
+#include <noether_tpp/tool_path_planners/raster/origin_generators/offset_origin_generator.h>
+
+// Tool Path Planners
+#include <noether_tpp/tool_path_planners/edge/boundary_edge_planner.h>
+#include <noether_tpp/tool_path_planners/raster/plane_slicer_raster_planner.h>
 
 namespace noether
 {
+static const boost_plugin_loader::PluginLoader& getPluginLoaderInstance()
+{
+  static boost_plugin_loader::PluginLoader loader;
+  loader.search_libraries.insert("noether_tpp_plugins");
+  loader.search_libraries_env = NOETHER_PLUGIN_LIBS_ENV;
+  loader.search_paths_env = NOETHER_PLUGIN_PATHS_ENV;
+  return loader;
+}
+
 template <typename DerivedT, typename BaseT>
 struct PluginImpl : public Plugin<BaseT>
 {
@@ -43,10 +61,48 @@ using WindowedSincSmoothingMeshModifierPlugin = PluginImpl<WindowedSincSmoothing
 using FixedDirectionGeneratorPlugin = PluginImpl<FixedDirectionGenerator, DirectionGenerator>;
 using PrincipalAxisDirectionGeneratorPlugin = PluginImpl<PrincipalAxisDirectionGenerator, DirectionGenerator>;
 
+struct PCARotatedDirectionGeneratorPlugin : public Plugin<DirectionGenerator>
+{
+  std::unique_ptr<DirectionGenerator> create(const YAML::Node& config = {}) const override final
+  {
+    std::unique_ptr<DirectionGenerator> dir_gen;
+    {
+      auto dir_gen_config = YAML::getMember<YAML::Node>(config, "direction_generator");
+      auto dir_gen_type = YAML::getMember<std::string>(dir_gen_config, "type");
+      auto dir_gen_params = YAML::getMember<YAML::Node>(dir_gen_config, "config");
+      auto dir_gen_loader = getPluginLoaderInstance().createInstance<DirectionGeneratorPlugin>(dir_gen_type);
+      dir_gen = dir_gen_loader->create(dir_gen_params);
+    }
+
+    auto rotation_offset = YAML::getMember<double>(config, "rotation_offset");
+
+    return std::make_unique<PCARotatedDirectionGenerator>(std::move(dir_gen), rotation_offset);
+  }
+};
+
 // Origin Generators
 using AABBCenterOriginGeneratorPlugin = PluginImpl<AABBCenterOriginGenerator, OriginGenerator>;
 using CentroidOriginGeneratorPlugin = PluginImpl<CentroidOriginGenerator, OriginGenerator>;
 using FixedOriginGeneratorPlugin = PluginImpl<FixedOriginGenerator, OriginGenerator>;
+
+struct OffsetOriginGeneratorPlugin : public Plugin<OriginGenerator>
+{
+  std::unique_ptr<OriginGenerator> create(const YAML::Node& config = {}) const override final
+  {
+    std::unique_ptr<OriginGenerator> origin_gen;
+    {
+      auto origin_gen_config = YAML::getMember<YAML::Node>(config, "origin_generator");
+      auto origin_gen_type = YAML::getMember<std::string>(origin_gen_config, "type");
+      auto origin_gen_params = YAML::getMember<YAML::Node>(origin_gen_config, "config");
+      auto origin_gen_loader = getPluginLoaderInstance().createInstance<OriginGeneratorPlugin>(origin_gen_type);
+      origin_gen = origin_gen_loader->create(origin_gen_params);
+    }
+
+    auto offset = YAML::getMember<Eigen::Vector3d>(config, "offset");
+
+    return std::make_unique<OffsetOriginGenerator>(std::move(origin_gen), offset);
+  }
+};
 
 }  // namespace noether
 
@@ -62,8 +118,10 @@ EXPORT_MESH_MODIFIER_PLUGIN(noether::WindowedSincSmoothingMeshModifierPlugin, Wi
 // Direction Generators
 EXPORT_DIRECTION_GENERATOR_PLUGIN(noether::FixedDirectionGeneratorPlugin, FixedDirection)
 EXPORT_DIRECTION_GENERATOR_PLUGIN(noether::PrincipalAxisDirectionGeneratorPlugin, PrincipalAxis)
+EXPORT_DIRECTION_GENERATOR_PLUGIN(noether::PCARotatedDirectionGeneratorPlugin, PCARotated)
 
 // Origin Generators
 EXPORT_ORIGIN_GENERATOR_PLUGIN(noether::AABBCenterOriginGeneratorPlugin, AABBCenter)
 EXPORT_ORIGIN_GENERATOR_PLUGIN(noether::CentroidOriginGeneratorPlugin, Centroid)
 EXPORT_ORIGIN_GENERATOR_PLUGIN(noether::FixedOriginGeneratorPlugin, FixedOrigin)
+EXPORT_ORIGIN_GENERATOR_PLUGIN(noether::OffsetOriginGeneratorPlugin, Offset)
