@@ -55,6 +55,30 @@ struct convert<Eigen::Transform<FloatT, 3, Eigen::Isometry>>
   }
 };
 
+// Serialization for Eigen::Vector<FloatT, 3, 1>
+template <typename FloatT>
+struct convert<Eigen::Matrix<FloatT, 3, 1>>
+{
+  using T = Eigen::Matrix<FloatT, 3, 1>;
+
+  static Node encode(const T& val)
+  {
+    YAML::Node node;
+    node["x"] = val.x();
+    node["y"] = val.y();
+    node["z"] = val.z();
+    return node;
+  }
+
+  static bool decode(const Node& node, T& val)
+  {
+    val.x() = getMember<FloatT>(node, "x");
+    val.y() = getMember<FloatT>(node, "y");
+    val.z() = getMember<FloatT>(node, "z");
+    return true;
+  }
+};
+
 // Serialization for std::vectors with Eigen-specific allocators (e.g., ToolPath objects)
 template <typename T>
 struct convert<std::vector<T, Eigen::aligned_allocator<T>>>

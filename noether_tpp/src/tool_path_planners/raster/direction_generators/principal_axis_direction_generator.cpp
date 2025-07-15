@@ -1,4 +1,5 @@
 #include <noether_tpp/tool_path_planners/raster/direction_generators/principal_axis_direction_generator.h>
+#include <noether_tpp/serialization.h>
 
 #include <boost/make_shared.hpp>
 #include <pcl/common/pca.h>
@@ -25,3 +26,20 @@ Eigen::Vector3d PrincipalAxisDirectionGenerator::generate(const pcl::PolygonMesh
 }
 
 }  // namespace noether
+
+namespace YAML
+{
+Node convert<noether::PrincipalAxisDirectionGenerator>::encode(const T& val)
+{
+  Node node;
+  node["rotation_offset"] = val.rotation_offset_;
+  return node;
+}
+
+bool convert<noether::PrincipalAxisDirectionGenerator>::decode(const Node& node, T& val)
+{
+  val.rotation_offset_ = getMember<double>(node, "rotation_offset");
+  return true;
+}
+
+}  // namespace YAML

@@ -1,8 +1,9 @@
 #pragma once
 
-#include <memory>
-
 #include <noether_tpp/tool_path_planners/raster/raster_planner.h>
+#include <noether_tpp/macros.h>
+
+FWD_DECLARE_YAML_STRUCTS()
 
 namespace noether
 {
@@ -17,8 +18,12 @@ public:
   FixedOriginGenerator(const Eigen::Vector3d& origin = Eigen::Vector3d::Zero());
   Eigen::Vector3d generate(const pcl::PolygonMesh& mesh) const override final;
 
-private:
-  const Eigen::Vector3d origin_;
+protected:
+  Eigen::Vector3d origin_;
+
+  DECLARE_YAML_FRIEND_CLASSES(FixedOriginGenerator)
 };
 
 }  // namespace noether
+
+FWD_DECLARE_YAML_CONVERT(noether::FixedOriginGenerator)
