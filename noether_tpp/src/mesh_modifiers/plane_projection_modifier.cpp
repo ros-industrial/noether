@@ -1,6 +1,7 @@
 #include <noether_tpp/mesh_modifiers/plane_projection_modifier.h>
 #include <noether_tpp/mesh_modifiers/subset_extraction/subset_extractor.h>
 #include <noether_tpp/utils.h>
+#include <noether_tpp/serialization.h>
 
 #include <numeric>
 #include <pcl/sample_consensus/sac_model_plane.h>
@@ -158,3 +159,24 @@ std::vector<pcl::PolygonMesh> PlaneProjectionMeshModifier::modify(const pcl::Pol
 }
 
 }  // namespace noether
+
+namespace YAML
+{
+Node convert<noether::PlaneProjectionMeshModifier>::encode(const T& val)
+{
+  Node node;
+  node["distance_threshold"] = val.distance_threshold_;
+  node["max_planes"] = val.max_planes_;
+  node["min_vertices"] = val.min_vertices_;
+  return node;
+}
+
+bool convert<noether::PlaneProjectionMeshModifier>::decode(const Node& node, T& val)
+{
+  val.distance_threshold_ = getMember<double>(node, "distance_threshold");
+  val.max_planes_ = getMember<int>(node, "max_planes");
+  val.min_vertices_ = getMember<int>(node, "min_vertices");
+  return true;
+}
+
+}  // namespace YAML

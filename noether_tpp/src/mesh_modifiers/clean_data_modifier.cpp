@@ -9,6 +9,7 @@
 
 #include <vtkCleanPolyData.h>
 #include <pcl/io/vtk_lib_io.h>
+#include <yaml-cpp/yaml.h>
 
 namespace noether
 {
@@ -31,3 +32,11 @@ std::vector<pcl::PolygonMesh> CleanData::modify(const pcl::PolygonMesh& mesh_in)
 }
 
 }  // namespace noether
+
+namespace YAML
+{
+Node convert<noether::CleanData>::encode(const T& val) { return {}; }
+
+bool convert<noether::CleanData>::decode(const Node& node, T& val) { return true; }
+
+}  // namespace YAML

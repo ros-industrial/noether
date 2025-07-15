@@ -21,6 +21,9 @@
 #pragma once
 
 #include <noether_tpp/core/mesh_modifier.h>
+#include <noether_tpp/macros.h>
+
+FWD_DECLARE_YAML_STRUCTS()
 
 namespace noether
 {
@@ -38,6 +41,11 @@ public:
 
 protected:
   double max_hole_size_;
+
+  FillHoles() = default;
+  DECLARE_YAML_FRIEND_CLASSES(FillHoles)
 };
 
 }  // namespace noether
+
+FWD_DECLARE_YAML_CONVERT(noether::FillHoles)
