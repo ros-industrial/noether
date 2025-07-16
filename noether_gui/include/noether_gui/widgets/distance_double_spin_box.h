@@ -12,7 +12,7 @@ namespace noether
 class DistanceDoubleSpinBox : public QDoubleSpinBox
 {
 public:
-  using QDoubleSpinBox::QDoubleSpinBox;
+  DistanceDoubleSpinBox(QWidget* parent = nullptr);
 
   double valueFromText(const QString& text) const override;
   QString textFromValue(double val) const override;
