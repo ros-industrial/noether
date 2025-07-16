@@ -1,5 +1,6 @@
 #include <noether_tpp/tool_path_modifiers/circular_lead_out_modifier.h>
 #include <noether_tpp/utils.h>
+#include <noether_tpp/serialization.h>
 
 namespace noether
 {
@@ -42,3 +43,24 @@ ToolPaths CircularLeadOutModifier::modify(ToolPaths tool_paths) const
 }
 
 }  // namespace noether
+
+namespace YAML
+{
+Node convert<noether::CircularLeadOutModifier>::encode(const T& val)
+{
+  Node node;
+  node["arc_angle"] = val.arc_angle_;
+  node["arc_radius"] = val.arc_radius_;
+  node["n_points"] = val.n_points_;
+  return node;
+}
+
+bool convert<noether::CircularLeadOutModifier>::decode(const Node& node, T& val)
+{
+  val.arc_angle_ = getMember<double>(node, "arc_angle");
+  val.arc_radius_ = getMember<double>(node, "arc_radius");
+  val.n_points_ = getMember<int>(node, "n_points");
+  return true;
+}
+
+}  // namespace YAML

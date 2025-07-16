@@ -1,6 +1,9 @@
 #pragma once
 
 #include <noether_tpp/core/tool_path_modifier.h>
+#include <noether_tpp/macros.h>
+
+FWD_DECLARE_YAML_STRUCTS()
 
 namespace noether
 {
@@ -16,8 +19,13 @@ public:
   ToolPaths modify(ToolPaths tool_paths) const override final;
 
 protected:
-  const double angle_offset_;
-  const double tool_radius_;
+  double angle_offset_;
+  double tool_radius_;
+
+  BiasedToolDragOrientationToolPathModifier() = default;
+  DECLARE_YAML_FRIEND_CLASSES(BiasedToolDragOrientationToolPathModifier)
 };
 
 }  // namespace noether
+
+FWD_DECLARE_YAML_CONVERT(noether::BiasedToolDragOrientationToolPathModifier)

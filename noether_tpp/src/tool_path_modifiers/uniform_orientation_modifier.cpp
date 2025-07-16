@@ -1,4 +1,5 @@
 #include <noether_tpp/tool_path_modifiers/uniform_orientation_modifier.h>
+#include <noether_tpp/serialization.h>
 
 namespace noether
 {
@@ -29,3 +30,11 @@ ToolPaths UniformOrientationModifier::modify(ToolPaths tool_paths) const
 };
 
 }  // namespace noether
+
+namespace YAML
+{
+Node convert<noether::UniformOrientationModifier>::encode(const T& val) { return {}; }
+
+bool convert<noether::UniformOrientationModifier>::decode(const Node& node, T& val) { return true; }
+
+}  // namespace YAML

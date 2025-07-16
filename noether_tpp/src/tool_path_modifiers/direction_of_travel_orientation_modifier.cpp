@@ -1,4 +1,5 @@
 #include <noether_tpp/tool_path_modifiers/direction_of_travel_orientation_modifier.h>
+#include <noether_tpp/serialization.h>
 
 namespace noether
 {
@@ -47,3 +48,11 @@ ToolPaths DirectionOfTravelOrientationModifier::modify(ToolPaths tool_paths) con
 }
 
 }  // namespace noether
+
+namespace YAML
+{
+Node convert<noether::DirectionOfTravelOrientationModifier>::encode(const T& val) { return {}; }
+
+bool convert<noether::DirectionOfTravelOrientationModifier>::decode(const Node& node, T& val) { return true; }
+
+}  // namespace YAML

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <noether_tpp/tool_path_modifiers/linear_approach_modifier.h>
+#include <noether_tpp/macros.h>
 
 namespace noether
 {
@@ -14,6 +15,11 @@ public:
   using LinearApproachModifier::LinearApproachModifier;
 
   ToolPaths modify(ToolPaths tool_paths) const override final;
+
+protected:
+  DECLARE_YAML_FRIEND_CLASSES(LinearDepartureModifier);
 };
 
 }  // namespace noether
+
+FWD_DECLARE_YAML_CONVERT(noether::LinearDepartureModifier)

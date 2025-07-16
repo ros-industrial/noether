@@ -1,4 +1,5 @@
 #include <noether_tpp/tool_path_modifiers/linear_departure_modifier.h>
+#include <noether_tpp/serialization.h>
 
 namespace noether
 {
@@ -28,3 +29,17 @@ ToolPaths LinearDepartureModifier::modify(ToolPaths tool_paths) const
 }
 
 }  // namespace noether
+
+namespace YAML
+{
+Node convert<noether::LinearDepartureModifier>::encode(const T& val)
+{
+  return convert<noether::LinearApproachModifier>::encode(val);
+}
+
+bool convert<noether::LinearDepartureModifier>::decode(const Node& node, T& val)
+{
+  return convert<noether::LinearApproachModifier>::decode(node, val);
+}
+
+}  // namespace YAML

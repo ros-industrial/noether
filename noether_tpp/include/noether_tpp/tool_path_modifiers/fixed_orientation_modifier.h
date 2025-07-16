@@ -1,6 +1,9 @@
 #pragma once
 
 #include <noether_tpp/core/tool_path_modifier.h>
+#include <noether_tpp/macros.h>
+
+FWD_DECLARE_YAML_STRUCTS()
 
 namespace noether
 {
@@ -21,7 +24,12 @@ public:
 
 protected:
   /** @brief Reference x-axis direction */
-  const Eigen::Vector3d ref_x_dir_;
+  Eigen::Vector3d ref_x_dir_;
+
+  FixedOrientationModifier() = default;
+  DECLARE_YAML_FRIEND_CLASSES(FixedOrientationModifier)
 };
 
 }  // namespace noether
+
+FWD_DECLARE_YAML_CONVERT(noether::FixedOrientationModifier)

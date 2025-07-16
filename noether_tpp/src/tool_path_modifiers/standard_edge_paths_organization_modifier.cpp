@@ -1,5 +1,6 @@
 #include <noether_tpp/tool_path_modifiers/standard_edge_paths_organization_modifier.h>
 #include <noether_tpp/utils.h>
+#include <noether_tpp/serialization.h>
 
 #include <numeric>
 
@@ -156,3 +157,20 @@ ToolPaths StandardEdgePathsOrganizationModifier::modify(ToolPaths tool_paths) co
 }
 
 }  // namespace noether
+
+namespace YAML
+{
+Node convert<noether::StandardEdgePathsOrganizationModifier>::encode(const T& val)
+{
+  Node node;
+  node["start_reference"] = val.start_reference_;
+  return node;
+}
+
+bool convert<noether::StandardEdgePathsOrganizationModifier>::decode(const Node& node, T& val)
+{
+  val.start_reference_ = getMember<Eigen::Vector3d>(node, "start_reference");
+  return true;
+}
+
+}  // namespace YAML
