@@ -91,10 +91,9 @@ struct Plugin_CompoundMeshModifier : public Plugin<MeshModifier>
     auto modifiers_config = YAML::getMember<YAML::Node>(config, "modifiers");
     for (const YAML::Node& entry : modifiers_config)
     {
-      auto entry_type = YAML::getMember<std::string>(entry, "type");
-      auto entry_config = YAML::getMember<YAML::Node>(entry, "config");
-      auto mesh_mod_plugin = loader.createInstance<MeshModifierPlugin>(entry_type);
-      modifiers.push_back(mesh_mod_plugin->create(entry_config));
+      auto name = YAML::getMember<std::string>(entry, "name");
+      auto mesh_mod_plugin = loader.createInstance<MeshModifierPlugin>(name);
+      modifiers.push_back(mesh_mod_plugin->create(entry));
     }
 
     return std::make_unique<CompoundMeshModifier>(std::move(modifiers));
@@ -112,10 +111,9 @@ struct Plugin_PCARotatedDirectionGenerator : public Plugin<DirectionGenerator>
     std::unique_ptr<DirectionGenerator> dir_gen;
     {
       auto dir_gen_config = YAML::getMember<YAML::Node>(config, "direction_generator");
-      auto dir_gen_type = YAML::getMember<std::string>(dir_gen_config, "type");
-      auto dir_gen_params = YAML::getMember<YAML::Node>(dir_gen_config, "config");
-      auto dir_gen_loader = getPluginLoaderInstance().createInstance<DirectionGeneratorPlugin>(dir_gen_type);
-      dir_gen = dir_gen_loader->create(dir_gen_params);
+      auto dir_gen_name = YAML::getMember<std::string>(dir_gen_config, "name");
+      auto dir_gen_plugin = getPluginLoaderInstance().createInstance<DirectionGeneratorPlugin>(dir_gen_name);
+      dir_gen = dir_gen_plugin->create(dir_gen_config);
     }
 
     auto rotation_offset = YAML::getMember<double>(config, "rotation_offset");
@@ -136,10 +134,9 @@ struct Plugin_OffsetOriginGenerator : public Plugin<OriginGenerator>
     std::unique_ptr<OriginGenerator> origin_gen;
     {
       auto origin_gen_config = YAML::getMember<YAML::Node>(config, "origin_generator");
-      auto origin_gen_type = YAML::getMember<std::string>(origin_gen_config, "type");
-      auto origin_gen_params = YAML::getMember<YAML::Node>(origin_gen_config, "config");
-      auto origin_gen_loader = getPluginLoaderInstance().createInstance<OriginGeneratorPlugin>(origin_gen_type);
-      origin_gen = origin_gen_loader->create(origin_gen_params);
+      auto origin_gen_name = YAML::getMember<std::string>(origin_gen_config, "name");
+      auto origin_gen_plugin = getPluginLoaderInstance().createInstance<OriginGeneratorPlugin>(origin_gen_name);
+      origin_gen = origin_gen_plugin->create(origin_gen_config);
     }
 
     auto offset = YAML::getMember<Eigen::Vector3d>(config, "offset");
@@ -158,19 +155,17 @@ struct Plugin_PlaneSlicerRasterPlanner : public Plugin<ToolPathPlanner>
     std::unique_ptr<DirectionGenerator> dir_gen;
     {
       auto dir_gen_config = YAML::getMember<YAML::Node>(config, "direction_generator");
-      auto dir_gen_type = YAML::getMember<std::string>(dir_gen_config, "type");
-      auto dir_gen_params = YAML::getMember<YAML::Node>(dir_gen_config, "config");
-      auto dir_gen_loader = getPluginLoaderInstance().createInstance<DirectionGeneratorPlugin>(dir_gen_type);
-      dir_gen = dir_gen_loader->create(dir_gen_params);
+      auto dir_gen_name = YAML::getMember<std::string>(dir_gen_config, "name");
+      auto dir_gen_plugin = getPluginLoaderInstance().createInstance<DirectionGeneratorPlugin>(dir_gen_name);
+      dir_gen = dir_gen_plugin->create(dir_gen_config);
     }
 
     std::unique_ptr<OriginGenerator> origin_gen;
     {
       auto origin_gen_config = YAML::getMember<YAML::Node>(config, "origin_generator");
-      auto origin_gen_type = YAML::getMember<std::string>(origin_gen_config, "type");
-      auto origin_gen_params = YAML::getMember<YAML::Node>(origin_gen_config, "config");
-      auto origin_gen_loader = getPluginLoaderInstance().createInstance<OriginGeneratorPlugin>(origin_gen_type);
-      origin_gen = origin_gen_loader->create(origin_gen_params);
+      auto origin_gen_name = YAML::getMember<std::string>(origin_gen_config, "name");
+      auto origin_gen_plugin = getPluginLoaderInstance().createInstance<OriginGeneratorPlugin>(origin_gen_name);
+      origin_gen = origin_gen_plugin->create(origin_gen_config);
     }
 
     auto tpp = std::make_unique<PlaneSlicerRasterPlanner>(std::move(dir_gen), std::move(origin_gen));
@@ -195,11 +190,10 @@ struct Plugin_MultiToolPathPlanner : public Plugin<ToolPathPlanner>
     tool_path_planners.reserve(config.size());
 
     auto planners_config = YAML::getMember<YAML::Node>(config, "planners");
-    for (const YAML::Node& entry : planners_config)
+    for (const YAML::Node& entry_config : planners_config)
     {
-      auto entry_type = YAML::getMember<std::string>(entry, "type");
-      auto entry_config = YAML::getMember<YAML::Node>(entry, "config");
-      auto tpp_plugin = loader.createInstance<ToolPathPlannerPlugin>(entry_type);
+      auto entry_name = YAML::getMember<std::string>(entry_config, "name");
+      auto tpp_plugin = loader.createInstance<ToolPathPlannerPlugin>(entry_name);
       tool_path_planners.push_back(tpp_plugin->create(entry_config));
     }
 
