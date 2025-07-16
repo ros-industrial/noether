@@ -1,26 +1,72 @@
+#include <boost_plugin_loader/plugin_loader.h>
 #include <gtest/gtest.h>
 #include <random>
 
-#include <noether_tpp/core/tool_path_modifier.h>
+#include <noether_tpp/plugin_interface.h>
+#include <noether_tpp/serialization.h>
 // Implementations
-#include <noether_tpp/tool_path_modifiers/biased_tool_drag_orientation_modifier.h>
-#include <noether_tpp/tool_path_modifiers/circular_lead_in_modifier.h>
-#include <noether_tpp/tool_path_modifiers/circular_lead_out_modifier.h>
-#include <noether_tpp/tool_path_modifiers/concatenate_modifier.h>
-#include <noether_tpp/tool_path_modifiers/direction_of_travel_orientation_modifier.h>
-#include <noether_tpp/tool_path_modifiers/fixed_orientation_modifier.h>
-#include <noether_tpp/tool_path_modifiers/linear_approach_modifier.h>
-#include <noether_tpp/tool_path_modifiers/linear_departure_modifier.h>
-#include <noether_tpp/tool_path_modifiers/moving_average_orientation_smoothing_modifier.h>
-#include <noether_tpp/tool_path_modifiers/offset_modifier.h>
 #include <noether_tpp/tool_path_modifiers/raster_organization_modifier.h>
 #include <noether_tpp/tool_path_modifiers/snake_organization_modifier.h>
-#include <noether_tpp/tool_path_modifiers/uniform_spacing_spline_modifier.h>
 #include <noether_tpp/tool_path_modifiers/standard_edge_paths_organization_modifier.h>
-#include <noether_tpp/tool_path_modifiers/tool_drag_orientation_modifier.h>
-#include <noether_tpp/tool_path_modifiers/uniform_orientation_modifier.h>
-#include <noether_tpp/tool_path_modifiers/uniform_spacing_linear_modifier.h>
 #include "utils.h"
+
+/**
+ * @brief YAML configuration string for the tool path modifiers
+ */
+std::string config_str = R"(
+- name: BiasedToolDragOrientation
+  angle_offset: &angle_offset 0.175  # 10 * M_PI / 180.0
+  tool_radius: &tool_radius 0.025
+- name: CircularLeadIn
+  arc_angle: &arc_angle 1.571   # M_PI / 2.0
+  arc_radius: &arc_radius 0.1
+  n_points: &n_points 5
+- name: CircularLeadOut
+  arc_angle: *arc_angle
+  arc_radius: *arc_radius
+  n_points: *n_points
+- name: Concatenate
+- name: DirectionOfTravelOrientation
+- name: FixedOrientation
+  ref_x_dir:
+    x: 1.0
+    y: 0.0
+    z: 0.0
+- &linear_approach
+  name: LinearApproach
+  offset: &linear_offset
+    x: 0.1
+    y: 0.2
+    z: 0.3
+  n_points: *n_points
+- &linear_departure
+  name: LinearDeparture
+  offset: *linear_offset
+  n_points: *n_points
+- name: MovingAverageOrientationSmoothing
+  window_size: 3
+- name: Offset
+  offset:
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    qw: 1.0
+    qx: 0.0
+    qy: 0.0
+    qz: 0.0
+- name: ToolDragOrientation
+  angle_offset: *angle_offset
+  tool_radius: *tool_radius
+- name: UniformOrientation
+- name: UniformSpacingLinear
+  point_spacing: 0.025
+- name: UniformSpacingSpline
+  point_spacing: 0.025
+- name: CompoundToolPathModifier
+  modifiers:
+    - *linear_approach
+    - *linear_departure
+)";
 
 using namespace noether;
 
@@ -243,25 +289,27 @@ TEST_P(OneTimeToolPathModifierTestFixture, TestOperation)
 // Create a vector of implementations for the modifiers
 std::vector<std::shared_ptr<const ToolPathModifier>> createModifiers()
 {
-  return { std::make_shared<BiasedToolDragOrientationToolPathModifier>(10 * M_PI / 180.0, 0.025),
-           std::make_shared<CircularLeadInModifier>(M_PI / 2.0, 0.1, 5),
-           std::make_shared<CircularLeadOutModifier>(M_PI / 2.0, 0.1, 5),
-           std::make_shared<ConcatenateModifier>(),
-           std::make_shared<DirectionOfTravelOrientationModifier>(),
-           std::make_shared<FixedOrientationModifier>(Eigen::Vector3d(1, 0, 0)),
-           std::make_shared<LinearApproachModifier>(Eigen::Vector3d(0.1, 0.2, 0.3), 5),
-           std::make_shared<LinearApproachModifier>(0.1, LinearApproachModifier::Axis::Z, 5),
-           std::make_shared<LinearDepartureModifier>(Eigen::Vector3d(0.1, 0.2, 0.3), 5),
-           std::make_shared<LinearDepartureModifier>(0.1, LinearDepartureModifier::Axis::Z, 5),
-           std::make_shared<MovingAverageOrientationSmoothingModifier>(3),
-           std::make_shared<OffsetModifier>(Eigen::Isometry3d::Identity()),
-           std::make_shared<RasterOrganizationModifier>(),
-           std::make_shared<SnakeOrganizationModifier>(),
-           std::make_shared<UniformSpacingSplineModifier>(0.025),
-           std::make_shared<StandardEdgePathsOrganizationModifier>(),
-           std::make_shared<ToolDragOrientationToolPathModifier>(10 * M_PI / 180.0, 0.025),
-           std::make_shared<UniformOrientationModifier>(),
-           std::make_shared<UniformSpacingLinearModifier>(0.025) };
+  // Create the plugin loader
+  boost_plugin_loader::PluginLoader loader;
+  loader.search_libraries.insert(NOETHER_PLUGIN_LIB);
+  loader.search_libraries_env = NOETHER_PLUGIN_LIBS_ENV;
+  loader.search_paths_env = NOETHER_PLUGIN_PATHS_ENV;
+
+  // Load the plugin YAML config
+  YAML::Node config = YAML::Load(config_str);
+
+  // Load the tool path modifiers
+  std::vector<std::shared_ptr<const ToolPathModifier>> modifiers;
+  modifiers.reserve(config.size());
+
+  for (const YAML::Node& entry_config : config)
+  {
+    auto name = YAML::getMember<std::string>(entry_config, "name");
+    auto plugin = loader.createInstance<ToolPathModifierPlugin>(name);
+    modifiers.push_back(plugin->create(entry_config));
+  }
+
+  return modifiers;
 }
 
 std::vector<std::shared_ptr<const OneTimeToolPathModifier>> createOneTimeModifiers()
