@@ -6,6 +6,7 @@
 
 // Mesh modifiers
 #include <noether_tpp/mesh_modifiers/clean_data_modifier.h>
+#include <noether_tpp/mesh_modifiers/compound_modifier.h>
 #include <noether_tpp/mesh_modifiers/euclidean_clustering_modifier.h>
 #include <noether_tpp/mesh_modifiers/fill_holes_modifier.h>
 #include <noether_tpp/mesh_modifiers/normal_estimation_pcl.h>
@@ -32,6 +33,7 @@
 #include <noether_tpp/tool_path_modifiers/biased_tool_drag_orientation_modifier.h>
 #include <noether_tpp/tool_path_modifiers/circular_lead_in_modifier.h>
 #include <noether_tpp/tool_path_modifiers/circular_lead_out_modifier.h>
+#include <noether_tpp/tool_path_modifiers/compound_modifier.h>
 #include <noether_tpp/tool_path_modifiers/concatenate_modifier.h>
 #include <noether_tpp/tool_path_modifiers/direction_of_travel_orientation_modifier.h>
 #include <noether_tpp/tool_path_modifiers/fixed_orientation_modifier.h>
@@ -75,6 +77,28 @@ using Plugin_NormalEstimationPCLMeshModifier = PluginImpl<NormalEstimationPCLMes
 using Plugin_NormalsFromMeshFacesMeshModifier = PluginImpl<NormalsFromMeshFacesMeshModifier, MeshModifier>;
 using Plugin_PlaneProjectionMeshModifier = PluginImpl<PlaneProjectionMeshModifier, MeshModifier>;
 using Plugin_WindowedSincSmoothingMeshModifier = PluginImpl<WindowedSincSmoothing, MeshModifier>;
+
+struct Plugin_CompoundMeshModifier : public Plugin<MeshModifier>
+{
+  std::unique_ptr<MeshModifier> create(const YAML::Node& config = {}) const override final
+  {
+    const boost_plugin_loader::PluginLoader& loader = getPluginLoaderInstance();
+
+    std::vector<MeshModifier::ConstPtr> modifiers;
+    modifiers.reserve(config.size());
+
+    auto modifiers_config = YAML::getMember<YAML::Node>(config, "modifiers");
+    for (const YAML::Node& entry : modifiers_config)
+    {
+      auto entry_type = YAML::getMember<std::string>(entry, "type");
+      auto entry_config = YAML::getMember<YAML::Node>(entry, "config");
+      auto mesh_mod_plugin = loader.createInstance<MeshModifierPlugin>(entry_type);
+      modifiers.push_back(mesh_mod_plugin->create(entry_config));
+    }
+
+    return std::make_unique<CompoundMeshModifier>(std::move(modifiers));
+  }
+};
 
 // Direction Generators
 using Plugin_FixedDirectionGenerator = PluginImpl<FixedDirectionGenerator, DirectionGenerator>;
@@ -182,10 +206,32 @@ using Plugin_UniformOrientationModifier = PluginImpl<UniformOrientationModifier,
 using Plugin_UniformSpacingLinearModifier = PluginImpl<UniformSpacingLinearModifier, ToolPathModifier>;
 using Plugin_UniformSpacingSplineModifier = PluginImpl<UniformSpacingSplineModifier, ToolPathModifier>;
 
+struct Plugin_CompoundToolPathModifier : public Plugin<ToolPathModifier>
+{
+  std::unique_ptr<ToolPathModifier> create(const YAML::Node& config = {}) const override final
+  {
+    const boost_plugin_loader::PluginLoader& loader = getPluginLoaderInstance();
+
+    std::vector<ToolPathModifier::ConstPtr> modifiers;
+    modifiers.reserve(config.size());
+
+    auto modifiers_config = YAML::getMember<YAML::Node>(config, "modifiers");
+    for (const YAML::Node& entry : modifiers_config)
+    {
+      auto entry_name = YAML::getMember<std::string>(entry, "name");
+      auto tool_path_mod_plugin = loader.createInstance<ToolPathModifierPlugin>(entry_name);
+      modifiers.push_back(tool_path_mod_plugin->create(entry));
+    }
+
+    return std::make_unique<CompoundModifier>(std::move(modifiers));
+  }
+};
+
 }  // namespace noether
 
 // Mesh Modifiers
 EXPORT_MESH_MODIFIER_PLUGIN(noether::Plugin_CleanDataMeshModifier, CleanData)
+EXPORT_MESH_MODIFIER_PLUGIN(noether::Plugin_CompoundMeshModifier, CompoundMeshModifier)
 EXPORT_MESH_MODIFIER_PLUGIN(noether::Plugin_EuclideanClusteringMeshModifier, EuclideanClustering)
 EXPORT_MESH_MODIFIER_PLUGIN(noether::Plugin_FillHolesMeshModifier, FillHoles)
 EXPORT_MESH_MODIFIER_PLUGIN(noether::Plugin_NormalEstimationPCLMeshModifier, NormalEstimationPCL)
@@ -212,6 +258,7 @@ EXPORT_TOOL_PATH_PLANNER_PLUGIN(noether::Plugin_PlaneSlicerRasterPlanner, PlaneS
 EXPORT_TOOL_PATH_MODIFIER_PLUGIN(noether::Plugin_BiasedToolDragOrientationToolPathModifier, BiasedToolDragOrientation)
 EXPORT_TOOL_PATH_MODIFIER_PLUGIN(noether::Plugin_CircularLeadInModifier, CircularLeadIn)
 EXPORT_TOOL_PATH_MODIFIER_PLUGIN(noether::Plugin_CircularLeadOutModifier, CircularLeadOut)
+EXPORT_TOOL_PATH_MODIFIER_PLUGIN(noether::Plugin_CompoundToolPathModifier, CompoundToolPathModifier)
 EXPORT_TOOL_PATH_MODIFIER_PLUGIN(noether::Plugin_ConcatenateModifier, Concatenate)
 EXPORT_TOOL_PATH_MODIFIER_PLUGIN(noether::Plugin_DirectionOfTravelOrientationModifier, DirectionOfTravelOrientation)
 EXPORT_TOOL_PATH_MODIFIER_PLUGIN(noether::Plugin_FixedOrientationModifier, FixedOrientation)
