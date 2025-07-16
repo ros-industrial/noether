@@ -28,6 +28,7 @@
 // Tool Path Planners
 #include <noether_tpp/tool_path_planners/edge/boundary_edge_planner.h>
 #include <noether_tpp/tool_path_planners/raster/plane_slicer_raster_planner.h>
+#include <noether_tpp/tool_path_planners/multi_tool_path_planner.h>
 
 // Tool Path Modifiers
 #include <noether_tpp/tool_path_modifiers/biased_tool_drag_orientation_modifier.h>
@@ -184,6 +185,28 @@ struct Plugin_PlaneSlicerRasterPlanner : public Plugin<ToolPathPlanner>
   }
 };
 
+struct Plugin_MultiToolPathPlanner : public Plugin<ToolPathPlanner>
+{
+  std::unique_ptr<ToolPathPlanner> create(const YAML::Node& config = {}) const override final
+  {
+    const boost_plugin_loader::PluginLoader& loader = getPluginLoaderInstance();
+
+    std::vector<ToolPathPlanner::ConstPtr> tool_path_planners;
+    tool_path_planners.reserve(config.size());
+
+    auto planners_config = YAML::getMember<YAML::Node>(config, "planners");
+    for (const YAML::Node& entry : planners_config)
+    {
+      auto entry_type = YAML::getMember<std::string>(entry, "type");
+      auto entry_config = YAML::getMember<YAML::Node>(entry, "config");
+      auto tpp_plugin = loader.createInstance<ToolPathPlannerPlugin>(entry_type);
+      tool_path_planners.push_back(tpp_plugin->create(entry_config));
+    }
+
+    return std::make_unique<MultiToolPathPlanner>(std::move(tool_path_planners));
+  }
+};
+
 // Tool Path Modifiers
 using Plugin_BiasedToolDragOrientationToolPathModifier =
     PluginImpl<BiasedToolDragOrientationToolPathModifier, ToolPathModifier>;
@@ -253,6 +276,7 @@ EXPORT_ORIGIN_GENERATOR_PLUGIN(noether::Plugin_OffsetOriginGenerator, OffsetDire
 // Tool Path Planners
 EXPORT_TOOL_PATH_PLANNER_PLUGIN(noether::Plugin_BoundaryEdgePlanner, Boundary)
 EXPORT_TOOL_PATH_PLANNER_PLUGIN(noether::Plugin_PlaneSlicerRasterPlanner, PlaneSlicer)
+EXPORT_TOOL_PATH_PLANNER_PLUGIN(noether::Plugin_MultiToolPathPlanner, Multi)
 
 // Tool Path Modifiers
 EXPORT_TOOL_PATH_MODIFIER_PLUGIN(noether::Plugin_BiasedToolDragOrientationToolPathModifier, BiasedToolDragOrientation)
