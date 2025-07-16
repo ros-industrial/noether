@@ -1,4 +1,5 @@
 #include <noether_gui/widgets/tool_path_modifiers/circular_lead_in_modifier_widget.h>
+#include <noether_gui/widgets/angle_double_spin_box.h>
 #include <noether_gui/widgets/distance_double_spin_box.h>
 #include <noether_gui/utils.h>
 
@@ -18,10 +19,9 @@ CircularLeadInToolPathModifierWidget::CircularLeadInToolPathModifierWidget(QWidg
 {
   auto layout = new QFormLayout(this);
 
-  arc_angle_ = new QDoubleSpinBox(this);
+  arc_angle_ = new AngleDoubleSpinBox(this);
   arc_angle_->setMinimum(0.0);
-  arc_angle_->setSingleStep(1.0);
-  arc_angle_->setValue(90.0);
+  arc_angle_->setValue(M_PI_2);
   arc_angle_->setDecimals(3);
   auto label = new QLabel("Arc sweep (deg)", this);
   label->setToolTip("How far along the approach trajectory arc the waypoints extend from the first waypoint of the "
@@ -37,6 +37,7 @@ CircularLeadInToolPathModifierWidget::CircularLeadInToolPathModifierWidget(QWidg
   auto label_rad = new QLabel("Arc radius", this);
   label_rad->setToolTip("Distance from the first segment point to the center of the approach trajectory arc");
   layout->addRow(label_rad, arc_radius_);
+
   // Number of points
   n_points_ = new QSpinBox(this);
   n_points_->setMinimum(0.0);

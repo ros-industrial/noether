@@ -1,4 +1,5 @@
 #include <noether_gui/widgets/tool_path_modifiers/circular_lead_out_modifier_widget.h>
+#include <noether_gui/widgets/angle_double_spin_box.h>
 #include <noether_gui/widgets/distance_double_spin_box.h>
 #include <noether_gui/utils.h>
 
@@ -19,12 +20,11 @@ CircularLeadOutToolPathModifierWidget::CircularLeadOutToolPathModifierWidget(QWi
   auto layout = new QFormLayout(this);
 
   // Lead out angle (how steep or shallow the exit of the tool path is)
-  arc_angle_ = new QDoubleSpinBox(this);
+  arc_angle_ = new AngleDoubleSpinBox(this);
   arc_angle_->setMinimum(0.0);
-  arc_angle_->setSingleStep(1.0);
-  arc_angle_->setValue(90.0);
+  arc_angle_->setValue(M_PI_2);
   arc_angle_->setDecimals(3);
-  auto label = new QLabel("Arc sweep (deg)", this);
+  auto label = new QLabel("Arc sweep", this);
   label->setToolTip("How far along the exit trajectory arc the waypoints extend from the last waypoint of the segment");
   layout->addRow(label, arc_angle_);
 

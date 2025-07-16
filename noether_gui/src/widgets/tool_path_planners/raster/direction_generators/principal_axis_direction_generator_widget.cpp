@@ -1,4 +1,5 @@
 #include <noether_gui/widgets/tool_path_planners/raster/direction_generators/principal_axis_direction_generator_widget.h>
+#include <noether_gui/widgets/angle_double_spin_box.h>
 #include <noether_gui/utils.h>
 
 #include <noether_tpp/tool_path_planners/raster/direction_generators/principal_axis_direction_generator.h>
@@ -12,12 +13,11 @@ namespace noether
 PrincipalAxisDirectionGeneratorWidget::PrincipalAxisDirectionGeneratorWidget(QWidget* parent)
   : DirectionGeneratorWidget(parent)
   , layout_(new QFormLayout(this))
-  , label_(new QLabel("Rotation offset (deg)", this))
-  , rotation_offset_(new QDoubleSpinBox(this))
+  , label_(new QLabel("Rotation offset", this))
+  , rotation_offset_(new AngleDoubleSpinBox(this))
 {
   layout_->addRow(label_, rotation_offset_);
-  rotation_offset_->setValue(0.0);
-  rotation_offset_->setRange(-180.0, 180.0);
+  rotation_offset_->setValue(M_PI_2);
   rotation_offset_->setDecimals(3);
 }
 
