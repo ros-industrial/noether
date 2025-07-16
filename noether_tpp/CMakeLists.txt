@@ -116,6 +116,9 @@ target_link_libraries(${PROJECT_NAME}_plugins PUBLIC ${PROJECT_NAME} yaml-cpp bo
 target_cxx_version(${PROJECT_NAME}_plugins PUBLIC VERSION 14)
 target_clang_tidy(${PROJECT_NAME}_plugins ENABLE ${NOETHER_ENABLE_CLANG_TIDY})
 
+# Add the name of the plugin library as a private compile definition for the core library
+target_compile_definitions(${PROJECT_NAME} PUBLIC NOETHER_PLUGIN_LIB="${PROJECT_NAME}_plugins")
+
 # Install headers
 install(DIRECTORY include/ DESTINATION include/)
 

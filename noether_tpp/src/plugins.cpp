@@ -55,7 +55,7 @@ namespace noether
 static const boost_plugin_loader::PluginLoader& getPluginLoaderInstance()
 {
   static boost_plugin_loader::PluginLoader loader;
-  loader.search_libraries.insert("noether_tpp_plugins");
+  loader.search_libraries.insert(NOETHER_PLUGIN_LIB);
   loader.search_libraries_env = NOETHER_PLUGIN_LIBS_ENV;
   loader.search_paths_env = NOETHER_PLUGIN_PATHS_ENV;
   return loader;
