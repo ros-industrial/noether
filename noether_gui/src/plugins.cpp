@@ -65,68 +65,69 @@ struct WidgetPluginImpl : WidgetPlugin<BaseWidgetT>
 };
 
 // Direction Generators
-using FixedDirectionGeneratorWidgetPlugin = WidgetPluginImpl<FixedDirectionGeneratorWidget, DirectionGeneratorWidget>;
+using Plugin_FixedDirectionGeneratorWidget = WidgetPluginImpl<FixedDirectionGeneratorWidget, DirectionGeneratorWidget>;
 
-using PrincipalAxisDirectionGeneratorWidgetPlugin =
+using Plugin_PrincipalAxisDirectionGeneratorWidget =
     WidgetPluginImpl<PrincipalAxisDirectionGeneratorWidget, DirectionGeneratorWidget>;
 
 // Origin Generators
-using FixedOriginGeneratorWidgetPlugin = WidgetPluginImpl<FixedOriginGeneratorWidget, OriginGeneratorWidget>;
+using Plugin_FixedOriginGeneratorWidget = WidgetPluginImpl<FixedOriginGeneratorWidget, OriginGeneratorWidget>;
 
-using CentroidOriginGeneratorWidgetPlugin = WidgetPluginImpl<CentroidOriginGeneratorWidget, OriginGeneratorWidget>;
+using Plugin_CentroidOriginGeneratorWidget = WidgetPluginImpl<CentroidOriginGeneratorWidget, OriginGeneratorWidget>;
 
-using AABBOriginGeneratorWidgetPlugin = WidgetPluginImpl<AABBOriginGeneratorWidget, OriginGeneratorWidget>;
+using Plugin_AABBOriginGeneratorWidget = WidgetPluginImpl<AABBOriginGeneratorWidget, OriginGeneratorWidget>;
 
 // Tool Path Modifiers
-using StandardEdgePathsOrganizationModifierWidgetPlugin =
+using Plugin_StandardEdgePathsOrganizationModifierWidget =
     WidgetPluginImpl<StandardEdgePathsOrganizationModifierWidget, ToolPathModifierWidget>;
 
-using RasterOrganizationModifierWidgetPlugin =
+using Plugin_RasterOrganizationModifierWidget =
     WidgetPluginImpl<RasterOrganizationModifierWidget, ToolPathModifierWidget>;
 
-using SnakeOrganizationModifierWidgetPlugin = WidgetPluginImpl<SnakeOrganizationModifierWidget, ToolPathModifierWidget>;
+using Plugin_SnakeOrganizationModifierWidget =
+    WidgetPluginImpl<SnakeOrganizationModifierWidget, ToolPathModifierWidget>;
 
-using FixedOrientationModifierWidgetPlugin = WidgetPluginImpl<FixedOrientationModifierWidget, ToolPathModifierWidget>;
+using Plugin_FixedOrientationModifierWidget = WidgetPluginImpl<FixedOrientationModifierWidget, ToolPathModifierWidget>;
 
-using DirectionOfTravelOrientationModifierWidgetPlugin =
+using Plugin_DirectionOfTravelOrientationModifierWidget =
     WidgetPluginImpl<DirectionOfTravelOrientationModifierWidget, ToolPathModifierWidget>;
 
-using UniformOrientationModifierWidgetPlugin =
+using Plugin_UniformOrientationModifierWidget =
     WidgetPluginImpl<UniformOrientationModifierWidget, ToolPathModifierWidget>;
 
-using MovingAverageOrientationSmoothingModifierWidgetPlugin =
+using Plugin_MovingAverageOrientationSmoothingModifierWidget =
     WidgetPluginImpl<MovingAverageOrientationSmoothingModifierWidget, ToolPathModifierWidget>;
 
-using ToolDragOrientationToolPathModifierWidgetPlugin =
+using Plugin_ToolDragOrientationToolPathModifierWidget =
     WidgetPluginImpl<ToolDragOrientationToolPathModifierWidget, ToolPathModifierWidget>;
 
-using BiasedToolDragOrientationToolPathModifierWidgetPlugin =
+using Plugin_BiasedToolDragOrientationToolPathModifierWidget =
     WidgetPluginImpl<BiasedToolDragOrientationToolPathModifierWidget, ToolPathModifierWidget>;
 
-using CircularLeadInToolPathModifierWidgetPlugin =
+using Plugin_CircularLeadInToolPathModifierWidget =
     WidgetPluginImpl<CircularLeadInToolPathModifierWidget, ToolPathModifierWidget>;
 
-using CircularLeadOutToolPathModifierWidgetPlugin =
+using Plugin_CircularLeadOutToolPathModifierWidget =
     WidgetPluginImpl<CircularLeadOutToolPathModifierWidget, ToolPathModifierWidget>;
 
-using LinearApproachToolPathModifierWidgetPlugin =
+using Plugin_LinearApproachToolPathModifierWidget =
     WidgetPluginImpl<LinearApproachToolPathModifierWidget, ToolPathModifierWidget>;
 
-using LinearDepartureToolPathModifierWidgetPlugin =
+using Plugin_LinearDepartureToolPathModifierWidget =
     WidgetPluginImpl<LinearDepartureToolPathModifierWidget, ToolPathModifierWidget>;
 
-using ConcatenateModifierWidgetPlugin = WidgetPluginImpl<ConcatenateModifierWidget, ToolPathModifierWidget>;
+using Plugin_ConcatenateModifierWidget = WidgetPluginImpl<ConcatenateModifierWidget, ToolPathModifierWidget>;
 
-using OffsetModifierWidgetPlugin = WidgetPluginImpl<OffsetModifierWidget, ToolPathModifierWidget>;
+using Plugin_OffsetModifierWidget = WidgetPluginImpl<OffsetModifierWidget, ToolPathModifierWidget>;
 
-using UniformSpacingSplineModifierWidgetPlugin =
+using Plugin_UniformSpacingSplineModifierWidget =
     WidgetPluginImpl<UniformSpacingSplineModifierWidget, ToolPathModifierWidget>;
 
-using UniformSpacingLinearModifierWidgetPlugin =
+using Plugin_UniformSpacingLinearModifierWidget =
     WidgetPluginImpl<UniformSpacingLinearModifierWidget, ToolPathModifierWidget>;
 
 // Raster Tool Path Planners
-struct PlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlugin
+struct Plugin_PlaneSlicerRasterPlannerWidget : ToolPathPlannerWidgetPlugin
 {
   ToolPathPlannerWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
   {
@@ -145,7 +146,7 @@ struct PlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlugin
   }
 };
 
-struct CrossHatchPlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlugin
+struct Plugin_CrossHatchPlaneSlicerRasterPlannerWidget : ToolPathPlannerWidgetPlugin
 {
   ToolPathPlannerWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
   {
@@ -165,57 +166,61 @@ struct CrossHatchPlaneSlicerRasterPlannerWidgetPlugin : ToolPathPlannerWidgetPlu
 };
 
 // Edge Tool Path Planners
-using BoundaryEdgePlannerWidgetPlugin = WidgetPluginImpl<BoundaryEdgePlannerWidget, ToolPathPlannerWidget>;
+using Plugin_BoundaryEdgePlannerWidget = WidgetPluginImpl<BoundaryEdgePlannerWidget, ToolPathPlannerWidget>;
 
 // Mesh Modifiers
-using PlaneProjectionMeshModifierWidgetPlugin = WidgetPluginImpl<PlaneProjectionMeshModifierWidget, MeshModifierWidget>;
-using EuclideanClusteringMeshModifierWidgetPlugin =
+using Plugin_PlaneProjectionMeshModifierWidget =
+    WidgetPluginImpl<PlaneProjectionMeshModifierWidget, MeshModifierWidget>;
+using Plugin_EuclideanClusteringMeshModifierWidget =
     WidgetPluginImpl<EuclideanClusteringMeshModifierWidget, MeshModifierWidget>;
-using NormalEstimationPCLMeshModifierWidgetPlugin =
+using Plugin_NormalEstimationPCLMeshModifierWidget =
     WidgetPluginImpl<NormalEstimationPCLMeshModifierWidget, MeshModifierWidget>;
-using NormalsFromMeshFacesMeshModifierWidgetPlugin =
+using Plugin_NormalsFromMeshFacesMeshModifierWidget =
     WidgetPluginImpl<NormalsFromMeshFacesMeshModifierWidget, MeshModifierWidget>;
-using FillHolesModifierWidgetPlugin = WidgetPluginImpl<FillHolesModifierWidget, MeshModifierWidget>;
+using Plugin_FillHolesModifierWidget = WidgetPluginImpl<FillHolesModifierWidget, MeshModifierWidget>;
 
 }  // namespace noether
 
-EXPORT_DIRECTION_GENERATOR_WIDGET_PLUGIN(noether::FixedDirectionGeneratorWidgetPlugin, FixedDirectionGenerator)
-EXPORT_DIRECTION_GENERATOR_WIDGET_PLUGIN(noether::PrincipalAxisDirectionGeneratorWidgetPlugin,
+EXPORT_DIRECTION_GENERATOR_WIDGET_PLUGIN(noether::Plugin_FixedDirectionGeneratorWidget, FixedDirectionGenerator)
+EXPORT_DIRECTION_GENERATOR_WIDGET_PLUGIN(noether::Plugin_PrincipalAxisDirectionGeneratorWidget,
                                          PrincipalAxisDirectionGenerator)
 
-EXPORT_ORIGIN_GENERATOR_WIDGET_PLUGIN(noether::FixedOriginGeneratorWidgetPlugin, FixedOriginGenerator)
-EXPORT_ORIGIN_GENERATOR_WIDGET_PLUGIN(noether::CentroidOriginGeneratorWidgetPlugin, CentroidOriginGenerator)
-EXPORT_ORIGIN_GENERATOR_WIDGET_PLUGIN(noether::AABBOriginGeneratorWidgetPlugin, AABBOriginGenerator)
+EXPORT_ORIGIN_GENERATOR_WIDGET_PLUGIN(noether::Plugin_FixedOriginGeneratorWidget, FixedOriginGenerator)
+EXPORT_ORIGIN_GENERATOR_WIDGET_PLUGIN(noether::Plugin_CentroidOriginGeneratorWidget, CentroidOriginGenerator)
+EXPORT_ORIGIN_GENERATOR_WIDGET_PLUGIN(noether::Plugin_AABBOriginGeneratorWidget, AABBOriginGenerator)
 
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::StandardEdgePathsOrganizationModifierWidgetPlugin,
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_StandardEdgePathsOrganizationModifierWidget,
                                         StandardEdgePathsOrganizationModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::RasterOrganizationModifierWidgetPlugin, RasterOrganizationModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::SnakeOrganizationModifierWidgetPlugin, SnakeOrganizationModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::FixedOrientationModifierWidgetPlugin, FixedOrientationModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::DirectionOfTravelOrientationModifierWidgetPlugin,
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_RasterOrganizationModifierWidget, RasterOrganizationModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_SnakeOrganizationModifierWidget, SnakeOrganizationModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_FixedOrientationModifierWidget, FixedOrientationModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_DirectionOfTravelOrientationModifierWidget,
                                         DirectionOfTravelOrientationModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::UniformOrientationModifierWidgetPlugin, UniformOrientationModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::MovingAverageOrientationSmoothingModifierWidgetPlugin,
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_UniformOrientationModifierWidget, UniformOrientationModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_MovingAverageOrientationSmoothingModifierWidget,
                                         MovingAverageOrientationSmoothingModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::ToolDragOrientationToolPathModifierWidgetPlugin,
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_ToolDragOrientationToolPathModifierWidget,
                                         ToolDragOrientationToolPathModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::BiasedToolDragOrientationToolPathModifierWidgetPlugin,
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_BiasedToolDragOrientationToolPathModifierWidget,
                                         BiasedToolDragOrientationToolPathModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::CircularLeadInToolPathModifierWidgetPlugin, CircularLeadInModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::CircularLeadOutToolPathModifierWidgetPlugin, CircularLeadOutModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::LinearApproachToolPathModifierWidgetPlugin, LinearApproachModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::LinearDepartureToolPathModifierWidgetPlugin, LinearDepartureModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::ConcatenateModifierWidgetPlugin, ConcatenateModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::OffsetModifierWidgetPlugin, OffsetModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::UniformSpacingSplineModifierWidgetPlugin, UniformSpacingSplineModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::UniformSpacingLinearModifierWidgetPlugin, UniformSpacingLinearModifier)
 
-EXPORT_TPP_WIDGET_PLUGIN(noether::PlaneSlicerRasterPlannerWidgetPlugin, PlaneSlicerRasterPlanner)
-EXPORT_TPP_WIDGET_PLUGIN(noether::CrossHatchPlaneSlicerRasterPlannerWidgetPlugin, CrossHatchPlaneSlicerRasterPlanner)
-EXPORT_TPP_WIDGET_PLUGIN(noether::BoundaryEdgePlannerWidgetPlugin, BoundaryEdgePlanner)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_CircularLeadInToolPathModifierWidget, CircularLeadInModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_CircularLeadOutToolPathModifierWidget, CircularLeadOutModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_LinearApproachToolPathModifierWidget, LinearApproachModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_LinearDepartureToolPathModifierWidget, LinearDepartureModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_ConcatenateModifierWidget, ConcatenateModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_OffsetModifierWidget, OffsetModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_UniformSpacingSplineModifierWidget,
+                                        UniformSpacingSplineModifier)
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_UniformSpacingLinearModifierWidget,
+                                        UniformSpacingLinearModifier);
 
-EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(noether::PlaneProjectionMeshModifierWidgetPlugin, PlaneProjectionModifier)
-EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(noether::EuclideanClusteringMeshModifierWidgetPlugin, EuclideanClusteringModifier)
-EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(noether::NormalEstimationPCLMeshModifierWidgetPlugin, NormalEstimationPCL)
-EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(noether::NormalsFromMeshFacesMeshModifierWidgetPlugin, NormalsFromMeshFaces)
-EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(noether::FillHolesModifierWidgetPlugin, FillHoles)
+EXPORT_TPP_WIDGET_PLUGIN(noether::Plugin_PlaneSlicerRasterPlannerWidget, PlaneSlicerRasterPlanner)
+EXPORT_TPP_WIDGET_PLUGIN(noether::Plugin_CrossHatchPlaneSlicerRasterPlannerWidget, CrossHatchPlaneSlicerRasterPlanner)
+EXPORT_TPP_WIDGET_PLUGIN(noether::Plugin_BoundaryEdgePlannerWidget, BoundaryEdgePlanner)
+
+EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_PlaneProjectionMeshModifierWidget, PlaneProjectionModifier)
+EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_EuclideanClusteringMeshModifierWidget, EuclideanClusteringModifier)
+EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_NormalEstimationPCLMeshModifierWidget, NormalEstimationPCL)
+EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_NormalsFromMeshFacesMeshModifierWidget, NormalsFromMeshFaces)
+EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(noether::Plugin_FillHolesModifierWidget, FillHoles)
