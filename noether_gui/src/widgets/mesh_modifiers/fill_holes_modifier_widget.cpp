@@ -1,8 +1,7 @@
 #include <noether_gui/widgets/mesh_modifiers/fill_holes_modifier_widget.h>
 #include <noether_gui/widgets/distance_double_spin_box.h>
-#include <noether_gui/utils.h>
 
-#include <noether_tpp/mesh_modifiers/fill_holes_modifier.h>
+#include <noether_tpp/serialization.h>
 #include <QFormLayout>
 
 namespace noether
@@ -21,16 +20,15 @@ FillHolesModifierWidget::FillHolesModifierWidget(QWidget* parent)
   layout->addRow("Max hole size", max_hole_size_);
 }
 
-MeshModifier::ConstPtr FillHolesModifierWidget::create() const
-{
-  return std::make_unique<FillHoles>(max_hole_size_->value());
-}
-
 void FillHolesModifierWidget::configure(const YAML::Node& config)
 {
-  max_hole_size_->setValue(getEntry<double>(config, "max_hole_size"));
+  max_hole_size_->setValue(YAML::getMember<double>(config, "max_hole_size"));
 }
 
-void FillHolesModifierWidget::save(YAML::Node& config) const { config["max_hole_size"] = max_hole_size_->value(); }
+void FillHolesModifierWidget::save(YAML::Node& config) const
+{
+  config["name"] = "FillHoles";
+  config["max_hole_size"] = max_hole_size_->value();
+}
 
 }  // namespace noether

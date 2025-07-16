@@ -1,7 +1,6 @@
 #include <noether_gui/widgets/tool_path_modifiers/moving_average_orientation_smoothing_modifier_widget.h>
-#include <noether_gui/utils.h>
 
-#include <noether_tpp/tool_path_modifiers/moving_average_orientation_smoothing_modifier.h>
+#include <noether_tpp/serialization.h>
 #include <QFormLayout>
 #include <QLabel>
 #include <QSpinBox>
@@ -21,17 +20,13 @@ MovingAverageOrientationSmoothingModifierWidget::MovingAverageOrientationSmoothi
 
 void MovingAverageOrientationSmoothingModifierWidget::configure(const YAML::Node& config)
 {
-  window_size_->setValue(getEntry<int>(config, "window_size"));
+  window_size_->setValue(YAML::getMember<int>(config, "window_size"));
 }
 
 void MovingAverageOrientationSmoothingModifierWidget::save(YAML::Node& config) const
 {
+  config["name"] = "MovingAverageOrientationSmoothing";
   config["window_size"] = window_size_->value();
-}
-
-ToolPathModifier::ConstPtr MovingAverageOrientationSmoothingModifierWidget::create() const
-{
-  return std::make_unique<MovingAverageOrientationSmoothingModifier>(window_size_->value());
 }
 
 }  // namespace noether

@@ -1,13 +1,9 @@
 #include <noether_gui/widgets/tool_path_planners/raster/cross_hatch_plane_slicer_raster_planner_widget.h>
 #include <noether_gui/widgets/angle_double_spin_box.h>
 #include "ui_raster_planner_widget.h"
-#include <noether_gui/utils.h>
 
-#include <noether_tpp/tool_path_planners/multi_tool_path_planner.h>
-#include <noether_tpp/tool_path_planners/raster/direction_generators/pca_rotated_direction_generator.h>
-#include <noether_tpp/tool_path_planners/raster/plane_slicer_raster_planner.h>
+#include <noether_tpp/serialization.h>
 #include <QDoubleSpinBox>
-#include <yaml-cpp/yaml.h>
 
 namespace noether
 {
@@ -23,42 +19,41 @@ CrossHatchPlaneSlicerRasterPlannerWidget::CrossHatchPlaneSlicerRasterPlannerWidg
   ui_->form_layout->addRow(new QLabel("Cross Hatch Angle", this), cross_hatch_angle_);
 }
 
-ToolPathPlanner::ConstPtr CrossHatchPlaneSlicerRasterPlannerWidget::create() const
-{
-  // Create the nominal tool path planner
-  auto nominal_tpp = PlaneSlicerRasterPlannerWidget::create();
-
-  // Make another PlaneSliceRasterPlanner with a PCA-rotated direction generator
-  OriginGenerator::ConstPtr nominal_origin_gen = getOriginGeneratorWidget()->create();
-  DirectionGenerator::ConstPtr nominal_dir_gen = getDirectionGeneratorWidget()->create();
-  auto dir_gen =
-      std::make_unique<PCARotatedDirectionGenerator>(std::move(nominal_dir_gen), cross_hatch_angle_->value());
-  auto cross_hatch_tpp = std::make_unique<PlaneSlicerRasterPlanner>(std::move(dir_gen), std::move(nominal_origin_gen));
-
-  // Configure the tool path planner with the UI
-  cross_hatch_tpp->setLineSpacing(ui_->double_spin_box_line_spacing->value());
-  cross_hatch_tpp->setPointSpacing(ui_->double_spin_box_point_spacing->value());
-  cross_hatch_tpp->setMinHoleSize(ui_->double_spin_box_minimum_hole_size->value());
-  cross_hatch_tpp->setSearchRadius(search_radius_->value());
-  cross_hatch_tpp->setMinSegmentSize(min_segment_size_->value());
-
-  // Return a multi tool path planner
-  std::vector<ToolPathPlanner::ConstPtr> planners;
-  planners.emplace_back(std::move(nominal_tpp));
-  planners.emplace_back(std::move(cross_hatch_tpp));
-  return std::make_unique<MultiToolPathPlanner>(std::move(planners));
-}
-
 void CrossHatchPlaneSlicerRasterPlannerWidget::configure(const YAML::Node& config)
 {
-  PlaneSlicerRasterPlannerWidget::configure(config);
-  cross_hatch_angle_->setValue(getEntry<double>(config, "cross_hatch_angle"));
+  YAML::Node planners_config = YAML::getMember<YAML::Node>(config, "planners");
+  if (planners_config.size() != 2)
+    throw std::runtime_error("Cross hatch plane slicer raster planner configuration must specify 2 planners");
+
+  // Configure the plane slicer parameters from the first planner configuration
+  PlaneSlicerRasterPlannerWidget::configure(planners_config[0]);
+
+  // Extract the cross-hatch angle from the second planner configuration
+  auto dir_gen_config = YAML::getMember<YAML::Node>(planners_config[1], "direction_generator");
+  const double rotation_offset = YAML::getMember<double>(dir_gen_config, "rotation_offset");
+  cross_hatch_angle_->setValue(rotation_offset);
 }
 
 void CrossHatchPlaneSlicerRasterPlannerWidget::save(YAML::Node& config) const
 {
-  PlaneSlicerRasterPlannerWidget::save(config);
-  config["cross_hatch_angle"] = cross_hatch_angle_->value();
+  config["name"] = "Multi";
+  config["gui_plugin_name"] = "CrossHatchPlaneSlicer";
+
+  // Add the nominal planner configuration
+  YAML::Node nominal_planner_config;
+  PlaneSlicerRasterPlannerWidget::save(nominal_planner_config);
+  config["planners"].push_back(nominal_planner_config);
+
+  // Add the cross-hatch planner configuration
+  YAML::Node cross_hatch_planner_config = YAML::Clone(nominal_planner_config);
+
+  // Replace the direction generator with a rotate principal axis direction generator
+  YAML::Node pca_dir_gen_config;
+  pca_dir_gen_config["name"] = "PCARotated";
+  pca_dir_gen_config["direction_generator"] = YAML::Clone(nominal_planner_config["direction_generator"]);
+  pca_dir_gen_config["rotation_offset"] = cross_hatch_angle_->value();
+  cross_hatch_planner_config["direction_generator"] = pca_dir_gen_config;
+  config["planners"].push_back(cross_hatch_planner_config);
 }
 
 }  // namespace noether

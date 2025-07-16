@@ -2,8 +2,6 @@
 
 #include <noether_gui/widgets.h>
 
-#include <noether_tpp/core/tool_path_modifier.h>
-
 namespace noether
 {
 /**
@@ -14,7 +12,7 @@ struct RasterOrganizationModifierWidget : public ToolPathModifierWidget
 public:
   using ToolPathModifierWidget::ToolPathModifierWidget;
 
-  ToolPathModifier::ConstPtr create() const override;
+  void save(YAML::Node&) const override;
 };
 
 }  // namespace noether

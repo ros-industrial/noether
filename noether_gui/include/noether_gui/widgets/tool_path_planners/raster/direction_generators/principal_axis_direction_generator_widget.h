@@ -2,8 +2,6 @@
 
 #include <noether_gui/widgets.h>
 
-#include <noether_tpp/tool_path_planners/raster/raster_planner.h>
-
 class QFormLayout;
 class QLabel;
 
@@ -15,8 +13,6 @@ class PrincipalAxisDirectionGeneratorWidget : public DirectionGeneratorWidget
 {
 public:
   PrincipalAxisDirectionGeneratorWidget(QWidget* parent = nullptr);
-
-  DirectionGenerator::ConstPtr create() const override;
 
   void configure(const YAML::Node&) override;
   void save(YAML::Node&) const override;

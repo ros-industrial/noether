@@ -3,8 +3,8 @@
 #include <noether_gui/plugin_interface.h>
 #include <noether_gui/utils.h>
 
+#include <noether_tpp/serialization.h>
 #include <QMessageBox>
-#include <yaml-cpp/yaml.h>
 
 static const std::string DIRECTION_GENERATOR_KEY = "direction_generator";
 static const std::string ORIGIN_GENERATOR_KEY = "origin_generator";
@@ -72,14 +72,14 @@ RasterPlannerWidget::RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loa
 
 void RasterPlannerWidget::configure(const YAML::Node& config)
 {
-  ui_->double_spin_box_line_spacing->setValue(getEntry<double>(config, LINE_SPACING_KEY));
-  ui_->double_spin_box_point_spacing->setValue(getEntry<double>(config, POINT_SPACING_KEY));
-  ui_->double_spin_box_minimum_hole_size->setValue(getEntry<double>(config, MIN_HOLE_SIZE_KEY));
+  ui_->double_spin_box_line_spacing->setValue(YAML::getMember<double>(config, LINE_SPACING_KEY));
+  ui_->double_spin_box_point_spacing->setValue(YAML::getMember<double>(config, POINT_SPACING_KEY));
+  ui_->double_spin_box_minimum_hole_size->setValue(YAML::getMember<double>(config, MIN_HOLE_SIZE_KEY));
 
   // Direction generator
   {
     const YAML::Node dir_gen_config = config[DIRECTION_GENERATOR_KEY];
-    QString plugin_name = QString::fromStdString(getEntry<std::string>(dir_gen_config, "name"));
+    QString plugin_name = QString::fromStdString(YAML::getMember<std::string>(dir_gen_config, "name"));
 
     const int index = ui_->combo_box_dir_gen->findText(plugin_name);
     if (index >= 0)
@@ -99,7 +99,7 @@ void RasterPlannerWidget::configure(const YAML::Node& config)
   // Origin generator
   {
     const YAML::Node origin_gen_config = config[ORIGIN_GENERATOR_KEY];
-    QString plugin_name = QString::fromStdString(getEntry<std::string>(origin_gen_config, "name"));
+    QString plugin_name = QString::fromStdString(YAML::getMember<std::string>(origin_gen_config, "name"));
 
     const int index = ui_->combo_box_origin_gen->findText(plugin_name);
     if (index >= 0)

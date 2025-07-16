@@ -1,10 +1,8 @@
 #include <noether_gui/widgets/tool_path_modifiers/offset_modifier_widget.h>
 #include "../ui_vector3d_editor_widget.h"
 #include "../ui_quaternion_editor_widget.h"
-#include <noether_gui/utils.h>
 
-#include <noether_tpp/tool_path_modifiers/offset_modifier.h>
-#include <yaml-cpp/yaml.h>
+#include <noether_tpp/serialization.h>
 
 namespace noether
 {
@@ -29,44 +27,36 @@ OffsetModifierWidget::OffsetModifierWidget(QWidget* parent)
 
 void OffsetModifierWidget::configure(const YAML::Node& config)
 {
-  ui_vector_->double_spin_box_x->setValue(getEntry<double>(config, "x"));
-  ui_vector_->double_spin_box_y->setValue(getEntry<double>(config, "y"));
-  ui_vector_->double_spin_box_z->setValue(getEntry<double>(config, "z"));
-  ui_quaternion_->double_spin_box_qx->setValue(getEntry<double>(config, "qx"));
-  ui_quaternion_->double_spin_box_qy->setValue(getEntry<double>(config, "qy"));
-  ui_quaternion_->double_spin_box_qz->setValue(getEntry<double>(config, "qz"));
-  ui_quaternion_->double_spin_box_qw->setValue(getEntry<double>(config, "qw"));
+  auto offset = YAML::getMember<Eigen::Isometry3d>(config, "offset");
+
+  ui_vector_->double_spin_box_x->setValue(offset.translation().x());
+  ui_vector_->double_spin_box_y->setValue(offset.translation().y());
+  ui_vector_->double_spin_box_z->setValue(offset.translation().z());
+
+  Eigen::Quaterniond q(offset.rotation());
+  ui_quaternion_->double_spin_box_qx->setValue(q.x());
+  ui_quaternion_->double_spin_box_qy->setValue(q.y());
+  ui_quaternion_->double_spin_box_qz->setValue(q.z());
+  ui_quaternion_->double_spin_box_qw->setValue(q.w());
 }
 
 void OffsetModifierWidget::save(YAML::Node& config) const
 {
-  config["x"] = ui_vector_->double_spin_box_x->value();
-  config["y"] = ui_vector_->double_spin_box_y->value();
-  config["z"] = ui_vector_->double_spin_box_z->value();
-  config["qx"] = ui_quaternion_->double_spin_box_qx->value();
-  config["qy"] = ui_quaternion_->double_spin_box_qy->value();
-  config["qz"] = ui_quaternion_->double_spin_box_qz->value();
-  config["qw"] = ui_quaternion_->double_spin_box_qw->value();
-}
-
-ToolPathModifier::ConstPtr OffsetModifierWidget::create() const
-{
-  Eigen::Vector3d position(ui_vector_->double_spin_box_x->value(),
-                           ui_vector_->double_spin_box_y->value(),
-                           ui_vector_->double_spin_box_z->value());
-  Eigen::Quaterniond q(ui_quaternion_->double_spin_box_qw->value(),
-                       ui_quaternion_->double_spin_box_qx->value(),
-                       ui_quaternion_->double_spin_box_qy->value(),
-                       ui_quaternion_->double_spin_box_qz->value());
-
-  // Normalize the quaternion in case the values are not unit length
-  q.normalize();
-
   Eigen::Isometry3d offset = Eigen::Isometry3d::Identity();
-  offset.translation() = position;
-  offset.linear() = q.toRotationMatrix();
 
-  return std::make_unique<OffsetModifier>(offset);
+  offset.translation().x() = ui_vector_->double_spin_box_x->value();
+  offset.translation().y() = ui_vector_->double_spin_box_y->value();
+  offset.translation().z() = ui_vector_->double_spin_box_z->value();
+
+  Eigen::Quaterniond q;
+  q.x() = ui_quaternion_->double_spin_box_qx->value();
+  q.y() = ui_quaternion_->double_spin_box_qy->value();
+  q.z() = ui_quaternion_->double_spin_box_qz->value();
+  q.w() = ui_quaternion_->double_spin_box_qw->value();
+  offset.rotate(q);
+
+  config["name"] = "Offset";
+  config["offset"] = offset;
 }
 
 }  // namespace noether

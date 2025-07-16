@@ -1,13 +1,12 @@
 #include <noether_gui/widgets/mesh_modifiers/euclidean_clustering_modifier_widget.h>
 #include <noether_gui/widgets/distance_double_spin_box.h>
-#include <noether_gui/utils.h>
 
-#include <noether_tpp/mesh_modifiers/euclidean_clustering_modifier.h>
+#include <noether_tpp/serialization.h>
 #include <QSpinBox>
 #include <QFormLayout>
 #include <QLabel>
 
-static const std::string DIST_THRESH_KEY = "distance_threshold";
+static const std::string TOLERANCE_KEY = "tolerance";
 static const std::string MIN_SIZE_KEY = "min_cluster_size";
 static const std::string MAX_SIZE_KEY = "max_cluster_size";
 
@@ -38,22 +37,17 @@ EuclideanClusteringMeshModifierWidget::EuclideanClusteringMeshModifierWidget(QWi
   layout->addRow(new QLabel("Maximum cluster size", this), max_cluster_size_);
 }
 
-MeshModifier::ConstPtr EuclideanClusteringMeshModifierWidget::create() const
-{
-  return std::make_unique<EuclideanClusteringMeshModifier>(
-      tolerance_->value(), min_cluster_size_->value(), max_cluster_size_->value());
-}
-
 void EuclideanClusteringMeshModifierWidget::configure(const YAML::Node& node)
 {
-  tolerance_->setValue(getEntry<double>(node, DIST_THRESH_KEY));
-  min_cluster_size_->setValue(getEntry<int>(node, MIN_SIZE_KEY));
-  max_cluster_size_->setValue(getEntry<int>(node, MAX_SIZE_KEY));
+  tolerance_->setValue(YAML::getMember<double>(node, TOLERANCE_KEY));
+  min_cluster_size_->setValue(YAML::getMember<int>(node, MIN_SIZE_KEY));
+  max_cluster_size_->setValue(YAML::getMember<int>(node, MAX_SIZE_KEY));
 }
 
 void EuclideanClusteringMeshModifierWidget::save(YAML::Node& node) const
 {
-  node[DIST_THRESH_KEY] = tolerance_->value();
+  node["name"] = "EuclideanClustering";
+  node[TOLERANCE_KEY] = tolerance_->value();
   node[MIN_SIZE_KEY] = min_cluster_size_->value();
   node[MAX_SIZE_KEY] = max_cluster_size_->value();
 }

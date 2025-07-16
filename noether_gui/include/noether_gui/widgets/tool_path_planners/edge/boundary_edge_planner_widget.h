@@ -12,9 +12,8 @@ class BoundaryEdgePlannerWidget : public EdgePlannerWidget
 public:
   using EdgePlannerWidget::configure;
   using EdgePlannerWidget::EdgePlannerWidget;
-  using EdgePlannerWidget::save;
 
-  ToolPathPlanner::ConstPtr create() const override;
+  void save(YAML::Node&) const override;
 };
 
 }  // namespace noether

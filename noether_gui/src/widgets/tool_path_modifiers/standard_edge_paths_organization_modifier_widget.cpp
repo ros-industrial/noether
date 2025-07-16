@@ -1,9 +1,7 @@
 #include <noether_gui/widgets/tool_path_modifiers/standard_edge_paths_organization_modifier_widget.h>
 #include "../ui_vector3d_editor_widget.h"
-#include <noether_gui/utils.h>
 
-#include <noether_tpp/tool_path_modifiers/standard_edge_paths_organization_modifier.h>
-#include <yaml-cpp/yaml.h>
+#include <noether_tpp/serialization.h>
 
 namespace noether
 {
@@ -16,23 +14,19 @@ StandardEdgePathsOrganizationModifierWidget::StandardEdgePathsOrganizationModifi
 
 void StandardEdgePathsOrganizationModifierWidget::configure(const YAML::Node& config)
 {
-  ui_->double_spin_box_x->setValue(getEntry<double>(config, "x"));
-  ui_->double_spin_box_y->setValue(getEntry<double>(config, "y"));
-  ui_->double_spin_box_z->setValue(getEntry<double>(config, "z"));
+  auto ref = YAML::getMember<Eigen::Vector3d>(config, "start_reference");
+
+  ui_->double_spin_box_x->setValue(ref.x());
+  ui_->double_spin_box_y->setValue(ref.y());
+  ui_->double_spin_box_z->setValue(ref.z());
 }
 
 void StandardEdgePathsOrganizationModifierWidget::save(YAML::Node& config) const
 {
-  config["x"] = ui_->double_spin_box_x->value();
-  config["y"] = ui_->double_spin_box_y->value();
-  config["z"] = ui_->double_spin_box_z->value();
-}
-
-ToolPathModifier::ConstPtr StandardEdgePathsOrganizationModifierWidget::create() const
-{
-  Eigen::Vector3d start_ref(
+  Eigen::Vector3d ref(
       ui_->double_spin_box_x->value(), ui_->double_spin_box_y->value(), ui_->double_spin_box_z->value());
-  return std::make_unique<StandardEdgePathsOrganizationModifier>(start_ref);
+  config["name"] = "StandardEdgePathsOrganization";
+  config["start_reference"] = ref;
 }
 
 }  // namespace noether

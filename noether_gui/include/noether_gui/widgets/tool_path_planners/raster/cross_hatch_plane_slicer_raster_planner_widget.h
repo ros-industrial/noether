@@ -14,8 +14,6 @@ class CrossHatchPlaneSlicerRasterPlannerWidget : public PlaneSlicerRasterPlanner
 public:
   CrossHatchPlaneSlicerRasterPlannerWidget(boost_plugin_loader::PluginLoader&& loader, QWidget* parent = nullptr);
 
-  ToolPathPlanner::ConstPtr create() const override;
-
   void configure(const YAML::Node&) override;
   void save(YAML::Node&) const override;
 

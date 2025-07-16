@@ -2,8 +2,6 @@
 
 #include <noether_gui/widgets.h>
 
-#include <noether_tpp/tool_path_planners/raster/raster_planner.h>
-
 namespace noether
 {
 struct AABBOriginGeneratorWidget : public OriginGeneratorWidget
@@ -11,7 +9,7 @@ struct AABBOriginGeneratorWidget : public OriginGeneratorWidget
 public:
   using BaseWidget::BaseWidget;
 
-  OriginGenerator::ConstPtr create() const override;
+  void save(YAML::Node&) const override;
 };
 
 }  // namespace noether

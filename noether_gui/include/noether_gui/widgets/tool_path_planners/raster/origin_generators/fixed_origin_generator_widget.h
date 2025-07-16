@@ -2,8 +2,6 @@
 
 #include <noether_gui/widgets.h>
 
-#include <noether_tpp/tool_path_planners/raster/raster_planner.h>
-
 namespace Ui
 {
 class Vector3dEditor;
@@ -15,8 +13,6 @@ class FixedOriginGeneratorWidget : public OriginGeneratorWidget
 {
 public:
   FixedOriginGeneratorWidget(QWidget* parent = nullptr);
-
-  OriginGenerator::ConstPtr create() const override;
 
   void configure(const YAML::Node&) override;
   void save(YAML::Node&) const override;

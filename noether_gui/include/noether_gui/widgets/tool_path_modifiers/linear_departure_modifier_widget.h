@@ -12,7 +12,7 @@ class LinearDepartureToolPathModifierWidget : public LinearApproachToolPathModif
 public:
   using LinearApproachToolPathModifierWidget::LinearApproachToolPathModifierWidget;
 
-  ToolPathModifier::ConstPtr create() const override;
+  void save(YAML::Node&) const override;
 };
 
 }  // namespace noether

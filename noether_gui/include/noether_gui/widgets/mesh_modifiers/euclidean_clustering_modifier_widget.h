@@ -1,7 +1,6 @@
 #pragma once
 
 #include <noether_gui/widgets.h>
-#include <noether_tpp/core/mesh_modifier.h>
 
 class QSpinBox;
 
@@ -16,8 +15,6 @@ class EuclideanClusteringMeshModifierWidget : public MeshModifierWidget
 {
 public:
   EuclideanClusteringMeshModifierWidget(QWidget* parent = nullptr);
-
-  MeshModifier::ConstPtr create() const override;
 
   void configure(const YAML::Node&) override;
   void save(YAML::Node&) const override;

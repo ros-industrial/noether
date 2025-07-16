@@ -1,8 +1,7 @@
 #include <noether_gui/widgets/tool_path_modifiers/uniform_spacing_spline_modifier_widget.h>
 #include <noether_gui/widgets/distance_double_spin_box.h>
-#include <noether_gui/utils.h>
 
-#include <noether_tpp/tool_path_modifiers/uniform_spacing_spline_modifier.h>
+#include <noether_tpp/serialization.h>
 #include <QFormLayout>
 
 namespace noether
@@ -20,18 +19,14 @@ UniformSpacingSplineModifierWidget::UniformSpacingSplineModifierWidget(QWidget* 
   layout->addRow("Point Spacing", point_spacing_);
 }
 
-ToolPathModifier::ConstPtr UniformSpacingSplineModifierWidget::create() const
-{
-  return std::make_unique<UniformSpacingSplineModifier>(point_spacing_->value());
-}
-
 void UniformSpacingSplineModifierWidget::configure(const YAML::Node& config)
 {
-  point_spacing_->setValue(getEntry<double>(config, "point_spacing"));
+  point_spacing_->setValue(YAML::getMember<double>(config, "point_spacing"));
 }
 
 void UniformSpacingSplineModifierWidget::save(YAML::Node& config) const
 {
+  config["name"] = "UniformSpacingSpline";
   config["point_spacing"] = point_spacing_->value();
 }
 

@@ -2,11 +2,10 @@
 #include <noether_gui/widgets/angle_double_spin_box.h>
 #include <noether_gui/utils.h>
 
-#include <noether_tpp/tool_path_planners/raster/direction_generators/principal_axis_direction_generator.h>
+#include <noether_tpp/serialization.h>
 #include <QFormLayout>
 #include <QLabel>
 #include <QDoubleSpinBox>
-#include <yaml-cpp/yaml.h>
 
 namespace noether
 {
@@ -23,17 +22,14 @@ PrincipalAxisDirectionGeneratorWidget::PrincipalAxisDirectionGeneratorWidget(QWi
 
 void PrincipalAxisDirectionGeneratorWidget::configure(const YAML::Node& config)
 {
-  rotation_offset_->setValue(getEntry<double>(config, "rotation_offset"));
+  auto rotation_offset = YAML::getMember<double>(config, "rotation_offset");
+  rotation_offset_->setValue(rotation_offset);
 }
 
 void PrincipalAxisDirectionGeneratorWidget::save(YAML::Node& config) const
 {
+  config["name"] = "PrincipalAxis";
   config["rotation_offset"] = rotation_offset_->value();
-}
-
-DirectionGenerator::ConstPtr PrincipalAxisDirectionGeneratorWidget::create() const
-{
-  return std::make_unique<PrincipalAxisDirectionGenerator>(rotation_offset_->value());
 }
 
 }  // namespace noether

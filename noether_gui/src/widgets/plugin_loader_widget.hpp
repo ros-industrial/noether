@@ -2,8 +2,8 @@
 #include "ui_plugin_loader_widget.h"
 #include <noether_gui/utils.h>
 
+#include <noether_tpp/serialization.h>
 #include <QMessageBox>
-#include <yaml-cpp/yaml.h>
 
 namespace noether
 {
@@ -136,7 +136,7 @@ void PluginLoaderWidget<PluginT>::configure(const YAML::Node& config)
   removeWidgets();
   for (auto it = config.begin(); it != config.end(); ++it)
   {
-    addWidget(QString::fromStdString(getEntry<std::string>(*it, "name")), *it);
+    addWidget(QString::fromStdString(YAML::getMember<std::string>(*it, "name")), *it);
   }
 }
 

@@ -1,9 +1,8 @@
 #include <noether_gui/widgets/tool_path_modifiers/circular_lead_out_modifier_widget.h>
 #include <noether_gui/widgets/angle_double_spin_box.h>
 #include <noether_gui/widgets/distance_double_spin_box.h>
-#include <noether_gui/utils.h>
 
-#include <noether_tpp/tool_path_modifiers/circular_lead_out_modifier.h>
+#include <noether_tpp/serialization.h>
 #include <QFormLayout>
 #include <QLabel>
 #include <QDoubleSpinBox>
@@ -51,20 +50,16 @@ CircularLeadOutToolPathModifierWidget::CircularLeadOutToolPathModifierWidget(QWi
   setLayout(layout);
 }
 
-ToolPathModifier::ConstPtr CircularLeadOutToolPathModifierWidget::create() const
-{
-  return std::make_unique<CircularLeadOutModifier>(arc_angle_->value(), arc_radius_->value(), n_points_->value());
-}
-
 void CircularLeadOutToolPathModifierWidget::configure(const YAML::Node& config)
 {
-  arc_angle_->setValue(getEntry<double>(config, ARC_ANGLE_KEY));
-  arc_radius_->setValue(getEntry<double>(config, ARC_RADIUS_KEY));
-  n_points_->setValue(getEntry<int>(config, N_POINTS_KEY));
+  arc_angle_->setValue(YAML::getMember<double>(config, ARC_ANGLE_KEY));
+  arc_radius_->setValue(YAML::getMember<double>(config, ARC_RADIUS_KEY));
+  n_points_->setValue(YAML::getMember<int>(config, N_POINTS_KEY));
 }
 
 void CircularLeadOutToolPathModifierWidget::save(YAML::Node& config) const
 {
+  config["name"] = "CircularLeadOut";
   config[ARC_ANGLE_KEY] = arc_angle_->value();
   config[ARC_RADIUS_KEY] = arc_radius_->value();
   config[N_POINTS_KEY] = n_points_->value();

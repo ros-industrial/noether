@@ -50,19 +50,6 @@ inline void overwriteWidget(QLayout* layout, QWidget*& from, QWidget* to)
   from = to;
 }
 
-template <typename T>
-T getEntry(const YAML::Node& config, const std::string& key)
-{
-  try
-  {
-    return config[key].as<T>();
-  }
-  catch (const YAML::Exception&)
-  {
-    throw std::runtime_error("Failed to load parameter '" + key + "'");
-  }
-}
-
 /**
  * @details Adapted from https://en.cppreference.com/w/cpp/error/throw_with_nested
  */
