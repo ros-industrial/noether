@@ -82,7 +82,10 @@ void TPPPipelineWidget::configure(const YAML::Node& config)
     try
     {
       auto tpp_config = config[TOOL_PATH_PLANNER_KEY];
-      auto name = YAML::getMember<std::string>(tpp_config, "name");
+
+      // Prefer to load the GUI plugin from the key "gui_plugin_name" first
+      const std::string name_key = tpp_config["gui_plugin_name"] ? "gui_plugin_name" : "name";
+      auto name = YAML::getMember<std::string>(tpp_config, name_key);
 
       int index = ui_->combo_box_tpp->findText(QString::fromStdString(name));
       if (index >= 0)

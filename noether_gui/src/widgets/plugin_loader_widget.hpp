@@ -136,7 +136,9 @@ void PluginLoaderWidget<PluginT>::configure(const YAML::Node& config)
   removeWidgets();
   for (auto it = config.begin(); it != config.end(); ++it)
   {
-    addWidget(QString::fromStdString(YAML::getMember<std::string>(*it, "name")), *it);
+    // Prefer to load the GUI plugin from the key "gui_plugin_name" first
+    const std::string name_key = it->operator[]("gui_plugin_name") ? "gui_plugin_name" : "name";
+    addWidget(QString::fromStdString(YAML::getMember<std::string>(*it, name_key)), *it);
   }
 }
 
