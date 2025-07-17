@@ -52,19 +52,12 @@
 
 namespace noether
 {
-static const boost_plugin_loader::PluginLoader& getPluginLoaderInstance()
-{
-  static boost_plugin_loader::PluginLoader loader;
-  loader.search_libraries.insert(NOETHER_PLUGIN_LIB);
-  loader.search_libraries_env = NOETHER_PLUGIN_LIBS_ENV;
-  loader.search_paths_env = NOETHER_PLUGIN_PATHS_ENV;
-  return loader;
-}
-
 template <typename DerivedT, typename BaseT>
 struct PluginImpl : public Plugin<BaseT>
 {
-  std::unique_ptr<BaseT> create(const YAML::Node& config = {}) const override final
+  std::unique_ptr<BaseT>
+  create(const YAML::Node& config,
+         std::shared_ptr<const boost_plugin_loader::PluginLoader> /*loader*/) const override final
   {
     return std::make_unique<DerivedT>(config.as<DerivedT>());
   }
@@ -81,10 +74,9 @@ using Plugin_WindowedSincSmoothingMeshModifier = PluginImpl<WindowedSincSmoothin
 
 struct Plugin_CompoundMeshModifier : public Plugin<MeshModifier>
 {
-  std::unique_ptr<MeshModifier> create(const YAML::Node& config = {}) const override final
+  std::unique_ptr<MeshModifier>
+  create(const YAML::Node& config, std::shared_ptr<const boost_plugin_loader::PluginLoader> loader) const override final
   {
-    const boost_plugin_loader::PluginLoader& loader = getPluginLoaderInstance();
-
     std::vector<MeshModifier::ConstPtr> modifiers;
     modifiers.reserve(config.size());
 
@@ -92,8 +84,8 @@ struct Plugin_CompoundMeshModifier : public Plugin<MeshModifier>
     for (const YAML::Node& entry : modifiers_config)
     {
       auto name = YAML::getMember<std::string>(entry, "name");
-      auto mesh_mod_plugin = loader.createInstance<MeshModifierPlugin>(name);
-      modifiers.push_back(mesh_mod_plugin->create(entry));
+      auto mesh_mod_plugin = loader->createInstance<MeshModifierPlugin>(name);
+      modifiers.push_back(mesh_mod_plugin->create(entry, loader));
     }
 
     return std::make_unique<CompoundMeshModifier>(std::move(modifiers));
@@ -106,14 +98,15 @@ using Plugin_PrincipalAxisDirectionGenerator = PluginImpl<PrincipalAxisDirection
 
 struct Plugin_PCARotatedDirectionGenerator : public Plugin<DirectionGenerator>
 {
-  std::unique_ptr<DirectionGenerator> create(const YAML::Node& config = {}) const override final
+  std::unique_ptr<DirectionGenerator>
+  create(const YAML::Node& config, std::shared_ptr<const boost_plugin_loader::PluginLoader> loader) const override final
   {
     std::unique_ptr<DirectionGenerator> dir_gen;
     {
       auto dir_gen_config = YAML::getMember<YAML::Node>(config, "direction_generator");
       auto dir_gen_name = YAML::getMember<std::string>(dir_gen_config, "name");
-      auto dir_gen_plugin = getPluginLoaderInstance().createInstance<DirectionGeneratorPlugin>(dir_gen_name);
-      dir_gen = dir_gen_plugin->create(dir_gen_config);
+      auto dir_gen_plugin = loader->createInstance<DirectionGeneratorPlugin>(dir_gen_name);
+      dir_gen = dir_gen_plugin->create(dir_gen_config, loader);
     }
 
     auto rotation_offset = YAML::getMember<double>(config, "rotation_offset");
@@ -129,14 +122,15 @@ using Plugin_FixedOriginGenerator = PluginImpl<FixedOriginGenerator, OriginGener
 
 struct Plugin_OffsetOriginGenerator : public Plugin<OriginGenerator>
 {
-  std::unique_ptr<OriginGenerator> create(const YAML::Node& config = {}) const override final
+  std::unique_ptr<OriginGenerator>
+  create(const YAML::Node& config, std::shared_ptr<const boost_plugin_loader::PluginLoader> loader) const override final
   {
     std::unique_ptr<OriginGenerator> origin_gen;
     {
       auto origin_gen_config = YAML::getMember<YAML::Node>(config, "origin_generator");
       auto origin_gen_name = YAML::getMember<std::string>(origin_gen_config, "name");
-      auto origin_gen_plugin = getPluginLoaderInstance().createInstance<OriginGeneratorPlugin>(origin_gen_name);
-      origin_gen = origin_gen_plugin->create(origin_gen_config);
+      auto origin_gen_plugin = loader->createInstance<OriginGeneratorPlugin>(origin_gen_name);
+      origin_gen = origin_gen_plugin->create(origin_gen_config, loader);
     }
 
     auto offset = YAML::getMember<Eigen::Vector3d>(config, "offset");
@@ -150,22 +144,23 @@ using Plugin_BoundaryEdgePlanner = PluginImpl<BoundaryEdgePlanner, ToolPathPlann
 
 struct Plugin_PlaneSlicerRasterPlanner : public Plugin<ToolPathPlanner>
 {
-  std::unique_ptr<ToolPathPlanner> create(const YAML::Node& config = {}) const override final
+  std::unique_ptr<ToolPathPlanner>
+  create(const YAML::Node& config, std::shared_ptr<const boost_plugin_loader::PluginLoader> loader) const override final
   {
     std::unique_ptr<DirectionGenerator> dir_gen;
     {
       auto dir_gen_config = YAML::getMember<YAML::Node>(config, "direction_generator");
       auto dir_gen_name = YAML::getMember<std::string>(dir_gen_config, "name");
-      auto dir_gen_plugin = getPluginLoaderInstance().createInstance<DirectionGeneratorPlugin>(dir_gen_name);
-      dir_gen = dir_gen_plugin->create(dir_gen_config);
+      auto dir_gen_plugin = loader->createInstance<DirectionGeneratorPlugin>(dir_gen_name);
+      dir_gen = dir_gen_plugin->create(dir_gen_config, loader);
     }
 
     std::unique_ptr<OriginGenerator> origin_gen;
     {
       auto origin_gen_config = YAML::getMember<YAML::Node>(config, "origin_generator");
       auto origin_gen_name = YAML::getMember<std::string>(origin_gen_config, "name");
-      auto origin_gen_plugin = getPluginLoaderInstance().createInstance<OriginGeneratorPlugin>(origin_gen_name);
-      origin_gen = origin_gen_plugin->create(origin_gen_config);
+      auto origin_gen_plugin = loader->createInstance<OriginGeneratorPlugin>(origin_gen_name);
+      origin_gen = origin_gen_plugin->create(origin_gen_config, loader);
     }
 
     auto tpp = std::make_unique<PlaneSlicerRasterPlanner>(std::move(dir_gen), std::move(origin_gen));
@@ -182,10 +177,9 @@ struct Plugin_PlaneSlicerRasterPlanner : public Plugin<ToolPathPlanner>
 
 struct Plugin_MultiToolPathPlanner : public Plugin<ToolPathPlanner>
 {
-  std::unique_ptr<ToolPathPlanner> create(const YAML::Node& config = {}) const override final
+  std::unique_ptr<ToolPathPlanner>
+  create(const YAML::Node& config, std::shared_ptr<const boost_plugin_loader::PluginLoader> loader) const override final
   {
-    const boost_plugin_loader::PluginLoader& loader = getPluginLoaderInstance();
-
     std::vector<ToolPathPlanner::ConstPtr> tool_path_planners;
     tool_path_planners.reserve(config.size());
 
@@ -193,8 +187,8 @@ struct Plugin_MultiToolPathPlanner : public Plugin<ToolPathPlanner>
     for (const YAML::Node& entry_config : planners_config)
     {
       auto entry_name = YAML::getMember<std::string>(entry_config, "name");
-      auto tpp_plugin = loader.createInstance<ToolPathPlannerPlugin>(entry_name);
-      tool_path_planners.push_back(tpp_plugin->create(entry_config));
+      auto tpp_plugin = loader->createInstance<ToolPathPlannerPlugin>(entry_name);
+      tool_path_planners.push_back(tpp_plugin->create(entry_config, loader));
     }
 
     return std::make_unique<MultiToolPathPlanner>(std::move(tool_path_planners));
@@ -225,10 +219,9 @@ using Plugin_UniformSpacingSplineModifier = PluginImpl<UniformSpacingSplineModif
 
 struct Plugin_CompoundToolPathModifier : public Plugin<ToolPathModifier>
 {
-  std::unique_ptr<ToolPathModifier> create(const YAML::Node& config = {}) const override final
+  std::unique_ptr<ToolPathModifier>
+  create(const YAML::Node& config, std::shared_ptr<const boost_plugin_loader::PluginLoader> loader) const override final
   {
-    const boost_plugin_loader::PluginLoader& loader = getPluginLoaderInstance();
-
     std::vector<ToolPathModifier::ConstPtr> modifiers;
     modifiers.reserve(config.size());
 
@@ -236,8 +229,8 @@ struct Plugin_CompoundToolPathModifier : public Plugin<ToolPathModifier>
     for (const YAML::Node& entry : modifiers_config)
     {
       auto entry_name = YAML::getMember<std::string>(entry, "name");
-      auto tool_path_mod_plugin = loader.createInstance<ToolPathModifierPlugin>(entry_name);
-      modifiers.push_back(tool_path_mod_plugin->create(entry));
+      auto tool_path_mod_plugin = loader->createInstance<ToolPathModifierPlugin>(entry_name);
+      modifiers.push_back(tool_path_mod_plugin->create(entry, loader));
     }
 
     return std::make_unique<CompoundModifier>(std::move(modifiers));

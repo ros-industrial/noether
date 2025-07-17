@@ -39,8 +39,10 @@ public:
    * @brief Returns a pointer to a configured tool path planning component (e.g., mesh modifier, tool path planner, tool
    * path modifier).
    * @param config YAML configuration node used to configure the component
+   * @param loader Plugin loader for loading nested plugins
    */
-  virtual std::unique_ptr<ComponentT> create(const YAML::Node& config = {}) const = 0;
+  virtual std::unique_ptr<ComponentT> create(const YAML::Node& config,
+                                             std::shared_ptr<const boost_plugin_loader::PluginLoader> loader) const = 0;
 
 private:
   friend class boost_plugin_loader::PluginLoader;
