@@ -1,4 +1,5 @@
 #include <noether_gui/widgets/tool_path_modifiers/tool_drag_orientation_modifier_widget.h>
+#include <noether_gui/widgets/angle_double_spin_box.h>
 #include <noether_gui/widgets/distance_double_spin_box.h>
 #include <noether_gui/utils.h>
 
@@ -18,12 +19,10 @@ ToolDragOrientationToolPathModifierWidget::ToolDragOrientationToolPathModifierWi
   auto layout = new QFormLayout(this);
 
   // Angle between the grinder and the media being ground
-  angle_offset_ = new QDoubleSpinBox(this);
+  angle_offset_ = new AngleDoubleSpinBox(this);
   angle_offset_->setMinimum(0.0);
-  angle_offset_->setSingleStep(1.0);
-  angle_offset_->setValue(30.0);
   angle_offset_->setDecimals(3);
-  auto label = new QLabel("Angle offset (deg)", this);
+  auto label = new QLabel("Angle offset", this);
   label->setToolTip("The angle between the grinder and the media being ground");
   layout->addRow(label, angle_offset_);
 

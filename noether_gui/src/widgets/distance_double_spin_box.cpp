@@ -20,6 +20,12 @@ static std::tuple<double, std::string> split(const std::string& text)
 
 namespace noether
 {
+DistanceDoubleSpinBox::DistanceDoubleSpinBox(QWidget* parent) : QDoubleSpinBox(parent)
+{
+  setRange(-100.0, 100.0);
+  setSingleStep(0.010);
+}
+
 QString DistanceDoubleSpinBox::textFromValue(double value_m) const
 {
   double value;
