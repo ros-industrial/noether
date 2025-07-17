@@ -11,6 +11,7 @@
   <license>Apache 2.0</license>
 
   <build_depend>ros_industrial_cmake_boilerplate</build_depend>
+  <depend>boost_plugin_loader</depend>
   <depend>libpcl-all-dev</depend>
   <depend>libvtk</depend>
   <depend>eigen</depend>
