@@ -1,7 +1,12 @@
 #pragma once
 
-#include <boost_plugin_loader/plugin_loader.h>
+#include <set>
 #include <QWidget>
+
+namespace boost_plugin_loader
+{
+class PluginLoader;
+}
 
 namespace Ui
 {
@@ -22,7 +27,9 @@ template <typename PluginT>
 class PluginLoaderWidget : public QWidget
 {
 public:
-  PluginLoaderWidget(boost_plugin_loader::PluginLoader loader, const QString& title, QWidget* parent = nullptr);
+  PluginLoaderWidget(std::shared_ptr<const boost_plugin_loader::PluginLoader> loader,
+                     const QString& title,
+                     QWidget* parent = nullptr);
   ~PluginLoaderWidget();
 
   QWidgetList getWidgets() const;
@@ -44,7 +51,7 @@ private:
    */
   std::set<std::shared_ptr<PluginT>> plugins_;
 
-  const boost_plugin_loader::PluginLoader loader_;
+  std::shared_ptr<const boost_plugin_loader::PluginLoader> loader_;
 };
 
 }  // namespace noether

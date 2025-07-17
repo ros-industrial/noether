@@ -55,7 +55,7 @@ enum class LineStyle
 class TPPWidget : public QMainWindow
 {
 public:
-  TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent = nullptr);
+  TPPWidget(std::shared_ptr<const boost_plugin_loader::PluginLoader> loader, QWidget* parent = nullptr);
 
   /**
    * @brief Get the planned tool paths

@@ -37,10 +37,13 @@ public:
   /**
    * @brief Returns a pointer to a configured `BaseWidget<T>`: a widget that can configure a tool path planning
    * component (e.g., mesh modifier, tool path planner, tool path modifier).
-   * @param parent
    * @param config YAML configuration node used to set the initial values of the widget
+   * @param loader Plugin loader for loading nested plugins
+   * @param parent Parent widget
    */
-  virtual BaseWidgetT* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const = 0;
+  virtual BaseWidgetT* create(const YAML::Node& config,
+                              std::shared_ptr<const boost_plugin_loader::PluginLoader> loader,
+                              QWidget* parent = nullptr) const = 0;
 
 private:
   friend class boost_plugin_loader::PluginLoader;

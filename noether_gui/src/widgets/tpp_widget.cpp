@@ -48,10 +48,10 @@
 
 namespace noether
 {
-TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
+TPPWidget::TPPWidget(std::shared_ptr<const boost_plugin_loader::PluginLoader> loader, QWidget* parent)
   : QMainWindow(parent)
   , ui_(new Ui::TPP())
-  , pipeline_widget_(new ConfigurableTPPPipelineWidget(std::move(loader), "", this))
+  , pipeline_widget_(new ConfigurableTPPPipelineWidget(loader, "", this))
   , render_widget_(new RenderWidget(this))
   , renderer_(vtkSmartPointer<vtkOpenGLRenderer>::New())
   , mesh_mapper_(vtkSmartPointer<vtkOpenGLPolyDataMapper>::New())

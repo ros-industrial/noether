@@ -8,9 +8,9 @@
 namespace noether
 {
 CrossHatchPlaneSlicerRasterPlannerWidget::CrossHatchPlaneSlicerRasterPlannerWidget(
-    boost_plugin_loader::PluginLoader&& loader,
+    std::shared_ptr<const boost_plugin_loader::PluginLoader> loader,
     QWidget* parent)
-  : PlaneSlicerRasterPlannerWidget(std::move(loader), parent), cross_hatch_angle_(new AngleDoubleSpinBox(this))
+  : PlaneSlicerRasterPlannerWidget(loader, parent), cross_hatch_angle_(new AngleDoubleSpinBox(this))
 {
   // Search radius
   cross_hatch_angle_->setMinimum(0.0);

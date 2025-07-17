@@ -2,7 +2,6 @@
 
 #include <noether_gui/plugin_interface.h>
 
-#include <boost_plugin_loader/plugin_loader.h>
 #include <noether_tpp/core/tool_path_planner_pipeline.h>
 #include <QWidget>
 
@@ -22,15 +21,15 @@ class PluginLoaderWidget;
 class TPPPipelineWidget : public QWidget
 {
 public:
-  TPPPipelineWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent = nullptr);
+  TPPPipelineWidget(std::shared_ptr<const boost_plugin_loader::PluginLoader> loader, QWidget* parent = nullptr);
 
   ToolPathPlannerPipeline createPipeline() const;
 
   void configure(const YAML::Node& config);
   void save(YAML::Node& config) const;
 
-private:
-  const boost_plugin_loader::PluginLoader loader_;
+protected:
+  std::shared_ptr<const boost_plugin_loader::PluginLoader> loader_;
   PluginLoaderWidget<MeshModifierWidgetPlugin>* mesh_modifier_loader_widget_;
   PluginLoaderWidget<ToolPathModifierWidgetPlugin>* tool_path_modifier_loader_widget_;
   Ui::TPPPipeline* ui_;

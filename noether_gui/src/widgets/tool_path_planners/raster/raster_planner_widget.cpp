@@ -14,15 +14,16 @@ static const std::string MIN_HOLE_SIZE_KEY = "min_hole_size";
 
 namespace noether
 {
-RasterPlannerWidget::RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loader, QWidget* parent)
-  : ToolPathPlannerWidget(parent), loader_(std::move(loader)), ui_(new Ui::RasterPlanner())
+RasterPlannerWidget::RasterPlannerWidget(std::shared_ptr<const boost_plugin_loader::PluginLoader> loader,
+                                         QWidget* parent)
+  : ToolPathPlannerWidget(parent), loader_(loader), ui_(new Ui::RasterPlanner())
 {
   ui_->setupUi(this);
 
   // Populate the combo boxes
   // Direction generator
   {
-    QStringList plugin_names = getAvailablePlugins<DirectionGeneratorWidgetPlugin>(loader_);
+    QStringList plugin_names = getAvailablePlugins<DirectionGeneratorWidgetPlugin>(*loader_);
     plugin_names.sort();
     ui_->combo_box_dir_gen->addItems(plugin_names);
 
@@ -34,15 +35,15 @@ RasterPlannerWidget::RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loa
       }
       else
       {
-        auto plugin = loader_.createInstance<DirectionGeneratorWidgetPlugin>(plugin_name.toStdString());
-        ui_->stacked_widget_dir_gen->addWidget(plugin->create(this, {}));
+        auto plugin = loader_->createInstance<DirectionGeneratorWidgetPlugin>(plugin_name.toStdString());
+        ui_->stacked_widget_dir_gen->addWidget(plugin->create({}, loader_, this));
       }
     }
   }
 
   // Origin generator
   {
-    QStringList plugin_names = getAvailablePlugins<OriginGeneratorWidgetPlugin>(loader_);
+    QStringList plugin_names = getAvailablePlugins<OriginGeneratorWidgetPlugin>(*loader_);
     plugin_names.sort();
     ui_->combo_box_origin_gen->addItems(plugin_names);
 
@@ -54,8 +55,8 @@ RasterPlannerWidget::RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loa
       }
       else
       {
-        auto plugin = loader_.createInstance<OriginGeneratorWidgetPlugin>(plugin_name.toStdString());
-        ui_->stacked_widget_origin_gen->addWidget(plugin->create(this, {}));
+        auto plugin = loader_->createInstance<OriginGeneratorWidgetPlugin>(plugin_name.toStdString());
+        ui_->stacked_widget_origin_gen->addWidget(plugin->create({}, loader_, this));
       }
     }
   }

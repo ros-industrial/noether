@@ -8,16 +8,16 @@
 namespace noether
 {
 template <typename PluginT>
-PluginLoaderWidget<PluginT>::PluginLoaderWidget(boost_plugin_loader::PluginLoader loader,
+PluginLoaderWidget<PluginT>::PluginLoaderWidget(std::shared_ptr<const boost_plugin_loader::PluginLoader> loader,
                                                 const QString& title,
                                                 QWidget* parent)
-  : QWidget(parent), ui_(new Ui::PluginLoader()), loader_(std::move(loader))
+  : QWidget(parent), ui_(new Ui::PluginLoader()), loader_(loader)
 {
   ui_->setupUi(this);
 
   ui_->group_box->setTitle(title);
 
-  QStringList plugins = getAvailablePlugins<PluginT>(loader_);
+  QStringList plugins = getAvailablePlugins<PluginT>(*loader_);
   plugins.sort();
   ui_->combo_box->addItems(plugins);
 
@@ -83,14 +83,14 @@ PluginLoaderWidget<PluginT>::~PluginLoaderWidget()
 template <typename PluginT>
 void PluginLoaderWidget<PluginT>::addWidget(const QString& plugin_name, const YAML::Node& config)
 {
-  auto plugin = loader_.createInstance<PluginT>(plugin_name.toStdString());
+  auto plugin = loader_->createInstance<PluginT>(plugin_name.toStdString());
 
   // Store the plugin to prevent it from going out of scope and unloading the plugin library
   plugins_.insert(plugin);
 
   // Update the list widget and stacked widget
   ui_->list_widget->addItem(plugin_name);
-  ui_->stacked_widget->addWidget(plugin->create(this, config));
+  ui_->stacked_widget->addWidget(plugin->create(config, loader_, this));
 
   // Set the current row of the list widget to trigger an update in the stacked widget
   ui_->list_widget->setCurrentRow(ui_->list_widget->count() - 1);

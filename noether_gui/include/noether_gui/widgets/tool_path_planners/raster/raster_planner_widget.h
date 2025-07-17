@@ -22,16 +22,16 @@ namespace noether
 class RasterPlannerWidget : public ToolPathPlannerWidget
 {
 public:
-  RasterPlannerWidget(boost_plugin_loader::PluginLoader&& loader, QWidget* parent = nullptr);
+  RasterPlannerWidget(std::shared_ptr<const boost_plugin_loader::PluginLoader> loader, QWidget* parent = nullptr);
 
   void configure(const YAML::Node&) override;
   void save(YAML::Node&) const override;
 
 protected:
+  std::shared_ptr<const boost_plugin_loader::PluginLoader> loader_;
   DirectionGeneratorWidget* getDirectionGeneratorWidget() const;
   OriginGeneratorWidget* getOriginGeneratorWidget() const;
 
-  const boost_plugin_loader::PluginLoader loader_;
   Ui::RasterPlanner* ui_;
 };
 

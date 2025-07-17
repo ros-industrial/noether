@@ -52,7 +52,9 @@ namespace noether
 template <typename WidgetT, typename BaseWidgetT>
 struct WidgetPluginImpl : WidgetPlugin<BaseWidgetT>
 {
-  BaseWidgetT* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
+  BaseWidgetT* create(const YAML::Node& config,
+                      std::shared_ptr<const boost_plugin_loader::PluginLoader> /*loader*/,
+                      QWidget* parent = nullptr) const override final
   {
     auto widget = new WidgetT(parent);
 
@@ -129,14 +131,11 @@ using Plugin_UniformSpacingLinearModifierWidget =
 // Raster Tool Path Planners
 struct Plugin_PlaneSlicerRasterPlannerWidget : ToolPathPlannerWidgetPlugin
 {
-  ToolPathPlannerWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
+  ToolPathPlannerWidget* create(const YAML::Node& config,
+                                std::shared_ptr<const boost_plugin_loader::PluginLoader> loader,
+                                QWidget* parent = nullptr) const override final
   {
-    boost_plugin_loader::PluginLoader loader;
-    loader.search_libraries.insert(NOETHER_GUI_PLUGINS);
-    loader.search_libraries_env = NOETHER_GUI_PLUGIN_LIBS_ENV;
-    loader.search_paths_env = NOETHER_GUI_PLUGIN_PATHS_ENV;
-
-    auto widget = new PlaneSlicerRasterPlannerWidget(std::move(loader), parent);
+    auto widget = new PlaneSlicerRasterPlannerWidget(loader, parent);
 
     // Attempt to configure the widget
     if (!config.IsNull())
@@ -148,14 +147,11 @@ struct Plugin_PlaneSlicerRasterPlannerWidget : ToolPathPlannerWidgetPlugin
 
 struct Plugin_CrossHatchPlaneSlicerRasterPlannerWidget : ToolPathPlannerWidgetPlugin
 {
-  ToolPathPlannerWidget* create(QWidget* parent = nullptr, const YAML::Node& config = {}) const override final
+  ToolPathPlannerWidget* create(const YAML::Node& config,
+                                std::shared_ptr<const boost_plugin_loader::PluginLoader> loader,
+                                QWidget* parent = nullptr) const override final
   {
-    boost_plugin_loader::PluginLoader loader;
-    loader.search_libraries.insert(NOETHER_GUI_PLUGINS);
-    loader.search_libraries_env = NOETHER_GUI_PLUGIN_LIBS_ENV;
-    loader.search_paths_env = NOETHER_GUI_PLUGIN_PATHS_ENV;
-
-    auto widget = new CrossHatchPlaneSlicerRasterPlannerWidget(std::move(loader), parent);
+    auto widget = new CrossHatchPlaneSlicerRasterPlannerWidget(loader, parent);
 
     // Attempt to configure the widget
     if (!config.IsNull())
