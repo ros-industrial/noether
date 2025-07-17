@@ -85,28 +85,33 @@ using MeshModifierWidgetPlugin = WidgetPlugin<MeshModifierWidget>;
  * @brief Macro for exporting instances of ToolPathPlannerWidgetPlugin
  * @ingroup gui_widgets_tool_path_planners
  */
-#define EXPORT_TPP_WIDGET_PLUGIN(DERIVED_CLASS, ALIAS) EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, tpp)
+#define EXPORT_TPP_WIDGET_PLUGIN(DERIVED_CLASS, ALIAS)                                                                 \
+  EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, NOETHER_GUI_TPP_SECTION)
 
 /**
  * @brief Macro for exporting instances of DirectionGeneratorWidgetPlugin
  * @ingroup gui_widgets_tool_path_planners
  */
-#define EXPORT_DIRECTION_GENERATOR_WIDGET_PLUGIN(DERIVED_CLASS, ALIAS) EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, dg)
+#define EXPORT_DIRECTION_GENERATOR_WIDGET_PLUGIN(DERIVED_CLASS, ALIAS)                                                 \
+  EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, NOETHER_GUI_DIRECTION_GENERATOR_SECTION)
 
 /**
  * @brief Macro for exporting instances of OriginGeneratorWidgetPlugin
  * @ingroup gui_widgets_tool_path_planners
  */
-#define EXPORT_ORIGIN_GENERATOR_PLUGIN(DERIVED_CLASS, ALIAS) EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, og)
+#define EXPORT_ORIGIN_GENERATOR_PLUGIN(DERIVED_CLASS, ALIAS)                                                    \
+  EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, NOETHER_GUI_ORIGIN_GENERATOR_SECTION)
 
 /**
  * @brief Macro for exporting instances of ToolPathModifierWidgetPlugin
  * @ingroup gui_widgets_tool_path_modifiers
  */
-#define EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(DERIVED_CLASS, ALIAS) EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, mod)
+#define EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(DERIVED_CLASS, ALIAS)                                                  \
+  EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, NOETHER_GUI_TOOL_PATH_MODIFIER_SECTION)
 
 /**
  * @brief Macro for exporting instances of MeshModifierWidgetPlugin
  * @ingroup gui_widgets_mesh_modifiers
  */
-#define EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(DERIVED_CLASS, ALIAS) EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, mesh)
+#define EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(DERIVED_CLASS, ALIAS)                                                       \
+  EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, NOETHER_GUI_MESH_MODIFIER_SECTION)
