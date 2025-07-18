@@ -1,4 +1,3 @@
-#include <boost_plugin_loader/plugin_loader.h>
 #include <gtest/gtest.h>
 #include <pcl/io/vtk_lib_io.h>
 
@@ -80,11 +79,7 @@ TEST_P(MeshModifierTestFixture, WavyMeshWithHole)
 // Create a vector of implementations for the modifiers
 std::vector<std::shared_ptr<const MeshModifier>> createModifiers()
 {
-  // Create the plugin loader
-  auto loader = std::make_shared<boost_plugin_loader::PluginLoader>();
-  loader->search_libraries.insert(NOETHER_PLUGIN_LIB);
-  loader->search_libraries_env = NOETHER_PLUGIN_LIBS_ENV;
-  loader->search_paths_env = NOETHER_PLUGIN_PATHS_ENV;
+  Factory factory;
 
   // Load the plugin YAML config
   YAML::Node config = YAML::Load(config_str);
@@ -96,8 +91,7 @@ std::vector<std::shared_ptr<const MeshModifier>> createModifiers()
   for (const YAML::Node& entry_config : config)
   {
     auto name = YAML::getMember<std::string>(entry_config, "name");
-    auto plugin = loader->createInstance<MeshModifierPlugin>(name);
-    modifiers.push_back(plugin->create(entry_config, loader));
+    modifiers.push_back(factory.createMeshModifier(entry_config));
   }
 
   return modifiers;

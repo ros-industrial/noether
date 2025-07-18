@@ -36,6 +36,8 @@ class Node;
 
 namespace noether
 {
+class Factory;
+
 /**
  * @details Collects together a set of mesh modifiers, a planner,
  * and a set of tool path modifiers. These sub-units then can be called using a single line to
@@ -48,7 +50,7 @@ public:
                           ToolPathPlanner::ConstPtr planner,
                           ToolPathModifier::ConstPtr tool_path_mod);
 
-  ToolPathPlannerPipeline(std::shared_ptr<const boost_plugin_loader::PluginLoader> loader, const YAML::Node& node);
+  ToolPathPlannerPipeline(const Factory& factory, const YAML::Node& node);
 
   std::vector<ToolPaths> plan(pcl::PolygonMesh mesh) const;
   MeshModifier::ConstPtr mesh_modifier;
