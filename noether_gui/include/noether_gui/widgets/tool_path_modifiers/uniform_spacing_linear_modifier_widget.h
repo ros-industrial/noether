@@ -9,7 +9,7 @@ class DistanceDoubleSpinBox;
 /**
  * @ingroup gui_widgets_tool_path_modifiers
  */
-class UniformSpacingLinearModifierWidget : public ToolPathModifierWidget
+class UniformSpacingLinearModifierWidget : public BaseWidget
 {
 public:
   UniformSpacingLinearModifierWidget(QWidget* parent = nullptr);

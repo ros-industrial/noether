@@ -7,10 +7,10 @@ namespace noether
 /**
  * @ingroup gui_widgets_mesh_modifiers
  */
-class NormalsFromMeshFacesMeshModifierWidget : public MeshModifierWidget
+class NormalsFromMeshFacesMeshModifierWidget : public BaseWidget
 {
 public:
-  using MeshModifierWidget::MeshModifierWidget;
+  using BaseWidget::BaseWidget;
 
   void save(YAML::Node&) const override;
 };

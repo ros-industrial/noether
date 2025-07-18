@@ -9,7 +9,7 @@ class Vector3dEditor;
 
 namespace noether
 {
-class FixedDirectionGeneratorWidget : public DirectionGeneratorWidget
+class FixedDirectionGeneratorWidget : public BaseWidget
 {
 public:
   FixedDirectionGeneratorWidget(QWidget* parent = nullptr);

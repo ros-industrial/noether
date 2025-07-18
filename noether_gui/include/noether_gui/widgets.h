@@ -5,17 +5,10 @@
 
 namespace noether
 {
-class ToolPathPlanner;
-class ToolPathModifier;
-class DirectionGenerator;
-class OriginGenerator;
-class MeshModifier;
-
 /**
  * @ingroup gui_interfaces_widgets
- * @brief Base class for a widget "factory" that can produce classes of a specifiable type
+ * @brief Base class for a widget that can configure tool path planning components
  */
-template <typename T>
 class BaseWidget : public QWidget
 {
 public:
@@ -31,35 +24,5 @@ public:
    */
   virtual void save(YAML::Node&) const = 0;
 };
-
-/**
- * @ingroup gui_interfaces_widgets
- * @brief Widget for configuring instances of ToolPathPlanner
- */
-using ToolPathPlannerWidget = BaseWidget<ToolPathPlanner>;
-
-/**
- * @ingroup gui_interfaces_widgets
- * @brief Widget for configuring instances of DirectionGenerator
- */
-using DirectionGeneratorWidget = BaseWidget<DirectionGenerator>;
-
-/**
- * @ingroup gui_interfaces_widgets
- * @brief Widget for configuring instances of OriginGenerator
- */
-using OriginGeneratorWidget = BaseWidget<OriginGenerator>;
-
-/**
- * @ingroup gui_interfaces_widgets
- * @brief Widget for configuring instances of ToolPathModifier
- */
-using ToolPathModifierWidget = BaseWidget<ToolPathModifier>;
-
-/**
- * @ingroup gui_interfaces_widgets
- * @brief Widget for configuring instances of MeshModifier
- */
-using MeshModifierWidget = BaseWidget<MeshModifier>;
 
 }  // namespace noether

@@ -7,7 +7,7 @@
 namespace noether
 {
 FillHolesModifierWidget::FillHolesModifierWidget(QWidget* parent)
-  : MeshModifierWidget(parent), max_hole_size_(new DistanceDoubleSpinBox(this))
+  : BaseWidget(parent), max_hole_size_(new DistanceDoubleSpinBox(this))
 {
   auto* layout = new QFormLayout(this);
 

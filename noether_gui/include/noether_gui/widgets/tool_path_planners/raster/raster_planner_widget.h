@@ -2,8 +2,6 @@
 
 #include <noether_gui/widgets.h>
 
-#include <boost_plugin_loader/plugin_loader.h>
-
 namespace Ui
 {
 class RasterPlanner;
@@ -16,21 +14,22 @@ class Node;
 
 namespace noether
 {
+class GuiFactory;
+
 /**
  * @ingroup gui_widgets_tool_path_planners
  */
-class RasterPlannerWidget : public ToolPathPlannerWidget
+class RasterPlannerWidget : public BaseWidget
 {
 public:
-  RasterPlannerWidget(std::shared_ptr<const boost_plugin_loader::PluginLoader> loader, QWidget* parent = nullptr);
+  RasterPlannerWidget(std::shared_ptr<const GuiFactory> factory, QWidget* parent = nullptr);
 
   void configure(const YAML::Node&) override;
   void save(YAML::Node&) const override;
 
 protected:
-  std::shared_ptr<const boost_plugin_loader::PluginLoader> loader_;
-  DirectionGeneratorWidget* getDirectionGeneratorWidget() const;
-  OriginGeneratorWidget* getOriginGeneratorWidget() const;
+  BaseWidget* getDirectionGeneratorWidget() const;
+  BaseWidget* getOriginGeneratorWidget() const;
 
   Ui::RasterPlanner* ui_;
 };

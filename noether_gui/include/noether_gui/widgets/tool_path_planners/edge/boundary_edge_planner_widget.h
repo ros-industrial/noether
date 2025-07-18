@@ -1,17 +1,17 @@
 #pragma once
 
-#include <noether_gui/widgets/tool_path_planners/edge/edge_planner_widget.h>
+#include <noether_gui/widgets.h>
 
 namespace noether
 {
 /**
  * @ingroup gui_widgets_tool_path_planners
  */
-class BoundaryEdgePlannerWidget : public EdgePlannerWidget
+class BoundaryEdgePlannerWidget : public BaseWidget
 {
 public:
-  using EdgePlannerWidget::configure;
-  using EdgePlannerWidget::EdgePlannerWidget;
+  using BaseWidget::BaseWidget;
+  using BaseWidget::configure;
 
   void save(YAML::Node&) const override;
 };

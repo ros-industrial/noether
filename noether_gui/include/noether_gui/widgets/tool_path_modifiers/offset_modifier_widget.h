@@ -13,7 +13,7 @@ namespace noether
 /**
  * @ingroup gui_widgets_tool_path_modifiers
  */
-class OffsetModifierWidget : public ToolPathModifierWidget
+class OffsetModifierWidget : public BaseWidget
 {
 public:
   OffsetModifierWidget(QWidget* parent = nullptr);

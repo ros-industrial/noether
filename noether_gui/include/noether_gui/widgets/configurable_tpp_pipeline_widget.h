@@ -7,7 +7,7 @@ namespace noether
 class ConfigurableTPPPipelineWidget : public TPPPipelineWidget
 {
 public:
-  ConfigurableTPPPipelineWidget(std::shared_ptr<const boost_plugin_loader::PluginLoader> loader,
+  ConfigurableTPPPipelineWidget(std::shared_ptr<const GuiFactory> loader,
                                 std::string default_configuration_file_directory = "",
                                 QWidget* parent = nullptr);
 

@@ -12,7 +12,7 @@ namespace noether
 /**
  * @ingroup gui_widgets_tool_path_modifiers
  */
-class StandardEdgePathsOrganizationModifierWidget : public ToolPathModifierWidget
+class StandardEdgePathsOrganizationModifierWidget : public BaseWidget
 {
 public:
   StandardEdgePathsOrganizationModifierWidget(QWidget* parent = nullptr);

@@ -7,10 +7,10 @@ namespace noether
 /**
  * @ingroup gui_widgets_tool_path_modifiers
  */
-struct RasterOrganizationModifierWidget : public ToolPathModifierWidget
+struct RasterOrganizationModifierWidget : public BaseWidget
 {
 public:
-  using ToolPathModifierWidget::ToolPathModifierWidget;
+  using BaseWidget::BaseWidget;
 
   void save(YAML::Node&) const override;
 };

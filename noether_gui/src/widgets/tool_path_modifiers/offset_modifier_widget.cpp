@@ -7,7 +7,7 @@
 namespace noether
 {
 OffsetModifierWidget::OffsetModifierWidget(QWidget* parent)
-  : ToolPathModifierWidget(parent), ui_vector_(new Ui::Vector3dEditor()), ui_quaternion_(new Ui::QuaternionEditor())
+  : BaseWidget(parent), ui_vector_(new Ui::Vector3dEditor()), ui_quaternion_(new Ui::QuaternionEditor())
 {
   auto layout = new QVBoxLayout(this);
 

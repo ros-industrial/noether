@@ -6,14 +6,14 @@
 #include <QMessageBox>
 #include <QTextStream>
 #include <QAction>
+#include <yaml-cpp/yaml.h>
 
 namespace noether
 {
-ConfigurableTPPPipelineWidget::ConfigurableTPPPipelineWidget(
-    std::shared_ptr<const boost_plugin_loader::PluginLoader> loader,
-    std::string default_configuration_file_directory,
-    QWidget* parent)
-  : TPPPipelineWidget(loader, parent), default_configuration_file_directory_(default_configuration_file_directory)
+ConfigurableTPPPipelineWidget::ConfigurableTPPPipelineWidget(std::shared_ptr<const GuiFactory> factory,
+                                                             std::string default_configuration_file_directory,
+                                                             QWidget* parent)
+  : TPPPipelineWidget(factory, parent), default_configuration_file_directory_(default_configuration_file_directory)
 {
 }
 

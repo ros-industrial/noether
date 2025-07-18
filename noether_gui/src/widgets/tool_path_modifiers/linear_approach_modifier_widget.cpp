@@ -11,7 +11,7 @@ static const std::string OFFSET_KEY = "offset";
 namespace noether
 {
 LinearApproachToolPathModifierWidget::LinearApproachToolPathModifierWidget(QWidget* parent)
-  : ToolPathModifierWidget(parent), ui_(new Ui::LinearApproachModifier()), vector_editor_ui_(new Ui::Vector3dEditor())
+  : BaseWidget(parent), ui_(new Ui::LinearApproachModifier()), vector_editor_ui_(new Ui::Vector3dEditor())
 {
   ui_->setupUi(this);
 

@@ -1,7 +1,7 @@
 #include <noether_gui/widgets/tpp_widget.h>
+#include <noether_gui/plugin_interface.h>
 
 #include <boost/program_options.hpp>
-#include <boost_plugin_loader/plugin_loader.h>
 #include <QApplication>
 #include <QMainWindow>
 #include <signal.h>
@@ -32,14 +32,10 @@ int main(int argc, char** argv)
   signal(SIGINT, handleSignal);
   signal(SIGTERM, handleSignal);
 
-  auto loader = std::make_shared<boost_plugin_loader::PluginLoader>();
-  loader->search_libraries.insert(NOETHER_GUI_PLUGINS);
-  loader->search_libraries.insert(NOETHER_PLUGINS);
-  loader->search_libraries_env = NOETHER_PLUGIN_LIBS_ENV;
-  loader->search_paths_env = NOETHER_PLUGIN_PATHS_ENV;
+  auto factory = std::make_shared<noether::GuiFactory>();
 
   // Create (and optionally configure) the TPP widget
-  auto widget = noether::TPPWidget(loader);
+  auto widget = noether::TPPWidget(factory);
   widget.setWindowIcon(QIcon(":/icons/icon.jpg"));
   widget.setWindowTitle("Tool Path Planner");
   widget.showMaximized();

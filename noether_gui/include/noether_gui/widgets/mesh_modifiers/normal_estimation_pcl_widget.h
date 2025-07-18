@@ -14,7 +14,7 @@ class DistanceDoubleSpinBox;
 /**
  * @ingroup gui_widgets_mesh_modifiers
  */
-class NormalEstimationPCLMeshModifierWidget : public MeshModifierWidget
+class NormalEstimationPCLMeshModifierWidget : public BaseWidget
 {
 public:
   NormalEstimationPCLMeshModifierWidget(QWidget* parent = nullptr);

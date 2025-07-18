@@ -13,7 +13,7 @@ static const std::string MAX_SIZE_KEY = "max_cluster_size";
 namespace noether
 {
 EuclideanClusteringMeshModifierWidget::EuclideanClusteringMeshModifierWidget(QWidget* parent)
-  : MeshModifierWidget(parent)
+  : BaseWidget(parent)
   , tolerance_(new DistanceDoubleSpinBox(this))
   , min_cluster_size_(new QSpinBox(this))
   , max_cluster_size_(new QSpinBox(this))

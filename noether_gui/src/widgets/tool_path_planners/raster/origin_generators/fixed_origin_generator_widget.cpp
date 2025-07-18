@@ -6,7 +6,7 @@
 namespace noether
 {
 FixedOriginGeneratorWidget::FixedOriginGeneratorWidget(QWidget* parent)
-  : OriginGeneratorWidget(parent), ui_(new Ui::Vector3dEditor())
+  : BaseWidget(parent), ui_(new Ui::Vector3dEditor())
 {
   ui_->setupUi(this);
   ui_->group_box->setTitle("Origin");

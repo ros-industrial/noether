@@ -4,7 +4,7 @@
 
 namespace noether
 {
-struct CentroidOriginGeneratorWidget : public OriginGeneratorWidget
+struct CentroidOriginGeneratorWidget : public BaseWidget
 {
 public:
   using BaseWidget::BaseWidget;

@@ -1,12 +1,8 @@
 #pragma once
 
-#include <set>
-#include <QWidget>
+#include <noether_gui/plugin_interface.h>
 
-namespace boost_plugin_loader
-{
-class PluginLoader;
-}
+#include <QWidget>
 
 namespace Ui
 {
@@ -23,13 +19,11 @@ namespace noether
 /**
  * @brief Widget for loading widget plugins
  */
-template <typename PluginT>
+template<typename PluginT>
 class PluginLoaderWidget : public QWidget
 {
 public:
-  PluginLoaderWidget(std::shared_ptr<const boost_plugin_loader::PluginLoader> loader,
-                     const QString& title,
-                     QWidget* parent = nullptr);
+  PluginLoaderWidget(std::shared_ptr<const GuiFactory> factory, const QString& title, QWidget* parent = nullptr);
   ~PluginLoaderWidget();
 
   QWidgetList getWidgets() const;
@@ -39,19 +33,12 @@ public:
 
   void removeWidgets();
 
-private:
+protected:
   void addWidget(const QString& plugin_name, const YAML::Node& config);
   void shiftCurrentWidget(const int offset);
 
   Ui::PluginLoader* ui_;
-
-  /**
-   * @brief Container for holding all loaded plugins
-   * @details All loaded plugins must be held in scope in order to prevent the plugin libraries from being unloaded
-   */
-  std::set<std::shared_ptr<PluginT>> plugins_;
-
-  std::shared_ptr<const boost_plugin_loader::PluginLoader> loader_;
+  std::shared_ptr<const GuiFactory> factory_;
 };
 
 }  // namespace noether

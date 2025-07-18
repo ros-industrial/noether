@@ -6,7 +6,7 @@
 namespace noether
 {
 StandardEdgePathsOrganizationModifierWidget::StandardEdgePathsOrganizationModifierWidget(QWidget* parent)
-  : ToolPathModifierWidget(parent), ui_(new Ui::Vector3dEditor())
+  : BaseWidget(parent), ui_(new Ui::Vector3dEditor())
 {
   ui_->setupUi(this);
   ui_->group_box->setTitle("Start Reference");

@@ -7,9 +7,9 @@ namespace noether
 /**
  * @ingroup gui_widgets_tool_path_modifiers
  */
-struct UniformOrientationModifierWidget : public ToolPathModifierWidget
+struct UniformOrientationModifierWidget : public BaseWidget
 {
-  using ToolPathModifierWidget::ToolPathModifierWidget;
+  using BaseWidget::BaseWidget;
 
   void save(YAML::Node&) const override;
 };

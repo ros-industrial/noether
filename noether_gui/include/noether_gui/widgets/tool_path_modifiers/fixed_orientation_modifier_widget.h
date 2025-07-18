@@ -12,7 +12,7 @@ namespace noether
 /**
  * @ingroup gui_widgets_tool_path_modifiers
  */
-class FixedOrientationModifierWidget : public ToolPathModifierWidget
+class FixedOrientationModifierWidget : public BaseWidget
 {
 public:
   FixedOrientationModifierWidget(QWidget* parent = nullptr);

@@ -10,7 +10,7 @@
 namespace noether
 {
 PrincipalAxisDirectionGeneratorWidget::PrincipalAxisDirectionGeneratorWidget(QWidget* parent)
-  : DirectionGeneratorWidget(parent)
+  : BaseWidget(parent)
   , layout_(new QFormLayout(this))
   , label_(new QLabel("Rotation offset", this))
   , rotation_offset_(new AngleDoubleSpinBox(this))

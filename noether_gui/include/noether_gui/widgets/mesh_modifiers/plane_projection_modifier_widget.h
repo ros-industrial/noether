@@ -11,7 +11,7 @@ class DistanceDoubleSpinBox;
 /**
  * @ingroup gui_widgets_mesh_modifiers
  */
-class PlaneProjectionMeshModifierWidget : public MeshModifierWidget
+class PlaneProjectionMeshModifierWidget : public BaseWidget
 {
 public:
   PlaneProjectionMeshModifierWidget(QWidget* parent = nullptr);

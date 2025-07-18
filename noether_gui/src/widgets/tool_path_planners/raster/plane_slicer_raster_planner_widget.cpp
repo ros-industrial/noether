@@ -10,10 +10,9 @@
 
 namespace noether
 {
-PlaneSlicerRasterPlannerWidget::PlaneSlicerRasterPlannerWidget(
-    std::shared_ptr<const boost_plugin_loader::PluginLoader> loader,
-    QWidget* parent)
-  : RasterPlannerWidget(loader, parent)
+PlaneSlicerRasterPlannerWidget::PlaneSlicerRasterPlannerWidget(std::shared_ptr<const GuiFactory> factory,
+                                                               QWidget* parent)
+  : RasterPlannerWidget(factory, parent)
   , search_radius_(new DistanceDoubleSpinBox(this))
   , min_segment_size_(new DistanceDoubleSpinBox(this))
   , bidirectional_(new QCheckBox(this))

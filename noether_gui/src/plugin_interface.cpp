@@ -1,11 +1,7 @@
 #include <noether_gui/plugin_interface.h>
+#include <noether_tpp/plugin_interface.h>
 
-#include <noether_tpp/core/mesh_modifier.h>
-#include <noether_tpp/core/tool_path_planner.h>
-#include <noether_tpp/core/tool_path_modifier.h>
-#include <noether_tpp/tool_path_planners/raster/raster_planner.h>
 #include <boost_plugin_loader/plugin_loader.hpp>
-#include <yaml-cpp/yaml.h>
 
 // Macros for converting a non-string target compile definition into a string
 #define STRINGIFY_HELPER(x) #x
@@ -13,43 +9,86 @@
 
 namespace noether
 {
-template <>
-std::string noether::ToolPathPlannerWidgetPlugin::getSection()
-{
-  return STRINGIFY(NOETHER_GUI_TPP_SECTION);
-}
+std::string noether::MeshModifierWidgetPlugin::getSection() { return STRINGIFY(NOETHER_GUI_MESH_MODIFIER_SECTION); }
 
-template <>
-std::string DirectionGeneratorWidgetPlugin::getSection()
+std::string noether::ToolPathPlannerWidgetPlugin::getSection() { return STRINGIFY(NOETHER_GUI_TPP_SECTION); }
+
+std::string noether::DirectionGeneratorWidgetPlugin::getSection()
 {
   return STRINGIFY(NOETHER_GUI_DIRECTION_GENERATOR_SECTION);
 }
 
-template <>
-std::string OriginGeneratorWidgetPlugin::getSection()
+std::string noether::OriginGeneratorWidgetPlugin::getSection()
 {
   return STRINGIFY(NOETHER_GUI_ORIGIN_GENERATOR_SECTION);
 }
 
-template <>
-std::string ToolPathModifierWidgetPlugin::getSection()
+std::string noether::ToolPathModifierWidgetPlugin::getSection()
 {
   return STRINGIFY(NOETHER_GUI_TOOL_PATH_MODIFIER_SECTION);
 }
 
-template <>
-std::string MeshModifierWidgetPlugin::getSection()
+GuiFactory::GuiFactory()
 {
-  return STRINGIFY(NOETHER_GUI_MESH_MODIFIER_SECTION);
+  auto loader = std::make_shared<boost_plugin_loader::PluginLoader>();
+  loader->search_libraries.insert(NOETHER_PLUGIN_LIB);
+  loader->search_libraries.insert(NOETHER_GUI_PLUGIN_LIB);
+  loader->search_libraries_env = NOETHER_PLUGIN_LIBS_ENV;
+  loader->search_paths_env = NOETHER_PLUGIN_PATHS_ENV;
+  loader_ = loader;
 }
+
+GuiFactory::GuiFactory(std::shared_ptr<const boost_plugin_loader::PluginLoader> loader) : Factory(loader) {}
+
+template <typename PluginT>
+BaseWidget* GuiFactory::createWidget(const std::string& name, const YAML::Node& config, QWidget* parent) const
+{
+  if (widget_plugins_.find(name) == widget_plugins_.end())
+    widget_plugins_[name] = loader_->createInstance<PluginT>(name);
+
+  auto this_shared = std::shared_ptr<const GuiFactory>(this, [](const GuiFactory*) {});
+  return widget_plugins_[name]->create(config, this_shared, parent);
+}
+
+BaseWidget* GuiFactory::createMeshModifierWidget(const std::string& name, const YAML::Node& config, QWidget* parent) const
+{
+  return createWidget<MeshModifierWidgetPlugin>(name, config, parent);
+}
+
+BaseWidget* GuiFactory::createToolPathPlannerWidget(const std::string& name, const YAML::Node& config, QWidget* parent) const
+{
+  return createWidget<ToolPathPlannerWidgetPlugin>(name, config, parent);
+}
+
+BaseWidget* GuiFactory::createDirectionGeneratorWidget(const std::string& name, const YAML::Node& config, QWidget* parent) const
+{
+  return createWidget<DirectionGeneratorWidgetPlugin>(name, config, parent);
+}
+
+BaseWidget* GuiFactory::createOriginGeneratorWidget(const std::string& name, const YAML::Node& config, QWidget* parent) const
+{
+  return createWidget<OriginGeneratorWidgetPlugin>(name, config, parent);
+}
+
+BaseWidget* GuiFactory::createToolPathModifierWidget(const std::string& name, const YAML::Node& config, QWidget* parent) const
+{
+  return createWidget<ToolPathModifierWidgetPlugin>(name, config, parent);
+}
+
+template std::vector<std::string> Factory::getAvailablePlugins<MeshModifierWidgetPlugin>() const;
+template std::vector<std::string> Factory::getAvailablePlugins<ToolPathPlannerWidgetPlugin>() const;
+template std::vector<std::string> Factory::getAvailablePlugins<DirectionGeneratorWidgetPlugin>() const;
+template std::vector<std::string> Factory::getAvailablePlugins<OriginGeneratorWidgetPlugin>() const;
+template std::vector<std::string> Factory::getAvailablePlugins<ToolPathModifierWidgetPlugin>() const;
+
 }  // namespace noether
 
 namespace boost_plugin_loader
 {
+INSTANTIATE_PLUGIN_LOADER(noether::MeshModifierWidgetPlugin)
 INSTANTIATE_PLUGIN_LOADER(noether::ToolPathPlannerWidgetPlugin)
 INSTANTIATE_PLUGIN_LOADER(noether::DirectionGeneratorWidgetPlugin)
 INSTANTIATE_PLUGIN_LOADER(noether::OriginGeneratorWidgetPlugin)
 INSTANTIATE_PLUGIN_LOADER(noether::ToolPathModifierWidgetPlugin)
-INSTANTIATE_PLUGIN_LOADER(noether::MeshModifierWidgetPlugin)
 
 }  // namespace boost_plugin_loader

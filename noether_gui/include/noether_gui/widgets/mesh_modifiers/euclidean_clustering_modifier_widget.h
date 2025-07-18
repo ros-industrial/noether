@@ -11,7 +11,7 @@ class DistanceDoubleSpinBox;
 /**
  * @ingroup gui_widgets_mesh_modifiers
  */
-class EuclideanClusteringMeshModifierWidget : public MeshModifierWidget
+class EuclideanClusteringMeshModifierWidget : public BaseWidget
 {
 public:
   EuclideanClusteringMeshModifierWidget(QWidget* parent = nullptr);

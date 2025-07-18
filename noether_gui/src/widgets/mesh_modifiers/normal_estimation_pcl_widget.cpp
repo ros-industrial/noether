@@ -9,7 +9,7 @@
 namespace noether
 {
 NormalEstimationPCLMeshModifierWidget::NormalEstimationPCLMeshModifierWidget(QWidget* parent)
-  : MeshModifierWidget(parent), radius_(new DistanceDoubleSpinBox(this)), view_point_(new Ui::Vector3dEditor())
+  : BaseWidget(parent), radius_(new DistanceDoubleSpinBox(this)), view_point_(new Ui::Vector3dEditor())
 {
   auto* layout = new QVBoxLayout(this);
 

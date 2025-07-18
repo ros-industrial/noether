@@ -9,7 +9,7 @@ class DistanceDoubleSpinBox;
 /**
  * @ingroup gui_widgets_mesh_modifiers
  */
-class FillHolesModifierWidget : public MeshModifierWidget
+class FillHolesModifierWidget : public BaseWidget
 {
 public:
   FillHolesModifierWidget(QWidget* parent = nullptr);

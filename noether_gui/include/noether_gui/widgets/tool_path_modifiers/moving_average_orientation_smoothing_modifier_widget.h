@@ -11,7 +11,7 @@ namespace noether
 /**
  * @ingroup gui_widgets_tool_path_modifiers
  */
-class MovingAverageOrientationSmoothingModifierWidget : public ToolPathModifierWidget
+class MovingAverageOrientationSmoothingModifierWidget : public BaseWidget
 {
 public:
   MovingAverageOrientationSmoothingModifierWidget(QWidget* parent = nullptr);

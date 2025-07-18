@@ -13,7 +13,7 @@ static const std::string TOOL_RADIUS_KEY = "tool_radius";
 namespace noether
 {
 ToolDragOrientationToolPathModifierWidget::ToolDragOrientationToolPathModifierWidget(QWidget* parent)
-  : ToolPathModifierWidget(parent)
+  : BaseWidget(parent)
 {
   auto layout = new QFormLayout(this);
 

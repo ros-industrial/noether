@@ -12,7 +12,7 @@ class DistanceDoubleSpinBox;
 /**
  * @ingroup gui_widgets_tool_path_modifiers
  */
-class CircularLeadOutToolPathModifierWidget : public ToolPathModifierWidget
+class CircularLeadOutToolPathModifierWidget : public BaseWidget
 {
 public:
   CircularLeadOutToolPathModifierWidget(QWidget* parent = nullptr);

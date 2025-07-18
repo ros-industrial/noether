@@ -14,16 +14,15 @@ static const std::string MIN_HOLE_SIZE_KEY = "min_hole_size";
 
 namespace noether
 {
-RasterPlannerWidget::RasterPlannerWidget(std::shared_ptr<const boost_plugin_loader::PluginLoader> loader,
-                                         QWidget* parent)
-  : ToolPathPlannerWidget(parent), loader_(loader), ui_(new Ui::RasterPlanner())
+RasterPlannerWidget::RasterPlannerWidget(std::shared_ptr<const GuiFactory> factory, QWidget* parent)
+  : BaseWidget(parent), ui_(new Ui::RasterPlanner())
 {
   ui_->setupUi(this);
 
   // Populate the combo boxes
   // Direction generator
   {
-    QStringList plugin_names = getAvailablePlugins<DirectionGeneratorWidgetPlugin>(*loader_);
+    QStringList plugin_names = toQStringList(factory->getAvailablePlugins<DirectionGeneratorWidgetPlugin>());
     plugin_names.sort();
     ui_->combo_box_dir_gen->addItems(plugin_names);
 
@@ -35,15 +34,14 @@ RasterPlannerWidget::RasterPlannerWidget(std::shared_ptr<const boost_plugin_load
       }
       else
       {
-        auto plugin = loader_->createInstance<DirectionGeneratorWidgetPlugin>(plugin_name.toStdString());
-        ui_->stacked_widget_dir_gen->addWidget(plugin->create({}, loader_, this));
+        ui_->stacked_widget_dir_gen->addWidget(factory->createDirectionGeneratorWidget(plugin_name.toStdString(), {}, this));
       }
     }
   }
 
   // Origin generator
   {
-    QStringList plugin_names = getAvailablePlugins<OriginGeneratorWidgetPlugin>(*loader_);
+    QStringList plugin_names = toQStringList(factory->getAvailablePlugins<OriginGeneratorWidgetPlugin>());
     plugin_names.sort();
     ui_->combo_box_origin_gen->addItems(plugin_names);
 
@@ -55,8 +53,7 @@ RasterPlannerWidget::RasterPlannerWidget(std::shared_ptr<const boost_plugin_load
       }
       else
       {
-        auto plugin = loader_->createInstance<OriginGeneratorWidgetPlugin>(plugin_name.toStdString());
-        ui_->stacked_widget_origin_gen->addWidget(plugin->create({}, loader_, this));
+        ui_->stacked_widget_origin_gen->addWidget(factory->createOriginGeneratorWidget(plugin_name.toStdString(), {}, this));
       }
     }
   }
@@ -86,7 +83,7 @@ void RasterPlannerWidget::configure(const YAML::Node& config)
     if (index >= 0)
     {
       ui_->combo_box_dir_gen->setCurrentIndex(index);
-      auto* dir_gen_widget = dynamic_cast<DirectionGeneratorWidget*>(ui_->stacked_widget_dir_gen->widget(index));
+      auto* dir_gen_widget = dynamic_cast<BaseWidget*>(ui_->stacked_widget_dir_gen->widget(index));
       if (dir_gen_widget)
         dir_gen_widget->configure(dir_gen_config);
     }
@@ -106,7 +103,7 @@ void RasterPlannerWidget::configure(const YAML::Node& config)
     if (index >= 0)
     {
       ui_->combo_box_origin_gen->setCurrentIndex(index);
-      auto* origin_gen_widget = dynamic_cast<OriginGeneratorWidget*>(ui_->stacked_widget_origin_gen->widget(index));
+      auto* origin_gen_widget = dynamic_cast<BaseWidget*>(ui_->stacked_widget_origin_gen->widget(index));
       if (origin_gen_widget)
         origin_gen_widget->configure(origin_gen_config);
     }
@@ -141,18 +138,18 @@ void RasterPlannerWidget::save(YAML::Node& config) const
   config[MIN_HOLE_SIZE_KEY] = ui_->double_spin_box_minimum_hole_size->value();
 }
 
-DirectionGeneratorWidget* RasterPlannerWidget::getDirectionGeneratorWidget() const
+BaseWidget* RasterPlannerWidget::getDirectionGeneratorWidget() const
 {
-  auto* widget = dynamic_cast<DirectionGeneratorWidget*>(ui_->stacked_widget_dir_gen->currentWidget());
+  auto* widget = dynamic_cast<BaseWidget*>(ui_->stacked_widget_dir_gen->currentWidget());
   if (!widget)
     throw std::runtime_error("Invalid direction generator");
 
   return widget;
 }
 
-OriginGeneratorWidget* RasterPlannerWidget::getOriginGeneratorWidget() const
+BaseWidget* RasterPlannerWidget::getOriginGeneratorWidget() const
 {
-  auto* widget = dynamic_cast<OriginGeneratorWidget*>(ui_->stacked_widget_origin_gen->currentWidget());
+  auto* widget = dynamic_cast<BaseWidget*>(ui_->stacked_widget_origin_gen->currentWidget());
   if (!widget)
     throw std::runtime_error("Invalid origin generator");
 

@@ -9,7 +9,7 @@
 namespace noether
 {
 MovingAverageOrientationSmoothingModifierWidget::MovingAverageOrientationSmoothingModifierWidget(QWidget* parent)
-  : ToolPathModifierWidget(parent)
+  : BaseWidget(parent)
   , layout_(new QFormLayout(this))
   , label_(new QLabel("Window size", this))
   , window_size_(new QSpinBox(this))

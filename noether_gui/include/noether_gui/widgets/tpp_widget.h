@@ -26,11 +26,6 @@ class vtkTubeFilter;
 class vtkAssembly;
 class vtkPolyData;
 
-namespace boost_plugin_loader
-{
-class PluginLoader;
-}
-
 namespace Ui
 {
 class TPP;
@@ -39,6 +34,7 @@ class TPP;
 namespace noether
 {
 class ConfigurableTPPPipelineWidget;
+class GuiFactory;
 
 enum class LineStyle
 {
@@ -55,7 +51,7 @@ enum class LineStyle
 class TPPWidget : public QMainWindow
 {
 public:
-  TPPWidget(std::shared_ptr<const boost_plugin_loader::PluginLoader> loader, QWidget* parent = nullptr);
+  TPPWidget(std::shared_ptr<const GuiFactory> factory, QWidget* parent = nullptr);
 
   /**
    * @brief Get the planned tool paths

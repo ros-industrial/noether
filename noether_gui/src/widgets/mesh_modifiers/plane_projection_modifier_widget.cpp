@@ -13,7 +13,7 @@ static const std::string MIN_VERTICES_KEY = "min_vertices";
 namespace noether
 {
 PlaneProjectionMeshModifierWidget::PlaneProjectionMeshModifierWidget(QWidget* parent)
-  : MeshModifierWidget(parent)
+  : BaseWidget(parent)
   , distance_threshold_(new DistanceDoubleSpinBox(this))
   , max_planes_(new QSpinBox(this))
   , min_vertices_(new QSpinBox(this))

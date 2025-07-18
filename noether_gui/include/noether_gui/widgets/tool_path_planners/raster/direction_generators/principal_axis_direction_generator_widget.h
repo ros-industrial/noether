@@ -9,7 +9,7 @@ namespace noether
 {
 class AngleDoubleSpinBox;
 
-class PrincipalAxisDirectionGeneratorWidget : public DirectionGeneratorWidget
+class PrincipalAxisDirectionGeneratorWidget : public BaseWidget
 {
 public:
   PrincipalAxisDirectionGeneratorWidget(QWidget* parent = nullptr);

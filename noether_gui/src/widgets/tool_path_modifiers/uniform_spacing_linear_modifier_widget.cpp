@@ -7,7 +7,7 @@
 namespace noether
 {
 UniformSpacingLinearModifierWidget::UniformSpacingLinearModifierWidget(QWidget* parent)
-  : ToolPathModifierWidget(parent), point_spacing_(new DistanceDoubleSpinBox(this))
+  : BaseWidget(parent), point_spacing_(new DistanceDoubleSpinBox(this))
 {
   auto* layout = new QFormLayout(this);
 

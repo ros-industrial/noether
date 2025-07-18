@@ -9,7 +9,7 @@ class Vector3dEditor;
 
 namespace noether
 {
-class FixedOriginGeneratorWidget : public OriginGeneratorWidget
+class FixedOriginGeneratorWidget : public BaseWidget
 {
 public:
   FixedOriginGeneratorWidget(QWidget* parent = nullptr);

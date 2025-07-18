@@ -10,7 +10,7 @@ class DistanceDoubleSpinBox;
 /**
  * @ingroup gui_widgets_tool_path_modifiers
  */
-class ToolDragOrientationToolPathModifierWidget : public ToolPathModifierWidget
+class ToolDragOrientationToolPathModifierWidget : public BaseWidget
 {
 public:
   ToolDragOrientationToolPathModifierWidget(QWidget* parent = nullptr);

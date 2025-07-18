@@ -4,7 +4,7 @@
 
 namespace noether
 {
-struct AABBOriginGeneratorWidget : public OriginGeneratorWidget
+struct AABBOriginGeneratorWidget : public BaseWidget
 {
 public:
   using BaseWidget::BaseWidget;

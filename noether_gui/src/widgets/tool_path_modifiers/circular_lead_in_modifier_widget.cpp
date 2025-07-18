@@ -13,8 +13,7 @@ static const std::string N_POINTS_KEY = "n_points";
 
 namespace noether
 {
-CircularLeadInToolPathModifierWidget::CircularLeadInToolPathModifierWidget(QWidget* parent)
-  : ToolPathModifierWidget(parent)
+CircularLeadInToolPathModifierWidget::CircularLeadInToolPathModifierWidget(QWidget* parent) : BaseWidget(parent)
 {
   auto layout = new QFormLayout(this);
 
