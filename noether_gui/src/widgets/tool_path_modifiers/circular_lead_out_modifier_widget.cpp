@@ -53,8 +53,7 @@ CircularLeadOutToolPathModifierWidget::CircularLeadOutToolPathModifierWidget(QWi
 
 ToolPathModifier::ConstPtr CircularLeadOutToolPathModifierWidget::create() const
 {
-  return std::make_unique<CircularLeadOutModifier>(
-      arc_angle_->value() * M_PI / 180.0, arc_radius_->value(), n_points_->value());
+  return std::make_unique<CircularLeadOutModifier>(arc_angle_->value(), arc_radius_->value(), n_points_->value());
 }
 
 void CircularLeadOutToolPathModifierWidget::configure(const YAML::Node& config)

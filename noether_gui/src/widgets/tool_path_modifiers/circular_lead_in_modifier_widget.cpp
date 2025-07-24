@@ -23,7 +23,7 @@ CircularLeadInToolPathModifierWidget::CircularLeadInToolPathModifierWidget(QWidg
   arc_angle_->setMinimum(0.0);
   arc_angle_->setValue(M_PI_2);
   arc_angle_->setDecimals(3);
-  auto label = new QLabel("Arc sweep (deg)", this);
+  auto label = new QLabel("Arc sweep", this);
   label->setToolTip("How far along the approach trajectory arc the waypoints extend from the first waypoint of the "
                     "segment");
   layout->addRow(label, arc_angle_);
@@ -52,8 +52,7 @@ CircularLeadInToolPathModifierWidget::CircularLeadInToolPathModifierWidget(QWidg
 
 ToolPathModifier::ConstPtr CircularLeadInToolPathModifierWidget::create() const
 {
-  return std::make_unique<CircularLeadInModifier>(
-      arc_angle_->value() * M_PI / 180.0, arc_radius_->value(), n_points_->value());
+  return std::make_unique<CircularLeadInModifier>(arc_angle_->value(), arc_radius_->value(), n_points_->value());
 }
 
 void CircularLeadInToolPathModifierWidget::configure(const YAML::Node& config)

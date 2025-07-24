@@ -37,8 +37,7 @@ BiasedToolDragOrientationToolPathModifierWidget::BiasedToolDragOrientationToolPa
 
 ToolPathModifier::ConstPtr BiasedToolDragOrientationToolPathModifierWidget::create() const
 {
-  return std::make_unique<BiasedToolDragOrientationToolPathModifier>(angle_offset_->value() * M_PI / 180.0,
-                                                                     tool_radius_->value());
+  return std::make_unique<BiasedToolDragOrientationToolPathModifier>(angle_offset_->value(), tool_radius_->value());
 }
 
 void BiasedToolDragOrientationToolPathModifierWidget::configure(const YAML::Node& config)

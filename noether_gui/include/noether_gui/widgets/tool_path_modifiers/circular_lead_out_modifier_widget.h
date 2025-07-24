@@ -8,6 +8,7 @@ class QSpinBox;
 
 namespace noether
 {
+class AngleDoubleSpinBox;
 class DistanceDoubleSpinBox;
 
 /**
@@ -24,7 +25,7 @@ public:
   void save(YAML::Node&) const override;
 
 private:
-  QDoubleSpinBox* arc_angle_;
+  AngleDoubleSpinBox* arc_angle_;
   DistanceDoubleSpinBox* arc_radius_;
   QSpinBox* n_points_;
 };

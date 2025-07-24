@@ -33,7 +33,7 @@ void PrincipalAxisDirectionGeneratorWidget::save(YAML::Node& config) const
 
 DirectionGenerator::ConstPtr PrincipalAxisDirectionGeneratorWidget::create() const
 {
-  return std::make_unique<PrincipalAxisDirectionGenerator>(rotation_offset_->value() * M_PI / 180.0);
+  return std::make_unique<PrincipalAxisDirectionGenerator>(rotation_offset_->value());
 }
 
 }  // namespace noether

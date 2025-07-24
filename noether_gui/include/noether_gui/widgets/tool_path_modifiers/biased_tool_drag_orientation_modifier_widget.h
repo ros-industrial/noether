@@ -4,10 +4,9 @@
 
 #include <noether_tpp/core/tool_path_modifier.h>
 
-class QDoubleSpinBox;
-
 namespace noether
 {
+class AngleDoubleSpinBox;
 class DistanceDoubleSpinBox;
 
 /**
@@ -24,7 +23,7 @@ public:
   void save(YAML::Node&) const override;
 
 private:
-  QDoubleSpinBox* angle_offset_;
+  AngleDoubleSpinBox* angle_offset_;
   DistanceDoubleSpinBox* tool_radius_;
 };
 

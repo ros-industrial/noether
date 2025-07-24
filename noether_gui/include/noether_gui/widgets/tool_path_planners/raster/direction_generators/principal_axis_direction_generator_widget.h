@@ -4,12 +4,13 @@
 
 #include <noether_tpp/tool_path_planners/raster/raster_planner.h>
 
-class QDoubleSpinBox;
 class QFormLayout;
 class QLabel;
 
 namespace noether
 {
+class AngleDoubleSpinBox;
+
 class PrincipalAxisDirectionGeneratorWidget : public DirectionGeneratorWidget
 {
 public:
@@ -23,7 +24,7 @@ public:
 private:
   QFormLayout* layout_;
   QLabel* label_;
-  QDoubleSpinBox* rotation_offset_;
+  AngleDoubleSpinBox* rotation_offset_;
 };
 
 }  // namespace noether
