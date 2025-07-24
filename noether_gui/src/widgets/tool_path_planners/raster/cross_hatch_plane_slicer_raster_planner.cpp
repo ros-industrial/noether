@@ -31,8 +31,8 @@ ToolPathPlanner::ConstPtr CrossHatchPlaneSlicerRasterPlannerWidget::create() con
   // Make another PlaneSliceRasterPlanner with a PCA-rotated direction generator
   OriginGenerator::ConstPtr nominal_origin_gen = getOriginGeneratorWidget()->create();
   DirectionGenerator::ConstPtr nominal_dir_gen = getDirectionGeneratorWidget()->create();
-  auto dir_gen = std::make_unique<PCARotatedDirectionGenerator>(std::move(nominal_dir_gen),
-                                                                cross_hatch_angle_->value() * M_PI / 180.0);
+  auto dir_gen =
+      std::make_unique<PCARotatedDirectionGenerator>(std::move(nominal_dir_gen), cross_hatch_angle_->value());
   auto cross_hatch_tpp = std::make_unique<PlaneSlicerRasterPlanner>(std::move(dir_gen), std::move(nominal_origin_gen));
 
   // Configure the tool path planner with the UI

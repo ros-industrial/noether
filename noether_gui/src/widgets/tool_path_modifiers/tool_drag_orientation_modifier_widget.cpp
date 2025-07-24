@@ -37,8 +37,7 @@ ToolDragOrientationToolPathModifierWidget::ToolDragOrientationToolPathModifierWi
 
 ToolPathModifier::ConstPtr ToolDragOrientationToolPathModifierWidget::create() const
 {
-  return std::make_unique<ToolDragOrientationToolPathModifier>(angle_offset_->value() * M_PI / 180.0,
-                                                               tool_radius_->value());
+  return std::make_unique<ToolDragOrientationToolPathModifier>(angle_offset_->value(), tool_radius_->value());
 }
 
 void ToolDragOrientationToolPathModifierWidget::configure(const YAML::Node& config)
