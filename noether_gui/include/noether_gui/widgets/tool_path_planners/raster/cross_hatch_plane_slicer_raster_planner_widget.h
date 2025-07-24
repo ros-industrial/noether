@@ -2,10 +2,10 @@
 
 #include <noether_gui/widgets/tool_path_planners/raster/plane_slicer_raster_planner_widget.h>
 
-class QDoubleSpinBox;
-
 namespace noether
 {
+class AngleDoubleSpinBox;
+
 /**
  * @ingroup gui_widgets_tool_path_planners
  */
@@ -20,7 +20,7 @@ public:
   void save(YAML::Node&) const override;
 
 private:
-  QDoubleSpinBox* cross_hatch_angle_;
+  AngleDoubleSpinBox* cross_hatch_angle_;
 };
 
 }  // namespace noether
