@@ -67,8 +67,15 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
 {
   ui_->setupUi(this);
 
+  // Replace the pipeline widget into the dock widget
   overwriteWidget(ui_->verticalLayout, ui_->widget, pipeline_widget_);
-  ui_->splitter->addWidget(render_widget_);
+
+  // Set the central widget to the render widget
+  setCentralWidget(render_widget_);
+
+  // Set the background color of the dock widget title to the mid-light palette color
+  ui_->dock->setStyleSheet(
+      QString("QDockWidget::title { background-color: %1; }").arg(palette().color(QPalette::Midlight).name()));
 
   // Set up the VTK objects
   renderer_->SetBackground(0.2, 0.2, 0.2);
