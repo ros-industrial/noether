@@ -98,5 +98,4 @@ void LinearApproachToolPathModifierWidget::save(YAML::Node& config) const
 }
 //! [Save() method]
 
-
 }  // namespace noether
