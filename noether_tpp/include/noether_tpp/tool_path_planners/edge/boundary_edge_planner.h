@@ -1,6 +1,7 @@
 #pragma once
 
 #include <noether_tpp/tool_path_planners/edge/edge_planner.h>
+#include <noether_tpp/macros.h>
 
 namespace noether
 {
@@ -23,3 +24,5 @@ struct BoundaryEdgePlannerFactory : public EdgePlannerFactory
 };
 
 }  // namespace noether
+
+FWD_DECLARE_YAML_CONVERT(noether::BoundaryEdgePlanner)
