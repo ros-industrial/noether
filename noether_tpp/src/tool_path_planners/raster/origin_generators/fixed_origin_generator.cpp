@@ -11,17 +11,19 @@ Eigen::Vector3d FixedOriginGenerator::generate(const pcl::PolygonMesh& mesh) con
 
 namespace YAML
 {
-Node convert<noether::FixedOriginGenerator>::encode(const T& val)
+/** @cond */
+Node convert<noether::FixedOriginGenerator>::encode(const noether::FixedOriginGenerator& val)
 {
   Node node;
   node["origin"] = val.origin_;
   return node;
 }
 
-bool convert<noether::FixedOriginGenerator>::decode(const Node& node, T& val)
+bool convert<noether::FixedOriginGenerator>::decode(const Node& node, noether::FixedOriginGenerator& val)
 {
   val.origin_ = getMember<Eigen::Vector3d>(node, "origin");
   return true;
 }
+/** @endcond */
 
 }  // namespace YAML

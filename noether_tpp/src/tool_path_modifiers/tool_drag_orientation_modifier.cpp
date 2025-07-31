@@ -38,7 +38,9 @@ ToolPaths ToolDragOrientationToolPathModifier::modify(ToolPaths tool_paths) cons
 
 namespace YAML
 {
-Node convert<noether::ToolDragOrientationToolPathModifier>::encode(const T& val)
+/** @cond */
+Node convert<noether::ToolDragOrientationToolPathModifier>::encode(
+    const noether::ToolDragOrientationToolPathModifier& val)
 {
   Node node;
   node["angle_offset"] = val.angle_offset_;
@@ -46,11 +48,13 @@ Node convert<noether::ToolDragOrientationToolPathModifier>::encode(const T& val)
   return node;
 }
 
-bool convert<noether::ToolDragOrientationToolPathModifier>::decode(const Node& node, T& val)
+bool convert<noether::ToolDragOrientationToolPathModifier>::decode(const Node& node,
+                                                                   noether::ToolDragOrientationToolPathModifier& val)
 {
   val.angle_offset_ = getMember<double>(node, "angle_offset");
   val.tool_radius_ = getMember<double>(node, "tool_radius");
   return true;
 }
+/** @endcond */
 
 }  // namespace YAML

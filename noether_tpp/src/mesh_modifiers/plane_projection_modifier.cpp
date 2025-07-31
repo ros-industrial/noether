@@ -162,7 +162,8 @@ std::vector<pcl::PolygonMesh> PlaneProjectionMeshModifier::modify(const pcl::Pol
 
 namespace YAML
 {
-Node convert<noether::PlaneProjectionMeshModifier>::encode(const T& val)
+/** @cond */
+Node convert<noether::PlaneProjectionMeshModifier>::encode(const noether::PlaneProjectionMeshModifier& val)
 {
   Node node;
   node["distance_threshold"] = val.distance_threshold_;
@@ -171,12 +172,13 @@ Node convert<noether::PlaneProjectionMeshModifier>::encode(const T& val)
   return node;
 }
 
-bool convert<noether::PlaneProjectionMeshModifier>::decode(const Node& node, T& val)
+bool convert<noether::PlaneProjectionMeshModifier>::decode(const Node& node, noether::PlaneProjectionMeshModifier& val)
 {
   val.distance_threshold_ = getMember<double>(node, "distance_threshold");
   val.max_planes_ = getMember<int>(node, "max_planes");
   val.min_vertices_ = getMember<int>(node, "min_vertices");
   return true;
 }
+/** @endcond */
 
 }  // namespace YAML

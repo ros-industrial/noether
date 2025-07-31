@@ -46,8 +46,8 @@ The following sub-classes of tool path planners are currently supported:
 Many robot processes require application specific changes or additions to a tool path.
 These include operations like order reorganization, pose offsets, approaches/departures, etc.
 Instead of building these changes directly into customized tool path planners, we implement them as a separate step in
-the pipeline. A @ref noether::ToolPathModifier "ToolPathModifier" takes in the output type of a @ref noether::ToolPathPlanner "ToolPathPlanner" (i.e. @ref noether::ToolPaths "ToolPaths") and returns a modified
-@ref noether::ToolPaths "ToolPaths" object with these process-specific changes.
+the pipeline. A @ref noether::ToolPathModifier "ToolPathModifier" takes in the output type of a @ref noether::ToolPathPlanner "ToolPathPlanner" (i.e. ToolPaths) and returns a modified
+noether::ToolPaths object with these process-specific changes.
 
 @subsubsection sss_one_time_modifier One-time Tool Path Modifiers
 

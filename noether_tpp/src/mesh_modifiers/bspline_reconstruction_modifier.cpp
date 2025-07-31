@@ -1,6 +1,6 @@
 /**
  * @author Jorge Nicho <jrgnichodevel@gmail.com>
- * @file bspline_reconstruction.cpp
+ * @file bspline_reconstruction_modifier.cpp
  * @date Oct 10, 2019
  * @copyright Copyright (c) 2019, Southwest Research Institute
  *

@@ -32,14 +32,16 @@ ToolPaths LinearDepartureModifier::modify(ToolPaths tool_paths) const
 
 namespace YAML
 {
-Node convert<noether::LinearDepartureModifier>::encode(const T& val)
+/** @cond */
+Node convert<noether::LinearDepartureModifier>::encode(const noether::LinearDepartureModifier& val)
 {
   return convert<noether::LinearApproachModifier>::encode(val);
 }
 
-bool convert<noether::LinearDepartureModifier>::decode(const Node& node, T& val)
+bool convert<noether::LinearDepartureModifier>::decode(const Node& node, noether::LinearDepartureModifier& val)
 {
   return convert<noether::LinearApproachModifier>::decode(node, val);
 }
+/** @endcond */
 
 }  // namespace YAML

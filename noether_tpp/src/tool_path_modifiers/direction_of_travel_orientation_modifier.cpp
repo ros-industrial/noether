@@ -51,8 +51,18 @@ ToolPaths DirectionOfTravelOrientationModifier::modify(ToolPaths tool_paths) con
 
 namespace YAML
 {
-Node convert<noether::DirectionOfTravelOrientationModifier>::encode(const T& val) { return {}; }
+/** @cond */
+Node convert<noether::DirectionOfTravelOrientationModifier>::encode(
+    const noether::DirectionOfTravelOrientationModifier& val)
+{
+  return {};
+}
 
-bool convert<noether::DirectionOfTravelOrientationModifier>::decode(const Node& node, T& val) { return true; }
+bool convert<noether::DirectionOfTravelOrientationModifier>::decode(const Node& node,
+                                                                    noether::DirectionOfTravelOrientationModifier& val)
+{
+  return true;
+}
+/** @endcond */
 
 }  // namespace YAML

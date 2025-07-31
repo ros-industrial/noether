@@ -50,7 +50,8 @@ std::vector<pcl::PolygonMesh> NormalEstimationPCLMeshModifier::modify(const pcl:
 
 namespace YAML
 {
-Node convert<noether::NormalEstimationPCLMeshModifier>::encode(const T& val)
+/** @cond */
+Node convert<noether::NormalEstimationPCLMeshModifier>::encode(const noether::NormalEstimationPCLMeshModifier& val)
 {
   Node node;
   node["radius"] = val.radius_;
@@ -60,7 +61,8 @@ Node convert<noether::NormalEstimationPCLMeshModifier>::encode(const T& val)
   return node;
 }
 
-bool convert<noether::NormalEstimationPCLMeshModifier>::decode(const Node& node, T& val)
+bool convert<noether::NormalEstimationPCLMeshModifier>::decode(const Node& node,
+                                                               noether::NormalEstimationPCLMeshModifier& val)
 {
   val.radius_ = getMember<double>(node, "radius");
   val.vx_ = getMember<double>(node, "vx");
@@ -68,5 +70,6 @@ bool convert<noether::NormalEstimationPCLMeshModifier>::decode(const Node& node,
   val.vz_ = getMember<double>(node, "vz");
   return true;
 }
+/** @endcond */
 
 }  // namespace YAML

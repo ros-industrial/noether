@@ -56,7 +56,8 @@ ToolPaths LinearApproachModifier::modify(ToolPaths tool_paths) const
 
 namespace YAML
 {
-Node convert<noether::LinearApproachModifier>::encode(const T& val)
+/** @cond */
+Node convert<noether::LinearApproachModifier>::encode(const noether::LinearApproachModifier& val)
 {
   Node node;
   node["offset"] = val.offset_;
@@ -64,11 +65,12 @@ Node convert<noether::LinearApproachModifier>::encode(const T& val)
   return node;
 }
 
-bool convert<noether::LinearApproachModifier>::decode(const Node& node, T& val)
+bool convert<noether::LinearApproachModifier>::decode(const Node& node, noether::LinearApproachModifier& val)
 {
   val.offset_ = getMember<Eigen::Vector3d>(node, "offset");
   val.n_points_ = getMember<int>(node, "n_points");
   return true;
 }
+/** @endcond */
 
 }  // namespace YAML

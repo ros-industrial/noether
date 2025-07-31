@@ -90,17 +90,20 @@ ToolPaths UniformSpacingLinearModifier::modify(ToolPaths tool_paths) const
 
 namespace YAML
 {
-Node convert<noether::UniformSpacingLinearModifier>::encode(const T& val)
+/** @cond */
+Node convert<noether::UniformSpacingLinearModifier>::encode(const noether::UniformSpacingLinearModifier& val)
 {
   Node node;
   node["point_spacing"] = val.point_spacing_;
   return node;
 }
 
-bool convert<noether::UniformSpacingLinearModifier>::decode(const Node& node, T& val)
+bool convert<noether::UniformSpacingLinearModifier>::decode(const Node& node,
+                                                            noether::UniformSpacingLinearModifier& val)
 {
   val.point_spacing_ = getMember<double>(node, "point_spacing");
   return true;
 }
+/** @endcond */
 
 }  // namespace YAML

@@ -130,17 +130,20 @@ ToolPaths UniformSpacingSplineModifier::modify(ToolPaths tool_paths) const
 
 namespace YAML
 {
-Node convert<noether::UniformSpacingSplineModifier>::encode(const T& val)
+/** @cond */
+Node convert<noether::UniformSpacingSplineModifier>::encode(const noether::UniformSpacingSplineModifier& val)
 {
   Node node;
   node["point_spacing"] = val.point_spacing_;
   return node;
 }
 
-bool convert<noether::UniformSpacingSplineModifier>::decode(const Node& node, T& val)
+bool convert<noether::UniformSpacingSplineModifier>::decode(const Node& node,
+                                                            noether::UniformSpacingSplineModifier& val)
 {
   val.point_spacing_ = getMember<double>(node, "point_spacing");
   return true;
 }
+/** @endcond */
 
 }  // namespace YAML

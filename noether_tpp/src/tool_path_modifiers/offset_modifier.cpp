@@ -26,17 +26,19 @@ ToolPaths OffsetModifier::modify(ToolPaths tool_paths) const
 
 namespace YAML
 {
-Node convert<noether::OffsetModifier>::encode(const T& val)
+/** @cond */
+Node convert<noether::OffsetModifier>::encode(const noether::OffsetModifier& val)
 {
   Node node;
   node["offset"] = val.offset_;
   return node;
 }
 
-bool convert<noether::OffsetModifier>::decode(const Node& node, T& val)
+bool convert<noether::OffsetModifier>::decode(const Node& node, noether::OffsetModifier& val)
 {
   val.offset_ = getMember<Eigen::Isometry3d>(node, "offset");
   return true;
 }
+/** @endcond */
 
 }  // namespace YAML

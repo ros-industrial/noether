@@ -1,6 +1,6 @@
 /**
  * @author Jorge Nicho
- * @file euclidean_clustering.h
+ * @file euclidean_clustering_modifier.h
  * @date Nov 26, 2019
  * @copyright Copyright (c) 2019, Southwest Research Institute
  *

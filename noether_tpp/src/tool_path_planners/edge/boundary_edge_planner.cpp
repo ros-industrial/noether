@@ -127,8 +127,10 @@ ToolPathPlanner::ConstPtr BoundaryEdgePlannerFactory::create() const { return st
 
 namespace YAML
 {
-Node convert<noether::BoundaryEdgePlanner>::encode(const T& val) { return {}; }
+/** @cond */
+Node convert<noether::BoundaryEdgePlanner>::encode(const noether::BoundaryEdgePlanner& val) { return {}; }
 
-bool convert<noether::BoundaryEdgePlanner>::decode(const Node& node, T& val) { return true; }
+bool convert<noether::BoundaryEdgePlanner>::decode(const Node& node, noether::BoundaryEdgePlanner& val) { return true; }
+/** @endcond */
 
 }  // namespace YAML

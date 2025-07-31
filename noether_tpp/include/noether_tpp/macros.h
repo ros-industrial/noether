@@ -24,9 +24,10 @@
   template <>                                                                                                          \
   struct convert<TYPE>                                                                                                 \
   {                                                                                                                    \
-    using T = TYPE;                                                                                                    \
-    static Node encode(const T& val);                                                                                  \
-    static bool decode(const Node& node, T& val);                                                                      \
+    /** @cond */                                                                                                       \
+    static Node encode(const TYPE& val);                                                                               \
+    static bool decode(const Node& node, TYPE& val);                                                                   \
+    /** @endcond */                                                                                                    \
   };                                                                                                                   \
                                                                                                                        \
   }  // namespace YAML

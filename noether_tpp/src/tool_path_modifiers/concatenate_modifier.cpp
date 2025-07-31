@@ -21,8 +21,10 @@ ToolPaths ConcatenateModifier::modify(ToolPaths tool_paths) const
 
 namespace YAML
 {
-Node convert<noether::ConcatenateModifier>::encode(const T& val) { return {}; }
+/** @cond */
+Node convert<noether::ConcatenateModifier>::encode(const noether::ConcatenateModifier& val) { return {}; }
 
-bool convert<noether::ConcatenateModifier>::decode(const Node& node, T& val) { return true; }
+bool convert<noether::ConcatenateModifier>::decode(const Node& node, noether::ConcatenateModifier& val) { return true; }
+/** @endcond */
 
 }  // namespace YAML
