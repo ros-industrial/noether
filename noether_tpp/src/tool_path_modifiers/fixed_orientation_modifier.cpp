@@ -1,4 +1,5 @@
 #include <noether_tpp/tool_path_modifiers/fixed_orientation_modifier.h>
+#include <noether_tpp/serialization.h>
 
 namespace noether
 {
@@ -35,3 +36,20 @@ ToolPaths FixedOrientationModifier::modify(ToolPaths tool_paths) const
 }
 
 }  // namespace noether
+
+namespace YAML
+{
+Node convert<noether::FixedOrientationModifier>::encode(const T& val)
+{
+  Node node;
+  node["ref_x_dir"] = val.ref_x_dir_;
+  return node;
+}
+
+bool convert<noether::FixedOrientationModifier>::decode(const Node& node, T& val)
+{
+  val.ref_x_dir_ = getMember<Eigen::Vector3d>(node, "ref_x_dir");
+  return true;
+}
+
+}  // namespace YAML

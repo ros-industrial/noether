@@ -1,4 +1,9 @@
+#pragma once
+
 #include <noether_tpp/core/tool_path_modifier.h>
+#include <noether_tpp/macros.h>
+
+FWD_DECLARE_YAML_STRUCTS()
 
 namespace noether
 {
@@ -15,6 +20,11 @@ public:
 
 protected:
   double point_spacing_;
+
+  UniformSpacingSplineModifier() = default;
+  DECLARE_YAML_FRIEND_CLASSES(UniformSpacingSplineModifier)
 };
 
 }  // namespace noether
+
+FWD_DECLARE_YAML_CONVERT(noether::UniformSpacingSplineModifier)

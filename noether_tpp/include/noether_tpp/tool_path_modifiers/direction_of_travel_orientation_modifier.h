@@ -1,6 +1,7 @@
 #pragma once
 
 #include <noether_tpp/core/tool_path_modifier.h>
+#include <noether_tpp/macros.h>
 
 namespace noether
 {
@@ -14,3 +15,5 @@ struct DirectionOfTravelOrientationModifier : public OneTimeToolPathModifier
 };
 
 }  // namespace noether
+
+FWD_DECLARE_YAML_CONVERT(noether::DirectionOfTravelOrientationModifier)

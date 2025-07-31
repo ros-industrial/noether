@@ -1,8 +1,7 @@
 #include <noether_tpp/tool_path_modifiers/concatenate_modifier.h>
 #include <noether_tpp/tool_path_modifiers/raster_organization_modifier.h>
 #include <noether_tpp/utils.h>
-
-#include <numeric>
+#include <noether_tpp/serialization.h>
 
 namespace noether
 {
@@ -19,3 +18,11 @@ ToolPaths ConcatenateModifier::modify(ToolPaths tool_paths) const
 }
 
 }  // namespace noether
+
+namespace YAML
+{
+Node convert<noether::ConcatenateModifier>::encode(const T& val) { return {}; }
+
+bool convert<noether::ConcatenateModifier>::decode(const Node& node, T& val) { return true; }
+
+}  // namespace YAML

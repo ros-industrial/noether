@@ -1,5 +1,6 @@
 #include <noether_tpp/tool_path_planners/edge/boundary_edge_planner.h>
 #include <noether_tpp/utils.h>
+#include <yaml-cpp/yaml.h>
 
 namespace
 {
@@ -123,3 +124,11 @@ ToolPaths BoundaryEdgePlanner::planImpl(const pcl::PolygonMesh& mesh) const
 ToolPathPlanner::ConstPtr BoundaryEdgePlannerFactory::create() const { return std::make_unique<BoundaryEdgePlanner>(); }
 
 }  // namespace noether
+
+namespace YAML
+{
+Node convert<noether::BoundaryEdgePlanner>::encode(const T& val) { return {}; }
+
+bool convert<noether::BoundaryEdgePlanner>::decode(const Node& node, T& val) { return true; }
+
+}  // namespace YAML

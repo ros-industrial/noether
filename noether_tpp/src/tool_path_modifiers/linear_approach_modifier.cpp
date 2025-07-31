@@ -1,5 +1,6 @@
 #include <noether_tpp/tool_path_modifiers/linear_approach_modifier.h>
 #include <noether_tpp/utils.h>
+#include <noether_tpp/serialization.h>
 
 namespace noether
 {
@@ -52,3 +53,22 @@ ToolPaths LinearApproachModifier::modify(ToolPaths tool_paths) const
 }
 
 }  // namespace noether
+
+namespace YAML
+{
+Node convert<noether::LinearApproachModifier>::encode(const T& val)
+{
+  Node node;
+  node["offset"] = val.offset_;
+  node["n_points"] = val.n_points_;
+  return node;
+}
+
+bool convert<noether::LinearApproachModifier>::decode(const Node& node, T& val)
+{
+  val.offset_ = getMember<Eigen::Vector3d>(node, "offset");
+  val.n_points_ = getMember<int>(node, "n_points");
+  return true;
+}
+
+}  // namespace YAML

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <noether_tpp/core/tool_path_modifier.h>
+#include <noether_tpp/macros.h>
+
+FWD_DECLARE_YAML_STRUCTS()
 
 namespace noether
 {
@@ -19,8 +22,12 @@ public:
 
   ToolPaths modify(ToolPaths) const override;
 
-private:
-  const Eigen::Vector3d start_reference_;
+protected:
+  Eigen::Vector3d start_reference_;
+
+  DECLARE_YAML_FRIEND_CLASSES(StandardEdgePathsOrganizationModifier)
 };
 
 }  // namespace noether
+
+FWD_DECLARE_YAML_CONVERT(noether::StandardEdgePathsOrganizationModifier)

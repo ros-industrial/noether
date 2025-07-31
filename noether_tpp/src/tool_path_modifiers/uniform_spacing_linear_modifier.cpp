@@ -1,5 +1,6 @@
 #include <noether_tpp/tool_path_modifiers/uniform_spacing_linear_modifier.h>
 #include <noether_tpp/utils.h>
+#include <noether_tpp/serialization.h>
 
 #include <vtkMatrix4x4.h>
 #include <vtkSmartPointer.h>
@@ -86,3 +87,20 @@ ToolPaths UniformSpacingLinearModifier::modify(ToolPaths tool_paths) const
 }
 
 }  // namespace noether
+
+namespace YAML
+{
+Node convert<noether::UniformSpacingLinearModifier>::encode(const T& val)
+{
+  Node node;
+  node["point_spacing"] = val.point_spacing_;
+  return node;
+}
+
+bool convert<noether::UniformSpacingLinearModifier>::decode(const Node& node, T& val)
+{
+  val.point_spacing_ = getMember<double>(node, "point_spacing");
+  return true;
+}
+
+}  // namespace YAML

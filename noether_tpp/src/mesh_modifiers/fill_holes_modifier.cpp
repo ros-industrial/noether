@@ -20,6 +20,7 @@
  */
 
 #include <noether_tpp/mesh_modifiers/fill_holes_modifier.h>
+#include <noether_tpp/serialization.h>
 
 #include <vtkFillHolesFilter.h>
 #include <vtkPolyDataNormals.h>
@@ -51,3 +52,20 @@ std::vector<pcl::PolygonMesh> FillHoles::modify(const pcl::PolygonMesh& mesh_in)
 }
 
 }  // namespace noether
+
+namespace YAML
+{
+Node convert<noether::FillHoles>::encode(const T& val)
+{
+  Node node;
+  node["max_hole_size"] = val.max_hole_size_;
+  return node;
+}
+
+bool convert<noether::FillHoles>::decode(const Node& node, T& val)
+{
+  val.max_hole_size_ = getMember<double>(node, "max_hole_size");
+  return true;
+}
+
+}  // namespace YAML

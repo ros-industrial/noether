@@ -4,6 +4,7 @@
 #include <pcl/point_types.h>
 #include <pcl/common/io.h>
 #include <pcl/conversions.h>
+#include <yaml-cpp/yaml.h>
 
 namespace noether
 {
@@ -92,3 +93,11 @@ std::vector<pcl::PolygonMesh> NormalsFromMeshFacesMeshModifier::modify(const pcl
 }
 
 }  // namespace noether
+
+namespace YAML
+{
+Node convert<noether::NormalsFromMeshFacesMeshModifier>::encode(const T& val) { return {}; }
+
+bool convert<noether::NormalsFromMeshFacesMeshModifier>::decode(const Node& node, T& val) { return true; }
+
+}  // namespace YAML

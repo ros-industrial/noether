@@ -1,6 +1,9 @@
 #pragma once
 
 #include <noether_tpp/core/mesh_modifier.h>
+#include <noether_tpp/macros.h>
+
+FWD_DECLARE_YAML_STRUCTS()
 
 namespace noether
 {
@@ -20,6 +23,11 @@ protected:
   double vx_;
   double vy_;
   double vz_;
+
+  NormalEstimationPCLMeshModifier() = default;
+  DECLARE_YAML_FRIEND_CLASSES(NormalEstimationPCLMeshModifier)
 };
 
 }  // namespace noether
+
+FWD_DECLARE_YAML_CONVERT(noether::NormalEstimationPCLMeshModifier)

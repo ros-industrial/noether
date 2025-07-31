@@ -2,6 +2,7 @@
 
 #include <pcl/common/common.h>
 #include <pcl/conversions.h>
+#include <yaml-cpp/yaml.h>
 
 namespace noether
 {
@@ -16,3 +17,11 @@ Eigen::Vector3d AABBCenterOriginGenerator::generate(const pcl::PolygonMesh& mesh
 }
 
 }  // namespace noether
+
+namespace YAML
+{
+Node convert<noether::AABBCenterOriginGenerator>::encode(const T& val) { return {}; }
+
+bool convert<noether::AABBCenterOriginGenerator>::decode(const Node& node, T& val) { return true; }
+
+}  // namespace YAML

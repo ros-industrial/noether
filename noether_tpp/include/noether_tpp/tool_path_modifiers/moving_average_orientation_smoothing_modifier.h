@@ -2,6 +2,10 @@
 
 #include <noether_tpp/core/tool_path_modifier.h>
 
+#include <noether_tpp/macros.h>
+
+FWD_DECLARE_YAML_STRUCTS()
+
 namespace noether
 {
 /**
@@ -17,7 +21,12 @@ public:
 
 protected:
   /** @brief Moving average window size **/
-  const std::size_t window_size_;
+  std::size_t window_size_;
+
+  MovingAverageOrientationSmoothingModifier() = default;
+  DECLARE_YAML_FRIEND_CLASSES(MovingAverageOrientationSmoothingModifier)
 };
 
 }  // namespace noether
+
+FWD_DECLARE_YAML_CONVERT(noether::MovingAverageOrientationSmoothingModifier)

@@ -1,6 +1,9 @@
 ﻿#pragma once
 
 #include <noether_tpp/core/tool_path_modifier.h>
+#include <noether_tpp/macros.h>
+
+FWD_DECLARE_YAML_STRUCTS()
 
 namespace noether
 {
@@ -15,9 +18,14 @@ public:
   ToolPaths modify(ToolPaths tool_paths) const override final;
 
 protected:
-  const double arc_angle_;
-  const double arc_radius_;
-  const double n_points_;
+  double arc_angle_;
+  double arc_radius_;
+  double n_points_;
+
+  CircularLeadInModifier() = default;
+  DECLARE_YAML_FRIEND_CLASSES(CircularLeadInModifier)
 };
 
 }  // namespace noether
+
+FWD_DECLARE_YAML_CONVERT(noether::CircularLeadInModifier)

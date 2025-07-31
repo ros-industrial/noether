@@ -1,4 +1,5 @@
 #include <noether_tpp/mesh_modifiers/normal_estimation_pcl.h>
+#include <noether_tpp/serialization.h>
 
 #include <pcl/features/normal_3d.h>
 #include <pcl/conversions.h>
@@ -46,3 +47,26 @@ std::vector<pcl::PolygonMesh> NormalEstimationPCLMeshModifier::modify(const pcl:
 }
 
 }  // namespace noether
+
+namespace YAML
+{
+Node convert<noether::NormalEstimationPCLMeshModifier>::encode(const T& val)
+{
+  Node node;
+  node["radius"] = val.radius_;
+  node["vx"] = val.vx_;
+  node["vy"] = val.vy_;
+  node["vz"] = val.vz_;
+  return node;
+}
+
+bool convert<noether::NormalEstimationPCLMeshModifier>::decode(const Node& node, T& val)
+{
+  val.radius_ = getMember<double>(node, "radius");
+  val.vx_ = getMember<double>(node, "vx");
+  val.vy_ = getMember<double>(node, "vy");
+  val.vz_ = getMember<double>(node, "vz");
+  return true;
+}
+
+}  // namespace YAML

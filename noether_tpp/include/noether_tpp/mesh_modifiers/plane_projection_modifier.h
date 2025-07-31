@@ -1,6 +1,9 @@
 #pragma once
 
 #include <noether_tpp/core/mesh_modifier.h>
+#include <noether_tpp/macros.h>
+
+FWD_DECLARE_YAML_STRUCTS()
 
 namespace noether
 {
@@ -19,6 +22,11 @@ protected:
   double distance_threshold_;
   unsigned max_planes_;
   unsigned min_vertices_;
+
+  PlaneProjectionMeshModifier() = default;
+  DECLARE_YAML_FRIEND_CLASSES(PlaneProjectionMeshModifier)
 };
 
 }  // namespace noether
+
+FWD_DECLARE_YAML_CONVERT(noether::PlaneProjectionMeshModifier)
