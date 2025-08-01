@@ -7,35 +7,45 @@ using namespace noether;
 
 namespace noether
 {
+/** @cond */
 template <>
 std::string noether::ToolPathPlannerPlugin::getSection()
 {
   return NOETHER_TPP_SECTION;
 }
+/** @endcond */
 
+/** @cond */
 template <>
 std::string DirectionGeneratorPlugin::getSection()
 {
   return NOETHER_DIRECTION_GENERATOR_SECTION;
 }
+/** @endcond */
 
+/** @cond */
 template <>
 std::string OriginGeneratorPlugin::getSection()
 {
   return NOETHER_ORIGIN_GENERATOR_SECTION;
 }
+/** @endcond */
 
+/** @cond */
 template <>
 std::string ToolPathModifierPlugin::getSection()
 {
   return NOETHER_TOOL_PATH_MODIFIER_SECTION;
 }
+/** @endcond */
 
+/** @cond */
 template <>
 std::string MeshModifierPlugin::getSection()
 {
   return NOETHER_MESH_MODIFIER_SECTION;
 }
+/** @endcond */
 
 Factory::Factory()
 {

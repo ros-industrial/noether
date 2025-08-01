@@ -1,9 +1,6 @@
 #include <noether_tpp/plugin_interface.h>
 #include <noether_tpp/serialization.h>
 
-#include <boost_plugin_loader/plugin_loader.h>
-#include <memory>
-
 // Mesh modifiers
 #include <noether_tpp/mesh_modifiers/clean_data_modifier.h>
 #include <noether_tpp/mesh_modifiers/compound_modifier.h>
@@ -26,7 +23,6 @@
 #include <noether_tpp/tool_path_planners/raster/origin_generators/offset_origin_generator.h>
 
 // Tool Path Planners
-#include <noether_tpp/tool_path_planners/edge/boundary_edge_planner.h>
 #include <noether_tpp/tool_path_planners/raster/plane_slicer_raster_planner.h>
 #include <noether_tpp/tool_path_planners/multi_tool_path_planner.h>
 
@@ -34,7 +30,6 @@
 #include <noether_tpp/tool_path_modifiers/biased_tool_drag_orientation_modifier.h>
 #include <noether_tpp/tool_path_modifiers/circular_lead_in_modifier.h>
 #include <noether_tpp/tool_path_modifiers/circular_lead_out_modifier.h>
-#include <noether_tpp/tool_path_modifiers/compound_modifier.h>
 #include <noether_tpp/tool_path_modifiers/concatenate_modifier.h>
 #include <noether_tpp/tool_path_modifiers/direction_of_travel_orientation_modifier.h>
 #include <noether_tpp/tool_path_modifiers/fixed_orientation_modifier.h>
@@ -53,13 +48,13 @@
 namespace noether
 {
 // Mesh Modifiers
-EXPORT_DEFAULT_MESH_MODIFIER_PLUGIN(CleanData, CleanData)
-EXPORT_DEFAULT_MESH_MODIFIER_PLUGIN(EuclideanClusteringMeshModifier, EuclideanClustering)
-EXPORT_DEFAULT_MESH_MODIFIER_PLUGIN(FillHoles, FillHoles)
-EXPORT_DEFAULT_MESH_MODIFIER_PLUGIN(NormalEstimationPCLMeshModifier, NormalEstimationPCL)
-EXPORT_DEFAULT_MESH_MODIFIER_PLUGIN(NormalsFromMeshFacesMeshModifier, NormalsFromMeshFaces)
-EXPORT_DEFAULT_MESH_MODIFIER_PLUGIN(PlaneProjectionMeshModifier, PlaneProjection)
-EXPORT_DEFAULT_MESH_MODIFIER_PLUGIN(WindowedSincSmoothing, WindowedSincSmoothing)
+EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(CleanData, CleanData)
+EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(EuclideanClusteringMeshModifier, EuclideanClustering)
+EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(FillHoles, FillHoles)
+EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(NormalEstimationPCLMeshModifier, NormalEstimationPCL)
+EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(NormalsFromMeshFacesMeshModifier, NormalsFromMeshFaces)
+EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(PlaneProjectionMeshModifier, PlaneProjection)
+EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(WindowedSincSmoothing, WindowedSincSmoothing)
 
 struct Plugin_CompoundMeshModifier : public Plugin<MeshModifier>
 {
@@ -82,8 +77,8 @@ struct Plugin_CompoundMeshModifier : public Plugin<MeshModifier>
 EXPORT_MESH_MODIFIER_PLUGIN(Plugin_CompoundMeshModifier, CompoundMeshModifier)
 
 // Direction Generators
-EXPORT_DEFAULT_DIRECTION_GENERATOR_PLUGIN(FixedDirectionGenerator, FixedDirection)
-EXPORT_DEFAULT_DIRECTION_GENERATOR_PLUGIN(PrincipalAxisDirectionGenerator, PrincipalAxis)
+EXPORT_SIMPLE_DIRECTION_GENERATOR_PLUGIN(FixedDirectionGenerator, FixedDirection)
+EXPORT_SIMPLE_DIRECTION_GENERATOR_PLUGIN(PrincipalAxisDirectionGenerator, PrincipalAxis)
 
 struct Plugin_PCARotatedDirectionGenerator : public Plugin<DirectionGenerator>
 {
@@ -105,9 +100,9 @@ struct Plugin_PCARotatedDirectionGenerator : public Plugin<DirectionGenerator>
 EXPORT_DIRECTION_GENERATOR_PLUGIN(Plugin_PCARotatedDirectionGenerator, PCARotated)
 
 // Origin Generators
-EXPORT_DEFAULT_ORIGIN_GENERATOR_PLUGIN(AABBCenterOriginGenerator, AABBCenter)
-EXPORT_DEFAULT_ORIGIN_GENERATOR_PLUGIN(CentroidOriginGenerator, Centroid)
-EXPORT_DEFAULT_ORIGIN_GENERATOR_PLUGIN(FixedOriginGenerator, FixedOrigin)
+EXPORT_SIMPLE_ORIGIN_GENERATOR_PLUGIN(AABBCenterOriginGenerator, AABBCenter)
+EXPORT_SIMPLE_ORIGIN_GENERATOR_PLUGIN(CentroidOriginGenerator, Centroid)
+EXPORT_SIMPLE_ORIGIN_GENERATOR_PLUGIN(FixedOriginGenerator, FixedOrigin)
 
 struct Plugin_OffsetOriginGenerator : public Plugin<OriginGenerator>
 {
@@ -129,8 +124,6 @@ struct Plugin_OffsetOriginGenerator : public Plugin<OriginGenerator>
 EXPORT_ORIGIN_GENERATOR_PLUGIN(noether::Plugin_OffsetOriginGenerator, OffsetDirection)
 
 // Tool Path Planners
-EXPORT_DEFAULT_TOOL_PATH_PLANNER_PLUGIN(BoundaryEdgePlanner, Boundary)
-
 struct Plugin_PlaneSlicerRasterPlanner : public Plugin<ToolPathPlanner>
 {
   std::unique_ptr<ToolPathPlanner> create(const YAML::Node& config,
@@ -184,24 +177,56 @@ struct Plugin_MultiToolPathPlanner : public Plugin<ToolPathPlanner>
 EXPORT_TOOL_PATH_PLANNER_PLUGIN(noether::Plugin_MultiToolPathPlanner, Multi)
 
 // Tool Path Modifiers
-EXPORT_DEFAULT_TOOL_PATH_MODIFIER_PLUGIN(BiasedToolDragOrientationToolPathModifier, BiasedToolDragOrientation)
-EXPORT_DEFAULT_TOOL_PATH_MODIFIER_PLUGIN(CircularLeadInModifier, CircularLeadIn)
-EXPORT_DEFAULT_TOOL_PATH_MODIFIER_PLUGIN(CircularLeadOutModifier, CircularLeadOut)
-EXPORT_DEFAULT_TOOL_PATH_MODIFIER_PLUGIN(ConcatenateModifier, Concatenate)
-EXPORT_DEFAULT_TOOL_PATH_MODIFIER_PLUGIN(DirectionOfTravelOrientationModifier, DirectionOfTravelOrientation)
-EXPORT_DEFAULT_TOOL_PATH_MODIFIER_PLUGIN(FixedOrientationModifier, FixedOrientation)
-EXPORT_DEFAULT_TOOL_PATH_MODIFIER_PLUGIN(LinearApproachModifier, LinearApproach)
-EXPORT_DEFAULT_TOOL_PATH_MODIFIER_PLUGIN(LinearDepartureModifier, LinearDeparture)
-EXPORT_DEFAULT_TOOL_PATH_MODIFIER_PLUGIN(MovingAverageOrientationSmoothingModifier, MovingAverageOrientationSmoothing)
-EXPORT_DEFAULT_TOOL_PATH_MODIFIER_PLUGIN(OffsetModifier, Offset)
-EXPORT_DEFAULT_TOOL_PATH_MODIFIER_PLUGIN(RasterOrganizationModifier, RasterOrganization)
-EXPORT_DEFAULT_TOOL_PATH_MODIFIER_PLUGIN(SnakeOrganizationModifier, SnakeOrganization)
-EXPORT_DEFAULT_TOOL_PATH_MODIFIER_PLUGIN(StandardEdgePathsOrganizationModifier, StandardEdgePathsOrganization)
-EXPORT_DEFAULT_TOOL_PATH_MODIFIER_PLUGIN(ToolDragOrientationToolPathModifier, ToolDragOrientation)
-EXPORT_DEFAULT_TOOL_PATH_MODIFIER_PLUGIN(UniformOrientationModifier, UniformOrientation)
-EXPORT_DEFAULT_TOOL_PATH_MODIFIER_PLUGIN(UniformSpacingLinearModifier, UniformSpacingLinear)
-EXPORT_DEFAULT_TOOL_PATH_MODIFIER_PLUGIN(UniformSpacingSplineModifier, UniformSpacingSpline)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(BiasedToolDragOrientationToolPathModifier, BiasedToolDragOrientation)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(CircularLeadInModifier, CircularLeadIn)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(CircularLeadOutModifier, CircularLeadOut)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(ConcatenateModifier, Concatenate)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(DirectionOfTravelOrientationModifier, DirectionOfTravelOrientation)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(FixedOrientationModifier, FixedOrientation)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(LinearApproachModifier, LinearApproach)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(LinearDepartureModifier, LinearDeparture)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(MovingAverageOrientationSmoothingModifier, MovingAverageOrientationSmoothing)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(OffsetModifier, Offset)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(RasterOrganizationModifier, RasterOrganization)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(SnakeOrganizationModifier, SnakeOrganization)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(StandardEdgePathsOrganizationModifier, StandardEdgePathsOrganization)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(ToolDragOrientationToolPathModifier, ToolDragOrientation)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(UniformOrientationModifier, UniformOrientation)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(UniformSpacingLinearModifier, UniformSpacingLinear)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(UniformSpacingSplineModifier, UniformSpacingSpline)
 
+}  // namespace noether
+
+//! [Plugins Example Simple]
+// Include the plugin interface headers
+#include <noether_tpp/plugin_interface.h>
+#include <noether_tpp/serialization.h>
+
+// Include the header for the custom tool path planning component
+#include <noether_tpp/tool_path_planners/edge/boundary_edge_planner.h>
+
+namespace noether
+{
+// For tool path planning components that can be fully configured by YAML serialization, invoke the
+// `EXPORT_SIMPLE_<COMPONENT>_PLUGIN` macro. This macro instantiates the PluginImpl template for the input class name
+// (first argument) and exports that plugin with the input arbitrary alias (second argument).
+EXPORT_SIMPLE_TOOL_PATH_PLANNER_PLUGIN(BoundaryEdgePlanner, Boundary);
+
+}  // namespace noether
+
+//! [Plugins Example Simple]
+
+//! [Plugins Example Complex]
+// Include the plugin interface headers
+#include <noether_tpp/plugin_interface.h>
+#include <noether_tpp/serialization.h>
+
+// Include the header for the custom tool path planning component
+#include <noether_tpp/tool_path_modifiers/compound_modifier.h>
+
+namespace noether
+{
+// For a complex plugin that cannot be configured through YAML serialization alone, implement a custom plugin class.
 struct Plugin_CompoundToolPathModifier : public Plugin<ToolPathModifier>
 {
   std::unique_ptr<ToolPathModifier> create(const YAML::Node& config,
@@ -220,6 +245,10 @@ struct Plugin_CompoundToolPathModifier : public Plugin<ToolPathModifier>
     return std::make_unique<CompoundModifier>(std::move(modifiers));
   }
 };
-EXPORT_TOOL_PATH_MODIFIER_PLUGIN(Plugin_CompoundToolPathModifier, CompoundToolPathModifier)
+
+// Export the plugin class with an arbitrary alias using the `EXPORT_<COMPONENT>_PLUGIN` macro
+EXPORT_TOOL_PATH_MODIFIER_PLUGIN(Plugin_CompoundToolPathModifier, CompoundToolPathModifier);
 
 }  // namespace noether
+
+//! [Plugins Example Complex]
