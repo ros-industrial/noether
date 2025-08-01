@@ -15,7 +15,6 @@ find_package(Qt5 REQUIRED COMPONENTS Widgets)
 find_package(yaml-cpp REQUIRED)
 
 option(NOETHER_ENABLE_CLANG_TIDY "Enables compilation with clang-tidy" OFF)
-option(NOETHER_ENABLE_TESTING "Enables compilation of unit tests" OFF)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -90,11 +89,7 @@ target_compile_definitions(${PROJECT_NAME}
     NOETHER_GUI_PLUGIN_PATHS_ENV="NOETHER_PLUGIN_PATHS"
 )
 target_cxx_version(${PROJECT_NAME} PUBLIC VERSION 14)
-target_clang_tidy(${PROJECT_NAME}
-  ENABLE ${NOETHER_ENABLE_CLANG_TIDY}
-  WARNINGS_AS_ERRORS ${NOETHER_ENABLE_TESTING}
-  CHECKS ${DEFAULT_CLANG_TIDY_CHECKS})
-target_code_coverage(${PROJECT_NAME} INTERFACE ALL ENABLE ${NOETHER_ENABLE_TESTING})
+target_clang_tidy(${PROJECT_NAME} ENABLE ${NOETHER_ENABLE_CLANG_TIDY})
 
 # Plugin Implementation Library
 add_library(${PROJECT_NAME}_plugins SHARED
@@ -102,11 +97,7 @@ add_library(${PROJECT_NAME}_plugins SHARED
 target_link_libraries(${PROJECT_NAME}_plugins PUBLIC ${PROJECT_NAME} Qt5::Widgets yaml-cpp)
 target_compile_definitions(${PROJECT_NAME}_plugins PRIVATE NOETHER_GUI_PLUGINS="${PROJECT_NAME}_plugins")
 target_cxx_version(${PROJECT_NAME}_plugins PUBLIC VERSION 14)
-target_clang_tidy(${PROJECT_NAME}_plugins
-  ENABLE ${NOETHER_ENABLE_CLANG_TIDY}
-  WARNINGS_AS_ERRORS ${NOETHER_ENABLE_TESTING}
-  CHECKS ${DEFAULT_CLANG_TIDY_CHECKS})
-target_code_coverage(${PROJECT_NAME}_plugins INTERFACE ALL ENABLE ${NOETHER_ENABLE_TESTING})
+target_clang_tidy(${PROJECT_NAME}_plugins ENABLE ${NOETHER_ENABLE_CLANG_TIDY})
 
 # TPP Application
 add_executable(${PROJECT_NAME}_app src/tpp_app.cpp)

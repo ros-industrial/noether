@@ -43,6 +43,7 @@ jobs:
           ccache-prefix: ${{ matrix.distro }}
           add-ros-ppa: true
           vcs-file: dependencies.repos
+          before-script: 'apt install -y -qq clang-tidy'
           rosdep-install-args: '-iry --skip-keys libvtk'
           target-path: target_ws/src
-          target-args: --cmake-args -DCMAKE_BUILD_TYPE=Debug -DNOETHER_ENABLE_TESTING=ON -DNOETHER_ENABLE_RUN_TESTING=OFF
+          target-args: --cmake-args -DCMAKE_BUILD_TYPE=Debug -DNOETHER_ENABLE_TESTING=ON

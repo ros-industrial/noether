@@ -9,8 +9,10 @@ project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES C CXX)
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED COMPONENTS common io surface segmentation)
 find_package(yaml-cpp REQUIRED)
-
 find_package(VTK 7.1 REQUIRED NO_MODULE)
+
+option(NOETHER_ENABLE_CLANG_TIDY "Enables compilation with clang-tidy" OFF)
+option(NOETHER_ENABLE_TESTING "Enables compilation with unit tests" OFF)
 
 # Create targets if necessary
 if(NOT TARGET Eigen3::Eigen)
@@ -90,11 +92,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC ${PCL_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen ${PCL_LIBRARIES} ${VTK_LIBRARIES} yaml-cpp)
 target_cxx_version(${PROJECT_NAME} PUBLIC VERSION 14)
-target_clang_tidy(${PROJECT_NAME}
-  ENABLE ${NOETHER_ENABLE_CLANG_TIDY}
-  WARNINGS_AS_ERRORS ${NOETHER_ENABLE_TESTING}
-  CHECKS ${DEFAULT_CLANG_TIDY_CHECKS})
-target_code_coverage(${PROJECT_NAME} INTERFACE ALL ENABLE ${NOETHER_ENABLE_TESTING})
+target_clang_tidy(${PROJECT_NAME} ENABLE ${NOETHER_ENABLE_CLANG_TIDY})
 
 # Install headers
 install(DIRECTORY include/ DESTINATION include/)
@@ -102,7 +100,6 @@ install(DIRECTORY include/ DESTINATION include/)
 # Unit tests
 if(${NOETHER_ENABLE_TESTING})
   enable_testing()
-  add_run_tests_target(ENABLE ${NOETHER_ENABLE_RUN_TESTING})
   add_subdirectory(test)
 endif()
 
