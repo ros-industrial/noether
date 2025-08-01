@@ -99,7 +99,7 @@ using MeshModifierWidgetPlugin = WidgetPlugin<MeshModifierWidget>;
  * @brief Macro for exporting instances of OriginGeneratorWidgetPlugin
  * @ingroup gui_widgets_tool_path_planners
  */
-#define EXPORT_ORIGIN_GENERATOR_PLUGIN(DERIVED_CLASS, ALIAS)                                                    \
+#define EXPORT_ORIGIN_GENERATOR_WIDGET_PLUGIN(DERIVED_CLASS, ALIAS)                                                    \
   EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, NOETHER_GUI_ORIGIN_GENERATOR_SECTION)
 
 /**

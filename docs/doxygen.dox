@@ -136,7 +136,7 @@ arbitrary mesh surfaces. See the following pages for more information on using N
 
     - @ref EXPORT_TPP_WIDGET_PLUGIN
     - @ref EXPORT_DIRECTION_GENERATOR_WIDGET_PLUGIN
-    - @ref EXPORT_ORIGIN_GENERATOR_PLUGIN
+    - @ref EXPORT_ORIGIN_GENERATOR_WIDGET_PLUGIN
     - @ref EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN
     - @ref EXPORT_MESH_MODIFIER_WIDGET_PLUGIN
 
