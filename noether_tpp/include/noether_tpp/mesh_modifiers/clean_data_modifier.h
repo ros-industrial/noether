@@ -1,6 +1,6 @@
 /**
  * @author Jorge Nicho <jrgnichodevel@gmail.com>
- * @file clean_data.h
+ * @file clean_data_modifier.h
  * @date Dec 6, 2019
  * @copyright Copyright (c) 2019, Southwest Research Institute
  *

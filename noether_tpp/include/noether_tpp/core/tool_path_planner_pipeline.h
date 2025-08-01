@@ -1,5 +1,5 @@
 /**
- * @file pipeline.h
+ * @file tool_path_planner_pipeline.h
  * @copyright Copyright (c) 2021, Southwest Research Institute
  *
  * @par License

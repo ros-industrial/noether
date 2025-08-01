@@ -35,8 +35,9 @@ std::vector<pcl::PolygonMesh> CleanData::modify(const pcl::PolygonMesh& mesh_in)
 
 namespace YAML
 {
-Node convert<noether::CleanData>::encode(const T& val) { return {}; }
+/** @cond */
+Node convert<noether::CleanData>::encode(const noether::CleanData& val) { return {}; }
 
-bool convert<noether::CleanData>::decode(const Node& node, T& val) { return true; }
-
+bool convert<noether::CleanData>::decode(const Node& node, noether::CleanData& val) { return true; }
+/** @endcond */
 }  // namespace YAML

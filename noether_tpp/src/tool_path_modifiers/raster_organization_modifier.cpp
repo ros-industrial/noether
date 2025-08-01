@@ -53,8 +53,13 @@ ToolPaths RasterOrganizationModifier::modify(ToolPaths tool_paths) const
 
 namespace YAML
 {
-Node convert<noether::RasterOrganizationModifier>::encode(const T& val) { return {}; }
+/** @cond */
+Node convert<noether::RasterOrganizationModifier>::encode(const noether::RasterOrganizationModifier& val) { return {}; }
 
-bool convert<noether::RasterOrganizationModifier>::decode(const Node& node, T& val) { return true; }
+bool convert<noether::RasterOrganizationModifier>::decode(const Node& node, noether::RasterOrganizationModifier& val)
+{
+  return true;
+}
+/** @endcond */
 
 }  // namespace YAML

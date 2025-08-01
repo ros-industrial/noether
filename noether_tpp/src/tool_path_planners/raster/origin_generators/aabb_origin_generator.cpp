@@ -20,8 +20,13 @@ Eigen::Vector3d AABBCenterOriginGenerator::generate(const pcl::PolygonMesh& mesh
 
 namespace YAML
 {
-Node convert<noether::AABBCenterOriginGenerator>::encode(const T& val) { return {}; }
+/** @cond */
+Node convert<noether::AABBCenterOriginGenerator>::encode(const noether::AABBCenterOriginGenerator& val) { return {}; }
 
-bool convert<noether::AABBCenterOriginGenerator>::decode(const Node& node, T& val) { return true; }
+bool convert<noether::AABBCenterOriginGenerator>::decode(const Node& node, noether::AABBCenterOriginGenerator& val)
+{
+  return true;
+}
+/** @endcond */
 
 }  // namespace YAML

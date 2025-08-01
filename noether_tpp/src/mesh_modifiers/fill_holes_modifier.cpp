@@ -1,6 +1,6 @@
 /**
  * @author Jorge Nicho <jrgnichodevel@gmail.com>
- * @file fill_holes.pp
+ * @file fill_holes_modifier.cpp
  * @date Dec 16, 2019
  * @copyright Copyright (c) 2019, Southwest Research Institute
  *
@@ -55,17 +55,19 @@ std::vector<pcl::PolygonMesh> FillHoles::modify(const pcl::PolygonMesh& mesh_in)
 
 namespace YAML
 {
-Node convert<noether::FillHoles>::encode(const T& val)
+/** @cond */
+Node convert<noether::FillHoles>::encode(const noether::FillHoles& val)
 {
   Node node;
   node["max_hole_size"] = val.max_hole_size_;
   return node;
 }
 
-bool convert<noether::FillHoles>::decode(const Node& node, T& val)
+bool convert<noether::FillHoles>::decode(const Node& node, noether::FillHoles& val)
 {
   val.max_hole_size_ = getMember<double>(node, "max_hole_size");
   return true;
 }
+/** @endcond */
 
 }  // namespace YAML

@@ -42,7 +42,8 @@ std::vector<pcl::PolygonMesh> WindowedSincSmoothing::modify(const pcl::PolygonMe
 
 namespace YAML
 {
-Node convert<noether::WindowedSincSmoothing>::encode(const T& val)
+/** @cond */
+Node convert<noether::WindowedSincSmoothing>::encode(const noether::WindowedSincSmoothing& val)
 {
   Node node;
   node["num_iter"] = val.config_.num_iter;
@@ -56,7 +57,7 @@ Node convert<noether::WindowedSincSmoothing>::encode(const T& val)
   return node;
 }
 
-bool convert<noether::WindowedSincSmoothing>::decode(const Node& node, T& val)
+bool convert<noether::WindowedSincSmoothing>::decode(const Node& node, noether::WindowedSincSmoothing& val)
 {
   val.config_.num_iter = static_cast<std::size_t>(getMember<int>(node, "num_iter"));
   val.config_.enable_boundary_smoothing = getMember<bool>(node, "enable_boundary_smoothing");
@@ -68,5 +69,6 @@ bool convert<noether::WindowedSincSmoothing>::decode(const Node& node, T& val)
   val.config_.pass_band = getMember<double>(node, "pass_band");
   return true;
 }
+/** @endcond */
 
 }  // namespace YAML

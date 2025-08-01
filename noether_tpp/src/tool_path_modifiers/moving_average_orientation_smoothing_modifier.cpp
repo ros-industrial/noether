@@ -91,17 +91,22 @@ ToolPaths MovingAverageOrientationSmoothingModifier::modify(ToolPaths tool_paths
 
 namespace YAML
 {
-Node convert<noether::MovingAverageOrientationSmoothingModifier>::encode(const T& val)
+/** @cond */
+Node convert<noether::MovingAverageOrientationSmoothingModifier>::encode(
+    const noether::MovingAverageOrientationSmoothingModifier& val)
 {
   Node node;
   node["window_size"] = val.window_size_;
   return node;
 }
 
-bool convert<noether::MovingAverageOrientationSmoothingModifier>::decode(const Node& node, T& val)
+bool convert<noether::MovingAverageOrientationSmoothingModifier>::decode(
+    const Node& node,
+    noether::MovingAverageOrientationSmoothingModifier& val)
 {
   val.window_size_ = static_cast<std::size_t>(getMember<double>(node, "window_size"));
   return true;
 }
+/** @endcond */
 
 }  // namespace YAML

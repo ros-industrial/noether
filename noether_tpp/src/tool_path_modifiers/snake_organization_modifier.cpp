@@ -29,8 +29,13 @@ ToolPaths SnakeOrganizationModifier::modify(ToolPaths tool_paths) const
 
 namespace YAML
 {
-Node convert<noether::SnakeOrganizationModifier>::encode(const T& val) { return {}; }
+/** @cond */
+Node convert<noether::SnakeOrganizationModifier>::encode(const noether::SnakeOrganizationModifier& val) { return {}; }
 
-bool convert<noether::SnakeOrganizationModifier>::decode(const Node& node, T& val) { return true; }
+bool convert<noether::SnakeOrganizationModifier>::decode(const Node& node, noether::SnakeOrganizationModifier& val)
+{
+  return true;
+}
+/** @endcond */
 
 }  // namespace YAML

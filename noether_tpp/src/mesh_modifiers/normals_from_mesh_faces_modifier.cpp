@@ -96,8 +96,17 @@ std::vector<pcl::PolygonMesh> NormalsFromMeshFacesMeshModifier::modify(const pcl
 
 namespace YAML
 {
-Node convert<noether::NormalsFromMeshFacesMeshModifier>::encode(const T& val) { return {}; }
+/** @cond */
+Node convert<noether::NormalsFromMeshFacesMeshModifier>::encode(const noether::NormalsFromMeshFacesMeshModifier& val)
+{
+  return {};
+}
 
-bool convert<noether::NormalsFromMeshFacesMeshModifier>::decode(const Node& node, T& val) { return true; }
+bool convert<noether::NormalsFromMeshFacesMeshModifier>::decode(const Node& node,
+                                                                noether::NormalsFromMeshFacesMeshModifier& val)
+{
+  return true;
+}
+/** @endcond */
 
 }  // namespace YAML

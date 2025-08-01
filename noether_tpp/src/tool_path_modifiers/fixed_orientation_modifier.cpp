@@ -39,17 +39,19 @@ ToolPaths FixedOrientationModifier::modify(ToolPaths tool_paths) const
 
 namespace YAML
 {
-Node convert<noether::FixedOrientationModifier>::encode(const T& val)
+/** @cond */
+Node convert<noether::FixedOrientationModifier>::encode(const noether::FixedOrientationModifier& val)
 {
   Node node;
   node["ref_x_dir"] = val.ref_x_dir_;
   return node;
 }
 
-bool convert<noether::FixedOrientationModifier>::decode(const Node& node, T& val)
+bool convert<noether::FixedOrientationModifier>::decode(const Node& node, noether::FixedOrientationModifier& val)
 {
   val.ref_x_dir_ = getMember<Eigen::Vector3d>(node, "ref_x_dir");
   return true;
 }
+/** @endcond */
 
 }  // namespace YAML

@@ -13,17 +13,19 @@ Eigen::Vector3d FixedDirectionGenerator::generate(const pcl::PolygonMesh&) const
 
 namespace YAML
 {
-Node convert<noether::FixedDirectionGenerator>::encode(const T& val)
+/** @cond */
+Node convert<noether::FixedDirectionGenerator>::encode(const noether::FixedDirectionGenerator& val)
 {
   Node node;
   node["direction"] = val.direction_;
   return node;
 }
 
-bool convert<noether::FixedDirectionGenerator>::decode(const Node& node, T& val)
+bool convert<noether::FixedDirectionGenerator>::decode(const Node& node, noether::FixedDirectionGenerator& val)
 {
   val.direction_ = getMember<Eigen::Vector3d>(node, "direction");
   return true;
 }
+/** @endcond */
 
 }  // namespace YAML

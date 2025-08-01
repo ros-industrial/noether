@@ -208,8 +208,7 @@ EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::LinearDepartureToolPathModifier
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::ConcatenateModifierWidgetPlugin, ConcatenateModifier)
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::OffsetModifierWidgetPlugin, OffsetModifier)
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::UniformSpacingSplineModifierWidgetPlugin, UniformSpacingSplineModifier)
-EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::UniformSpacingLinearModifierWidgetPlugin,
-                                        UniformSpacingLinearModifier);
+EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::UniformSpacingLinearModifierWidgetPlugin, UniformSpacingLinearModifier)
 
 EXPORT_TPP_WIDGET_PLUGIN(noether::PlaneSlicerRasterPlannerWidgetPlugin, PlaneSlicerRasterPlanner)
 EXPORT_TPP_WIDGET_PLUGIN(noether::CrossHatchPlaneSlicerRasterPlannerWidgetPlugin, CrossHatchPlaneSlicerRasterPlanner)

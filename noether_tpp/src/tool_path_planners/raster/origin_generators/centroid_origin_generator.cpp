@@ -20,8 +20,13 @@ Eigen::Vector3d CentroidOriginGenerator::generate(const pcl::PolygonMesh& mesh) 
 
 namespace YAML
 {
-Node convert<noether::CentroidOriginGenerator>::encode(const T& val) { return {}; }
+/** @cond */
+Node convert<noether::CentroidOriginGenerator>::encode(const noether::CentroidOriginGenerator& val) { return {}; }
 
-bool convert<noether::CentroidOriginGenerator>::decode(const Node& node, T& val) { return true; }
+bool convert<noether::CentroidOriginGenerator>::decode(const Node& node, noether::CentroidOriginGenerator& val)
+{
+  return true;
+}
+/** @endcond */
 
 }  // namespace YAML

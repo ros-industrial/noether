@@ -46,7 +46,8 @@ ToolPaths CircularLeadOutModifier::modify(ToolPaths tool_paths) const
 
 namespace YAML
 {
-Node convert<noether::CircularLeadOutModifier>::encode(const T& val)
+/** @cond */
+Node convert<noether::CircularLeadOutModifier>::encode(const noether::CircularLeadOutModifier& val)
 {
   Node node;
   node["arc_angle"] = val.arc_angle_;
@@ -55,12 +56,13 @@ Node convert<noether::CircularLeadOutModifier>::encode(const T& val)
   return node;
 }
 
-bool convert<noether::CircularLeadOutModifier>::decode(const Node& node, T& val)
+bool convert<noether::CircularLeadOutModifier>::decode(const Node& node, noether::CircularLeadOutModifier& val)
 {
   val.arc_angle_ = getMember<double>(node, "arc_angle");
   val.arc_radius_ = getMember<double>(node, "arc_radius");
   val.n_points_ = getMember<int>(node, "n_points");
   return true;
 }
+/** @endcond */
 
 }  // namespace YAML

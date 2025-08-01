@@ -160,17 +160,22 @@ ToolPaths StandardEdgePathsOrganizationModifier::modify(ToolPaths tool_paths) co
 
 namespace YAML
 {
-Node convert<noether::StandardEdgePathsOrganizationModifier>::encode(const T& val)
+/** @cond */
+Node convert<noether::StandardEdgePathsOrganizationModifier>::encode(
+    const noether::StandardEdgePathsOrganizationModifier& val)
 {
   Node node;
   node["start_reference"] = val.start_reference_;
   return node;
 }
 
-bool convert<noether::StandardEdgePathsOrganizationModifier>::decode(const Node& node, T& val)
+bool convert<noether::StandardEdgePathsOrganizationModifier>::decode(
+    const Node& node,
+    noether::StandardEdgePathsOrganizationModifier& val)
 {
   val.start_reference_ = getMember<Eigen::Vector3d>(node, "start_reference");
   return true;
 }
+/** @endcond */
 
 }  // namespace YAML

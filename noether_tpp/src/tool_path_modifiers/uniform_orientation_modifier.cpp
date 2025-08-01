@@ -33,8 +33,13 @@ ToolPaths UniformOrientationModifier::modify(ToolPaths tool_paths) const
 
 namespace YAML
 {
-Node convert<noether::UniformOrientationModifier>::encode(const T& val) { return {}; }
+/** @cond */
+Node convert<noether::UniformOrientationModifier>::encode(const noether::UniformOrientationModifier& val) { return {}; }
 
-bool convert<noether::UniformOrientationModifier>::decode(const Node& node, T& val) { return true; }
+bool convert<noether::UniformOrientationModifier>::decode(const Node& node, noether::UniformOrientationModifier& val)
+{
+  return true;
+}
+/** @endcond */
 
 }  // namespace YAML

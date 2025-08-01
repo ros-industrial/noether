@@ -29,17 +29,20 @@ Eigen::Vector3d PrincipalAxisDirectionGenerator::generate(const pcl::PolygonMesh
 
 namespace YAML
 {
-Node convert<noether::PrincipalAxisDirectionGenerator>::encode(const T& val)
+/** @cond */
+Node convert<noether::PrincipalAxisDirectionGenerator>::encode(const noether::PrincipalAxisDirectionGenerator& val)
 {
   Node node;
   node["rotation_offset"] = val.rotation_offset_;
   return node;
 }
 
-bool convert<noether::PrincipalAxisDirectionGenerator>::decode(const Node& node, T& val)
+bool convert<noether::PrincipalAxisDirectionGenerator>::decode(const Node& node,
+                                                               noether::PrincipalAxisDirectionGenerator& val)
 {
   val.rotation_offset_ = getMember<double>(node, "rotation_offset");
   return true;
 }
+/** @endcond */
 
 }  // namespace YAML

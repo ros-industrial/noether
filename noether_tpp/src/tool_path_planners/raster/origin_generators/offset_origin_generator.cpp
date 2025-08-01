@@ -2,8 +2,7 @@
 
 namespace noether
 {
-OffsetOriginGenerator::OffsetOriginGenerator(std::unique_ptr<const OriginGenerator>&& generator,
-                                             const Eigen::Vector3d& offset)
+OffsetOriginGenerator::OffsetOriginGenerator(OriginGenerator::ConstPtr&& generator, const Eigen::Vector3d& offset)
   : generator_(std::move(generator)), offset_(offset)
 {
 }

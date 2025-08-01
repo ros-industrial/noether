@@ -1,6 +1,6 @@
 /**
  * @author Jorge Nicho <jrgnichodevel@gmail.com>
- * @file fill_holes.h
+ * @file fill_holes_modifier.h
  * @date Dec 16, 2019
  * @copyright Copyright (c) 2019, Southwest Research Institute
  *
