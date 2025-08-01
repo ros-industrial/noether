@@ -168,7 +168,8 @@ ToolPaths createSquareToolPaths(const unsigned p, const unsigned w)
   paths.reserve(p);
 
   // Vector of scales such that each tool path will be a different sized square
-  Eigen::VectorXd scales = Eigen::VectorXd::LinSpaced(Eigen::Sequential, p, 1.0, 2.0).reverse();
+  Eigen::VectorXd scales(p);
+  scales.setLinSpaced(1.0, 2.0).reverseInPlace();
 
   for (unsigned p_idx = 0; p_idx < p; ++p_idx)
   {
