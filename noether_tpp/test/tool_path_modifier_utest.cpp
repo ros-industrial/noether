@@ -290,7 +290,11 @@ TEST_P(OneTimeToolPathModifierTestFixture, TestOperation)
 std::vector<std::shared_ptr<const ToolPathModifier>> createModifiers()
 {
   // Create the factory
-  Factory factory;
+  auto loader = std::make_shared<boost_plugin_loader::PluginLoader>();
+  loader->search_libraries.insert(NOETHER_PLUGIN_LIB);
+  loader->search_paths.insert(PLUGIN_DIR);
+
+  Factory factory(loader);
 
   // Load the plugin YAML config
   YAML::Node config = YAML::Load(config_str);
