@@ -122,11 +122,21 @@ public:
   template <typename PluginT>
   BaseWidget* createWidget(const std::string& name, const YAML::Node& config, QWidget* parent = nullptr) const;
 
-  BaseWidget* createMeshModifierWidget(const std::string& name, const YAML::Node& config = {}, QWidget* parent = nullptr) const;
-  BaseWidget* createToolPathPlannerWidget(const std::string& name, const YAML::Node& config = {}, QWidget* parent = nullptr) const;
-  BaseWidget* createDirectionGeneratorWidget(const std::string& name, const YAML::Node& config = {}, QWidget* parent = nullptr) const;
-  BaseWidget* createOriginGeneratorWidget(const std::string& name, const YAML::Node& config = {}, QWidget* parent = nullptr) const;
-  BaseWidget* createToolPathModifierWidget(const std::string& name, const YAML::Node& config = {}, QWidget* parent = nullptr) const;
+  BaseWidget* createMeshModifierWidget(const std::string& name,
+                                       const YAML::Node& config = {},
+                                       QWidget* parent = nullptr) const;
+  BaseWidget* createToolPathPlannerWidget(const std::string& name,
+                                          const YAML::Node& config = {},
+                                          QWidget* parent = nullptr) const;
+  BaseWidget* createDirectionGeneratorWidget(const std::string& name,
+                                             const YAML::Node& config = {},
+                                             QWidget* parent = nullptr) const;
+  BaseWidget* createOriginGeneratorWidget(const std::string& name,
+                                          const YAML::Node& config = {},
+                                          QWidget* parent = nullptr) const;
+  BaseWidget* createToolPathModifierWidget(const std::string& name,
+                                           const YAML::Node& config = {},
+                                           QWidget* parent = nullptr) const;
 
 protected:
   mutable std::map<std::string, WidgetPlugin::Ptr> widget_plugins_;

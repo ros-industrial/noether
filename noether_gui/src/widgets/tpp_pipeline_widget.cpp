@@ -21,7 +21,8 @@ TPPPipelineWidget::TPPPipelineWidget(std::shared_ptr<const GuiFactory> factory, 
   , factory_(factory)
   , ui_(new Ui::TPPPipeline())
   , mesh_modifier_loader_widget_(new PluginLoaderWidget<MeshModifierWidgetPlugin>(factory, "Mesh Modifier", this))
-  , tool_path_modifier_loader_widget_(new PluginLoaderWidget<ToolPathModifierWidgetPlugin>(factory, "Tool Path Modifier", this))
+  , tool_path_modifier_loader_widget_(
+        new PluginLoaderWidget<ToolPathModifierWidgetPlugin>(factory, "Tool Path Modifier", this))
 {
   ui_->setupUi(this);
 

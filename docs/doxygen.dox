@@ -23,7 +23,7 @@ arbitrary mesh surfaces. See the following pages for more information on using N
     @brief Implementations of the @ref noether::MeshModifier "MeshModifier" interface
     @defgroup gui_widgets_mesh_modifiers Mesh Modifier Widgets
     @{
-      @brief Instantiations of the MeshModifierWidget interface
+      @brief Instantiations of the noether::BaseWidget interface for mesh modifiers
     @}
   @}
   @defgroup tool_path_planners Tool Path Planners
@@ -42,9 +42,9 @@ arbitrary mesh surfaces. See the following pages for more information on using N
       - Repeating pattern of lines
       - All points lie on surface
       - All points have same orientation
-      - ToolPathWaypoint in rasters are consistently and spatially ordered
-      - ToolPathSegment are consistently and spatially ordered in ToolPath
-      - ToolPaths are in order in top-level structure
+      - @ref noether::ToolPathWaypoint "ToolPathWaypoint" in rasters are consistently and spatially ordered
+      - @ref noether::ToolPathSegment "ToolPathSegment" are consistently and spatially ordered in @ref noether::ToolPath "ToolPath"
+      - @ref noether::ToolPaths "ToolPaths" are in order in top-level structure
 
       The organization of tool path waypoints, segments, and paths in the output of a raster planner is shown the following diagram:
 
@@ -71,11 +71,11 @@ arbitrary mesh surfaces. See the following pages for more information on using N
     @{
       @brief Implementations of the @ref noether::EdgePlanner "EdgePlanner" interface
 
-      @details An @ref noether::EdgePlanner "EdgePlanner" is a subclass of ToolPathPlanner with the following general properties:
+      @details An @ref noether::EdgePlanner "EdgePlanner" is a subclass of @ref noether::ToolPathPlanner "ToolPathPlanner" with the following general properties:
 
       - A list of closed-loop edges around parts
-      - ToolPathSegment in sequential order in ToolPath
-      - ToolPaths ordered by length of closed loop, with longest first
+      - @ref noether::ToolPathSegment "ToolPathSegment" in sequential order in @ref noether::ToolPath "ToolPath"
+      - @ref noether::ToolPaths "ToolPaths" ordered by length of closed loop, with longest first
       - All loops start near some point (e.g. all in top left corner)
       - All loops process in same direction
 
@@ -86,7 +86,7 @@ arbitrary mesh surfaces. See the following pages for more information on using N
 
     @defgroup gui_widgets_tool_path_planners Tool Path Planner Widgets
     @{
-      @brief Instantiations of the ToolPathPlannerWidget interface
+      @brief Instantiations of the BaseWidget interface for tool path planners
     @}
   @}
   @defgroup tool_path_modifiers Tool Path Modifiers
@@ -95,7 +95,7 @@ arbitrary mesh surfaces. See the following pages for more information on using N
 
     @defgroup gui_widgets_tool_path_modifiers Tool Path Modifier Widgets
     @{
-      @brief Instantiations of the ToolPathModifierWidget interface
+      @brief Instantiations of the BaseWidget interfaces for tool path modifiers
     @}
   @}
   @defgroup plugins Plugins
@@ -171,7 +171,7 @@ arbitrary mesh surfaces. See the following pages for more information on using N
     This plugin-based GUI architecture allows end-users to leverage the out-of-the-box GUI infrastructure and plugins,
     while still enabling private development of custom capabilities or customizations to the front-end of existing classes.
 
-    @section s_gui_widgets Widgets
+    @section ss_gui_widgets Widgets
 
     The GUI package provides the definitions of `Qt` widgets that are capable of producing each type of tool path planning component.
     @ref noether::BaseWidget "BaseWidget" is the template class that defines this widget.
@@ -179,10 +179,10 @@ arbitrary mesh surfaces. See the following pages for more information on using N
     Each implementation of a tool path planning component should provide a widget capable of configuring it.
     This widget must inherit from the appropriate `BaseWidget` template.
 
-    For example, @ref noether::PlaneSlicerRasterPlanner "PlaneSlicerRasterPlanner" has an associated widget @ref noether::PlaneSlicerRasterPlannerWidget "PlaneSlicerRasterPlannerWidget" that inherits from ToolPathPlannerWidget.
-    This widget's @ref noether::PlaneSlicerRasterPlannerWidget::create "create" method produces a configured instance of a @ref noether::PlaneSlicerRasterPlanner "PlaneSlicerRasterPlanner".
+    For example, @ref noether::PlaneSlicerRasterPlanner "PlaneSlicerRasterPlanner" has an associated widget @ref noether::PlaneSlicerRasterPlannerWidget "PlaneSlicerRasterPlannerWidget" that inherits from noether::BaseWidget.
+    This widget's `create` method produces a configured instance of a @ref noether::PlaneSlicerRasterPlanner "PlaneSlicerRasterPlanner".
 
-    @section s_gui_plugins Widget Plugins
+    @section ss_gui_plugins Widget Plugins
 
     To allow users to develop their own private implementations of tool path planning components and have them appear in the GUI, all widgets are loaded into the GUI application at runtime via plugin.
     This plugin class is defined as the template @ref noether::WidgetPlugin "WidgetPlugin".
@@ -195,7 +195,7 @@ arbitrary mesh surfaces. See the following pages for more information on using N
 
     Widget plugins must be exported by calling the respective macro (based on the template type of the plugin) with the plugin class type name and an arbitrary alias name for referring to the plugin:
 
-    - @ref EXPORT_TPP_WIDGET_PLUGIN
+    - @ref EXPORT_TOOL_PATH_PLANNER_WIDGET_PLUGIN
     - @ref EXPORT_DIRECTION_GENERATOR_WIDGET_PLUGIN
     - @ref EXPORT_ORIGIN_GENERATOR_WIDGET_PLUGIN
     - @ref EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN

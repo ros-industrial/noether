@@ -50,27 +50,37 @@ BaseWidget* GuiFactory::createWidget(const std::string& name, const YAML::Node& 
   return widget_plugins_[name]->create(config, this_shared, parent);
 }
 
-BaseWidget* GuiFactory::createMeshModifierWidget(const std::string& name, const YAML::Node& config, QWidget* parent) const
+BaseWidget* GuiFactory::createMeshModifierWidget(const std::string& name,
+                                                 const YAML::Node& config,
+                                                 QWidget* parent) const
 {
   return createWidget<MeshModifierWidgetPlugin>(name, config, parent);
 }
 
-BaseWidget* GuiFactory::createToolPathPlannerWidget(const std::string& name, const YAML::Node& config, QWidget* parent) const
+BaseWidget* GuiFactory::createToolPathPlannerWidget(const std::string& name,
+                                                    const YAML::Node& config,
+                                                    QWidget* parent) const
 {
   return createWidget<ToolPathPlannerWidgetPlugin>(name, config, parent);
 }
 
-BaseWidget* GuiFactory::createDirectionGeneratorWidget(const std::string& name, const YAML::Node& config, QWidget* parent) const
+BaseWidget* GuiFactory::createDirectionGeneratorWidget(const std::string& name,
+                                                       const YAML::Node& config,
+                                                       QWidget* parent) const
 {
   return createWidget<DirectionGeneratorWidgetPlugin>(name, config, parent);
 }
 
-BaseWidget* GuiFactory::createOriginGeneratorWidget(const std::string& name, const YAML::Node& config, QWidget* parent) const
+BaseWidget* GuiFactory::createOriginGeneratorWidget(const std::string& name,
+                                                    const YAML::Node& config,
+                                                    QWidget* parent) const
 {
   return createWidget<OriginGeneratorWidgetPlugin>(name, config, parent);
 }
 
-BaseWidget* GuiFactory::createToolPathModifierWidget(const std::string& name, const YAML::Node& config, QWidget* parent) const
+BaseWidget* GuiFactory::createToolPathModifierWidget(const std::string& name,
+                                                     const YAML::Node& config,
+                                                     QWidget* parent) const
 {
   return createWidget<ToolPathModifierWidgetPlugin>(name, config, parent);
 }

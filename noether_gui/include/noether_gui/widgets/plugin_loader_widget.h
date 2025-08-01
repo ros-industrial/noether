@@ -19,7 +19,7 @@ namespace noether
 /**
  * @brief Widget for loading widget plugins
  */
-template<typename PluginT>
+template <typename PluginT>
 class PluginLoaderWidget : public QWidget
 {
 public:

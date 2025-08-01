@@ -34,7 +34,8 @@ RasterPlannerWidget::RasterPlannerWidget(std::shared_ptr<const GuiFactory> facto
       }
       else
       {
-        ui_->stacked_widget_dir_gen->addWidget(factory->createDirectionGeneratorWidget(plugin_name.toStdString(), {}, this));
+        ui_->stacked_widget_dir_gen->addWidget(
+            factory->createDirectionGeneratorWidget(plugin_name.toStdString(), {}, this));
       }
     }
   }
@@ -53,7 +54,8 @@ RasterPlannerWidget::RasterPlannerWidget(std::shared_ptr<const GuiFactory> facto
       }
       else
       {
-        ui_->stacked_widget_origin_gen->addWidget(factory->createOriginGeneratorWidget(plugin_name.toStdString(), {}, this));
+        ui_->stacked_widget_origin_gen->addWidget(
+            factory->createOriginGeneratorWidget(plugin_name.toStdString(), {}, this));
       }
     }
   }
