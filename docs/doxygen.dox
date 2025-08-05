@@ -98,6 +98,67 @@ arbitrary mesh surfaces. See the following pages for more information on using N
       @brief Instantiations of the ToolPathModifierWidget interface
     @}
   @}
+  @defgroup plugins Plugins
+  @{
+    Noether provides a plugin interface (noether::Plugin) for users to provide custom implementations of the tool path planning and GUI interfaces.
+
+    To create a plugin, users need to do the following:
+    - At build-time:
+      - Create a library with an implementation of the desired tool path planning component(s)
+      - Implement the noether::Plugin class for the tool path planning component
+      - Export the *plugin* class(es) using the appropriate `EXPORT_<COMPONENT>_PLUGIN` macro(s)
+    - At run-time:
+      - Add the name of the library in which the plugin is defined to the `NOETHER_PLUGIN_LIBS` environment variable
+
+    @section s_plugin_interface Plugin Interface
+
+    noether::Plugin is the plugin class that gets loaded at run-time and is responsible for generating instances of a specific tool path planning component.
+    This class needs to be overridden and its `create` method implemented for each custom tool path planning component.
+    In this interface, the user is given configuration data (in the form of a `YAML::Node`) and an instance of the noether::Factory (e.g., for loading nested plugins).
+    The user is expected to use this information to produce a configured instance of their custom tool path planning component.
+
+    @subsection ss_plugin_simple Simplified Plugin Definition and Export
+
+    The example below shows the definition and export of a plugin for noether::BoundaryEdgePlanner.
+    This particular tool path planner can be fully configured using just the `YAML::Node` input, so we can create and export a plugin for it using the simplified `EXPORT_SIMPLE_<COMPONENT>_PLUGIN` macro.
+    This macro takes as input the name of the tool path planning component class and an arbitrary alias by which we wish to refer to it (e.g., for loading from YAML files, etc.).
+    Under the hood, this macro defines a plugin class using noether::SimplePlugin and exports it using the `EXPORT_<COMPONENT>_PLUGIN` macro.
+
+    @snippet noether_tpp/src/plugins.cpp Plugins Example Simple
+
+    The following macros can be used to define and export simple plugins for tool path planning components:
+
+    - @ref EXPORT_SIMPLE_TOOL_PATH_PLANNER_PLUGIN
+    - @ref EXPORT_SIMPLE_DIRECTION_GENERATOR_PLUGIN
+    - @ref EXPORT_SIMPLE_ORIGIN_GENERATOR_PLUGIN
+    - @ref EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN
+    - @ref EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN
+
+    @subsection ss_plugin_complex Full Plugin Definition and Export
+
+    The example below shows the definition and export of noether::CompoundModifier, a tool path modifier which requires more information than just the `YAML::Node` to be configured.
+    In this case, we must fully define the plugin class and export it with the appropriate `EXPORT_<COMPONENT>_PLUGIN` macro:
+
+    @snippet noether_tpp/src/plugins.cpp Plugins Example Complex
+
+    The following macros can be used to export tool path planning component plugins:
+
+    - @ref EXPORT_TOOL_PATH_PLANNER_PLUGIN
+    - @ref EXPORT_DIRECTION_GENERATOR_PLUGIN
+    - @ref EXPORT_ORIGIN_GENERATOR_PLUGIN
+    - @ref EXPORT_TOOL_PATH_MODIFIER_PLUGIN
+    - @ref EXPORT_MESH_MODIFIER_PLUGIN
+
+    @section s_factory Plugin Factory
+
+    The noether::Factory class is intended to be used to load plugins for tool path planning components.
+    This class wraps the underlying plugin loader class and ensures that loaded plugin libraries stay in scope as long as the plugins (and objects create from them) are used.
+    By default, noether::Factory is configured to know about plugin libraries from this repository, to look for plugin library names in the `NOETHER_PLUGIN_LIBS` environment variable, and to look for install paths of plugin libraries in the `NOETHER_PLUGIN_PATHS` envrionment variable.
+
+    @note
+    If the install path of the plugin library can be found in `LD_LIBRARY_PATH`, there is no need to set the `NOETHER_PLUGIN_PATHS` environment variable.
+    For example, if this project is built in a ROS/ROS2 workspace, sourcing the workspace automatically adds its library paths to `LD_LIBRARY_PATH`.
+  @}
   @defgroup gui_interfaces GUI Interfaces
   @{
     The GUI package is a `Qt`-based framework that allows user-developed plugins to provide UI elements for configuring the tool path planning components.
