@@ -3,7 +3,9 @@
 
 #include <boost_plugin_loader/plugin_loader.hpp>
 
-using namespace noether;
+// Macros for converting a non-string target compile definition into a string
+#define STRINGIFY_HELPER(x) #x
+#define STRINGIFY(x) STRINGIFY_HELPER(x)
 
 namespace noether
 {
@@ -11,7 +13,7 @@ namespace noether
 template <>
 std::string noether::ToolPathPlannerPlugin::getSection()
 {
-  return NOETHER_TPP_SECTION;
+  return STRINGIFY(NOETHER_TPP_SECTION);
 }
 /** @endcond */
 
@@ -19,7 +21,7 @@ std::string noether::ToolPathPlannerPlugin::getSection()
 template <>
 std::string DirectionGeneratorPlugin::getSection()
 {
-  return NOETHER_DIRECTION_GENERATOR_SECTION;
+  return STRINGIFY(NOETHER_DIRECTION_GENERATOR_SECTION);
 }
 /** @endcond */
 
@@ -27,7 +29,7 @@ std::string DirectionGeneratorPlugin::getSection()
 template <>
 std::string OriginGeneratorPlugin::getSection()
 {
-  return NOETHER_ORIGIN_GENERATOR_SECTION;
+  return STRINGIFY(NOETHER_ORIGIN_GENERATOR_SECTION);
 }
 /** @endcond */
 
@@ -35,7 +37,7 @@ std::string OriginGeneratorPlugin::getSection()
 template <>
 std::string ToolPathModifierPlugin::getSection()
 {
-  return NOETHER_TOOL_PATH_MODIFIER_SECTION;
+  return STRINGIFY(NOETHER_TOOL_PATH_MODIFIER_SECTION);
 }
 /** @endcond */
 
@@ -43,7 +45,7 @@ std::string ToolPathModifierPlugin::getSection()
 template <>
 std::string MeshModifierPlugin::getSection()
 {
-  return NOETHER_MESH_MODIFIER_SECTION;
+  return STRINGIFY(NOETHER_MESH_MODIFIER_SECTION);
 }
 /** @endcond */
 
