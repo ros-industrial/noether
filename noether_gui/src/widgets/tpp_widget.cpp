@@ -15,14 +15,7 @@
 #include <yaml-cpp/yaml.h>
 
 // Rendering includes
-#ifndef VTK_MAJOR_VERSION
-#include <vtkVersionMacros.h>
-#endif
-#if VTK_MAJOR_VERSION > 7
 #include <QVTKOpenGLNativeWidget.h>
-#else
-#include <QVTKWidget.h>
-#endif
 #include <vtkAxesActor.h>
 #include <vtkAssembly.h>
 #include <vtkOpenGLPolyDataMapper.h>
@@ -115,9 +108,9 @@ TPPWidget::TPPWidget(std::shared_ptr<const WidgetFactory> factory, QWidget* pare
     showAxes(ui_->check_box_show_axes->isChecked());
   }
 
-  vtkRenderWindow* window = render_widget_->GetRenderWindow();
+  vtkRenderWindow* window = render_widget_->renderWindow();
   window->AddRenderer(renderer_);
-  render_widget_->GetInteractor()->SetInteractorStyle(vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New());
+  render_widget_->interactor()->SetInteractorStyle(vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New());
   render_widget_->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 
   // Set visibility of the actors based on the default state of the check boxes
@@ -165,8 +158,8 @@ TPPWidget::TPPWidget(std::shared_ptr<const WidgetFactory> factory, QWidget* pare
 void TPPWidget::render()
 {
   // Call render twice
-  render_widget_->GetRenderWindow()->Render();
-  render_widget_->GetRenderWindow()->Render();
+  render_widget_->renderWindow()->Render();
+  render_widget_->renderWindow()->Render();
 }
 
 void TPPWidget::showOriginalMesh(const bool checked)
