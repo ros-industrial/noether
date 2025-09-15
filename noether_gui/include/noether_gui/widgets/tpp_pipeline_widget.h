@@ -4,7 +4,6 @@
 #include <noether_gui/widgets/plugin_loader_widget.h>
 
 #include <noether_tpp/core/tool_path_planner_pipeline.h>
-#include <QWidget>
 
 namespace Ui
 {
@@ -16,15 +15,15 @@ namespace noether
 /**
  * @brief Widget for creating a tool path planning pipeline
  */
-class TPPPipelineWidget : public QWidget
+class TPPPipelineWidget : public BaseWidget
 {
 public:
   TPPPipelineWidget(std::shared_ptr<const GuiFactory> factory, QWidget* parent = nullptr);
 
   ToolPathPlannerPipeline createPipeline() const;
 
-  void configure(const YAML::Node& config);
-  void save(YAML::Node& config) const;
+  void configure(const YAML::Node& config) override;
+  void save(YAML::Node& config) const override;
 
 protected:
   std::shared_ptr<const GuiFactory> factory_;

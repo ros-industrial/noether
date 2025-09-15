@@ -17,7 +17,7 @@ static const std::string TOOL_PATH_MODIFIERS_KEY = "tool_path_modifiers";
 namespace noether
 {
 TPPPipelineWidget::TPPPipelineWidget(std::shared_ptr<const GuiFactory> factory, QWidget* parent)
-  : QWidget(parent)
+  : BaseWidget(parent)
   , factory_(factory)
   , ui_(new Ui::TPPPipeline())
   , mesh_modifier_loader_widget_(new PluginLoaderWidget<MeshModifierWidgetPlugin>(factory, "Mesh Modifier", this))
