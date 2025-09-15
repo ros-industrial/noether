@@ -10,7 +10,7 @@
 
 namespace noether
 {
-PlaneSlicerRasterPlannerWidget::PlaneSlicerRasterPlannerWidget(std::shared_ptr<const GuiFactory> factory,
+PlaneSlicerRasterPlannerWidget::PlaneSlicerRasterPlannerWidget(std::shared_ptr<const WidgetFactory> factory,
                                                                QWidget* parent)
   : RasterPlannerWidget(factory, parent)
   , search_radius_(new DistanceDoubleSpinBox(this))

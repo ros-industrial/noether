@@ -35,7 +35,7 @@ class TPP;
 namespace noether
 {
 class ConfigurableTPPPipelineWidget;
-class GuiFactory;
+class WidgetFactory;
 
 enum class LineStyle
 {
@@ -52,7 +52,7 @@ enum class LineStyle
 class TPPWidget : public QMainWindow
 {
 public:
-  TPPWidget(std::shared_ptr<const GuiFactory> factory, QWidget* parent = nullptr);
+  TPPWidget(std::shared_ptr<const WidgetFactory> factory, QWidget* parent = nullptr);
 
   /**
    * @brief Sets the file path for the mesh to use for tool path planning

@@ -32,7 +32,7 @@ int main(int argc, char** argv)
   signal(SIGINT, handleSignal);
   signal(SIGTERM, handleSignal);
 
-  auto factory = std::make_shared<noether::GuiFactory>();
+  auto factory = std::make_shared<noether::WidgetFactory>();
 
   // Create (and optionally configure) the TPP widget
   auto widget = noether::TPPWidget(factory);

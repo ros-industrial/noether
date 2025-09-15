@@ -14,7 +14,7 @@ class Node;
 
 namespace noether
 {
-class GuiFactory;
+class WidgetFactory;
 
 /**
  * @ingroup gui_widgets_tool_path_planners
@@ -22,7 +22,7 @@ class GuiFactory;
 class RasterPlannerWidget : public BaseWidget
 {
 public:
-  RasterPlannerWidget(std::shared_ptr<const GuiFactory> factory, QWidget* parent = nullptr);
+  RasterPlannerWidget(std::shared_ptr<const WidgetFactory> factory, QWidget* parent = nullptr);
 
   void configure(const YAML::Node&) override;
   void save(YAML::Node&) const override;

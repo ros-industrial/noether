@@ -10,7 +10,7 @@
 
 namespace noether
 {
-ConfigurableTPPPipelineWidget::ConfigurableTPPPipelineWidget(std::shared_ptr<const GuiFactory> factory,
+ConfigurableTPPPipelineWidget::ConfigurableTPPPipelineWidget(std::shared_ptr<const WidgetFactory> factory,
                                                              std::string default_configuration_file_directory,
                                                              QWidget* parent)
   : TPPPipelineWidget(factory, parent), default_configuration_file_directory_(default_configuration_file_directory)

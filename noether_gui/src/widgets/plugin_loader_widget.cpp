@@ -9,7 +9,7 @@
 namespace noether
 {
 template <typename PluginT>
-PluginLoaderWidget<PluginT>::PluginLoaderWidget(std::shared_ptr<const GuiFactory> factory,
+PluginLoaderWidget<PluginT>::PluginLoaderWidget(std::shared_ptr<const WidgetFactory> factory,
                                                 const QString& title,
                                                 QWidget* parent)
   : BaseWidget(parent), ui_(new Ui::PluginLoader()), factory_(factory)

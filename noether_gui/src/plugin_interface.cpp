@@ -28,7 +28,7 @@ std::string noether::ToolPathModifierWidgetPlugin::getSection()
   return STRINGIFY(NOETHER_GUI_TOOL_PATH_MODIFIER_SECTION);
 }
 
-GuiFactory::GuiFactory()
+WidgetFactory::WidgetFactory()
 {
   auto loader = std::make_shared<boost_plugin_loader::PluginLoader>();
   loader->search_libraries.insert(NOETHER_PLUGIN_LIB);
@@ -38,47 +38,47 @@ GuiFactory::GuiFactory()
   loader_ = loader;
 }
 
-GuiFactory::GuiFactory(std::shared_ptr<const boost_plugin_loader::PluginLoader> loader) : Factory(loader) {}
+WidgetFactory::WidgetFactory(std::shared_ptr<const boost_plugin_loader::PluginLoader> loader) : Factory(loader) {}
 
 template <typename PluginT>
-BaseWidget* GuiFactory::createWidget(const std::string& name, const YAML::Node& config, QWidget* parent) const
+BaseWidget* WidgetFactory::createWidget(const std::string& name, const YAML::Node& config, QWidget* parent) const
 {
   if (widget_plugins_.find(name) == widget_plugins_.end())
     widget_plugins_[name] = loader_->createInstance<PluginT>(name);
 
-  auto this_shared = std::shared_ptr<const GuiFactory>(this, [](const GuiFactory*) {});
+  auto this_shared = std::shared_ptr<const WidgetFactory>(this, [](const WidgetFactory*) {});
   return widget_plugins_[name]->create(config, this_shared, parent);
 }
 
-BaseWidget* GuiFactory::createMeshModifierWidget(const std::string& name,
+BaseWidget* WidgetFactory::createMeshModifierWidget(const std::string& name,
                                                  const YAML::Node& config,
                                                  QWidget* parent) const
 {
   return createWidget<MeshModifierWidgetPlugin>(name, config, parent);
 }
 
-BaseWidget* GuiFactory::createToolPathPlannerWidget(const std::string& name,
+BaseWidget* WidgetFactory::createToolPathPlannerWidget(const std::string& name,
                                                     const YAML::Node& config,
                                                     QWidget* parent) const
 {
   return createWidget<ToolPathPlannerWidgetPlugin>(name, config, parent);
 }
 
-BaseWidget* GuiFactory::createDirectionGeneratorWidget(const std::string& name,
+BaseWidget* WidgetFactory::createDirectionGeneratorWidget(const std::string& name,
                                                        const YAML::Node& config,
                                                        QWidget* parent) const
 {
   return createWidget<DirectionGeneratorWidgetPlugin>(name, config, parent);
 }
 
-BaseWidget* GuiFactory::createOriginGeneratorWidget(const std::string& name,
+BaseWidget* WidgetFactory::createOriginGeneratorWidget(const std::string& name,
                                                     const YAML::Node& config,
                                                     QWidget* parent) const
 {
   return createWidget<OriginGeneratorWidgetPlugin>(name, config, parent);
 }
 
-BaseWidget* GuiFactory::createToolPathModifierWidget(const std::string& name,
+BaseWidget* WidgetFactory::createToolPathModifierWidget(const std::string& name,
                                                      const YAML::Node& config,
                                                      QWidget* parent) const
 {

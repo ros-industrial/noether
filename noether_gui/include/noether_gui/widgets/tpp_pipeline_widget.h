@@ -18,7 +18,7 @@ namespace noether
 class TPPPipelineWidget : public BaseWidget
 {
 public:
-  TPPPipelineWidget(std::shared_ptr<const GuiFactory> factory, QWidget* parent = nullptr);
+  TPPPipelineWidget(std::shared_ptr<const WidgetFactory> factory, QWidget* parent = nullptr);
 
   ToolPathPlannerPipeline createPipeline() const;
 
@@ -26,7 +26,7 @@ public:
   void save(YAML::Node& config) const override;
 
 protected:
-  std::shared_ptr<const GuiFactory> factory_;
+  std::shared_ptr<const WidgetFactory> factory_;
   PluginLoaderWidget<MeshModifierWidgetPlugin>* mesh_modifier_loader_widget_;
   PluginLoaderWidget<ToolPathModifierWidgetPlugin>* tool_path_modifier_loader_widget_;
   Ui::TPPPipeline* ui_;

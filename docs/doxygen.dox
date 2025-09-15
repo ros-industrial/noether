@@ -224,9 +224,9 @@ arbitrary mesh surfaces. See the following pages for more information on using N
 
     @section s_gui_factory Widget Plugin Factory
 
-    The noether::GuiFactory class is intended to be used to load plugins for tool path planning component widgets.
+    The noether::WidgetFactory class is intended to be used to load plugins for tool path planning component widgets.
     This class wraps the underlying plugin loader class and ensures that loaded plugin libraries stay in scope as long as the plugins (and objects create from them) are used.
-    By default, noether::GuiFactory is configured to know about widget plugin libraries from this repository, to look for plugin library names in the `NOETHER_PLUGIN_LIBS` environment variable, and to look for install paths of plugin libraries in the `NOETHER_PLUGIN_PATHS` envrionment variable.
+    By default, noether::WidgetFactory is configured to know about widget plugin libraries from this repository, to look for plugin library names in the `NOETHER_PLUGIN_LIBS` environment variable, and to look for install paths of plugin libraries in the `NOETHER_PLUGIN_PATHS` envrionment variable.
 
     @note
     If the install path of the plugin library can be found in `LD_LIBRARY_PATH`, there is no need to set the `NOETHER_PLUGIN_PATHS` environment variable.

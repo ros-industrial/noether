@@ -14,7 +14,7 @@ static const std::string MIN_HOLE_SIZE_KEY = "min_hole_size";
 
 namespace noether
 {
-RasterPlannerWidget::RasterPlannerWidget(std::shared_ptr<const GuiFactory> factory, QWidget* parent)
+RasterPlannerWidget::RasterPlannerWidget(std::shared_ptr<const WidgetFactory> factory, QWidget* parent)
   : BaseWidget(parent), ui_(new Ui::RasterPlanner())
 {
   ui_->setupUi(this);

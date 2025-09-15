@@ -9,7 +9,7 @@
 
 namespace noether
 {
-class GuiFactory;
+class WidgetFactory;
 
 /**
  * @ingroup gui_interfaces
@@ -30,7 +30,7 @@ public:
    * @param parent Parent widget
    */
   virtual BaseWidget* create(const YAML::Node& config,
-                             std::shared_ptr<const GuiFactory> factory,
+                             std::shared_ptr<const WidgetFactory> factory,
                              QWidget* parent = nullptr) const = 0;
 };
 
@@ -103,7 +103,7 @@ template <typename WidgetT, typename WidgetPluginT>
 struct SimpleWidgetPlugin : WidgetPluginT
 {
   BaseWidget* create(const YAML::Node& config,
-                     std::shared_ptr<const GuiFactory> /*loader*/,
+                     std::shared_ptr<const WidgetFactory> /*loader*/,
                      QWidget* parent = nullptr) const override final
   {
     auto widget = new WidgetT(parent);
@@ -120,11 +120,11 @@ struct SimpleWidgetPlugin : WidgetPluginT
  * @ingroup gui_interfaces
  * @brief Extends the Factory class to be able to load widget plugins for the GUI
  */
-class GuiFactory : public Factory
+class WidgetFactory : public Factory
 {
 public:
-  GuiFactory();
-  GuiFactory(std::shared_ptr<const boost_plugin_loader::PluginLoader> loader);
+  WidgetFactory();
+  WidgetFactory(std::shared_ptr<const boost_plugin_loader::PluginLoader> loader);
 
   template <typename PluginT>
   BaseWidget* createWidget(const std::string& name, const YAML::Node& config, QWidget* parent = nullptr) const;

@@ -85,7 +85,7 @@ EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(UniformSpacingLinearModifierWidge
 struct Plugin_PlaneSlicerRasterPlannerWidget : WidgetPlugin
 {
   BaseWidget* create(const YAML::Node& config,
-                     std::shared_ptr<const GuiFactory> factory,
+                     std::shared_ptr<const WidgetFactory> factory,
                      QWidget* parent = nullptr) const override final
   {
     auto widget = new PlaneSlicerRasterPlannerWidget(factory, parent);
@@ -126,7 +126,7 @@ namespace noether
 struct Plugin_CrossHatchPlaneSlicerRasterPlannerWidget : WidgetPlugin
 {
   BaseWidget* create(const YAML::Node& config,
-                     std::shared_ptr<const GuiFactory> factory,
+                     std::shared_ptr<const WidgetFactory> factory,
                      QWidget* parent = nullptr) const override final
   {
     auto widget = new CrossHatchPlaneSlicerRasterPlannerWidget(factory, parent);

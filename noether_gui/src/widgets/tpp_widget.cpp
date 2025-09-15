@@ -48,7 +48,7 @@
 
 namespace noether
 {
-TPPWidget::TPPWidget(std::shared_ptr<const GuiFactory> factory, QWidget* parent)
+TPPWidget::TPPWidget(std::shared_ptr<const WidgetFactory> factory, QWidget* parent)
   : QMainWindow(parent)
   , ui_(new Ui::TPP())
   , pipeline_widget_(new ConfigurableTPPPipelineWidget(factory, "", this))

@@ -21,7 +21,7 @@ template <typename PluginT>
 class PluginLoaderWidget : public BaseWidget
 {
 public:
-  PluginLoaderWidget(std::shared_ptr<const GuiFactory> factory, const QString& title, QWidget* parent = nullptr);
+  PluginLoaderWidget(std::shared_ptr<const WidgetFactory> factory, const QString& title, QWidget* parent = nullptr);
   ~PluginLoaderWidget();
 
   QWidgetList getWidgets() const;
@@ -36,7 +36,7 @@ protected:
   void shiftCurrentWidget(const int offset);
 
   Ui::PluginLoader* ui_;
-  std::shared_ptr<const GuiFactory> factory_;
+  std::shared_ptr<const WidgetFactory> factory_;
 };
 
 }  // namespace noether
