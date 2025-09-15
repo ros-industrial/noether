@@ -130,19 +130,16 @@ TPPWidget::TPPWidget(std::shared_ptr<const WidgetFactory> factory, QWidget* pare
 
   // Connect signals
   connect(ui_->action_load_mesh, &QAction::triggered, this, &TPPWidget::onLoadMesh);
-  connect(ui_->action_execute_pipeline, &QAction::triggered, [this](const bool){ plan(); });
+  connect(ui_->action_execute_pipeline, &QAction::triggered, [this](const bool) { plan(); });
   connect(ui_->action_save_modified_mesh, &QAction::triggered, this, &TPPWidget::onSaveModifiedMeshes);
   connect(ui_->action_save_toolpath, &QAction::triggered, this, &TPPWidget::onSaveToolPaths);
   connect(ui_->action_show_unmodified_mesh, &QAction::triggered, this, &TPPWidget::showOriginalMesh);
   connect(ui_->action_show_modified_mesh, &QAction::triggered, this, &TPPWidget::showModifiedMesh);
   connect(ui_->action_show_unmodified_tool_path, &QAction::triggered, this, &TPPWidget::showUnmodifiedToolPath);
   connect(ui_->action_show_modified_tool_path, &QAction::triggered, this, &TPPWidget::showModifiedToolPath);
-  connect(ui_->action_show_unmodified_tool_path_lines,
-          &QAction::triggered,
-          this,
-          &TPPWidget::showUnmodifiedConnectedPath);
   connect(
-      ui_->action_show_modified_tool_path_lines, &QAction::triggered, this, &TPPWidget::showModifiedConnectedPath);
+      ui_->action_show_unmodified_tool_path_lines, &QAction::triggered, this, &TPPWidget::showUnmodifiedConnectedPath);
+  connect(ui_->action_show_modified_tool_path_lines, &QAction::triggered, this, &TPPWidget::showModifiedConnectedPath);
   connect(ui_->check_box_show_axes, &QCheckBox::toggled, this, &TPPWidget::showAxes);
   connect(ui_->action_load_config,
           &QAction::triggered,

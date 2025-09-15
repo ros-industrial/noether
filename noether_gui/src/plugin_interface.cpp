@@ -51,36 +51,36 @@ BaseWidget* WidgetFactory::createWidget(const std::string& name, const YAML::Nod
 }
 
 BaseWidget* WidgetFactory::createMeshModifierWidget(const std::string& name,
-                                                 const YAML::Node& config,
-                                                 QWidget* parent) const
+                                                    const YAML::Node& config,
+                                                    QWidget* parent) const
 {
   return createWidget<MeshModifierWidgetPlugin>(name, config, parent);
 }
 
 BaseWidget* WidgetFactory::createToolPathPlannerWidget(const std::string& name,
-                                                    const YAML::Node& config,
-                                                    QWidget* parent) const
+                                                       const YAML::Node& config,
+                                                       QWidget* parent) const
 {
   return createWidget<ToolPathPlannerWidgetPlugin>(name, config, parent);
 }
 
 BaseWidget* WidgetFactory::createDirectionGeneratorWidget(const std::string& name,
-                                                       const YAML::Node& config,
-                                                       QWidget* parent) const
+                                                          const YAML::Node& config,
+                                                          QWidget* parent) const
 {
   return createWidget<DirectionGeneratorWidgetPlugin>(name, config, parent);
 }
 
 BaseWidget* WidgetFactory::createOriginGeneratorWidget(const std::string& name,
-                                                    const YAML::Node& config,
-                                                    QWidget* parent) const
+                                                       const YAML::Node& config,
+                                                       QWidget* parent) const
 {
   return createWidget<OriginGeneratorWidgetPlugin>(name, config, parent);
 }
 
 BaseWidget* WidgetFactory::createToolPathModifierWidget(const std::string& name,
-                                                     const YAML::Node& config,
-                                                     QWidget* parent) const
+                                                        const YAML::Node& config,
+                                                        QWidget* parent) const
 {
   return createWidget<ToolPathModifierWidgetPlugin>(name, config, parent);
 }

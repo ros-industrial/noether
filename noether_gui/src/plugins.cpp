@@ -60,18 +60,17 @@ EXPORT_SIMPLE_ORIGIN_GENERATOR_WIDGET_PLUGIN(AABBOriginGeneratorWidget, AABBCent
 
 // Tool Path Modifiers
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(StandardEdgePathsOrganizationModifierWidget,
-                                                StandardEdgePathsOrganization)
+                                               StandardEdgePathsOrganization)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(RasterOrganizationModifierWidget, RasterOrganization)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(SnakeOrganizationModifierWidget, SnakeOrganization)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(FixedOrientationModifierWidget, FixedOrientation)
-EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(DirectionOfTravelOrientationModifierWidget,
-                                                DirectionOfTravelOrientation)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(DirectionOfTravelOrientationModifierWidget, DirectionOfTravelOrientation)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(UniformOrientationModifierWidget, UniformOrientation)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(MovingAverageOrientationSmoothingModifierWidget,
-                                                MovingAverageOrientationSmoothing)
+                                               MovingAverageOrientationSmoothing)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(ToolDragOrientationToolPathModifierWidget, ToolDragOrientation)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(BiasedToolDragOrientationToolPathModifierWidget,
-                                                BiasedToolDragOrientation)
+                                               BiasedToolDragOrientation)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(CircularLeadInToolPathModifierWidget, CircularLeadIn)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(CircularLeadOutToolPathModifierWidget, CircularLeadOut)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(LinearApproachToolPathModifierWidget, LinearApproach)
@@ -112,8 +111,8 @@ EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(FillHolesModifierWidget, FillHoles)
 namespace noether
 {
 // For tool path planning component widgets that can be fully configured by YAML serialization, invoke the
-// `EXPORT_SIMPLE_<COMPONENT>_WIDGET_PLUGIN` macro. This macro instantiates the SimpleWidgetPlugin template for the input class name
-// (first argument) and exports that plugin with the input arbitrary alias (second argument).
+// `EXPORT_SIMPLE_<COMPONENT>_WIDGET_PLUGIN` macro. This macro instantiates the SimpleWidgetPlugin template for the
+// input class name (first argument) and exports that plugin with the input arbitrary alias (second argument).
 EXPORT_SIMPLE_TOOL_PATH_PLANNER_WIDGET_PLUGIN(BoundaryEdgePlannerWidget, Boundary)
 
 }  // namespace noether
