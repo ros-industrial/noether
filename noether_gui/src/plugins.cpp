@@ -99,6 +99,30 @@ struct Plugin_PlaneSlicerRasterPlannerWidget : WidgetPlugin
 };
 EXPORT_TOOL_PATH_PLANNER_WIDGET_PLUGIN(noether::Plugin_PlaneSlicerRasterPlannerWidget, PlaneSlicer)
 
+// Mesh Modifiers
+EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(PlaneProjectionMeshModifierWidget, PlaneProjection)
+EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(EuclideanClusteringMeshModifierWidget, EuclideanClustering)
+EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(NormalEstimationPCLMeshModifierWidget, NormalEstimationPCL)
+EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(NormalsFromMeshFacesMeshModifierWidget, NormalsFromMeshFaces)
+EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(FillHolesModifierWidget, FillHoles)
+
+}  // namespace noether
+
+//! [GUI Plugins Example Simple]
+namespace noether
+{
+// For tool path planning component widgets that can be fully configured by YAML serialization, invoke the
+// `EXPORT_SIMPLE_<COMPONENT>_WIDGET_PLUGIN` macro. This macro instantiates the SimpleWidgetPlugin template for the input class name
+// (first argument) and exports that plugin with the input arbitrary alias (second argument).
+EXPORT_SIMPLE_TOOL_PATH_PLANNER_WIDGET_PLUGIN(BoundaryEdgePlannerWidget, Boundary)
+
+}  // namespace noether
+//! [GUI Plugins Example Simple]
+
+//! [GUI Plugins Example Complex]
+namespace noether
+{
+// For a complex plugin that cannot be configured through YAML serialization alone, implement a custom plugin class.
 struct Plugin_CrossHatchPlaneSlicerRasterPlannerWidget : WidgetPlugin
 {
   BaseWidget* create(const YAML::Node& config,
@@ -114,16 +138,9 @@ struct Plugin_CrossHatchPlaneSlicerRasterPlannerWidget : WidgetPlugin
     return widget;
   }
 };
+
+// Export the plugin class with an arbitrary alias using the `EXPORT_<COMPONENT>_WIDGET_PLUGIN` macro
 EXPORT_TOOL_PATH_PLANNER_WIDGET_PLUGIN(noether::Plugin_CrossHatchPlaneSlicerRasterPlannerWidget, CrossHatchPlaneSlicer)
 
-// Edge Tool Path Planners
-EXPORT_SIMPLE_TOOL_PATH_PLANNER_WIDGET_PLUGIN(BoundaryEdgePlannerWidget, Boundary)
-
-// Mesh Modifiers
-EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(PlaneProjectionMeshModifierWidget, PlaneProjection)
-EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(EuclideanClusteringMeshModifierWidget, EuclideanClustering)
-EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(NormalEstimationPCLMeshModifierWidget, NormalEstimationPCL)
-EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(NormalsFromMeshFacesMeshModifierWidget, NormalsFromMeshFaces)
-EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(FillHolesModifierWidget, FillHoles)
-
 }  // namespace noether
+//! [GUI Plugins Example Complex]

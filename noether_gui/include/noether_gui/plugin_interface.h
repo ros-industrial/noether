@@ -12,7 +12,7 @@ namespace noether
 class GuiFactory;
 
 /**
- * @ingroup gui_interfaces_plugins
+ * @ingroup gui_interfaces
  * @brief Base class for a plugin that can generate a `BaseWidget<T>` for configuring a tool path planning component
  * (e.g., mesh modifier, tool path planner, tool path modifier).
  */
@@ -35,6 +35,7 @@ public:
 };
 
 /**
+ * @ingroup gui_interfaces
  * @brief WidgetPlugin implementation specifically for BaseWidget instances that configure mesh modifiers
  */
 class MeshModifierWidgetPlugin : public WidgetPlugin
@@ -46,6 +47,7 @@ private:
 };
 
 /**
+ * @ingroup gui_interfaces
  * @brief WidgetPlugin implementation specifically for BaseWidget instances that configure tool path planners
  */
 class ToolPathPlannerWidgetPlugin : public WidgetPlugin
@@ -57,6 +59,7 @@ private:
 };
 
 /**
+ * @ingroup gui_interfaces
  * @brief WidgetPlugin implementation specifically for BaseWidget instances that configure direction generators
  */
 class DirectionGeneratorWidgetPlugin : public WidgetPlugin
@@ -68,6 +71,7 @@ private:
 };
 
 /**
+ * @ingroup gui_interfaces
  * @brief WidgetPlugin implementation specifically for BaseWidget instances that configure origin generators
  */
 class OriginGeneratorWidgetPlugin : public WidgetPlugin
@@ -79,6 +83,7 @@ private:
 };
 
 /**
+ * @ingroup gui_interfaces
  * @brief WidgetPlugin implementation specifically for BaseWidget instances that configure tool path modifiers
  */
 class ToolPathModifierWidgetPlugin : public WidgetPlugin
@@ -90,6 +95,7 @@ private:
 };
 
 /**
+ * @ingroup gui_interfaces
  * @brief Template for a simple implementation of WidgetPlugin
  * @details This plugin makes a new instance of `WidgetT` and attempts to configure it with the input YAML config.
  */
@@ -111,7 +117,8 @@ struct SimpleWidgetPlugin : WidgetPluginT
 };
 
 /**
- * @brief Extends the Factory class to be able to load GUI plugins
+ * @ingroup gui_interfaces
+ * @brief Extends the Factory class to be able to load widget plugins for the GUI
  */
 class GuiFactory : public Factory
 {
@@ -152,41 +159,42 @@ private:
 
 /**
  * @brief Macro for exporting instances of mesh modifier plugins
- * @ingroup gui_widgets_mesh_modifiers
+ * @ingroup gui_interfaces
  */
 #define EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(DERIVED_CLASS, ALIAS)                                                       \
   EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, NOETHER_GUI_MESH_MODIFIER_SECTION)
 
 /**
  * @brief Macro for exporting instances of tool path planner plugins
- * @ingroup gui_widgets_tool_path_planners
+ * @ingroup gui_interfaces
  */
 #define EXPORT_TOOL_PATH_PLANNER_WIDGET_PLUGIN(DERIVED_CLASS, ALIAS)                                                   \
   EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, NOETHER_GUI_TPP_SECTION)
 
 /**
  * @brief Macro for exporting instances of direction generator plugins
- * @ingroup gui_widgets_tool_path_planners
+ * @ingroup gui_interfaces
  */
 #define EXPORT_DIRECTION_GENERATOR_WIDGET_PLUGIN(DERIVED_CLASS, ALIAS)                                                 \
   EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, NOETHER_GUI_DIRECTION_GENERATOR_SECTION)
 
 /**
  * @brief Macro for exporting instances of origni generator plugins
- * @ingroup gui_widgets_tool_path_planners
+ * @ingroup gui_interfaces
  */
 #define EXPORT_ORIGIN_GENERATOR_WIDGET_PLUGIN(DERIVED_CLASS, ALIAS)                                                    \
   EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, NOETHER_GUI_ORIGIN_GENERATOR_SECTION)
 
 /**
  * @brief Macro for exporting instances of tool path modifier plugins
- * @ingroup gui_widgets_tool_path_modifiers
+ * @ingroup gui_interfaces
  */
 #define EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(DERIVED_CLASS, ALIAS)                                                  \
   EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, NOETHER_GUI_TOOL_PATH_MODIFIER_SECTION)
 
 /**
  * @brief Macro for defining and exporting a simple mesh modifier widget plugin using the noether::SimpleWidgetPlugin class
+ * @ingroup gui_interfaces
  */
 #define EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(WidgetT, Alias)                                                     \
   using Plugin_##WidgetT = SimpleWidgetPlugin<WidgetT, MeshModifierWidgetPlugin>;                                        \
@@ -194,6 +202,7 @@ private:
 
 /**
  * @brief Macro for defining and exporting a simple tool path planner widget plugin using the noether::SimpleWidgetPlugin class
+ * @ingroup gui_interfaces
  */
 #define EXPORT_SIMPLE_TOOL_PATH_PLANNER_WIDGET_PLUGIN(WidgetT, Alias)                                                 \
   using Plugin_##WidgetT = SimpleWidgetPlugin<WidgetT, ToolPathPlannerWidgetPlugin>;                                     \
@@ -201,6 +210,7 @@ private:
 
 /**
  * @brief Macro for defining and exporting a simple direction generator widget plugin using the noether::SimpleWidgetPlugin class
+ * @ingroup gui_interfaces
  */
 #define EXPORT_SIMPLE_DIRECTION_GENERATOR_WIDGET_PLUGIN(WidgetT, Alias)                                               \
   using Plugin_##WidgetT = SimpleWidgetPlugin<WidgetT, DirectionGeneratorWidgetPlugin>;                                  \
@@ -208,6 +218,7 @@ private:
 
 /**
  * @brief Macro for defining and exporting a simple origin generator widget plugin using the noether::SimpleWidgetPlugin class
+ * @ingroup gui_interfaces
  */
 #define EXPORT_SIMPLE_ORIGIN_GENERATOR_WIDGET_PLUGIN(WidgetT, Alias)                                                  \
   using Plugin_##WidgetT = SimpleWidgetPlugin<WidgetT, OriginGeneratorWidgetPlugin>;                                     \
@@ -215,6 +226,7 @@ private:
 
 /**
  * @brief Macro for defining and exporting a simple tool path modifier widget plugin using the noether::SimpleWidgetPlugin class
+ * @ingroup gui_interfaces
  */
 #define EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(WidgetT, Alias)                                                \
   using Plugin_##WidgetT = SimpleWidgetPlugin<WidgetT, ToolPathModifierWidgetPlugin>;                                    \

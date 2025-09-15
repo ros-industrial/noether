@@ -161,39 +161,60 @@ arbitrary mesh surfaces. See the following pages for more information on using N
   @}
   @defgroup gui_interfaces GUI Interfaces
   @{
-    The GUI package is a `Qt`-based framework that allows user-developed plugins to provide UI elements for configuring the tool path planning components.
-    This framework has hooks for displaying widgets for all available mesh modifiers, tool path planners, and tool path modifiers.
+    The GUI module is a `Qt`-based framework that allows customizable UI widgets to configure a tool path planning pipeline.
+    At run-time, the GUI searches for plugins that provide these widgets, uses the plugins to populate the GUI, and then allows the end user to interactively create custom tool path plans.
+    This plugin-based GUI architecture allows end-users to leverage the out-of-the-box GUI infrastructure and plugins, while still enabling private development of custom capabilities or customizations to the front-end of existing classes.
 
-    At run-time, the GUI searches for plugins that can provide the widgets to configure these tool path planning components.
-    The GUI automatically finds plugins defined in this repository.
-    User-developed plugins can also be found by the GUI by adding the names of the plugin libraries to the `NOETHER_PLUGIN_LIBS` environment variable.
+    To add a custom UI element to the GUI, users need to do the following:
+    - At build-time:
+      - Create a library with a Qt widget (inheriting from noether::BaseWidget) that produces the YAML configuration for a given tool path planning component
+      - Implement the noether::WidgetPlugin class for the widget
+      - Export the *plugin* class(es) using the appropriate `EXPORT_<COMPONENT>_WIDGET_PLUGIN` macro(s)
+    - At run-time:
+      - Add the name of the library in which the plugin is defined to the `NOETHER_PLUGIN_LIBS` environment variable.
 
-    This plugin-based GUI architecture allows end-users to leverage the out-of-the-box GUI infrastructure and plugins,
-    while still enabling private development of custom capabilities or customizations to the front-end of existing classes.
+    @section s_gui_widgets Widgets
 
-    @section ss_gui_widgets Widgets
+    At the lowest level, the widgets in the GUI are used to produce the YAML configuration needed to load tool path planning components via plugin (see @ref plugins for more details about the tool path planning component plugins).
+    @ref noether::BaseWidget "BaseWidget" is the base class for these customizable widgets used in the GUI.
 
-    The GUI package provides the definitions of `Qt` widgets that are capable of producing each type of tool path planning component.
-    @ref noether::BaseWidget "BaseWidget" is the template class that defines this widget.
-    @ref gui_interfaces_widgets "Widget Interfaces" lists the instantiations of the `BaseWidget` template for each tool path planning component type (e.g., mesh modifier, tool path planner, tool path modifier).
-    Each implementation of a tool path planning component should provide a widget capable of configuring it.
-    This widget must inherit from the appropriate `BaseWidget` template.
+    Each implementation of a tool path planning component (e.g., mesh modifier, tool path planner, tool path modifier) must provide a widget that inherits noether::BaseWidget and is capable of configuring it.
+    The widget should override the `save` method which translates the GUI elements (e.g., spin boxes, etc.) into the YAML configuration for the tool path planning component plugin.
+    The widget should also override the `configure` method which sets the value of the GUI elements given the YAML configuration for the tool path planning component.
 
-    For example, @ref noether::PlaneSlicerRasterPlanner "PlaneSlicerRasterPlanner" has an associated widget @ref noether::PlaneSlicerRasterPlannerWidget "PlaneSlicerRasterPlannerWidget" that inherits from noether::BaseWidget.
-    This widget's `create` method produces a configured instance of a @ref noether::PlaneSlicerRasterPlanner "PlaneSlicerRasterPlanner".
-
-    @section ss_gui_plugins Widget Plugins
+    @section s_gui_plugin_interface Widget Plugins
 
     To allow users to develop their own private implementations of tool path planning components and have them appear in the GUI, all widgets are loaded into the GUI application at runtime via plugin.
-    This plugin class is defined as the template @ref noether::WidgetPlugin "WidgetPlugin".
-    @ref gui_interfaces_plugins "Widget Plugin Interfaces" lists the instantiations of the `WidgetPlugin` template for each tool path planning component type (e.g., mesh modifier, tool path planner, tool path modifier).
+    This plugin class is defined in the noether::WidgetPlugin class.
 
     The GUI itself finds available widget plugins (via the `NOETHER_PLUGIN_LIBS` environment variable), loads them, and uses them to produce widgets to populate the various pages of the GUI.
-    Just as each of the tool path planning components has a corresponding `BaseWidget` to configure it, each `BaseWidget` should also have a corresponding `WidgetPlugin` that produces the `BaseWidget` to allow it to be loaded into the GUI.
+    Just as each of the tool path planning component has a corresponding `BaseWidget` to configure it, each `BaseWidget` should also have a corresponding `WidgetPlugin` that produces the `BaseWidget` to allow it to be loaded into the GUI.
 
-    Extending the example from the previous section, the plugin that creates a `PlaneSlicerRasterPlannerWidget` is `PlaneSlicerRasterPlannerWidgetPlugin`, defined in noether_gui/src/plugins.cpp.
+    @subsection ss_gui_plugin_simple Simplified Widget Plugin Definition and Export
 
-    Widget plugins must be exported by calling the respective macro (based on the template type of the plugin) with the plugin class type name and an arbitrary alias name for referring to the plugin:
+    The example below shows the definition and export of a widget plugin for noether::BoundaryEdgePlannerWidget.
+    This particular tool path planner widget can be fully configured using just the `YAML::Node` input, so we can create and export a plugin for it using the simplified `EXPORT_SIMPLE_<COMPONENT>_WIDGET_PLUGIN` macro.
+    This macro takes as input the name of the tool path planning component widget class and an arbitrary alias by which we wish to refer to it (e.g., for loading from YAML files, etc.).
+    Under the hood, this macro defines a plugin class using noether::SimpleWidgetPlugin and exports it using the `EXPORT_<COMPONENT>_WIDGET_PLUGIN` macro.
+
+    @snippet noether_gui/src/plugins.cpp GUI Plugins Example Simple
+
+    The following macros can be used to define and export simple plugins for tool path planning components:
+
+    - @ref EXPORT_SIMPLE_TOOL_PATH_PLANNER_WIDGET_PLUGIN
+    - @ref EXPORT_SIMPLE_DIRECTION_GENERATOR_WIDGET_PLUGIN
+    - @ref EXPORT_SIMPLE_ORIGIN_GENERATOR_WIDGET_PLUGIN
+    - @ref EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN
+    - @ref EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN
+
+    @subsection ss_gui_plugin_complex Full Widget Plugin Definition and Export
+
+    The example below shows the definition and export of noether::CrossHatchPlaneSlicerRasterPlannerWidget, a tool path planner widget which requires more information than just the `YAML::Node` to be configured.
+    In this case, we must fully define the plugin class and export it with the appropriate `EXPORT_<COMPONENT>_WIDGET_PLUGIN` macro:
+
+    @snippet noether_gui/src/plugins.cpp GUI Plugins Example Complex
+
+    The following macros can be used to export tool path planning component plugins:
 
     - @ref EXPORT_TOOL_PATH_PLANNER_WIDGET_PLUGIN
     - @ref EXPORT_DIRECTION_GENERATOR_WIDGET_PLUGIN
@@ -201,33 +222,20 @@ arbitrary mesh surfaces. See the following pages for more information on using N
     - @ref EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN
     - @ref EXPORT_MESH_MODIFIER_WIDGET_PLUGIN
 
-    See noether_gui/src/plugins.cpp for examples of defining and exporting GUI plugins.
+    @section s_gui_factory Widget Plugin Factory
+
+    The noether::GuiFactory class is intended to be used to load plugins for tool path planning component widgets.
+    This class wraps the underlying plugin loader class and ensures that loaded plugin libraries stay in scope as long as the plugins (and objects create from them) are used.
+    By default, noether::GuiFactory is configured to know about widget plugin libraries from this repository, to look for plugin library names in the `NOETHER_PLUGIN_LIBS` environment variable, and to look for install paths of plugin libraries in the `NOETHER_PLUGIN_PATHS` envrionment variable.
 
     @note
-    For custom plugins to be found at runtime, add the name of the library to the environment variable `NOETHER_PLUGIN_LIBS`.
-    For example, if custom plugins were compiled in a library called `libmy_noether_plugins.so`, then set the environment variable to `export NOETHER_PLUGIN_LIBS=my_noether_plugins`.
+    If the install path of the plugin library can be found in `LD_LIBRARY_PATH`, there is no need to set the `NOETHER_PLUGIN_PATHS` environment variable.
+    For example, if this project is built in a ROS/ROS2 workspace, sourcing the workspace automatically adds its library paths to `LD_LIBRARY_PATH`.
 
     @section s_gui_architecture Architecture
 
     The image below shows the architecture of the GUI components described in the previous sections.
 
     @image html static/architecture_gui.png
-
-    @subsection ss_gui_customization Customization
-
-    Custom behavior can be added by providing a class that overrides one of these defined interfaces.
-    See the current implementations in @ref gui_widgets_mesh_modifiers, @ref gui_widgets_tool_path_planners, and @ref gui_widgets_tool_path_modifiers for reference.
-
-    @defgroup gui_interfaces_widgets Widgets
-    @{
-      @brief Instantiations of the @ref noether::BaseWidget "BaseWidget" interface
-      @details @ref noether::BaseWidget "BaseWidget" is a template class that defines a `Qt` widget capable of creating a tool path planning component (i.e. the template type: mesh modifier, tool path planner, tool path modifier, etc.) using the information contained in the widget itself (e.g., spin box values, etc.).
-    @}
-
-    @defgroup gui_interfaces_plugins Widget Plugins
-    @{
-      @brief Instantiations of the @ref noether::WidgetPlugin "WidgetPlugin" interface
-      @details @ref noether::WidgetPlugin "WidgetPlugin" is a template class that defines a plugin that is capable of making a @ref noether::BaseWidget "BaseWidget" of the same template type (e.g., mesh modifier, tool path planner, tool path modifier, etc.).
-    @}
   @}
 */
