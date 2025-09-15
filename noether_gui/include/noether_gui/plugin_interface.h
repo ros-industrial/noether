@@ -90,11 +90,11 @@ private:
 };
 
 /**
- * @brief Template for a default implementation of WidgetPlugin
+ * @brief Template for a simple implementation of WidgetPlugin
  * @details This plugin makes a new instance of `WidgetT` and attempts to configure it with the input YAML config.
  */
 template <typename WidgetT, typename WidgetPluginT>
-struct WidgetPluginImpl : WidgetPluginT
+struct SimpleWidgetPlugin : WidgetPluginT
 {
   BaseWidget* create(const YAML::Node& config,
                      std::shared_ptr<const GuiFactory> /*loader*/,
@@ -125,20 +125,24 @@ public:
   BaseWidget* createMeshModifierWidget(const std::string& name,
                                        const YAML::Node& config = {},
                                        QWidget* parent = nullptr) const;
+
   BaseWidget* createToolPathPlannerWidget(const std::string& name,
                                           const YAML::Node& config = {},
                                           QWidget* parent = nullptr) const;
+
   BaseWidget* createDirectionGeneratorWidget(const std::string& name,
                                              const YAML::Node& config = {},
                                              QWidget* parent = nullptr) const;
+
   BaseWidget* createOriginGeneratorWidget(const std::string& name,
                                           const YAML::Node& config = {},
                                           QWidget* parent = nullptr) const;
+
   BaseWidget* createToolPathModifierWidget(const std::string& name,
                                            const YAML::Node& config = {},
                                            QWidget* parent = nullptr) const;
 
-protected:
+private:
   mutable std::map<std::string, WidgetPlugin::Ptr> widget_plugins_;
 };
 
@@ -182,36 +186,36 @@ protected:
   EXPORT_CLASS_SECTIONED(DERIVED_CLASS, ALIAS, NOETHER_GUI_TOOL_PATH_MODIFIER_SECTION)
 
 /**
- * @brief Macro for defining and exporting a default mesh modifier widget plugin using the WidgetPluginImpl class
+ * @brief Macro for defining and exporting a simple mesh modifier widget plugin using the noether::SimpleWidgetPlugin class
  */
-#define EXPORT_DEFAULT_MESH_MODIFIER_WIDGET_PLUGIN(WidgetT, Alias)                                                     \
-  using Plugin_##WidgetT = WidgetPluginImpl<WidgetT, MeshModifierWidgetPlugin>;                                        \
+#define EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(WidgetT, Alias)                                                     \
+  using Plugin_##WidgetT = SimpleWidgetPlugin<WidgetT, MeshModifierWidgetPlugin>;                                        \
   EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(Plugin_##WidgetT, Alias)
 
 /**
- * @brief Macro for defining and exporting a default tool path planner widget plugin using the WidgetPluginImpl class
+ * @brief Macro for defining and exporting a simple tool path planner widget plugin using the noether::SimpleWidgetPlugin class
  */
-#define EXPORT_DEFAULT_TOOL_PATH_PLANNER_WIDGET_PLUGIN(WidgetT, Alias)                                                 \
-  using Plugin_##WidgetT = WidgetPluginImpl<WidgetT, ToolPathPlannerWidgetPlugin>;                                     \
+#define EXPORT_SIMPLE_TOOL_PATH_PLANNER_WIDGET_PLUGIN(WidgetT, Alias)                                                 \
+  using Plugin_##WidgetT = SimpleWidgetPlugin<WidgetT, ToolPathPlannerWidgetPlugin>;                                     \
   EXPORT_TOOL_PATH_PLANNER_WIDGET_PLUGIN(Plugin_##WidgetT, Alias)
 
 /**
- * @brief Macro for defining and exporting a default direction generator widget plugin using the WidgetPluginImpl class
+ * @brief Macro for defining and exporting a simple direction generator widget plugin using the noether::SimpleWidgetPlugin class
  */
-#define EXPORT_DEFAULT_DIRECTION_GENERATOR_WIDGET_PLUGIN(WidgetT, Alias)                                               \
-  using Plugin_##WidgetT = WidgetPluginImpl<WidgetT, DirectionGeneratorWidgetPlugin>;                                  \
+#define EXPORT_SIMPLE_DIRECTION_GENERATOR_WIDGET_PLUGIN(WidgetT, Alias)                                               \
+  using Plugin_##WidgetT = SimpleWidgetPlugin<WidgetT, DirectionGeneratorWidgetPlugin>;                                  \
   EXPORT_DIRECTION_GENERATOR_WIDGET_PLUGIN(Plugin_##WidgetT, Alias)
 
 /**
- * @brief Macro for defining and exporting a default origin generator widget plugin using the WidgetPluginImpl class
+ * @brief Macro for defining and exporting a simple origin generator widget plugin using the noether::SimpleWidgetPlugin class
  */
-#define EXPORT_DEFAULT_ORIGIN_GENERATOR_WIDGET_PLUGIN(WidgetT, Alias)                                                  \
-  using Plugin_##WidgetT = WidgetPluginImpl<WidgetT, OriginGeneratorWidgetPlugin>;                                     \
+#define EXPORT_SIMPLE_ORIGIN_GENERATOR_WIDGET_PLUGIN(WidgetT, Alias)                                                  \
+  using Plugin_##WidgetT = SimpleWidgetPlugin<WidgetT, OriginGeneratorWidgetPlugin>;                                     \
   EXPORT_ORIGIN_GENERATOR_WIDGET_PLUGIN(Plugin_##WidgetT, Alias)
 
 /**
- * @brief Macro for defining and exporting a default tool path modifier widget plugin using the WidgetPluginImpl class
+ * @brief Macro for defining and exporting a simple tool path modifier widget plugin using the noether::SimpleWidgetPlugin class
  */
-#define EXPORT_DEFAULT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(WidgetT, Alias)                                                \
-  using Plugin_##WidgetT = WidgetPluginImpl<WidgetT, ToolPathModifierWidgetPlugin>;                                    \
+#define EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(WidgetT, Alias)                                                \
+  using Plugin_##WidgetT = SimpleWidgetPlugin<WidgetT, ToolPathModifierWidgetPlugin>;                                    \
   EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(Plugin_##WidgetT, Alias)
