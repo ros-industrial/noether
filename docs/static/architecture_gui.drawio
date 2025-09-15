@@ -1,1 +1,228 @@
-<mxfile host="Electron" modified="2022-06-23T19:14:04.941Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/19.0.3 Chrome/102.0.5005.63 Electron/19.0.3 Safari/537.36" etag="TvBQGj1haPbf7xVxt27Q" version="19.0.3" type="device"><diagram id="Np_rv7t7Bea9G9GQuBvz" name="Page-1">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</diagram></mxfile>
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36" version="28.0.7">
+  <diagram name="Page-1" id="W0pClWp618qJzIKmrdoD">
+    <mxGraphModel dx="2194" dy="1269" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-44" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="WapUPmwWLxGTYqp8hmK3-45" target="WapUPmwWLxGTYqp8hmK3-86">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="20" y="305" as="targetPoint" />
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-123" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="1" source="WapUPmwWLxGTYqp8hmK3-45" target="WapUPmwWLxGTYqp8hmK3-81">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="680" y="325" />
+              <mxPoint x="680" y="325" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-45" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;BaseWidget&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ configure(YAML::Node)&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ save(YAML::Node)&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="270" width="160" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-46" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="WapUPmwWLxGTYqp8hmK3-116" target="WapUPmwWLxGTYqp8hmK3-57">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="880" y="695" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="630" y="700" />
+            </Array>
+            <mxPoint x="690" y="715" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-48" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="WapUPmwWLxGTYqp8hmK3-117" target="WapUPmwWLxGTYqp8hmK3-57">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="880" y="695" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="630" y="740" />
+            </Array>
+            <mxPoint x="690" y="835" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-50" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="WapUPmwWLxGTYqp8hmK3-118" target="WapUPmwWLxGTYqp8hmK3-57">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="970" y="625" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="630" y="785" />
+            </Array>
+            <mxPoint x="690" y="955" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-52" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="WapUPmwWLxGTYqp8hmK3-119" target="WapUPmwWLxGTYqp8hmK3-57">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="630" y="830" />
+            </Array>
+            <mxPoint x="690" y="1075" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-54" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="WapUPmwWLxGTYqp8hmK3-120" target="WapUPmwWLxGTYqp8hmK3-57">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="630" y="875" />
+            </Array>
+            <mxPoint x="690" y="1195" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-112" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="1" source="WapUPmwWLxGTYqp8hmK3-57" target="WapUPmwWLxGTYqp8hmK3-113">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-57" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;br&gt;&lt;b&gt;WidgetPlugin&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ create(YAML::Node, GuiFactory&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;): BaseWidget&lt;/span&gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="542" width="270" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-122" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="1" source="WapUPmwWLxGTYqp8hmK3-60" target="WapUPmwWLxGTYqp8hmK3-81">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="790" y="210" />
+              <mxPoint x="790" y="210" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-60" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;TPPPipelineWidget&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- mesh_modifier: PluginLoaderWidget&amp;lt;MeshModifierWidgetPlugin&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- tool_path_planner: BaseWidget&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- tool_path_modifier: PluginLoaderWidget&amp;lt;ToolPathModifierWidgetPlugin&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- factory: GuiFactory&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ createPipeline(): TPPPipeline&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" vertex="1" parent="1">
+          <mxGeometry x="310" y="150" width="410" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-81" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;TPPWidget&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- mesh_file: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- tool_paths: ToolPaths[ ]&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- widget: TPPPipelineWidget&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ setMeshFile(QString): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ configure(QString): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ plan(): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ saveModifiedMeshes(QString): void&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ getToolPaths(): ToolPaths[ ]&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ saveToolPaths(QString): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" vertex="1" parent="1">
+          <mxGeometry x="800" y="190" width="230" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-86" value="&lt;b&gt;QWidget&lt;/b&gt;" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="125" y="190" width="70" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-88" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="WapUPmwWLxGTYqp8hmK3-93" target="WapUPmwWLxGTYqp8hmK3-45">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="245" y="682.5" as="sourcePoint" />
+            <mxPoint x="160" y="510" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-89" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="WapUPmwWLxGTYqp8hmK3-90" target="WapUPmwWLxGTYqp8hmK3-45">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="160" y="510" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="160" y="640" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-90" value="FixedDirectionGeneratorWidget" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="255" y="625" width="185" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-91" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="WapUPmwWLxGTYqp8hmK3-92" target="WapUPmwWLxGTYqp8hmK3-45">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="160" y="510" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="160" y="685" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-92" value="PrincipalAxisDirectionGeneratorWidget" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="255" y="670" width="225" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-93" value="PlaneSliceToolPathPlannerWidget" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="210" y="580" width="210" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-94" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="WapUPmwWLxGTYqp8hmK3-95" target="WapUPmwWLxGTYqp8hmK3-45">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="160" y="510" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="160" y="770" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-95" value="CentroidOriginGeneratorWidget" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="255" y="755" width="185" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-96" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="WapUPmwWLxGTYqp8hmK3-97" target="WapUPmwWLxGTYqp8hmK3-45">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="160" y="510" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="160" y="730" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-97" value="FixedOriginGeneratorWidget" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="255" y="715" width="165" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-100" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="WapUPmwWLxGTYqp8hmK3-101" target="WapUPmwWLxGTYqp8hmK3-45">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="160" y="510" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="160" y="815" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-101" value="StandardEdgePathsOrganizationModifierWidget" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="210" y="800" width="274" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-102" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="WapUPmwWLxGTYqp8hmK3-103" target="WapUPmwWLxGTYqp8hmK3-45">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="160" y="510" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="160" y="860" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-103" value="RasterOrganizationModifierWidget" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="210" y="845" width="205" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-104" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="WapUPmwWLxGTYqp8hmK3-105" target="WapUPmwWLxGTYqp8hmK3-45">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="160" y="510" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="160" y="905" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-105" value="..." style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="210" y="890" width="55" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-110" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="WapUPmwWLxGTYqp8hmK3-111" target="WapUPmwWLxGTYqp8hmK3-45">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="160" y="510" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="160" y="555" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-111" value="RegionOfInterestMeshModifierWidget" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="210" y="540" width="222" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-121" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" edge="1" parent="1" source="WapUPmwWLxGTYqp8hmK3-113" target="WapUPmwWLxGTYqp8hmK3-114">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="530" y="430" />
+              <mxPoint x="530" y="430" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-113" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;GuiFactory&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- plugin_loader: PluginLoader&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ createWidget(string, YAML::Node): BaseWidget&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" vertex="1" parent="1">
+          <mxGeometry x="555" y="410" width="280" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-115" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="WapUPmwWLxGTYqp8hmK3-114" target="WapUPmwWLxGTYqp8hmK3-45">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="160" y="430" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-114" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;PluginLoaderWidget&amp;lt;T&amp;gt;&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- factory: GuiFactory&lt;/p&gt;&lt;hr size=&quot;1&quot;&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px;&quot;&gt;+ configure(YAML::Node)&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 4px;&quot;&gt;+ save(YAML::Node)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ createWidget(string, YAML::Node): BaseWidget&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=12;fontFamily=Helvetica;html=1;" vertex="1" parent="1">
+          <mxGeometry x="210" y="410" width="280" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-116" value="MeshModifierWidgetPlugin" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="660" y="685" width="222" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-117" value="ToolPathModifierWidgetPlugin" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="660" y="725" width="222" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-118" value="OriginGeneratorWidgetPlugin" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="660" y="770" width="222" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-119" value="DirectionGeneratorWidgetPlugin" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="660" y="815" width="222" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="WapUPmwWLxGTYqp8hmK3-120" value="ToolPathModifierWidgetPlugin" style="html=1;" vertex="1" parent="1">
+          <mxGeometry x="660" y="860" width="222" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
