@@ -43,7 +43,7 @@ int main(int argc, char** argv)
   if (!mesh_file.empty())
     widget.setMeshFile(QString::fromStdString(mesh_file));
   if (!config_file.empty())
-    widget.setConfigurationFile(QString::fromStdString(config_file));
+    widget.configure(QString::fromStdString(config_file));
 
   return app.exec();
 }
