@@ -9,7 +9,6 @@ ToolPaths LinearDepartureModifier::modify(ToolPaths tool_paths) const
   {
     for (ToolPathSegment& segment : tool_path)
     {
-      Eigen::Isometry3d offset_point = segment.back() * Eigen::Translation3d(offset_);
       ToolPathSegment new_segment;
 
       for (int i = 0; i < n_points_; i++)

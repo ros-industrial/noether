@@ -1,4 +1,8 @@
 #include <noether_tpp/core/tool_path_planner_pipeline.h>
+#include <noether_tpp/plugin_interface.h>
+#include <noether_tpp/serialization.h>
+#include <noether_tpp/mesh_modifiers/compound_modifier.h>
+#include <noether_tpp/tool_path_modifiers/compound_modifier.h>
 
 #include <utility>  // std::move()
 
@@ -9,6 +13,48 @@ ToolPathPlannerPipeline::ToolPathPlannerPipeline(MeshModifier::ConstPtr mesh_mod
                                                  ToolPathModifier::ConstPtr tool_path_mod)
   : mesh_modifier(std::move(mesh_mod)), planner(std::move(planner)), tool_path_modifier(std::move(tool_path_mod))
 {
+}
+
+ToolPathPlannerPipeline::ToolPathPlannerPipeline(const Factory& factory, const YAML::Node& node)
+{
+  // Load the mesh modifier
+  {
+    auto modifiers_config = YAML::getMember<YAML::Node>(node, "mesh_modifiers");
+
+    std::vector<noether::MeshModifier::ConstPtr> modifiers;
+    modifiers.reserve(modifiers_config.size());
+
+    for (const YAML::Node& config : modifiers_config)
+    {
+      auto name = YAML::getMember<std::string>(config, "name");
+      modifiers.push_back(factory.createMeshModifier(config));
+    }
+
+    mesh_modifier = std::make_unique<noether::CompoundMeshModifier>(std::move(modifiers));
+  }
+
+  // Load the tool path planner
+  {
+    auto config = YAML::getMember<YAML::Node>(node, "tool_path_planner");
+    auto name = YAML::getMember<std::string>(config, "name");
+    planner = factory.createToolPathPlanner(config);
+  }
+
+  // Load the tool path modifiers
+  {
+    auto modifiers_config = YAML::getMember<YAML::Node>(node, "tool_path_modifiers");
+
+    std::vector<noether::ToolPathModifier::ConstPtr> modifiers;
+    modifiers.reserve(modifiers_config.size());
+
+    for (const YAML::Node& config : modifiers_config)
+    {
+      auto name = YAML::getMember<std::string>(config, "name");
+      modifiers.push_back(factory.createToolPathModifier(config));
+    }
+
+    tool_path_modifier = std::make_unique<noether::CompoundModifier>(std::move(modifiers));
+  }
 }
 
 std::vector<ToolPaths> ToolPathPlannerPipeline::plan(pcl::PolygonMesh original_mesh) const

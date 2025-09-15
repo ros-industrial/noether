@@ -24,8 +24,20 @@
 
 #include <pcl/PolygonMesh.h>
 
+namespace boost_plugin_loader
+{
+class PluginLoader;
+}
+
+namespace YAML
+{
+class Node;
+}
+
 namespace noether
 {
+class Factory;
+
 /**
  * @details Collects together a set of mesh modifiers, a planner,
  * and a set of tool path modifiers. These sub-units then can be called using a single line to
@@ -37,6 +49,8 @@ public:
   ToolPathPlannerPipeline(MeshModifier::ConstPtr mesh_mod,
                           ToolPathPlanner::ConstPtr planner,
                           ToolPathModifier::ConstPtr tool_path_mod);
+
+  ToolPathPlannerPipeline(const Factory& factory, const YAML::Node& node);
 
   std::vector<ToolPaths> plan(pcl::PolygonMesh mesh) const;
   MeshModifier::ConstPtr mesh_modifier;

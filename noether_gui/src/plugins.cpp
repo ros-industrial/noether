@@ -183,9 +183,9 @@ EXPORT_DIRECTION_GENERATOR_WIDGET_PLUGIN(noether::FixedDirectionGeneratorWidgetP
 EXPORT_DIRECTION_GENERATOR_WIDGET_PLUGIN(noether::PrincipalAxisDirectionGeneratorWidgetPlugin,
                                          PrincipalAxisDirectionGenerator)
 
-EXPORT_ORIGIN_GENERATOR_PLUGIN(noether::FixedOriginGeneratorWidgetPlugin, FixedOriginGenerator)
-EXPORT_ORIGIN_GENERATOR_PLUGIN(noether::CentroidOriginGeneratorWidgetPlugin, CentroidOriginGenerator)
-EXPORT_ORIGIN_GENERATOR_PLUGIN(noether::AABBOriginGeneratorWidgetPlugin, AABBOriginGenerator)
+EXPORT_ORIGIN_GENERATOR_WIDGET_PLUGIN(noether::FixedOriginGeneratorWidgetPlugin, FixedOriginGenerator)
+EXPORT_ORIGIN_GENERATOR_WIDGET_PLUGIN(noether::CentroidOriginGeneratorWidgetPlugin, CentroidOriginGenerator)
+EXPORT_ORIGIN_GENERATOR_WIDGET_PLUGIN(noether::AABBOriginGeneratorWidgetPlugin, AABBOriginGenerator)
 
 EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(noether::StandardEdgePathsOrganizationModifierWidgetPlugin,
                                         StandardEdgePathsOrganizationModifier)
