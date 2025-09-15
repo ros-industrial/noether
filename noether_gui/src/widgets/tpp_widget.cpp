@@ -256,7 +256,7 @@ void TPPWidget::onLoadMesh(const bool /*checked*/)
     setMeshFile(file);
 }
 
-void TPPWidget::setConfigurationFile(const QString& file) { pipeline_widget_->setConfigurationFile(file); }
+void TPPWidget::setConfigurationFile(const QString& file) { pipeline_widget_->configure(file); }
 
 vtkSmartPointer<vtkTransform> toVTK(const Eigen::Isometry3d& mat)
 {
