@@ -66,10 +66,7 @@ struct Plugin_CompoundMeshModifier : public Plugin<MeshModifier>
 
     auto modifiers_config = YAML::getMember<YAML::Node>(config, "modifiers");
     for (const YAML::Node& entry : modifiers_config)
-    {
-      auto name = YAML::getMember<std::string>(entry, "name");
       modifiers.push_back(factory->createMeshModifier(entry));
-    }
 
     return std::make_unique<CompoundMeshModifier>(std::move(modifiers));
   }
@@ -88,7 +85,6 @@ struct Plugin_PCARotatedDirectionGenerator : public Plugin<DirectionGenerator>
     std::unique_ptr<DirectionGenerator> dir_gen;
     {
       auto dir_gen_config = YAML::getMember<YAML::Node>(config, "direction_generator");
-      auto dir_gen_name = YAML::getMember<std::string>(dir_gen_config, "name");
       dir_gen = factory->createDirectionGenerator(dir_gen_config);
     }
 
@@ -112,7 +108,6 @@ struct Plugin_OffsetOriginGenerator : public Plugin<OriginGenerator>
     std::unique_ptr<OriginGenerator> origin_gen;
     {
       auto origin_gen_config = YAML::getMember<YAML::Node>(config, "origin_generator");
-      auto origin_gen_name = YAML::getMember<std::string>(origin_gen_config, "name");
       origin_gen = factory->createOriginGenerator(origin_gen_config);
     }
 
@@ -132,14 +127,12 @@ struct Plugin_PlaneSlicerRasterPlanner : public Plugin<ToolPathPlanner>
     std::unique_ptr<DirectionGenerator> dir_gen;
     {
       auto dir_gen_config = YAML::getMember<YAML::Node>(config, "direction_generator");
-      auto dir_gen_name = YAML::getMember<std::string>(dir_gen_config, "name");
       dir_gen = factory->createDirectionGenerator(dir_gen_config);
     }
 
     std::unique_ptr<OriginGenerator> origin_gen;
     {
       auto origin_gen_config = YAML::getMember<YAML::Node>(config, "origin_generator");
-      auto origin_gen_name = YAML::getMember<std::string>(origin_gen_config, "name");
       origin_gen = factory->createOriginGenerator(origin_gen_config);
     }
 
@@ -166,10 +159,7 @@ struct Plugin_MultiToolPathPlanner : public Plugin<ToolPathPlanner>
 
     auto planners_config = YAML::getMember<YAML::Node>(config, "planners");
     for (const YAML::Node& entry_config : planners_config)
-    {
-      auto entry_name = YAML::getMember<std::string>(entry_config, "name");
       tool_path_planners.push_back(factory->createToolPathPlanner(entry_config));
-    }
 
     return std::make_unique<MultiToolPathPlanner>(std::move(tool_path_planners));
   }
@@ -238,7 +228,6 @@ struct Plugin_CompoundToolPathModifier : public Plugin<ToolPathModifier>
     auto modifiers_config = YAML::getMember<YAML::Node>(config, "modifiers");
     for (const YAML::Node& entry : modifiers_config)
     {
-      auto entry_name = YAML::getMember<std::string>(entry, "name");
       modifiers.push_back(factory->createToolPathModifier(entry));
     }
 
