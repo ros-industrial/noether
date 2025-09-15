@@ -75,6 +75,7 @@ private:
   void onShowModifiedToolPath(const bool);
   void onShowModifiedConnectedPath(const bool);
   void onShowAxes(const bool);
+  void render();
 
   std::string mesh_file_;
 

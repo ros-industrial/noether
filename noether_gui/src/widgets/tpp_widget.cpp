@@ -171,53 +171,53 @@ TPPWidget::TPPWidget(std::shared_ptr<const GuiFactory> factory, QWidget* parent)
   });
 }
 
+void TPPWidget::render()
+{
+  // Call render twice
+  render_widget_->GetRenderWindow()->Render();
+  render_widget_->GetRenderWindow()->Render();
+}
+
 void TPPWidget::onShowOriginalMesh(const bool checked)
 {
   mesh_actor_->SetVisibility(checked);
-  render_widget_->GetRenderWindow()->Render();
-  render_widget_->GetRenderWindow()->Render();
+  render();
 }
 
 void TPPWidget::onShowModifiedMesh(const bool checked)
 {
   mesh_fragment_actor_->SetVisibility(checked);
-  render_widget_->GetRenderWindow()->Render();
-  render_widget_->GetRenderWindow()->Render();
+  render();
 }
 
 void TPPWidget::onShowUnmodifiedConnectedPath(const bool checked)
 {
   unmodified_connected_path_actor_->SetVisibility(checked);
-  render_widget_->GetRenderWindow()->Render();
-  render_widget_->GetRenderWindow()->Render();
+  render();
 }
 
 void TPPWidget::onShowUnmodifiedToolPath(const bool checked)
 {
   unmodified_tool_path_actor_->SetVisibility(checked);
-  render_widget_->GetRenderWindow()->Render();
-  render_widget_->GetRenderWindow()->Render();
+  render();
 }
 
 void TPPWidget::onShowModifiedConnectedPath(const bool checked)
 {
   connected_path_actor_->SetVisibility(checked);
-  render_widget_->GetRenderWindow()->Render();
-  render_widget_->GetRenderWindow()->Render();
+  render();
 }
 
 void TPPWidget::onShowModifiedToolPath(const bool checked)
 {
   tool_path_actor_->SetVisibility(checked);
-  render_widget_->GetRenderWindow()->Render();
-  render_widget_->GetRenderWindow()->Render();
+  render();
 }
 
 void TPPWidget::onShowAxes(const bool checked)
 {
   axes_actor_->SetVisibility(checked);
-  render_widget_->GetRenderWindow()->Render();
-  render_widget_->GetRenderWindow()->Render();
+  render();
 }
 
 std::vector<ToolPaths> TPPWidget::getToolPaths() { return tool_paths_; }
@@ -244,9 +244,8 @@ void TPPWidget::setMeshFile(const QString& file)
   // Zoom out to the extents
   renderer_->ResetCamera();
 
-  // Call render twice
-  render_widget_->GetRenderWindow()->Render();
-  render_widget_->GetRenderWindow()->Render();
+  // Render
+  render();
 }
 
 void TPPWidget::onLoadMesh(const bool /*checked*/)
@@ -543,9 +542,8 @@ void TPPWidget::onPlan(const bool /*checked*/)
       connected_path_actor_->SetVisibility(ui_->action_show_modified_tool_path_lines->isChecked());
     }
 
-    // Call render twice
-    render_widget_->GetRenderWindow()->Render();
-    render_widget_->GetRenderWindow()->Render();
+    // Render
+    render();
   }
   catch (const std::exception& ex)
   {
