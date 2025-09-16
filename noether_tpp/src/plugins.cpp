@@ -23,13 +23,13 @@
 #include <noether_tpp/tool_path_planners/raster/origin_generators/offset_origin_generator.h>
 
 // Tool Path Planners
-#include <noether_tpp/tool_path_planners/raster/plane_slicer_raster_planner.h>
 #include <noether_tpp/tool_path_planners/multi_tool_path_planner.h>
 
 // Tool Path Modifiers
 #include <noether_tpp/tool_path_modifiers/biased_tool_drag_orientation_modifier.h>
 #include <noether_tpp/tool_path_modifiers/circular_lead_in_modifier.h>
 #include <noether_tpp/tool_path_modifiers/circular_lead_out_modifier.h>
+#include <noether_tpp/tool_path_modifiers/compound_modifier.h>
 #include <noether_tpp/tool_path_modifiers/concatenate_modifier.h>
 #include <noether_tpp/tool_path_modifiers/direction_of_travel_orientation_modifier.h>
 #include <noether_tpp/tool_path_modifiers/fixed_orientation_modifier.h>
@@ -53,7 +53,9 @@ EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(EuclideanClusteringMeshModifier, EuclideanClu
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(FillHoles, FillHoles)
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(NormalEstimationPCLMeshModifier, NormalEstimationPCL)
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(NormalsFromMeshFacesMeshModifier, NormalsFromMeshFaces)
+//! [Plugin Alias Correspondence]
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(PlaneProjectionMeshModifier, PlaneProjection)
+//! [Plugin Alias Correspondence]
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(WindowedSincSmoothing, WindowedSincSmoothing)
 
 struct Plugin_CompoundMeshModifier : public Plugin<MeshModifier>
@@ -119,35 +121,6 @@ struct Plugin_OffsetOriginGenerator : public Plugin<OriginGenerator>
 EXPORT_ORIGIN_GENERATOR_PLUGIN(noether::Plugin_OffsetOriginGenerator, OffsetDirection)
 
 // Tool Path Planners
-struct Plugin_PlaneSlicerRasterPlanner : public Plugin<ToolPathPlanner>
-{
-  std::unique_ptr<ToolPathPlanner> create(const YAML::Node& config,
-                                          std::shared_ptr<const Factory> factory) const override final
-  {
-    std::unique_ptr<DirectionGenerator> dir_gen;
-    {
-      auto dir_gen_config = YAML::getMember<YAML::Node>(config, "direction_generator");
-      dir_gen = factory->createDirectionGenerator(dir_gen_config);
-    }
-
-    std::unique_ptr<OriginGenerator> origin_gen;
-    {
-      auto origin_gen_config = YAML::getMember<YAML::Node>(config, "origin_generator");
-      origin_gen = factory->createOriginGenerator(origin_gen_config);
-    }
-
-    auto tpp = std::make_unique<PlaneSlicerRasterPlanner>(std::move(dir_gen), std::move(origin_gen));
-    tpp->setLineSpacing(YAML::getMember<double>(config, "line_spacing"));
-    tpp->setMinHoleSize(YAML::getMember<double>(config, "min_hole_size"));
-    tpp->setPointSpacing(YAML::getMember<double>(config, "point_spacing"));
-    tpp->setMinSegmentSize(YAML::getMember<double>(config, "min_segment_size"));
-    tpp->setSearchRadius(YAML::getMember<double>(config, "search_radius"));
-    tpp->generateRastersBidirectionally(YAML::getMember<bool>(config, "bidirectional"));
-
-    return tpp;
-  }
-};
-EXPORT_TOOL_PATH_PLANNER_PLUGIN(noether::Plugin_PlaneSlicerRasterPlanner, PlaneSlicer)
 
 struct Plugin_MultiToolPathPlanner : public Plugin<ToolPathPlanner>
 {
@@ -185,6 +158,25 @@ EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(UniformOrientationModifier, UniformOrien
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(UniformSpacingLinearModifier, UniformSpacingLinear)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(UniformSpacingSplineModifier, UniformSpacingSpline)
 
+struct Plugin_CompoundToolPathModifier : public Plugin<ToolPathModifier>
+{
+  std::unique_ptr<ToolPathModifier> create(const YAML::Node& config,
+                                           std::shared_ptr<const Factory> factory) const override final
+  {
+    std::vector<ToolPathModifier::ConstPtr> modifiers;
+    modifiers.reserve(config.size());
+
+    auto modifiers_config = YAML::getMember<YAML::Node>(config, "modifiers");
+    for (const YAML::Node& entry : modifiers_config)
+    {
+      modifiers.push_back(factory->createToolPathModifier(entry));
+    }
+
+    return std::make_unique<CompoundModifier>(std::move(modifiers));
+  }
+};
+EXPORT_TOOL_PATH_MODIFIER_PLUGIN(Plugin_CompoundToolPathModifier, CompoundToolPathModifier);
+
 }  // namespace noether
 
 //! [Plugins Example Simple]
@@ -203,7 +195,6 @@ namespace noether
 EXPORT_SIMPLE_TOOL_PATH_PLANNER_PLUGIN(BoundaryEdgePlanner, Boundary);
 
 }  // namespace noether
-
 //! [Plugins Example Simple]
 
 //! [Plugins Example Complex]
@@ -212,32 +203,42 @@ EXPORT_SIMPLE_TOOL_PATH_PLANNER_PLUGIN(BoundaryEdgePlanner, Boundary);
 #include <noether_tpp/serialization.h>
 
 // Include the header for the custom tool path planning component
-#include <noether_tpp/tool_path_modifiers/compound_modifier.h>
+#include <noether_tpp/tool_path_planners/raster/plane_slicer_raster_planner.h>
 
 namespace noether
 {
 // For a complex plugin that cannot be configured through YAML serialization alone, implement a custom plugin class.
-struct Plugin_CompoundToolPathModifier : public Plugin<ToolPathModifier>
+struct Plugin_PlaneSlicerRasterPlanner : public Plugin<ToolPathPlanner>
 {
-  std::unique_ptr<ToolPathModifier> create(const YAML::Node& config,
-                                           std::shared_ptr<const Factory> factory) const override final
+  std::unique_ptr<ToolPathPlanner> create(const YAML::Node& config,
+                                          std::shared_ptr<const Factory> factory) const override final
   {
-    std::vector<ToolPathModifier::ConstPtr> modifiers;
-    modifiers.reserve(config.size());
-
-    auto modifiers_config = YAML::getMember<YAML::Node>(config, "modifiers");
-    for (const YAML::Node& entry : modifiers_config)
+    std::unique_ptr<DirectionGenerator> dir_gen;
     {
-      modifiers.push_back(factory->createToolPathModifier(entry));
+      auto dir_gen_config = YAML::getMember<YAML::Node>(config, "direction_generator");
+      dir_gen = factory->createDirectionGenerator(dir_gen_config);
     }
 
-    return std::make_unique<CompoundModifier>(std::move(modifiers));
+    std::unique_ptr<OriginGenerator> origin_gen;
+    {
+      auto origin_gen_config = YAML::getMember<YAML::Node>(config, "origin_generator");
+      origin_gen = factory->createOriginGenerator(origin_gen_config);
+    }
+
+    auto tpp = std::make_unique<PlaneSlicerRasterPlanner>(std::move(dir_gen), std::move(origin_gen));
+    tpp->setLineSpacing(YAML::getMember<double>(config, "line_spacing"));
+    tpp->setMinHoleSize(YAML::getMember<double>(config, "min_hole_size"));
+    tpp->setPointSpacing(YAML::getMember<double>(config, "point_spacing"));
+    tpp->setMinSegmentSize(YAML::getMember<double>(config, "min_segment_size"));
+    tpp->setSearchRadius(YAML::getMember<double>(config, "search_radius"));
+    tpp->generateRastersBidirectionally(YAML::getMember<bool>(config, "bidirectional"));
+
+    return tpp;
   }
 };
 
 // Export the plugin class with an arbitrary alias using the `EXPORT_<COMPONENT>_PLUGIN` macro
-EXPORT_TOOL_PATH_MODIFIER_PLUGIN(Plugin_CompoundToolPathModifier, CompoundToolPathModifier);
+EXPORT_TOOL_PATH_PLANNER_PLUGIN(noether::Plugin_PlaneSlicerRasterPlanner, PlaneSlicer)
 
 }  // namespace noether
-
 //! [Plugins Example Complex]
