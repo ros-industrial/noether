@@ -17,7 +17,7 @@
 #include <noether_tpp/tool_path_planners/raster/direction_generators/principal_axis_direction_generator.h>
 
 // Origin Generators
-#include <noether_tpp/tool_path_planners/raster/origin_generators/aabb_origin_generator.h>
+#include <noether_tpp/tool_path_planners/raster/origin_generators/aabb_center_origin_generator.h>
 #include <noether_tpp/tool_path_planners/raster/origin_generators/centroid_origin_generator.h>
 #include <noether_tpp/tool_path_planners/raster/origin_generators/fixed_origin_generator.h>
 #include <noether_tpp/tool_path_planners/raster/origin_generators/offset_origin_generator.h>

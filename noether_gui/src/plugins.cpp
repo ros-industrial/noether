@@ -8,7 +8,7 @@
 #include <noether_gui/widgets/tool_path_planners/raster/direction_generators/principal_axis_direction_generator_widget.h>
 // Origin Generators
 #include <noether_gui/widgets/tool_path_planners/raster/origin_generators/fixed_origin_generator_widget.h>
-#include <noether_gui/widgets/tool_path_planners/raster/origin_generators/aabb_origin_generator_widget.h>
+#include <noether_gui/widgets/tool_path_planners/raster/origin_generators/aabb_center_origin_generator_widget.h>
 #include <noether_gui/widgets/tool_path_planners/raster/origin_generators/centroid_origin_generator_widget.h>
 // Tool path planners
 #include <noether_gui/widgets/tool_path_planners/raster/raster_planner_widget.h>
@@ -60,7 +60,7 @@ EXPORT_SIMPLE_DIRECTION_GENERATOR_WIDGET_PLUGIN(PrincipalAxisDirectionGeneratorW
 // Origin Generators
 EXPORT_SIMPLE_ORIGIN_GENERATOR_WIDGET_PLUGIN(FixedOriginGeneratorWidget, FixedOrigin)
 EXPORT_SIMPLE_ORIGIN_GENERATOR_WIDGET_PLUGIN(CentroidOriginGeneratorWidget, Centroid)
-EXPORT_SIMPLE_ORIGIN_GENERATOR_WIDGET_PLUGIN(AABBOriginGeneratorWidget, AABBCenter)
+EXPORT_SIMPLE_ORIGIN_GENERATOR_WIDGET_PLUGIN(AABBCenterOriginGeneratorWidget, AABBCenter)
 
 // Tool Path Planners
 struct Plugin_CrossHatchPlaneSlicerRasterPlannerWidget : WidgetPlugin

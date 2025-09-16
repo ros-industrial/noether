@@ -38,7 +38,7 @@ add_library(${PROJECT_NAME} SHARED
   src/widgets/tool_path_planners/raster/direction_generators/principal_axis_direction_generator_widget.cpp
   #   Origin Generator
   src/widgets/tool_path_planners/raster/origin_generators/fixed_origin_generator_widget.cpp
-  src/widgets/tool_path_planners/raster/origin_generators/aabb_origin_generator_widget.cpp
+  src/widgets/tool_path_planners/raster/origin_generators/aabb_center_origin_generator_widget.cpp
   src/widgets/tool_path_planners/raster/origin_generators/centroid_origin_generator_widget.cpp
   #   Plane Slicer Tool Path Planner
   src/widgets/tool_path_planners/raster/plane_slicer_raster_planner_widget.cpp
