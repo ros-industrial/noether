@@ -60,8 +60,8 @@ void PlaneSlicerRasterPlannerWidget::configure(const YAML::Node& config)
 
 void PlaneSlicerRasterPlannerWidget::save(YAML::Node& config) const
 {
-  RasterPlannerWidget::save(config);
   config["name"] = "PlaneSlicer";
+  RasterPlannerWidget::save(config);
   config["search_radius"] = search_radius_->value();
   config["min_segment_size"] = min_segment_size_->value();
   config["bidirectional"] = bidirectional_->isChecked();
