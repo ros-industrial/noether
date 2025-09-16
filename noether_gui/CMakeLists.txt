@@ -4,7 +4,11 @@ cmake_minimum_required(VERSION 3.5.1)
 find_package(ros_industrial_cmake_boilerplate REQUIRED)
 extract_package_metadata(pkg)
 
-project(${pkg_extracted_name} VERSION ${pkg_extracted_version} LANGUAGES C CXX)
+project(
+  ${pkg_extracted_name}
+  VERSION ${pkg_extracted_version}
+  LANGUAGES C CXX
+)
 
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS program_options)
@@ -21,7 +25,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 # Core Library
-add_library(${PROJECT_NAME} SHARED
+add_library(
+  ${PROJECT_NAME} SHARED
   src/plugin_interface.cpp
   # Widgets
   src/widgets/distance_double_spin_box.cpp
@@ -31,19 +36,19 @@ add_library(${PROJECT_NAME} SHARED
   src/widgets/configurable_tpp_pipeline_widget.cpp
   src/widgets/tpp_widget.cpp
   # Tool Path Planners
-  #   Raster Planner
+  # Raster Planner
   src/widgets/tool_path_planners/raster/raster_planner_widget.cpp
-  #   Direction Generator
+  # Direction Generator
   src/widgets/tool_path_planners/raster/direction_generators/fixed_direction_generator_widget.cpp
   src/widgets/tool_path_planners/raster/direction_generators/principal_axis_direction_generator_widget.cpp
-  #   Origin Generator
+  # Origin Generator
   src/widgets/tool_path_planners/raster/origin_generators/fixed_origin_generator_widget.cpp
   src/widgets/tool_path_planners/raster/origin_generators/aabb_center_origin_generator_widget.cpp
   src/widgets/tool_path_planners/raster/origin_generators/centroid_origin_generator_widget.cpp
-  #   Plane Slicer Tool Path Planner
+  # Plane Slicer Tool Path Planner
   src/widgets/tool_path_planners/raster/plane_slicer_raster_planner_widget.cpp
   src/widgets/tool_path_planners/raster/cross_hatch_plane_slicer_raster_planner.cpp
-  #   Half Edge Planner
+  # Half Edge Planner
   src/widgets/tool_path_planners/edge/boundary_edge_planner_widget.cpp
   # Tool Path Modifiers
   src/widgets/tool_path_modifiers/circular_lead_in_modifier_widget.cpp
@@ -72,29 +77,44 @@ add_library(${PROJECT_NAME} SHARED
   # Resources
   resources/resource.qrc
 )
-target_include_directories(${PROJECT_NAME} PUBLIC
-  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-  "$<INSTALL_INTERFACE:include>")
-target_include_directories(${PROJECT_NAME} PRIVATE "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>")
-target_link_libraries(${PROJECT_NAME} PUBLIC noether::noether_tpp Qt5::Widgets ${PCL_LIBRARIES} boost_plugin_loader::boost_plugin_loader Eigen3::Eigen yaml-cpp)
-target_compile_definitions(${PROJECT_NAME}
-  PUBLIC
-    NOETHER_GUI_PLUGIN_LIB="${PROJECT_NAME}_plugins"
-    NOETHER_GUI_TPP_SECTION=g_tpp
-    NOETHER_GUI_DIRECTION_GENERATOR_SECTION=g_dg
-    NOETHER_GUI_ORIGIN_GENERATOR_SECTION=g_og
-    NOETHER_GUI_TOOL_PATH_MODIFIER_SECTION=g_mod
-    NOETHER_GUI_MESH_MODIFIER_SECTION=g_mesh
+target_include_directories(
+  ${PROJECT_NAME} PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>" "$<INSTALL_INTERFACE:include>"
 )
-target_cxx_version(${PROJECT_NAME} PUBLIC VERSION 14)
+target_include_directories(${PROJECT_NAME} PRIVATE "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>")
+target_link_libraries(
+  ${PROJECT_NAME}
+  PUBLIC noether::noether_tpp
+         Qt5::Widgets
+         ${PCL_LIBRARIES}
+         boost_plugin_loader::boost_plugin_loader
+         Eigen3::Eigen
+         yaml-cpp
+)
+target_compile_definitions(
+  ${PROJECT_NAME}
+  PUBLIC NOETHER_GUI_PLUGIN_LIB="${PROJECT_NAME}_plugins"
+         NOETHER_GUI_TPP_SECTION=g_tpp
+         NOETHER_GUI_DIRECTION_GENERATOR_SECTION=g_dg
+         NOETHER_GUI_ORIGIN_GENERATOR_SECTION=g_og
+         NOETHER_GUI_TOOL_PATH_MODIFIER_SECTION=g_mod
+         NOETHER_GUI_MESH_MODIFIER_SECTION=g_mesh
+)
+target_cxx_version(
+  ${PROJECT_NAME}
+  PUBLIC
+  VERSION 14
+)
 target_clang_tidy(${PROJECT_NAME} ENABLE ${NOETHER_ENABLE_CLANG_TIDY})
 
 # Plugin Implementation Library
-add_library(${PROJECT_NAME}_plugins SHARED
-  src/plugins.cpp)
+add_library(${PROJECT_NAME}_plugins SHARED src/plugins.cpp)
 target_link_libraries(${PROJECT_NAME}_plugins PUBLIC ${PROJECT_NAME} Qt5::Widgets yaml-cpp)
 target_compile_definitions(${PROJECT_NAME}_plugins PRIVATE NOETHER_GUI_PLUGINS="${PROJECT_NAME}_plugins")
-target_cxx_version(${PROJECT_NAME}_plugins PUBLIC VERSION 14)
+target_cxx_version(
+  ${PROJECT_NAME}_plugins
+  PUBLIC
+  VERSION 14
+)
 target_clang_tidy(${PROJECT_NAME}_plugins ENABLE ${NOETHER_ENABLE_CLANG_TIDY})
 
 # TPP Application
@@ -108,10 +128,7 @@ install(DIRECTORY include/${PROJECT_NAME}/ DESTINATION include/${PROJECT_NAME})
 # Package configuration
 configure_package(
   NAMESPACE noether
-  TARGETS
-    ${PROJECT_NAME}
-    ${PROJECT_NAME}_plugins
-    ${PROJECT_NAME}_app
+  TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_plugins ${PROJECT_NAME}_app
   DEPENDENCIES
     Eigen3
     "Boost REQUIRED COMPONENTS program_options"
