@@ -30,12 +30,6 @@ void ConfigurableTPPPipelineWidget::configure(const QString& file)
     ss << "Failed to open YAML file at '" << file << "'";
     QMessageBox::warning(this, "Configuration Error", message);
   }
-  catch (const std::exception& ex)
-  {
-    std::stringstream ss;
-    printException(ex, ss);
-    QMessageBox::warning(this, "Configuration Error", QString::fromStdString(ss.str()));
-  }
 }
 
 void ConfigurableTPPPipelineWidget::onLoadConfiguration(const bool /*checked*/)

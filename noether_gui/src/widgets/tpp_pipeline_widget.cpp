@@ -103,14 +103,16 @@ void TPPPipelineWidget::configure(const YAML::Node& config)
     // Tool path modifiers
     tool_path_modifier_loader_widget_->configure(config[TOOL_PATH_MODIFIERS_KEY]);
   }
-  catch (const std::exception&)
+  catch (const std::exception& ex)
   {
     // Clear the widgets
     ui_->combo_box_tpp->setCurrentIndex(0);
     mesh_modifier_loader_widget_->removeWidgets();
     tool_path_modifier_loader_widget_->removeWidgets();
 
-    throw;
+    std::stringstream ss;
+    printException(ex, ss);
+    QMessageBox::warning(this, "Configuration Error", QString::fromStdString(ss.str()));
   }
 }
 
