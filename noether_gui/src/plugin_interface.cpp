@@ -9,24 +9,11 @@
 
 namespace noether
 {
-std::string noether::MeshModifierWidgetPlugin::getSection() { return STRINGIFY(NOETHER_GUI_MESH_MODIFIER_SECTION); }
-
-std::string noether::ToolPathPlannerWidgetPlugin::getSection() { return STRINGIFY(NOETHER_GUI_TPP_SECTION); }
-
-std::string noether::DirectionGeneratorWidgetPlugin::getSection()
-{
-  return STRINGIFY(NOETHER_GUI_DIRECTION_GENERATOR_SECTION);
-}
-
-std::string noether::OriginGeneratorWidgetPlugin::getSection()
-{
-  return STRINGIFY(NOETHER_GUI_ORIGIN_GENERATOR_SECTION);
-}
-
-std::string noether::ToolPathModifierWidgetPlugin::getSection()
-{
-  return STRINGIFY(NOETHER_GUI_TOOL_PATH_MODIFIER_SECTION);
-}
+std::string MeshModifierWidgetPlugin::getSection() { return STRINGIFY(NOETHER_GUI_MESH_MODIFIER_SECTION); }
+std::string ToolPathPlannerWidgetPlugin::getSection() { return STRINGIFY(NOETHER_GUI_TPP_SECTION); }
+std::string DirectionGeneratorWidgetPlugin::getSection() { return STRINGIFY(NOETHER_GUI_DIRECTION_GENERATOR_SECTION); }
+std::string OriginGeneratorWidgetPlugin::getSection() { return STRINGIFY(NOETHER_GUI_ORIGIN_GENERATOR_SECTION); }
+std::string ToolPathModifierWidgetPlugin::getSection() { return STRINGIFY(NOETHER_GUI_TOOL_PATH_MODIFIER_SECTION); }
 
 WidgetFactory::WidgetFactory()
 {
