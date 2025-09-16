@@ -91,7 +91,13 @@ void TPPPipelineWidget::configure(const YAML::Node& config)
       }
       else
       {
-        throw std::runtime_error("Failed to find tool path planner '" + name + "'");
+        const std::vector<std::string> tpp_plugins = factory_->getAvailablePlugins<ToolPathPlannerWidgetPlugin>();
+        std::stringstream ss;
+        ss << "Failed to find tool path planner '" << name << "'. Available plugins:\n";
+        for (const std::string& tpp_plugin : tpp_plugins)
+          ss << "    - " << tpp_plugin << "\n";
+
+        throw std::runtime_error(ss.str());
       }
     }
     catch (const std::exception&)
