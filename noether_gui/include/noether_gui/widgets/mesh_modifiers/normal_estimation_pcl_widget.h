@@ -1,7 +1,6 @@
 #pragma once
 
 #include <noether_gui/widgets.h>
-#include <noether_tpp/core/mesh_modifier.h>
 
 namespace Ui
 {
@@ -15,12 +14,11 @@ class DistanceDoubleSpinBox;
 /**
  * @ingroup gui_widgets_mesh_modifiers
  */
-class NormalEstimationPCLMeshModifierWidget : public MeshModifierWidget
+class NormalEstimationPCLMeshModifierWidget : public BaseWidget
 {
 public:
   NormalEstimationPCLMeshModifierWidget(QWidget* parent = nullptr);
 
-  MeshModifier::ConstPtr create() const override;
   void configure(const YAML::Node& config) override;
   void save(YAML::Node& config) const override;
 

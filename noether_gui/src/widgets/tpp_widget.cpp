@@ -48,10 +48,10 @@
 
 namespace noether
 {
-TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
+TPPWidget::TPPWidget(std::shared_ptr<const WidgetFactory> factory, QWidget* parent)
   : QMainWindow(parent)
   , ui_(new Ui::TPP())
-  , pipeline_widget_(new ConfigurableTPPPipelineWidget(std::move(loader), "", this))
+  , pipeline_widget_(new ConfigurableTPPPipelineWidget(factory, "", this))
   , render_widget_(new RenderWidget(this))
   , renderer_(vtkSmartPointer<vtkOpenGLRenderer>::New())
   , mesh_mapper_(vtkSmartPointer<vtkOpenGLPolyDataMapper>::New())
@@ -112,7 +112,7 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
     // Add the actor
     renderer_->AddActor(axes_actor_);
 
-    onShowAxes(ui_->check_box_show_axes->isChecked());
+    showAxes(ui_->check_box_show_axes->isChecked());
   }
 
   vtkRenderWindow* window = render_widget_->GetRenderWindow();
@@ -130,22 +130,17 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
 
   // Connect signals
   connect(ui_->action_load_mesh, &QAction::triggered, this, &TPPWidget::onLoadMesh);
-  connect(ui_->action_execute_pipeline, &QAction::triggered, this, &TPPWidget::onPlan);
-  connect(ui_->action_save_modified_mesh, &QAction::triggered, this, &TPPWidget::onSaveModifiedMesh);
-  connect(ui_->action_save_toolpath, &QAction::triggered, this, &TPPWidget::onSaveToolPath);
-  connect(ui_->action_show_unmodified_mesh, &QAction::triggered, this, &TPPWidget::onShowOriginalMesh);
-  connect(ui_->action_show_modified_mesh, &QAction::triggered, this, &TPPWidget::onShowModifiedMesh);
-  connect(ui_->action_show_unmodified_tool_path, &QAction::triggered, this, &TPPWidget::onShowUnmodifiedToolPath);
-  connect(ui_->action_show_modified_tool_path, &QAction::triggered, this, &TPPWidget::onShowModifiedToolPath);
-  connect(ui_->action_show_unmodified_tool_path_lines,
-          &QAction::triggered,
-          this,
-          &TPPWidget::onShowUnmodifiedConnectedPath);
+  connect(ui_->action_execute_pipeline, &QAction::triggered, [this](const bool) { plan(); });
+  connect(ui_->action_save_modified_mesh, &QAction::triggered, this, &TPPWidget::onSaveModifiedMeshes);
+  connect(ui_->action_save_toolpath, &QAction::triggered, this, &TPPWidget::onSaveToolPaths);
+  connect(ui_->action_show_unmodified_mesh, &QAction::triggered, this, &TPPWidget::showOriginalMesh);
+  connect(ui_->action_show_modified_mesh, &QAction::triggered, this, &TPPWidget::showModifiedMesh);
+  connect(ui_->action_show_unmodified_tool_path, &QAction::triggered, this, &TPPWidget::showUnmodifiedToolPath);
+  connect(ui_->action_show_modified_tool_path, &QAction::triggered, this, &TPPWidget::showModifiedToolPath);
   connect(
-      ui_->action_show_modified_tool_path_lines, &QAction::triggered, this, &TPPWidget::onShowModifiedConnectedPath);
-
-  connect(ui_->check_box_show_axes, &QCheckBox::toggled, this, &TPPWidget::onShowAxes);
-
+      ui_->action_show_unmodified_tool_path_lines, &QAction::triggered, this, &TPPWidget::showUnmodifiedConnectedPath);
+  connect(ui_->action_show_modified_tool_path_lines, &QAction::triggered, this, &TPPWidget::showModifiedConnectedPath);
+  connect(ui_->check_box_show_axes, &QCheckBox::toggled, this, &TPPWidget::showAxes);
   connect(ui_->action_load_config,
           &QAction::triggered,
           pipeline_widget_,
@@ -154,73 +149,67 @@ TPPWidget::TPPWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent)
           &QAction::triggered,
           pipeline_widget_,
           &ConfigurableTPPPipelineWidget::onSaveConfiguration);
-
   connect(ui_->double_spin_box_axis_size, &QDoubleSpinBox::editingFinished, this, [this]() {
     axes_->SetScaleFactor(ui_->double_spin_box_axis_size->value());
     tube_filter_->SetRadius(axes_->GetScaleFactor() / 10.0);
-    render_widget_->GetRenderWindow()->Render();
-    render_widget_->GetRenderWindow()->Render();
+    render();
   });
-
   connect(ui_->double_spin_box_origin_size, &QDoubleSpinBox::editingFinished, this, [this]() {
     axes_actor_->SetTotalLength(ui_->double_spin_box_origin_size->value(),
                                 ui_->double_spin_box_origin_size->value(),
                                 ui_->double_spin_box_origin_size->value());
-    render_widget_->GetRenderWindow()->Render();
-    render_widget_->GetRenderWindow()->Render();
+    render();
   });
 }
 
-void TPPWidget::onShowOriginalMesh(const bool checked)
+void TPPWidget::render()
+{
+  // Call render twice
+  render_widget_->GetRenderWindow()->Render();
+  render_widget_->GetRenderWindow()->Render();
+}
+
+void TPPWidget::showOriginalMesh(const bool checked)
 {
   mesh_actor_->SetVisibility(checked);
-  render_widget_->GetRenderWindow()->Render();
-  render_widget_->GetRenderWindow()->Render();
+  render();
 }
 
-void TPPWidget::onShowModifiedMesh(const bool checked)
+void TPPWidget::showModifiedMesh(const bool checked)
 {
   mesh_fragment_actor_->SetVisibility(checked);
-  render_widget_->GetRenderWindow()->Render();
-  render_widget_->GetRenderWindow()->Render();
+  render();
 }
 
-void TPPWidget::onShowUnmodifiedConnectedPath(const bool checked)
+void TPPWidget::showUnmodifiedConnectedPath(const bool checked)
 {
   unmodified_connected_path_actor_->SetVisibility(checked);
-  render_widget_->GetRenderWindow()->Render();
-  render_widget_->GetRenderWindow()->Render();
+  render();
 }
 
-void TPPWidget::onShowUnmodifiedToolPath(const bool checked)
+void TPPWidget::showUnmodifiedToolPath(const bool checked)
 {
   unmodified_tool_path_actor_->SetVisibility(checked);
-  render_widget_->GetRenderWindow()->Render();
-  render_widget_->GetRenderWindow()->Render();
+  render();
 }
 
-void TPPWidget::onShowModifiedConnectedPath(const bool checked)
+void TPPWidget::showModifiedConnectedPath(const bool checked)
 {
   connected_path_actor_->SetVisibility(checked);
-  render_widget_->GetRenderWindow()->Render();
-  render_widget_->GetRenderWindow()->Render();
+  render();
 }
 
-void TPPWidget::onShowModifiedToolPath(const bool checked)
+void TPPWidget::showModifiedToolPath(const bool checked)
 {
   tool_path_actor_->SetVisibility(checked);
-  render_widget_->GetRenderWindow()->Render();
-  render_widget_->GetRenderWindow()->Render();
+  render();
 }
 
-void TPPWidget::onShowAxes(const bool checked)
+void TPPWidget::showAxes(const bool checked)
 {
   axes_actor_->SetVisibility(checked);
-  render_widget_->GetRenderWindow()->Render();
-  render_widget_->GetRenderWindow()->Render();
+  render();
 }
-
-std::vector<ToolPaths> TPPWidget::getToolPaths() { return tool_paths_; }
 
 void TPPWidget::setMeshFile(const QString& file)
 {
@@ -244,9 +233,8 @@ void TPPWidget::setMeshFile(const QString& file)
   // Zoom out to the extents
   renderer_->ResetCamera();
 
-  // Call render twice
-  render_widget_->GetRenderWindow()->Render();
-  render_widget_->GetRenderWindow()->Render();
+  // Render
+  render();
 }
 
 void TPPWidget::onLoadMesh(const bool /*checked*/)
@@ -256,7 +244,7 @@ void TPPWidget::onLoadMesh(const bool /*checked*/)
     setMeshFile(file);
 }
 
-void TPPWidget::setConfigurationFile(const QString& file) { pipeline_widget_->setConfigurationFile(file); }
+void TPPWidget::configure(const QString& file) { pipeline_widget_->configure(file); }
 
 vtkSmartPointer<vtkTransform> toVTK(const Eigen::Isometry3d& mat)
 {
@@ -438,7 +426,7 @@ vtkSmartPointer<vtkAssembly> createMeshActors(const std::vector<pcl::PolygonMesh
   return assembly;
 }
 
-void TPPWidget::onPlan(const bool /*checked*/)
+void TPPWidget::plan()
 {
   try
   {
@@ -543,9 +531,8 @@ void TPPWidget::onPlan(const bool /*checked*/)
       connected_path_actor_->SetVisibility(ui_->action_show_modified_tool_path_lines->isChecked());
     }
 
-    // Call render twice
-    render_widget_->GetRenderWindow()->Render();
-    render_widget_->GetRenderWindow()->Render();
+    // Render
+    render();
   }
   catch (const std::exception& ex)
   {
@@ -557,7 +544,7 @@ void TPPWidget::onPlan(const bool /*checked*/)
   }
 }
 
-void TPPWidget::onSaveModifiedMesh(const bool /*checked*/)
+void TPPWidget::saveModifiedMeshes(const QDir& save_dir)
 {
   // Extract the submeshes from the actor that holds the modified meshes
   vtkProp3DCollection* parts = mesh_fragment_actor_->GetParts();
@@ -566,10 +553,6 @@ void TPPWidget::onSaveModifiedMesh(const bool /*checked*/)
     QMessageBox::warning(this, "Error", "No modified meshes found; please plan a tool path first.");
     return;
   }
-
-  QDir save_dir(QFileDialog::getExistingDirectory(this, "Save modified mesh(es)"));
-  if (!save_dir.exists())
-    return;
 
   for (vtkIdType i = 0; i < parts->GetNumberOfItems(); i++)
   {
@@ -598,7 +581,16 @@ void TPPWidget::onSaveModifiedMesh(const bool /*checked*/)
   }
 }
 
-void TPPWidget::onSaveToolPath(const bool /*checked*/)
+void TPPWidget::onSaveModifiedMeshes(const bool /*checked*/)
+{
+  QDir save_dir(QFileDialog::getExistingDirectory(this, "Save modified mesh(es)"));
+  if (!save_dir.exists())
+    return;
+
+  saveModifiedMeshes(save_dir);
+}
+
+void TPPWidget::saveToolPaths(const QString& file)
 {
   if (tool_paths_.empty())
   {
@@ -606,12 +598,6 @@ void TPPWidget::onSaveToolPath(const bool /*checked*/)
     return;
   }
 
-  QString file = QFileDialog::getSaveFileName(this, "Save trajectory", "", "YAML files (*.yaml)");
-  if (file.isEmpty())
-    return;
-
-  if (!file.endsWith(".yaml"))
-    file = file.append(".yaml");
   // Open output file
   std::ofstream out(file.toStdString());
   if (!out)
@@ -619,8 +605,21 @@ void TPPWidget::onSaveToolPath(const bool /*checked*/)
     QMessageBox::warning(this, "Save Error", "Failed to open file for writing: " + file);
     return;
   }
+
   // Write all tool paths at once using YAML serialization
   out << YAML::Node(tool_paths_);
+}
+
+void TPPWidget::onSaveToolPaths(const bool /*checked*/)
+{
+  QString file = QFileDialog::getSaveFileName(this, "Save trajectory", "", "YAML files (*.yaml)");
+  if (file.isEmpty())
+    return;
+
+  if (!file.endsWith(".yaml"))
+    file = file.append(".yaml");
+
+  saveToolPaths(file);
 }
 
 }  // namespace noether

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <noether_gui/widgets.h>
-#include <noether_tpp/core/tool_path_modifier.h>
 
 namespace noether
 {
@@ -10,12 +9,11 @@ class DistanceDoubleSpinBox;
 /**
  * @ingroup gui_widgets_tool_path_modifiers
  */
-class UniformSpacingSplineModifierWidget : public ToolPathModifierWidget
+class UniformSpacingSplineModifierWidget : public BaseWidget
 {
 public:
   UniformSpacingSplineModifierWidget(QWidget* parent = nullptr);
 
-  ToolPathModifier::ConstPtr create() const override;
   void configure(const YAML::Node& config) override;
   void save(YAML::Node& config) const override;
 

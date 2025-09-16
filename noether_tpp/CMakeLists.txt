@@ -63,7 +63,7 @@ add_library(${PROJECT_NAME} SHARED
   src/tool_path_planners/edge/edge_planner.cpp
   src/tool_path_planners/edge/boundary_edge_planner.cpp
   src/tool_path_planners/raster/raster_planner.cpp
-  src/tool_path_planners/raster/origin_generators/aabb_origin_generator.cpp
+  src/tool_path_planners/raster/origin_generators/aabb_center_origin_generator.cpp
   src/tool_path_planners/raster/origin_generators/centroid_origin_generator.cpp
   src/tool_path_planners/raster/origin_generators/offset_origin_generator.cpp
   src/tool_path_planners/raster/origin_generators/fixed_origin_generator.cpp
@@ -90,7 +90,7 @@ endif()
 
 target_compile_definitions(${PROJECT_NAME}
   PUBLIC
-    NOETHER_PLUGINS="${PROJECT_NAME}_plugins"
+    NOETHER_PLUGIN_LIB="${PROJECT_NAME}_plugins"
     NOETHER_TPP_SECTION=tpp
     NOETHER_DIRECTION_GENERATOR_SECTION=dg
     NOETHER_ORIGIN_GENERATOR_SECTION=og
@@ -115,9 +115,6 @@ add_library(${PROJECT_NAME}_plugins SHARED
 target_link_libraries(${PROJECT_NAME}_plugins PUBLIC ${PROJECT_NAME} yaml-cpp boost_plugin_loader::boost_plugin_loader)
 target_cxx_version(${PROJECT_NAME}_plugins PUBLIC VERSION 14)
 target_clang_tidy(${PROJECT_NAME}_plugins ENABLE ${NOETHER_ENABLE_CLANG_TIDY})
-
-# Add the name of the plugin library as a private compile definition for the core library
-target_compile_definitions(${PROJECT_NAME} PUBLIC NOETHER_PLUGIN_LIB="${PROJECT_NAME}_plugins")
 
 # Install headers
 install(DIRECTORY include/ DESTINATION include/)

@@ -2,17 +2,16 @@
 
 #include <noether_gui/widgets.h>
 
-#include <noether_tpp/core/tool_path_modifier.h>
-
 namespace noether
 {
 /**
  * @ingroup gui_widgets_tool_path_modifiers
  */
-struct UniformOrientationModifierWidget : public ToolPathModifierWidget
+struct UniformOrientationModifierWidget : public BaseWidget
 {
-  using ToolPathModifierWidget::ToolPathModifierWidget;
-  ToolPathModifier::ConstPtr create() const override;
+  using BaseWidget::BaseWidget;
+
+  void save(YAML::Node&) const override;
 };
 
 }  // namespace noether

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <noether_gui/widgets.h>
-#include <noether_tpp/core/mesh_modifier.h>
 
 class QSpinBox;
 
@@ -12,12 +11,10 @@ class DistanceDoubleSpinBox;
 /**
  * @ingroup gui_widgets_mesh_modifiers
  */
-class PlaneProjectionMeshModifierWidget : public MeshModifierWidget
+class PlaneProjectionMeshModifierWidget : public BaseWidget
 {
 public:
   PlaneProjectionMeshModifierWidget(QWidget* parent = nullptr);
-
-  MeshModifier::ConstPtr create() const override;
 
   void configure(const YAML::Node&) override;
   void save(YAML::Node&) const override;

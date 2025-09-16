@@ -1,7 +1,6 @@
 #pragma once
 
 #include <noether_gui/widgets.h>
-#include <noether_tpp/core/mesh_modifier.h>
 
 namespace noether
 {
@@ -10,12 +9,11 @@ class DistanceDoubleSpinBox;
 /**
  * @ingroup gui_widgets_mesh_modifiers
  */
-class FillHolesModifierWidget : public MeshModifierWidget
+class FillHolesModifierWidget : public BaseWidget
 {
 public:
   FillHolesModifierWidget(QWidget* parent = nullptr);
 
-  MeshModifier::ConstPtr create() const override;
   void configure(const YAML::Node& config) override;
   void save(YAML::Node& config) const override;
 

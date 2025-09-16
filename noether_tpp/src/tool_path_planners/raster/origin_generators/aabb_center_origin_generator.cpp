@@ -1,4 +1,4 @@
-#include <noether_tpp/tool_path_planners/raster/origin_generators/aabb_origin_generator.h>
+#include <noether_tpp/tool_path_planners/raster/origin_generators/aabb_center_origin_generator.h>
 
 #include <pcl/common/common.h>
 #include <pcl/conversions.h>

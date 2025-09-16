@@ -2,16 +2,14 @@
 
 #include <noether_gui/widgets.h>
 
-#include <noether_tpp/tool_path_planners/raster/raster_planner.h>
-
 namespace noether
 {
-struct CentroidOriginGeneratorWidget : public OriginGeneratorWidget
+struct CentroidOriginGeneratorWidget : public BaseWidget
 {
 public:
   using BaseWidget::BaseWidget;
 
-  OriginGenerator::ConstPtr create() const override;
+  void save(YAML::Node&) const override;
 };
 
 }  // namespace noether
