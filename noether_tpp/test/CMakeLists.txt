@@ -27,14 +27,3 @@ target_link_libraries(${PROJECT_NAME}_tool_path_planner_utest
     GTest::Main)
 add_gtest_discover_tests(${PROJECT_NAME}_tool_path_planner_utest)
 target_compile_definitions(${PROJECT_NAME}_tool_path_planner_utest PRIVATE MESH_DIR="${CMAKE_CURRENT_SOURCE_DIR}/meshes")
-
-# Install the targets
-install(
-  TARGETS
-    ${PROJECT_NAME}_tool_path_modifier_utest
-    ${PROJECT_NAME}_mesh_modifier_utest
-    ${PROJECT_NAME}_tool_path_planner_utest
-  RUNTIME DESTINATION bin/test
-  LIBRARY DESTINATION lib/test
-  ARCHIVE DESTINATION lib/test
-)
