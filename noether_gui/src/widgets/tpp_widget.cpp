@@ -45,7 +45,7 @@ TPPWidget::TPPWidget(std::shared_ptr<const WidgetFactory> factory, QWidget* pare
   : QMainWindow(parent)
   , ui_(new Ui::TPP())
   , pipeline_widget_(new ConfigurableTPPPipelineWidget(factory, "", this))
-  , render_widget_(new RenderWidget(this))
+  , render_widget_(new QVTKOpenGLNativeWidget(this))
   , renderer_(vtkSmartPointer<vtkOpenGLRenderer>::New())
   , mesh_mapper_(vtkSmartPointer<vtkOpenGLPolyDataMapper>::New())
   , mesh_actor_(vtkSmartPointer<vtkOpenGLActor>::New())
