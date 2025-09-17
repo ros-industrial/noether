@@ -6,8 +6,8 @@
 
 Platform             | CI Status
 ---------------------|:---------
-Ubuntu Focal         | [![Build Status](https://github.com/ros-industrial/noether/workflows/Ubuntu/badge.svg)](https://github.com/ros-industrial/noether/actions)
 Ubuntu Jammy         | [![Build Status](https://github.com/ros-industrial/noether/workflows/Ubuntu/badge.svg)](https://github.com/ros-industrial/noether/actions)
+Ubuntu Noble         | [![Build Status](https://github.com/ros-industrial/noether/workflows/Ubuntu/badge.svg)](https://github.com/ros-industrial/noether/actions)
 Lint  (Clang-Format) | [![Build Status](https://github.com/ros-industrial/noether/workflows/Clang-Format/badge.svg)](https://github.com/ros-industrial/ros-industrial/actions)
 
 ## Description
