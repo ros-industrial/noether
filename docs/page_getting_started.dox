@@ -25,20 +25,4 @@ Run the application using the following command:
 
     ros2 run noether_gui noether_gui_app
 
-@note
-If you encounter the error `error while loading shared libraries: libjawt.so: cannot open shared object file: No such
-file or directory`, try manually adding the location of the unlinked Java libraries:
-
-@note
-On Ubuntu 22.04:
-```
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/jvm/java-11-openjdk-amd64/lib:/usr/lib/jvm/java-11-openjdk-amd64/lib/server
-```
-
-@note
-On Ubuntu 24.04:
-```
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/jvm/java-21-openjdk-amd64/lib:/usr/lib/jvm/java-21-openjdk-amd64/lib/server
-```
-
 */
