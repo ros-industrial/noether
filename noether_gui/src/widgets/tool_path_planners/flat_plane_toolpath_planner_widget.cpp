@@ -10,9 +10,19 @@
 #include <QGroupBox>
 #include <QLabel>
 
+static const std::string X_DIM_KEY = "x_dim";
+static const std::string Y_DIM_KEY = "y_dim";
+static const std::string X_SPACING_KEY = "x_spacing";
+static const std::string Y_SPACING_KEY = "y_spacing";
+
 namespace noether
 {
-FlatPlaneToolPathPlannerWidget::FlatPlaneToolPathPlannerWidget(QWidget* parent) : ToolPathPlannerWidget(parent)
+FlatPlaneToolPathPlannerWidget::FlatPlaneToolPathPlannerWidget(QWidget* parent)
+  : BaseWidget(parent)
+  , x_dim_spinbox_(new DistanceDoubleSpinBox(this))
+  , y_dim_spinbox_(new DistanceDoubleSpinBox(this))
+  , x_spacing_spinbox_(new DistanceDoubleSpinBox(this))
+  , y_spacing_spinbox_(new DistanceDoubleSpinBox(this))
 {
   // Create a vertical layout for the entire widget
   auto main_layout = new QVBoxLayout(this);
@@ -21,26 +31,22 @@ FlatPlaneToolPathPlannerWidget::FlatPlaneToolPathPlannerWidget(QWidget* parent) 
   auto plane_params_widget = new QGroupBox("Plane Parameters");
   auto plane_params_layout = new QFormLayout;
 
-  plane_x_dim_spinbox_ = new noether::DistanceDoubleSpinBox;
-  plane_x_dim_spinbox_->setMinimum(0.001);
-  plane_x_dim_spinbox_->setValue(1.0);
+  x_dim_spinbox_->setMinimum(0.001);
+  x_dim_spinbox_->setValue(1.0);
 
-  plane_y_dim_spinbox_ = new noether::DistanceDoubleSpinBox;
-  plane_y_dim_spinbox_->setMinimum(0.001);
-  plane_y_dim_spinbox_->setValue(1.0);
+  y_dim_spinbox_->setMinimum(0.001);
+  y_dim_spinbox_->setValue(1.0);
 
-  plane_x_spacing_spinbox_ = new noether::DistanceDoubleSpinBox;
-  plane_x_spacing_spinbox_->setMinimum(0.001);
-  plane_x_spacing_spinbox_->setValue(0.1);
+  x_spacing_spinbox_->setMinimum(0.001);
+  x_spacing_spinbox_->setValue(0.1);
 
-  plane_y_spacing_spinbox_ = new noether::DistanceDoubleSpinBox;
-  plane_y_spacing_spinbox_->setMinimum(0.001);
-  plane_y_spacing_spinbox_->setValue(0.1);
+  y_spacing_spinbox_->setMinimum(0.001);
+  y_spacing_spinbox_->setValue(0.1);
 
-  plane_params_layout->addRow("X Dimension", plane_x_dim_spinbox_);
-  plane_params_layout->addRow("Y Dimension", plane_y_dim_spinbox_);
-  plane_params_layout->addRow("Waypoint X Spacing", plane_x_spacing_spinbox_);
-  plane_params_layout->addRow("Waypoint Y Spacing", plane_y_spacing_spinbox_);
+  plane_params_layout->addRow("X Dimension", x_dim_spinbox_);
+  plane_params_layout->addRow("Y Dimension", y_dim_spinbox_);
+  plane_params_layout->addRow("Waypoint X Spacing", x_spacing_spinbox_);
+  plane_params_layout->addRow("Waypoint Y Spacing", y_spacing_spinbox_);
 
   plane_params_widget->setLayout(plane_params_layout);
 
@@ -51,28 +57,21 @@ FlatPlaneToolPathPlannerWidget::FlatPlaneToolPathPlannerWidget(QWidget* parent) 
   setLayout(main_layout);
 }
 
-// ToolPathPlanner::ConstPtr FlatPlaneToolPathPlannerWidget::create() const
-// {
-//   Eigen::Vector2d plane_dim(plane_x_dim_spinbox_->value(), plane_y_dim_spinbox_->value());
-//   Eigen::Vector2d spacing(plane_x_spacing_spinbox_->value(), plane_y_spacing_spinbox_->value());
-//   return std::make_unique<FlatPlaneToolPathPlanner>(plane_dim, spacing);
-// }
-
 void FlatPlaneToolPathPlannerWidget::configure(const YAML::Node& config)
 {
-  plane_x_dim_spinbox_->setValue(YAML::getMember<double>(config, "plane_x_dim"));
-  plane_y_dim_spinbox_->setValue(YAML::getMember<double>(config, "plane_y_dim"));
-  plane_x_spacing_spinbox_->setValue(YAML::getMember<double>(config, "plane_x_spacing"));
-  plane_y_spacing_spinbox_->setValue(YAML::getMember<double>(config, "plane_y_spacing"));
+  x_dim_spinbox_->setValue(YAML::getMember<double>(config, X_DIM_KEY));
+  y_dim_spinbox_->setValue(YAML::getMember<double>(config, Y_DIM_KEY));
+  x_spacing_spinbox_->setValue(YAML::getMember<double>(config, X_SPACING_KEY));
+  y_spacing_spinbox_->setValue(YAML::getMember<double>(config, Y_SPACING_KEY));
 }
 
 void FlatPlaneToolPathPlannerWidget::save(YAML::Node& config) const
 {
   config["name"] = "FlatPlane";
-  config["plane_x_dim"] = plane_x_dim_spinbox_->value();
-  config["plane_y_dim"] = plane_x_dim_spinbox_->value();
-  config["plane_x_spacing"] = plane_x_spacing_spinbox_->value();
-  config["plane_y_spacing"] = plane_y_spacing_spinbox_->value();
+  config[X_DIM_KEY] = x_dim_spinbox_->value();
+  config[Y_DIM_KEY] = y_dim_spinbox_->value();
+  config[X_SPACING_KEY] = x_spacing_spinbox_->value();
+  config[Y_SPACING_KEY] = y_spacing_spinbox_->value();
 }
 
 }  // namespace noether

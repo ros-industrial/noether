@@ -24,6 +24,7 @@
 
 // Tool Path Planners
 #include <noether_tpp/tool_path_planners/multi_tool_path_planner.h>
+#include <noether_tpp/tool_path_planners/flat_plane_toolpath_planner.h>
 
 // Tool Path Modifiers
 #include <noether_tpp/tool_path_modifiers/biased_tool_drag_orientation_modifier.h>
@@ -138,6 +139,7 @@ struct Plugin_MultiToolPathPlanner : public Plugin<ToolPathPlanner>
   }
 };
 EXPORT_TOOL_PATH_PLANNER_PLUGIN(noether::Plugin_MultiToolPathPlanner, Multi)
+EXPORT_SIMPLE_TOOL_PATH_PLANNER_PLUGIN(FlatPlaneToolPathPlanner, FlatPlane)
 
 // Tool Path Modifiers
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(BiasedToolDragOrientationToolPathModifier, BiasedToolDragOrientation)

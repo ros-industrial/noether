@@ -80,7 +80,7 @@ struct Plugin_CrossHatchPlaneSlicerRasterPlannerWidget : WidgetPlugin
   }
 };
 EXPORT_TOOL_PATH_PLANNER_WIDGET_PLUGIN(noether::Plugin_CrossHatchPlaneSlicerRasterPlannerWidget, CrossHatchPlaneSlicer)
-EXPORT_SIMPLE_TOOL_PATH_PLANNER_PLUGIN(FlatPlaneToolPathPlannerWidget, FlatPlane)
+EXPORT_SIMPLE_TOOL_PATH_PLANNER_WIDGET_PLUGIN(FlatPlaneToolPathPlannerWidget, FlatPlane)
 
 // Tool Path Modifiers
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(StandardEdgePathsOrganizationModifierWidget,

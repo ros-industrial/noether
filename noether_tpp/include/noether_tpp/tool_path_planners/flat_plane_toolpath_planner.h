@@ -19,6 +19,9 @@
 #pragma once
 
 #include <noether_tpp/core/tool_path_planner.h>
+#include <noether_tpp/macros.h>
+
+FWD_DECLARE_YAML_STRUCTS()
 
 namespace noether
 {
@@ -28,12 +31,19 @@ namespace noether
 class FlatPlaneToolPathPlanner : public ToolPathPlanner
 {
 public:
-  FlatPlaneToolPathPlanner(const Eigen::Vector2d& plane_dims, const Eigen::Vector2d& point_spacing);
+  FlatPlaneToolPathPlanner(double x_dim, double y_dim, double x_spacing, double y_spacing);
   ToolPaths plan(const pcl::PolygonMesh& mesh) const override final;
 
-private:
-  const Eigen::Vector2d plane_dims_;
-  const Eigen::Vector2d point_spacing_;
+protected:
+  double x_dim_;
+  double y_dim_;
+  double x_spacing_;
+  double y_spacing_;
+
+  FlatPlaneToolPathPlanner() = default;
+  DECLARE_YAML_FRIEND_CLASSES(FlatPlaneToolPathPlanner)
 };
 
 }  // namespace noether
+
+FWD_DECLARE_YAML_CONVERT(noether::FlatPlaneToolPathPlanner)

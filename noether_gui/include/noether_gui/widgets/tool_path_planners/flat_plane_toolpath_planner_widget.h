@@ -1,15 +1,8 @@
 #pragma once
 
 #include <noether_gui/widgets.h>
-#include <noether_tpp/core/tool_path_planner.h>
 
 class QGroupBox;
-
-namespace Ui
-{
-class Vector3dEditor;
-class QuaternionEditor;
-}  // namespace Ui
 
 namespace noether
 {
@@ -24,10 +17,10 @@ public:
   void save(YAML::Node&) const override;
 
 private:
-  noether::DistanceDoubleSpinBox* plane_x_dim_spinbox_;
-  noether::DistanceDoubleSpinBox* plane_y_dim_spinbox_;
-  noether::DistanceDoubleSpinBox* plane_x_spacing_spinbox_;
-  noether::DistanceDoubleSpinBox* plane_y_spacing_spinbox_;
+  noether::DistanceDoubleSpinBox* x_dim_spinbox_;
+  noether::DistanceDoubleSpinBox* y_dim_spinbox_;
+  noether::DistanceDoubleSpinBox* x_spacing_spinbox_;
+  noether::DistanceDoubleSpinBox* y_spacing_spinbox_;
 };
 
 }  // namespace noether

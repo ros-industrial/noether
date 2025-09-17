@@ -5,12 +5,12 @@
 #include <pcl/conversions.h>
 #include <pcl/impl/point_types.hpp>
 #include <pcl/point_cloud.h>
+#include <noether_tpp/serialization.h>
 
 namespace noether
 {
-FlatPlaneToolPathPlanner::FlatPlaneToolPathPlanner(const Eigen::Vector2d& plane_dims,
-                                                   const Eigen::Vector2d& point_spacing)
-  : plane_dims_(plane_dims), point_spacing_(point_spacing)
+FlatPlaneToolPathPlanner::FlatPlaneToolPathPlanner(double x_dim, double y_dim, double x_spacing, double y_spacing)
+  : x_dim_(x_dim), y_dim_(y_dim), x_spacing_(x_spacing), y_spacing_(y_spacing)
 {
 }
 
@@ -52,12 +52,11 @@ ToolPaths FlatPlaneToolPathPlanner::plan(const pcl::PolygonMesh& mesh) const
   ToolPath tool_path;
   ToolPaths tool_paths;
 
-  for (size_t i = 0; plane_dims_[0] - point_spacing_[0] * i >= 0; ++i)
+  for (size_t i = 0; x_dim_ - x_spacing_ * i >= 0; ++i)
   {
-    for (size_t j = 0; plane_dims_[1] - point_spacing_[1] * j >= 0; ++j)
+    for (size_t j = 0; y_dim_ - y_spacing_ * j >= 0; ++j)
     {
-      Eigen::Isometry3d pt =
-          mesh_centroid_isom * Eigen::Translation3d(i * point_spacing_[0], j * point_spacing_[1], 0.0);
+      Eigen::Isometry3d pt = mesh_centroid_isom * Eigen::Translation3d(i * x_spacing_, j * y_spacing_, 0.0);
       segment.push_back(pt);
     }
     tool_path.push_back(segment);
@@ -69,3 +68,28 @@ ToolPaths FlatPlaneToolPathPlanner::plan(const pcl::PolygonMesh& mesh) const
   return tool_paths;
 }
 }  // namespace noether
+
+namespace YAML
+{
+/** @cond */
+Node convert<noether::FlatPlaneToolPathPlanner>::encode(const noether::FlatPlaneToolPathPlanner& val)
+{
+  Node node;
+  node["x_dim"] = val.x_dim_;
+  node["y_dim"] = val.y_dim_;
+  node["x_spacing"] = val.x_spacing_;
+  node["y_spacing"] = val.y_spacing_;
+  return node;
+}
+
+bool convert<noether::FlatPlaneToolPathPlanner>::decode(const Node& node, noether::FlatPlaneToolPathPlanner& val)
+{
+  val.x_dim_ = getMember<double>(node, "x_dim");
+  val.y_dim_ = getMember<double>(node, "y_dim");
+  val.x_spacing_ = getMember<double>(node, "x_spacing");
+  val.y_spacing_ = getMember<double>(node, "y_spacing");
+  return true;
+}
+/** @endcond */
+
+}  // namespace YAML
