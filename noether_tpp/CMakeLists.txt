@@ -21,10 +21,20 @@ find_package(
 )
 find_package(yaml-cpp REQUIRED)
 find_package(
-  VTK
-  7.1
-  REQUIRED
-  NO_MODULE
+  VTK 9 REQUIRED
+  COMPONENTS CommonCore
+             CommonDataModel
+             CommonTransforms
+             CommonColor
+             CommonMath
+             CommonComputationalGeometry
+             IOGeometry
+             IOPLY
+             FiltersCore
+             FiltersGeneral
+             RenderingCore
+             RenderingAnnotation
+             RenderingOpenGL2
 )
 
 option(NOETHER_ENABLE_CLANG_TIDY "Enables compilation with clang-tidy" OFF)
