@@ -166,6 +166,10 @@ endif()
 # Package configuration
 configure_package(
   NAMESPACE noether
-  DEPENDENCIES Eigen3 "PCL REQUIRED COMPONENTS common io surface segmentation" VTK
+  DEPENDENCIES
+    Eigen3
+    "PCL REQUIRED COMPONENTS common io surface segmentation"
+    VTK
+    boost_plugin_loader
   TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_plugins
 )
