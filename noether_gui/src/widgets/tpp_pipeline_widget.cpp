@@ -5,6 +5,7 @@
 #include <noether_gui/utils.h>
 
 #include <noether_tpp/serialization.h>
+#include <noether_tpp/utils.h>
 #include <noether_tpp/core/tool_path_planner_pipeline.h>
 #include <QMenu>
 #include <QMessageBox>

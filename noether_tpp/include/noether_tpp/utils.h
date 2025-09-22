@@ -44,4 +44,10 @@ TriangleMesh createTriangleMesh(const pcl::PolygonMesh& input);
  */
 std::tuple<double, std::vector<double>> computeLength(const ToolPathSegment& segment);
 
+/**
+ * @brief Unrolls an exception and captures content from all nested exceptions
+ * @details Adapted from https://en.cppreference.com/w/cpp/error/throw_with_nested
+ */
+void printException(const std::exception& e, std::ostream& ss, int level = 0);
+
 }  // namespace noether

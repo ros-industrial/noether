@@ -1,5 +1,5 @@
 #include <noether_gui/widgets/configurable_tpp_pipeline_widget.h>
-#include <noether_gui/utils.h>
+#include <noether_tpp/utils.h>
 
 #include <fstream>
 #include <QFileDialog>

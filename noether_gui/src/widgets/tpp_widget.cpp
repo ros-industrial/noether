@@ -4,6 +4,7 @@
 #include <noether_gui/widgets/tpp_pipeline_widget.h>
 #include <noether_gui/utils.h>
 #include <noether_tpp/serialization.h>
+#include <noether_tpp/utils.h>
 
 #include <pcl/io/vtk_lib_io.h>
 #include <QColorDialog>
