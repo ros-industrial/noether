@@ -45,8 +45,11 @@ PluginLoaderWidget<PluginT>::PluginLoaderWidget(std::shared_ptr<const WidgetFact
     delete item;
 
     QWidget* w = ui_->stacked_widget->widget(current_row);
-    ui_->stacked_widget->removeWidget(w);
-    w->deleteLater();
+    if (w)
+    {
+      ui_->stacked_widget->removeWidget(w);
+      w->deleteLater();
+    }
   });
 
   // Remove all widgets
@@ -76,8 +79,11 @@ PluginLoaderWidget<PluginT>::~PluginLoaderWidget()
   while (ui_->stacked_widget->count() > 0)
   {
     QWidget* widget = ui_->stacked_widget->widget(0);
-    ui_->stacked_widget->removeWidget(widget);
-    delete widget;
+    if (widget)
+    {
+      ui_->stacked_widget->removeWidget(widget);
+      delete widget;
+    }
   }
 }
 
@@ -166,8 +172,11 @@ void PluginLoaderWidget<PluginT>::removeWidgets()
   for (int i = ui_->stacked_widget->count(); i >= 0; i--)
   {
     QWidget* widget = ui_->stacked_widget->widget(i);
-    ui_->stacked_widget->removeWidget(widget);
-    widget->deleteLater();
+    if (widget)
+    {
+      ui_->stacked_widget->removeWidget(widget);
+      widget->deleteLater();
+    }
   }
 }
 
