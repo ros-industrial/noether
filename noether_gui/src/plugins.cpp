@@ -73,7 +73,18 @@ struct Plugin_CrossHatchPlaneSlicerRasterPlannerWidget : WidgetPlugin
 
     // Attempt to configure the widget
     if (!config.IsNull())
-      widget->configure(config);
+    {
+      try
+      {
+        widget->configure(config);
+      }
+      catch (const std::exception&)
+      {
+        // Delete the widget to prevent it from showing up in the GUI outside of the appropriate layout
+        widget->deleteLater();
+        throw;
+      }
+    }
 
     return widget;
   }
@@ -142,7 +153,18 @@ struct Plugin_PlaneSlicerRasterPlannerWidget : WidgetPlugin
 
     // Attempt to configure the widget
     if (!config.IsNull())
-      widget->configure(config);
+    {
+      try
+      {
+        widget->configure(config);
+      }
+      catch (const std::exception&)
+      {
+        // Delete the widget to prevent it from showing up in the GUI outside of the appropriate layout
+        widget->deleteLater();
+        throw;
+      }
+    }
 
     return widget;
   }

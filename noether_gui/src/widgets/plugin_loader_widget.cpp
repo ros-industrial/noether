@@ -85,9 +85,9 @@ template <typename PluginT>
 void PluginLoaderWidget<PluginT>::addWidget(const QString& plugin_name, const YAML::Node& config)
 {
   // Update the list widget and stacked widget
+  auto widget = factory_->createWidget<PluginT>(plugin_name.toStdString(), config, this);
   ui_->list_widget->addItem(plugin_name);
-  auto foo = factory_->createWidget<PluginT>(plugin_name.toStdString(), config, this);
-  ui_->stacked_widget->addWidget(foo);
+  ui_->stacked_widget->addWidget(widget);
 
   // Set the current row of the list widget to trigger an update in the stacked widget
   ui_->list_widget->setCurrentRow(ui_->list_widget->count() - 1);
