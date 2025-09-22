@@ -203,4 +203,17 @@ std::tuple<double, std::vector<double>> computeLength(const ToolPathSegment& seg
   return std::make_tuple(length, dists);
 }
 
+void printException(const std::exception& e, std::ostream& ss, int level)
+{
+  ss << std::string(level * 4, ' ') << e.what() << '\n';
+  try
+  {
+    std::rethrow_if_nested(e);
+  }
+  catch (const std::exception& nested_exception)
+  {
+    printException(nested_exception, ss, level + 1);
+  }
+}
+
 }  // namespace noether
