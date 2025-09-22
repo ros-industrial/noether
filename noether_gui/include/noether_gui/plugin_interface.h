@@ -2,9 +2,9 @@
 
 #include <noether_gui/widgets.h>
 
+#include <memory>
 #include <noether_tpp/plugin_interface.h>
 #include <string>
-#include <memory>
 #include <yaml-cpp/yaml.h>
 
 namespace noether
@@ -110,7 +110,18 @@ struct SimpleWidgetPlugin : WidgetPluginT
 
     // Attempt to configure the widget
     if (!config.IsNull())
-      widget->configure(config);
+    {
+      try
+      {
+        widget->configure(config);
+      }
+      catch (const std::exception&)
+      {
+        // Delete the widget to prevent it from showing up in the GUI outside of the appropriate layout
+        widget->deleteLater();
+        throw;
+      }
+    }
 
     return widget;
   }
