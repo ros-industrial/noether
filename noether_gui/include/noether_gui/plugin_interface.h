@@ -209,8 +209,8 @@ private:
  * @ingroup gui_interfaces
  */
 #define EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(WidgetT, Alias)                                                      \
-  using Plugin_##WidgetT = SimpleWidgetPlugin<WidgetT, MeshModifierWidgetPlugin>;                                      \
-  EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(Plugin_##WidgetT, Alias)
+  using WidgetPlugin_##WidgetT = SimpleWidgetPlugin<WidgetT, MeshModifierWidgetPlugin>;                                \
+  EXPORT_MESH_MODIFIER_WIDGET_PLUGIN(WidgetPlugin_##WidgetT, Alias)
 
 /**
  * @brief Macro for defining and exporting a simple tool path planner widget plugin using the
@@ -218,8 +218,8 @@ private:
  * @ingroup gui_interfaces
  */
 #define EXPORT_SIMPLE_TOOL_PATH_PLANNER_WIDGET_PLUGIN(WidgetT, Alias)                                                  \
-  using Plugin_##WidgetT = SimpleWidgetPlugin<WidgetT, ToolPathPlannerWidgetPlugin>;                                   \
-  EXPORT_TOOL_PATH_PLANNER_WIDGET_PLUGIN(Plugin_##WidgetT, Alias)
+  using WidgetPlugin_##WidgetT = SimpleWidgetPlugin<WidgetT, ToolPathPlannerWidgetPlugin>;                             \
+  EXPORT_TOOL_PATH_PLANNER_WIDGET_PLUGIN(WidgetPlugin_##WidgetT, Alias)
 
 /**
  * @brief Macro for defining and exporting a simple direction generator widget plugin using the
@@ -227,8 +227,8 @@ private:
  * @ingroup gui_interfaces
  */
 #define EXPORT_SIMPLE_DIRECTION_GENERATOR_WIDGET_PLUGIN(WidgetT, Alias)                                                \
-  using Plugin_##WidgetT = SimpleWidgetPlugin<WidgetT, DirectionGeneratorWidgetPlugin>;                                \
-  EXPORT_DIRECTION_GENERATOR_WIDGET_PLUGIN(Plugin_##WidgetT, Alias)
+  using WidgetPlugin_##WidgetT = SimpleWidgetPlugin<WidgetT, DirectionGeneratorWidgetPlugin>;                          \
+  EXPORT_DIRECTION_GENERATOR_WIDGET_PLUGIN(WidgetPlugin_##WidgetT, Alias)
 
 /**
  * @brief Macro for defining and exporting a simple origin generator widget plugin using the noether::SimpleWidgetPlugin
@@ -236,8 +236,8 @@ private:
  * @ingroup gui_interfaces
  */
 #define EXPORT_SIMPLE_ORIGIN_GENERATOR_WIDGET_PLUGIN(WidgetT, Alias)                                                   \
-  using Plugin_##WidgetT = SimpleWidgetPlugin<WidgetT, OriginGeneratorWidgetPlugin>;                                   \
-  EXPORT_ORIGIN_GENERATOR_WIDGET_PLUGIN(Plugin_##WidgetT, Alias)
+  using WidgetPlugin_##WidgetT = SimpleWidgetPlugin<WidgetT, OriginGeneratorWidgetPlugin>;                             \
+  EXPORT_ORIGIN_GENERATOR_WIDGET_PLUGIN(WidgetPlugin_##WidgetT, Alias)
 
 /**
  * @brief Macro for defining and exporting a simple tool path modifier widget plugin using the
@@ -245,5 +245,5 @@ private:
  * @ingroup gui_interfaces
  */
 #define EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(WidgetT, Alias)                                                 \
-  using Plugin_##WidgetT = SimpleWidgetPlugin<WidgetT, ToolPathModifierWidgetPlugin>;                                  \
-  EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(Plugin_##WidgetT, Alias)
+  using WidgetPlugin_##WidgetT = SimpleWidgetPlugin<WidgetT, ToolPathModifierWidgetPlugin>;                            \
+  EXPORT_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(WidgetPlugin_##WidgetT, Alias)
