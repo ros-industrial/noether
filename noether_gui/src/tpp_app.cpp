@@ -28,6 +28,8 @@ int main(int argc, char** argv)
   po::notify(vm);
 
   QApplication app(argc, argv);
+  app.setOrganizationName("noether");
+  app.setApplicationName("noether_gui_app");
 
   signal(SIGINT, handleSignal);
   signal(SIGTERM, handleSignal);
