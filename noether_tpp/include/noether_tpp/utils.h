@@ -1,8 +1,10 @@
 #include <noether_tpp/core/tool_path_modifier.h>
 
+#include <pcl/conversions.h>
 #include <pcl/PCLPointField.h>
 #include <pcl/geometry/mesh_traits.h>
 #include <pcl/geometry/triangle_mesh.h>
+#include <pcl/impl/point_types.hpp>
 #include <pcl/PolygonMesh.h>
 
 namespace noether
@@ -50,4 +52,7 @@ std::tuple<double, std::vector<double>> computeLength(const ToolPathSegment& seg
  */
 void printException(const std::exception& e, std::ostream& ss, int level = 0);
 
+/* @brief Creates a mesh of an xy plane with a specified length and width. The plane normal is the z-axis.
+ */
+pcl::PolygonMesh createPlaneMesh(const float length = 1.0, const float width = 1.0);
 }  // namespace noether

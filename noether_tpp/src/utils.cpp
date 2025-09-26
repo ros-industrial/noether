@@ -216,4 +216,41 @@ void printException(const std::exception& e, std::ostream& ss, int level)
   }
 }
 
+/* The plane mesh has the following structure. 0-3 represent vertices and A and B represent polygons.
+ *
+ *    0---3
+ *    |A /|
+ *    |/ B|
+ *    1---2
+ *
+ */
+pcl::PolygonMesh createPlaneMesh(const float length, const float width)
+{
+  pcl::PolygonMesh mesh;
+
+  // Fill in the points of the mesh cloud
+  pcl::PointCloud<pcl::PointXYZ> cloud;
+  pcl::PointXYZ p0 = { -length / 2, width / 2, 0 };
+  pcl::PointXYZ p1 = { -length / 2, -width / 2, 0 };
+  pcl::PointXYZ p2 = { length / 2, -width / 2, 0 };
+  pcl::PointXYZ p3 = { length / 2, width / 2, 0 };
+  cloud.points.reserve(4);
+  cloud.points.push_back(p0);
+  cloud.points.push_back(p1);
+  cloud.points.push_back(p2);
+  cloud.points.push_back(p3);
+  pcl::toPCLPointCloud2(cloud, mesh.cloud);
+
+  // Define the polygons of the mesh
+  pcl::Vertices polyA;
+  polyA.vertices = { 0, 1, 3 };
+  pcl::Vertices polyB;
+  polyB.vertices = { 1, 2, 3 };
+
+  mesh.polygons.push_back(polyA);
+  mesh.polygons.push_back(polyB);
+
+  return mesh;
+}
+
 }  // namespace noether

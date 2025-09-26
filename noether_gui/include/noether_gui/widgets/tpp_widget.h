@@ -85,6 +85,7 @@ public:
   void showAxes(const bool);
 
 protected:
+  void onGeneratePlaneMesh();
   void onLoadMesh(const bool /*checked*/);
   void onSaveModifiedMeshes(const bool /*checked*/);
   void onSaveToolPaths(const bool /*checked*/);
