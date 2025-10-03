@@ -225,19 +225,22 @@ void printException(const std::exception& e, std::ostream& ss, int level)
  *    1---2
  *
  */
-
-// TODO: Add transform parameter
 pcl::PolygonMesh createPlaneMesh(const float length, const float width, const Eigen::Isometry3d& tf)
 {
   pcl::PolygonMesh mesh;
 
   // Fill in the points of the mesh cloud
   pcl::PointCloud<pcl::PointXYZ> cloud;
+  cloud.width = 4;
+  cloud.height = 1;
+  cloud.is_dense = true;
+  cloud.points.reserve(cloud.width);
+
   pcl::PointXYZ p0 = { -length / 2, width / 2, 0 };
   pcl::PointXYZ p1 = { -length / 2, -width / 2, 0 };
   pcl::PointXYZ p2 = { length / 2, -width / 2, 0 };
   pcl::PointXYZ p3 = { length / 2, width / 2, 0 };
-  cloud.points.reserve(4);
+
   cloud.points.push_back(p0);
   cloud.points.push_back(p1);
   cloud.points.push_back(p2);

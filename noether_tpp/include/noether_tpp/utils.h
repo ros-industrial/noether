@@ -54,5 +54,7 @@ void printException(const std::exception& e, std::ostream& ss, int level = 0);
 
 /* @brief Creates a mesh of an xy plane with a specified length and width. The plane normal is the z-axis.
  */
-pcl::PolygonMesh createPlaneMesh(const float length = 1.0, const float width = 1.0, const Eigen::Isometry3d& tf = Eigen::Isometry3d::Identity());
+pcl::PolygonMesh createPlaneMesh(const float length = 1.0,
+                                 const float width = 1.0,
+                                 const Eigen::Isometry3d& tf = Eigen::Isometry3d::Identity());
 }  // namespace noether

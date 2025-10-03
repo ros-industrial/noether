@@ -19,15 +19,26 @@ void printHelp(char** argv)
                            "(default: ");
   pcl::console::print_value("%f", 1.0);
   pcl::console::print_info(")\n");
-  pcl::console::print_info("                     -y_dim X           = the y dimension of the mesh primitive . "
+  pcl::console::print_info("                     -y_dim X           = the y dimension of the mesh primitive. "
                            "(default: ");
   pcl::console::print_value("%f", 1.0);
   pcl::console::print_info(")\n");
-  pcl::console::print_info("                     -tf X              = the transformation applied to each of the mesh "
+  pcl::console::print_info("                     -tf X              = the transformation applied to each of the mesh. "
                            "vertices"
                            "(default: ");
   pcl::console::print_value("%s", "Eigen::Isometry3d::Identity()");
   pcl::console::print_info(")\n");
+  pcl::console::print_info("Format for -tf is as follows: \n");
+  pcl::console::print_value("%s",
+                            "-tf \"x: 0.0 \n"
+                            "y: 0.0 \n"
+                            "z: 0.0 \n"
+                            "qw: 0.0 \n"
+                            "qx: 0.0 \n"
+                            "qy: 0.0 \n"
+                            "qz: 0.0\" \n");
+  pcl::console::print_info("Where x,y,z are the translation components in meters and qw, qx, qy, qz are the quaternion "
+                           "components that represent the rotation component of the transformation \n");
 }
 
 void printSuccess(char** argv)
@@ -43,8 +54,6 @@ void printSuccess(char** argv)
 
 int main(int argc, char** argv)
 {
-  // DEBUG
-  sleep(5);
   if (argc < 3 || pcl::console::find_argument(argc, argv, "--help") > 0 ||
       pcl::console::find_argument(argc, argv, "-h") > 0)
   {
@@ -61,7 +70,6 @@ int main(int argc, char** argv)
     return (-1);
   }
 
-  // Parse command line arguments
   std::string primitive_type = argv[2];
   if (primitive_type != "plane" && primitive_type != "half_ellipsoid")
   {
@@ -85,19 +93,23 @@ int main(int argc, char** argv)
     return (-1);
   }
 
-  // Convert tf argument from string to EigenIsometry3d
+  // Convert tf argument from string to EigenIsometry3d using defined YAML serialization
   std::string tf_string;
   pcl::console::parse_argument(argc, argv, "-tf", tf_string);
-  YAML::Node tf_yaml;
-  try
+  Eigen::Isometry3d tf{ Eigen::Isometry3d::Identity() };
+  if (!tf_string.empty())
   {
-    tf_yaml = YAML::Load(tf_string);
+    YAML::Node tf_yaml;
+    try
+    {
+      tf_yaml = YAML::Load(tf_string);
+    }
+    catch (const YAML::Exception& e)
+    {
+      pcl::console::print_error(e.what());
+    }
+    tf = tf_yaml.as<Eigen::Isometry3d>();
   }
-  catch (const YAML::Exception& e)
-  {
-    pcl::console::print_error(e.what());
-  }
-  Eigen::Isometry3d tf = tf_yaml.as<Eigen::Isometry3d>();
 
   pcl::PolygonMesh output_mesh;
   if (primitive_type == "plane")
