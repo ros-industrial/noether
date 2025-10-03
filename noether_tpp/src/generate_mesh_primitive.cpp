@@ -13,7 +13,7 @@ void printHelp(char** argv)
   pcl::console::print_error("Syntax is: %s output_filepath type <options>\n", argv[0]);
   pcl::console::print_info(" where output_filepath = path in which to save the generated mesh \n");
   pcl::console::print_info("       type            = primitive shape to generate (Available options are \"plane\" and "
-                           "\"half_ellipsoid\" \n");
+                           "\"ellipsoid\" \n");
   pcl::console::print_info(" where options are:\n");
   pcl::console::print_info("                     -x_dim X           = the x dimension of the mesh primitive. "
                            "(default: ");
@@ -22,6 +22,28 @@ void printHelp(char** argv)
   pcl::console::print_info("                     -y_dim X           = the y dimension of the mesh primitive. "
                            "(default: ");
   pcl::console::print_value("%f", 1.0);
+  pcl::console::print_info(")\n");
+  pcl::console::print_info("                     -a_dim X           = the dimension of the principle semi-axis along "
+                           "the x-axis. "
+                           "(default: ");
+  pcl::console::print_value("%f", 2.0);
+  pcl::console::print_info(")\n");
+  pcl::console::print_info("                     -b_dim X           = the dimension of the principle semi-axis along "
+                           "the y-axis. "
+                           "(default: ");
+  pcl::console::print_value("%f", 2.0);
+  pcl::console::print_info(")\n");
+  pcl::console::print_info("                     -c_dim X           = the dimension of the principle semi-axis along "
+                           "the z-axis. "
+                           "(default: ");
+  pcl::console::print_value("%f", 1.0);
+  pcl::console::print_info(")\n");
+  pcl::console::print_info("                     -resolution X           = defines the resolution of the ellipsoid. "
+                           "The longitudes will be split into resolution segments (i.e. there are resolution + 1 "
+                           "latitude lines including the north and south pole). The latitudes will be split into 2 * "
+                           "resolution segments (i.e. there are 2 * resolution longitude lines.) "
+                           "(default: ");
+  pcl::console::print_value("%i", 20);
   pcl::console::print_info(")\n");
   pcl::console::print_info("                     -tf X              = the transformation applied to each of the mesh. "
                            "vertices"
@@ -71,9 +93,9 @@ int main(int argc, char** argv)
   }
 
   std::string primitive_type = argv[2];
-  if (primitive_type != "plane" && primitive_type != "half_ellipsoid")
+  if (primitive_type != "plane" && primitive_type != "ellipsoid")
   {
-    pcl::console::print_error("Argument type can only be \"plane\" or \"half_ellipsoid\".\n");
+    pcl::console::print_error("Argument type can only be \"plane\" or \"ellipsoid\".\n");
     return (-1);
   }
 
@@ -90,6 +112,38 @@ int main(int argc, char** argv)
   if (y_dimension <= 0)
   {
     pcl::console::print_error("Argument -y_dim must be greater than zero.\n");
+    return (-1);
+  }
+
+  double a_dimension = 2.0;
+  pcl::console::parse_argument(argc, argv, "-a_dim", a_dimension);
+  if (a_dimension <= 0)
+  {
+    pcl::console::print_error("Argument -a_dim must be greater than zero.\n");
+    return (-1);
+  }
+
+  double b_dimension = 2.0;
+  pcl::console::parse_argument(argc, argv, "-b_dim", b_dimension);
+  if (b_dimension <= 0)
+  {
+    pcl::console::print_error("Argument -b_dim must be greater than zero.\n");
+    return (-1);
+  }
+
+  double c_dimension = 1.0;
+  pcl::console::parse_argument(argc, argv, "-c_dim", c_dimension);
+  if (c_dimension <= 0)
+  {
+    pcl::console::print_error("Argument -c_dim must be greater than zero.\n");
+    return (-1);
+  }
+
+  int resolution = 20;
+  pcl::console::parse_argument(argc, argv, "-resolution", resolution);
+  if (resolution <= 0)
+  {
+    pcl::console::print_error("Argument -resolution must be greater than zero.\n");
     return (-1);
   }
 
@@ -117,10 +171,9 @@ int main(int argc, char** argv)
     output_mesh = noether::createPlaneMesh(x_dimension, y_dimension, tf);
   }
 
-  if (primitive_type == "half_ellipsoid")
+  if (primitive_type == "ellipsoid")
   {
-    pcl::console::print_error("Half ellipsoid generation is not implemented yet. \n");
-    return -1;
+    output_mesh = noether::createEllipsoidMesh(a_dimension, b_dimension, c_dimension, resolution, tf);
   }
 
   // Save the generated mesh to file

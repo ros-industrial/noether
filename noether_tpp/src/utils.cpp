@@ -227,6 +227,15 @@ void printException(const std::exception& e, std::ostream& ss, int level)
  */
 pcl::PolygonMesh createPlaneMesh(const float length, const float width, const Eigen::Isometry3d& tf)
 {
+  if (length <= 0)
+  {
+    throw std::runtime_error("Plane length must be > 0");
+  }
+  if (width <= 0)
+  {
+    throw std::runtime_error("Plane width must be > 0");
+  }
+
   pcl::PolygonMesh mesh;
 
   // Fill in the points of the mesh cloud
@@ -259,6 +268,112 @@ pcl::PolygonMesh createPlaneMesh(const float length, const float width, const Ei
 
   mesh.polygons.push_back(polyA);
   mesh.polygons.push_back(polyB);
+
+  return mesh;
+}
+
+pcl::PolygonMesh
+createEllipsoidMesh(const float a, const float b, const float c, const int resolution, const Eigen::Isometry3d& tf)
+{
+  pcl::PolygonMesh mesh;
+  if (a <= 0 || b <= 0 || c <= 0)
+  {
+    throw std::runtime_error("A semi major axis is <= 0");
+  }
+  if (resolution <= 0)
+  {
+    throw std::runtime_error("resolution <= 0");
+  }
+
+  // Set up cloud of mesh
+  pcl::PointCloud<pcl::PointXYZ> cloud;
+
+  // Set up vertices for the poles
+  cloud.points.resize(2 * resolution * (resolution - 1 + 2));
+  cloud.points[0].x = 0.0;
+  cloud.points[0].y = 0.0;
+  cloud.points[0].z = c;
+  cloud.points[1].x = 0.0;
+  cloud.points[1].y = 0.0;
+  cloud.points[1].z = -c;
+
+  // Set up vertices for the rest of the ellipsoid
+  /*
+   * Equation of an ellipsoid is x^2/a^2 + y^2/b^2 + z^2/c^2
+   * where a,b,c are the semi-axes in meters
+   *
+   * Parameterization of ellipsoid from spherical coordinates to cartesian coordinates where 0 <= theta <= PI and 0 <=
+   * phi <= 2*PI
+   *
+   * x = a * sin(theta) * cos(phi)
+   * y = b * sin(theta) * sin(phi)
+   * z = c * cos(theta)
+   *
+   */
+  float step = M_PI / (float)resolution;
+  for (int i = 1; i < resolution; i++)
+  {
+    float theta = step * i;
+    int base = 2 + 2 * resolution * (i - 1);
+    for (int j = 0; j < 2 * resolution; j++)
+    {
+      float phi = step * j;
+      cloud.points[base + j].x = a * sin(theta) * cos(phi);
+      cloud.points[base + j].y = b * sin(theta) * sin(phi);
+      cloud.points[base + j].z = c * cos(theta);
+    }
+  }
+
+  // Set up parameters of the cloud
+  cloud.width = cloud.points.size();
+  cloud.height = 1;
+  cloud.is_dense = true;
+
+  // Transform the pointcloud
+  pcl::PointCloud<pcl::PointXYZ> transformed_cloud;
+  pcl::transformPointCloud(cloud, transformed_cloud, tf.matrix());
+  pcl::toPCLPointCloud2(transformed_cloud, mesh.cloud);
+
+  // Triangles for poles.
+  for (int j = 0; j < 2 * resolution; j++)
+  {
+    int j1 = (j + 1) % (2 * resolution);
+    int base = 2;
+    pcl::Vertices pcl_indices;
+    pcl_indices.vertices.emplace_back(0);
+    pcl_indices.vertices.emplace_back(base + j);
+    pcl_indices.vertices.emplace_back(base + j1);
+    mesh.polygons.emplace_back(pcl_indices);
+
+    base = 2 + 2 * resolution * (resolution - 2);
+    pcl::Vertices pcl_indices_2;
+    pcl_indices_2.vertices.emplace_back(1);
+    pcl_indices_2.vertices.emplace_back(base + j1);
+    pcl_indices_2.vertices.emplace_back(base + j);
+    mesh.polygons.emplace_back(pcl_indices_2);
+  }
+
+  // Triangles for non-polar region.
+  for (int i = 1; i < resolution - 1; i++)
+  {
+    int base1 = 2 + 2 * resolution * (i - 1);
+    int base2 = base1 + 2 * resolution;
+    for (int j = 0; j < 2 * resolution; j++)
+    {
+      int j1 = (j + 1) % (2 * resolution);
+      pcl::Vertices pcl_indices;
+      pcl_indices.vertices.emplace_back(base2 + j);
+      pcl_indices.vertices.emplace_back(base1 + j1);
+      pcl_indices.vertices.emplace_back(base1 + j);
+      mesh.polygons.emplace_back(pcl_indices);
+
+      pcl::Vertices pcl_indices_2;
+      pcl_indices_2.vertices.emplace_back(base2 + j);
+      pcl_indices_2.vertices.emplace_back(base2 + j1);
+      pcl_indices_2.vertices.emplace_back(base1 + j1);
+      mesh.polygons.emplace_back(pcl_indices_2);
+    }
+  }
 
   return mesh;
 }

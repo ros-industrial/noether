@@ -52,9 +52,21 @@ std::tuple<double, std::vector<double>> computeLength(const ToolPathSegment& seg
  */
 void printException(const std::exception& e, std::ostream& ss, int level = 0);
 
-/* @brief Creates a mesh of an xy plane with a specified length and width. The plane normal is the z-axis.
+/* @brief Creates a mesh of an xy plane with a specified length and width. The plane normal is the z-axis and the
+ * centroid of the plane is at the point (0,0,0).
  */
 pcl::PolygonMesh createPlaneMesh(const float length = 1.0,
                                  const float width = 1.0,
                                  const Eigen::Isometry3d& tf = Eigen::Isometry3d::Identity());
+
+/* @brief Creates a mesh of an ellipsoid with specified semi-axes and resolution. The centroid of the ellipsoid is the
+ * point (0,0,0). Implementation adapted from Open3d
+ * https://github.com/isl-org/Open3D/blob/main/cpp/open3d/geometry/TriangleMeshFactory.cpp#L216-L382
+ */
+pcl::PolygonMesh createEllipsoidMesh(const float a = 2.0,
+                                     const float b = 2.0,
+                                     const float c = 1.0,
+                                     const int resolution = 20,
+                                     const Eigen::Isometry3d& tf = Eigen::Isometry3d::Identity());
+
 }  // namespace noether
