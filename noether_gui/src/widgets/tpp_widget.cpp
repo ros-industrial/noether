@@ -2,7 +2,6 @@
 #include "ui_tpp_widget.h"
 #include <noether_gui/widgets/configurable_tpp_pipeline_widget.h>
 #include <noether_gui/widgets/tpp_pipeline_widget.h>
-#include <noether_gui/widgets/generate_plane_mesh_dialog.h>
 #include <noether_gui/utils.h>
 #include <noether_tpp/serialization.h>
 #include <noether_tpp/utils.h>
@@ -124,7 +123,6 @@ TPPWidget::TPPWidget(std::shared_ptr<const WidgetFactory> factory, QWidget* pare
   connected_path_actor_->SetVisibility(ui_->action_show_modified_tool_path_lines->isChecked());
 
   // Connect signals
-  connect(ui_->action_gen_plane_mesh, &QAction::triggered, this, &TPPWidget::onGeneratePlaneMesh);
   connect(ui_->action_load_mesh, &QAction::triggered, this, &TPPWidget::onLoadMesh);
   connect(ui_->action_execute_pipeline, &QAction::triggered, [this](const bool) { plan(); });
   connect(ui_->action_save_modified_mesh, &QAction::triggered, this, &TPPWidget::onSaveModifiedMeshes);
@@ -616,18 +614,6 @@ void TPPWidget::onSaveToolPaths(const bool /*checked*/)
     file = file.append(".yaml");
 
   saveToolPaths(file);
-}
-
-void TPPWidget::onGeneratePlaneMesh()
-{
-  GeneratePlaneMeshDialog dialog(this);
-  if (dialog.exec() == QDialog::Accepted)
-  {
-    pcl::PolygonMesh mesh = createPlaneMesh(dialog.getPlaneLength(), dialog.getPlaneWidth());
-    std::string file_path = "/tmp/generated_mesh.ply";
-    pcl::io::savePolygonFile(file_path, mesh);
-    setMeshFile(QString::fromStdString(file_path));
-  }
 }
 
 }  // namespace noether

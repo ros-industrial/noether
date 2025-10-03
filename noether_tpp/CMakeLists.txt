@@ -15,6 +15,7 @@ find_package(Eigen3 REQUIRED)
 find_package(
   PCL REQUIRED
   COMPONENTS common
+             console
              io
              surface
              segmentation
@@ -144,6 +145,10 @@ target_cxx_version(
 )
 target_clang_tidy(${PROJECT_NAME} ENABLE ${NOETHER_ENABLE_CLANG_TIDY})
 
+# Executable to generate mesh primitives
+add_executable(generate_mesh_primitives src/generate_mesh_primitive.cpp)
+target_link_libraries(generate_mesh_primitives PRIVATE ${PROJECT_NAME} ${PCL_LIBRARIES} Eigen3::Eigen)
+
 # Plugin Library
 add_library(${PROJECT_NAME}_plugins SHARED src/plugins.cpp)
 target_link_libraries(${PROJECT_NAME}_plugins PUBLIC ${PROJECT_NAME} yaml-cpp boost_plugin_loader::boost_plugin_loader)
@@ -171,5 +176,5 @@ configure_package(
     "PCL REQUIRED COMPONENTS common io surface segmentation"
     VTK
     boost_plugin_loader
-  TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_plugins
+  TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_plugins generate_mesh_primitives
 )

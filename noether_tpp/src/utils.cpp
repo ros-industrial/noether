@@ -1,3 +1,4 @@
+#include <pcl/common/transforms.h>
 #include <noether_tpp/utils.h>
 
 namespace noether
@@ -224,7 +225,9 @@ void printException(const std::exception& e, std::ostream& ss, int level)
  *    1---2
  *
  */
-pcl::PolygonMesh createPlaneMesh(const float length, const float width)
+
+// TODO: Add transform parameter
+pcl::PolygonMesh createPlaneMesh(const float length, const float width, const Eigen::Isometry3d& tf)
 {
   pcl::PolygonMesh mesh;
 
@@ -239,7 +242,11 @@ pcl::PolygonMesh createPlaneMesh(const float length, const float width)
   cloud.points.push_back(p1);
   cloud.points.push_back(p2);
   cloud.points.push_back(p3);
-  pcl::toPCLPointCloud2(cloud, mesh.cloud);
+
+  // Transform the pointcloud
+  pcl::PointCloud<pcl::PointXYZ> transformed_cloud;
+  pcl::transformPointCloud(cloud, transformed_cloud, tf.matrix());
+  pcl::toPCLPointCloud2(transformed_cloud, mesh.cloud);
 
   // Define the polygons of the mesh
   pcl::Vertices polyA;

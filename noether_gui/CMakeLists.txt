@@ -35,7 +35,6 @@ add_library(
   src/widgets/tpp_pipeline_widget.cpp
   src/widgets/configurable_tpp_pipeline_widget.cpp
   src/widgets/tpp_widget.cpp
-  src/widgets/generate_plane_mesh_dialog.cpp
   # Tool Path Planners
   # Raster Planner
   src/widgets/tool_path_planners/raster/raster_planner_widget.cpp
