@@ -20,7 +20,7 @@
      <x>0</x>
      <y>0</y>
      <width>417</width>
-     <height>22</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -400,26 +400,12 @@
     <string>Ctrl+S</string>
    </property>
   </action>
-  <action name="action_gen_plane_mesh">
-   <property name="icon">
-    <iconset theme="QIcon::ThemeIcon::DocumentNew"/>
-   </property>
-   <property name="text">
-    <string>Plane mesh</string>
-   </property>
-   <property name="toolTip">
-    <string>Generate a planar mesh</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+G</string>
-   </property>
-  </action>
  </widget>
  <customwidgets>
   <customwidget>
    <class>noether::DistanceDoubleSpinBox</class>
    <extends>QDoubleSpinBox</extends>
-   <header>noether_gui/widgets/distance_double_spin_box.h</header>
+   <header location="global">noether_gui/widgets/distance_double_spin_box.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

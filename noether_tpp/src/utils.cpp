@@ -217,21 +217,13 @@ void printException(const std::exception& e, std::ostream& ss, int level)
   }
 }
 
-/* The plane mesh has the following structure. 0-3 represent vertices and A and B represent polygons.
- *
- *    0---3
- *    |A /|
- *    |/ B|
- *    1---2
- *
- */
-pcl::PolygonMesh createPlaneMesh(const float length, const float width, const Eigen::Isometry3d& tf)
+pcl::PolygonMesh createPlaneMesh(const float lx, const float ly, const Eigen::Isometry3d& origin)
 {
-  if (length <= 0)
+  if (lx <= 0.0)
   {
     throw std::runtime_error("Plane length must be > 0");
   }
-  if (width <= 0)
+  if (ly <= 0.0)
   {
     throw std::runtime_error("Plane width must be > 0");
   }
@@ -245,10 +237,10 @@ pcl::PolygonMesh createPlaneMesh(const float length, const float width, const Ei
   cloud.is_dense = true;
   cloud.points.reserve(cloud.width);
 
-  pcl::PointXYZ p0 = { -length / 2, width / 2, 0 };
-  pcl::PointXYZ p1 = { -length / 2, -width / 2, 0 };
-  pcl::PointXYZ p2 = { length / 2, -width / 2, 0 };
-  pcl::PointXYZ p3 = { length / 2, width / 2, 0 };
+  pcl::PointXYZ p0 = { -lx / 2, ly / 2, 0 };
+  pcl::PointXYZ p1 = { -lx / 2, -ly / 2, 0 };
+  pcl::PointXYZ p2 = { lx / 2, -ly / 2, 0 };
+  pcl::PointXYZ p3 = { lx / 2, ly / 2, 0 };
 
   cloud.points.push_back(p0);
   cloud.points.push_back(p1);
@@ -257,7 +249,7 @@ pcl::PolygonMesh createPlaneMesh(const float length, const float width, const Ei
 
   // Transform the pointcloud
   pcl::PointCloud<pcl::PointXYZ> transformed_cloud;
-  pcl::transformPointCloud(cloud, transformed_cloud, tf.matrix());
+  pcl::transformPointCloud(cloud, transformed_cloud, origin.matrix());
   pcl::toPCLPointCloud2(transformed_cloud, mesh.cloud);
 
   // Define the polygons of the mesh
@@ -272,17 +264,26 @@ pcl::PolygonMesh createPlaneMesh(const float length, const float width, const Ei
   return mesh;
 }
 
-pcl::PolygonMesh
-createEllipsoidMesh(const float a, const float b, const float c, const int resolution, const Eigen::Isometry3d& tf)
+// ----------------------------------------------------------------------------
+// -                        Open3D: www.open3d.org                            -
+// ----------------------------------------------------------------------------
+// Copyright (c) 2018-2024 www.open3d.org
+// SPDX-License-Identifier: MIT
+// ----------------------------------------------------------------------------
+pcl::PolygonMesh createEllipsoidMesh(const float rx,
+                                     const float ry,
+                                     const float rz,
+                                     const int resolution,
+                                     const Eigen::Isometry3d& origin)
 {
   pcl::PolygonMesh mesh;
-  if (a <= 0 || b <= 0 || c <= 0)
+  if (rx <= 0.0 || ry <= 0.0 || rz <= 0.0)
   {
     throw std::runtime_error("A semi major axis is <= 0");
   }
-  if (resolution <= 0)
+  if (resolution <= 2)
   {
-    throw std::runtime_error("resolution <= 0");
+    throw std::runtime_error("resolution should be >= 3");
   }
 
   // Set up cloud of mesh
@@ -292,24 +293,12 @@ createEllipsoidMesh(const float a, const float b, const float c, const int resol
   cloud.points.resize(2 * resolution * (resolution - 1 + 2));
   cloud.points[0].x = 0.0;
   cloud.points[0].y = 0.0;
-  cloud.points[0].z = c;
+  cloud.points[0].z = rz;
   cloud.points[1].x = 0.0;
   cloud.points[1].y = 0.0;
-  cloud.points[1].z = -c;
+  cloud.points[1].z = -rz;
 
   // Set up vertices for the rest of the ellipsoid
-  /*
-   * Equation of an ellipsoid is x^2/a^2 + y^2/b^2 + z^2/c^2
-   * where a,b,c are the semi-axes in meters
-   *
-   * Parameterization of ellipsoid from spherical coordinates to cartesian coordinates where 0 <= theta <= PI and 0 <=
-   * phi <= 2*PI
-   *
-   * x = a * sin(theta) * cos(phi)
-   * y = b * sin(theta) * sin(phi)
-   * z = c * cos(theta)
-   *
-   */
   float step = M_PI / (float)resolution;
   for (int i = 1; i < resolution; i++)
   {
@@ -318,9 +307,9 @@ createEllipsoidMesh(const float a, const float b, const float c, const int resol
     for (int j = 0; j < 2 * resolution; j++)
     {
       float phi = step * j;
-      cloud.points[base + j].x = a * sin(theta) * cos(phi);
-      cloud.points[base + j].y = b * sin(theta) * sin(phi);
-      cloud.points[base + j].z = c * cos(theta);
+      cloud.points[base + j].x = rx * sin(theta) * cos(phi);
+      cloud.points[base + j].y = ry * sin(theta) * sin(phi);
+      cloud.points[base + j].z = rz * cos(theta);
     }
   }
 
@@ -331,7 +320,7 @@ createEllipsoidMesh(const float a, const float b, const float c, const int resol
 
   // Transform the pointcloud
   pcl::PointCloud<pcl::PointXYZ> transformed_cloud;
-  pcl::transformPointCloud(cloud, transformed_cloud, tf.matrix());
+  pcl::transformPointCloud(cloud, transformed_cloud, origin.matrix());
   pcl::toPCLPointCloud2(transformed_cloud, mesh.cloud);
 
   // Triangles for poles.
