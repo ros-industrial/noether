@@ -11,6 +11,7 @@ project(
 )
 
 find_package(boost_plugin_loader REQUIRED)
+find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(Eigen3 REQUIRED)
 find_package(
   PCL REQUIRED
@@ -154,6 +155,16 @@ target_cxx_version(
 )
 target_clang_tidy(${PROJECT_NAME}_plugins ENABLE ${NOETHER_ENABLE_CLANG_TIDY})
 
+# Mesh primitive generation application
+add_executable(mesh_primitive_generator src/app/mesh_primitive_generator.cpp)
+target_link_libraries(mesh_primitive_generator PRIVATE ${PROJECT_NAME} Boost::program_options)
+target_cxx_version(
+  mesh_primitive_generator
+  PUBLIC
+  VERSION 14
+)
+target_clang_tidy(mesh_primitive_generator ENABLE ${NOETHER_ENABLE_CLANG_TIDY})
+
 # Install headers
 install(DIRECTORY include/ DESTINATION include/)
 
@@ -167,9 +178,13 @@ endif()
 configure_package(
   NAMESPACE noether
   DEPENDENCIES
+    "Boost REQUIRED COMPONENTS program_options"
     Eigen3
     "PCL REQUIRED COMPONENTS common io surface segmentation"
-    VTK
+    "VTK 9 REQUIRED COMPONENTS CommonCore CommonDataModel CommonTransforms CommonColor CommonMath CommonComputationalGeometry IOGeometry IOPLY FiltersCore FiltersGeneral RenderingCore RenderingAnnotation RenderingOpenGL2"
     boost_plugin_loader
-  TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_plugins
+  TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_plugins mesh_primitive_generator
 )
+
+# Install the executables for access by ROS
+install(TARGETS mesh_primitive_generator DESTINATION lib/${PROJECT_NAME})
