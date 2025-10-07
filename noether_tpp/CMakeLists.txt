@@ -181,7 +181,7 @@ configure_package(
     "Boost REQUIRED COMPONENTS program_options"
     Eigen3
     "PCL REQUIRED COMPONENTS common io surface segmentation"
-    VTK
+    "VTK 9 REQUIRED COMPONENTS CommonCore CommonDataModel CommonTransforms CommonColor CommonMath CommonComputationalGeometry IOGeometry IOPLY FiltersCore FiltersGeneral RenderingCore RenderingAnnotation RenderingOpenGL2"
     boost_plugin_loader
   TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_plugins mesh_primitive_generator
 )
