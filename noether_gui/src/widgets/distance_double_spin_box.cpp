@@ -9,13 +9,17 @@
  */
 static std::tuple<double, std::string> split(const std::string& text)
 {
-  const std::regex re("^([\\d\\.]+)\\s*(\\S*)$");
+  const std::regex re("^(\\-?)([\\d\\.]+)\\s*(\\S*)$");
   std::smatch matches;
 
   if (!std::regex_search(text, matches, re))
     return std::make_tuple(0.0, "");
 
-  return std::make_tuple(std::stod(matches.str(1)), matches.str(2));
+  const double sign = matches.str(1).empty() ? 1.0 : -1.0;
+  const double value = sign * std::stod(matches.str(2));
+  const std::string unit = matches.str(3);
+
+  return std::make_tuple(value, unit);
 }
 
 namespace noether
