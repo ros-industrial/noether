@@ -32,6 +32,7 @@
 #include <noether_gui/widgets/tool_path_modifiers/uniform_spacing_spline_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/uniform_spacing_linear_modifier_widget.h>
 // Mesh Modifiers
+#include <noether_gui/widgets/mesh_modifiers/cylinder_projection_modifier_widget.h>
 #include <noether_gui/widgets/mesh_modifiers/plane_projection_modifier_widget.h>
 #include <noether_gui/widgets/mesh_modifiers/euclidean_clustering_modifier_widget.h>
 #include <noether_gui/widgets/mesh_modifiers/normal_estimation_pcl_widget.h>
@@ -45,6 +46,7 @@
 namespace noether
 {
 // Mesh Modifiers
+EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(CylinderProjectionModifierWidget, CylinderSegmentation)
 EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(EuclideanClusteringMeshModifierWidget, EuclideanClustering)
 EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(FillHolesModifierWidget, FillHoles)
 EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(NormalEstimationPCLMeshModifierWidget, NormalEstimationPCL)
