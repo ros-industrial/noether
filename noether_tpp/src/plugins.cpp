@@ -4,6 +4,7 @@
 // Mesh modifiers
 #include <noether_tpp/mesh_modifiers/clean_data_modifier.h>
 #include <noether_tpp/mesh_modifiers/compound_modifier.h>
+#include <noether_tpp/mesh_modifiers/cylinder_projection_modifier.h>
 #include <noether_tpp/mesh_modifiers/euclidean_clustering_modifier.h>
 #include <noether_tpp/mesh_modifiers/fill_holes_modifier.h>
 #include <noether_tpp/mesh_modifiers/normal_estimation_pcl.h>
@@ -49,6 +50,7 @@ namespace noether
 {
 // Mesh Modifiers
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(CleanData, CleanData)
+EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(CylinderProjectionModifier, CylinderSegmentation)
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(EuclideanClusteringMeshModifier, EuclideanClustering)
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(FillHoles, FillHoles)
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(NormalEstimationPCLMeshModifier, NormalEstimationPCL)
