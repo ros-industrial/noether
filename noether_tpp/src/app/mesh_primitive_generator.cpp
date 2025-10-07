@@ -12,7 +12,7 @@ int main(int argc, char** argv)
   // clang-format off
   opts.add_options()
     ("help,h", "Produce help message")
-    ("type,t", po::value<std::string>()->default_value("plane")->required(), "Primitive type")
+    ("type,t", po::value<std::string>()->required(), "Primitive type")
     ("out_file,o", po::value<std::string>()->required(), "Output mesh file");
 
   // Plane options
@@ -44,66 +44,75 @@ int main(int argc, char** argv)
   // Add the primitive options to the general options
   opts.add(plane_opts).add(ellipsoid_opts).add(origin_opts);
 
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, opts), vm);
-  po::notify(vm);
+  try
+  {
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, opts), vm);
 
-  if (vm.count("help"))
-  {
-    std::cout << opts << std::endl;
-    return 1;
-  }
+    if (vm.count("help"))
+    {
+      std::cout << opts << std::endl;
+      return 0;
+    }
 
-  Eigen::Isometry3d origin = Eigen::Isometry3d::Identity();
-  if (vm.count("o.x"))
-    origin.translation().x() = vm.at("o.x").as<double>();
-  if (vm.count("o.y"))
-    origin.translation().y() = vm.at("o.y").as<double>();
-  if (vm.count("o.z"))
-    origin.translation().z() = vm.at("o.z").as<double>();
-  if (vm.count("o.rx"))
-    origin.rotate(Eigen::AngleAxisd(vm.at("o.rx").as<double>() * M_PI / 180.0, Eigen::Vector3d::UnitX()));
-  if (vm.count("o.ry"))
-    origin.rotate(Eigen::AngleAxisd(vm.at("o.ry").as<double>() * M_PI / 180.0, Eigen::Vector3d::UnitY()));
-  if (vm.count("o.rz"))
-    origin.rotate(Eigen::AngleAxisd(vm.at("o.rz").as<double>() * M_PI / 180.0, Eigen::Vector3d::UnitZ()));
+    po::notify(vm);
 
-  pcl::PolygonMesh mesh;
-  const auto type = vm.at("type").as<std::string>();
-  if (type == "plane")
-  {
-    std::cout << "Generating plane mesh..." << std::endl;
-    const auto lx = vm.at("lx").as<float>();
-    const auto ly = vm.at("ly").as<float>();
-    mesh = noether::createPlaneMesh(lx, ly, origin);
+    Eigen::Isometry3d origin = Eigen::Isometry3d::Identity();
+    if (vm.count("o.x"))
+      origin.translation().x() = vm.at("o.x").as<double>();
+    if (vm.count("o.y"))
+      origin.translation().y() = vm.at("o.y").as<double>();
+    if (vm.count("o.z"))
+      origin.translation().z() = vm.at("o.z").as<double>();
+    if (vm.count("o.rx"))
+      origin.rotate(Eigen::AngleAxisd(vm.at("o.rx").as<double>() * M_PI / 180.0, Eigen::Vector3d::UnitX()));
+    if (vm.count("o.ry"))
+      origin.rotate(Eigen::AngleAxisd(vm.at("o.ry").as<double>() * M_PI / 180.0, Eigen::Vector3d::UnitY()));
+    if (vm.count("o.rz"))
+      origin.rotate(Eigen::AngleAxisd(vm.at("o.rz").as<double>() * M_PI / 180.0, Eigen::Vector3d::UnitZ()));
+
+    pcl::PolygonMesh mesh;
+    const auto type = vm.at("type").as<std::string>();
+    if (type == "plane")
+    {
+      std::cout << "Generating plane mesh..." << std::endl;
+      const auto lx = vm.at("lx").as<float>();
+      const auto ly = vm.at("ly").as<float>();
+      mesh = noether::createPlaneMesh(lx, ly, origin);
+    }
+    else if (type == "ellipsoid")
+    {
+      std::cout << "Generating ellipsoid mesh..." << std::endl;
+      const auto rx = vm.at("rx").as<float>();
+      const auto ry = vm.at("ry").as<float>();
+      const auto rz = vm.at("rz").as<float>();
+      const auto resolution = vm.at("resolution").as<int>();
+      const auto theta_range = vm.at("theta").as<float>() * static_cast<float>(M_PI / 180.0);
+      const auto phi_range = vm.at("phi").as<float>() * static_cast<float>(M_PI / 180.0);
+      mesh = noether::createEllipsoidMesh(rx, ry, rz, resolution, theta_range, phi_range, origin);
+    }
+    else
+    {
+      std::cout << "Unsupported primitive type: '" << type << "'" << std::endl;
+      return -1;
+    }
+
+    const std::string out_file = vm.at("out_file").as<std::string>();
+    if (pcl::io::save(out_file, mesh) < 0)
+    {
+      std::cout << "Failed to save mesh to '" << out_file << "'" << std::endl;
+      return -1;
+    }
+    else
+    {
+      std::cout << "Saved mesh to '" << out_file << "'" << std::endl;
+    }
   }
-  else if (type == "ellipsoid")
+  catch (const std::exception& ex)
   {
-    std::cout << "Generating ellipsoid mesh..." << std::endl;
-    const auto rx = vm.at("rx").as<float>();
-    const auto ry = vm.at("ry").as<float>();
-    const auto rz = vm.at("rz").as<float>();
-    const auto resolution = vm.at("resolution").as<int>();
-    const auto theta_range = vm.at("theta").as<float>() * static_cast<float>(M_PI / 180.0);
-    const auto phi_range = vm.at("phi").as<float>() * static_cast<float>(M_PI / 180.0);
-    mesh = noether::createEllipsoidMesh(rx, ry, rz, resolution, theta_range, phi_range, origin);
-  }
-  else
-  {
-    std::cout << "Unsupported primitive type: '" << type << "'" << std::endl;
+    std::cout << ex.what() << std::endl;
     return -1;
   }
 
-  const std::string out_file = vm.at("out_file").as<std::string>();
-  if (pcl::io::save(out_file, mesh) < 0)
-  {
-    std::cout << "Failed to save mesh to '" << out_file << "'" << std::endl;
-    return -1;
-  }
-  else
-  {
-    std::cout << "Saved mesh to '" << out_file << "'" << std::endl;
-  }
-
-  return 1;
+  return 0;
 }
