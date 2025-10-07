@@ -1,209 +1,109 @@
-#include <pcl/console/print.h>
-#include <pcl/console/parse.h>
-#include <pcl/io/ply_io.h>
-#include <pcl/io/vtk_lib_io.h>
+#include <boost/program_options.hpp>
+#include <iostream>
+#include <pcl/io/auto_io.h>
 
-#include <filesystem>
 #include <noether_tpp/utils.h>
-#include <yaml-cpp/yaml.h>
-#include <noether_tpp/serialization.h>
-
-void printHelp(char** argv)
-{
-  pcl::console::print_error("Syntax is: %s output_filepath type <options>\n", argv[0]);
-  pcl::console::print_info(" where output_filepath = path in which to save the generated mesh \n");
-  pcl::console::print_info("       type            = primitive shape to generate (Available options are \"plane\" and "
-                           "\"ellipsoid\" \n");
-  pcl::console::print_info(" where options are:\n");
-  pcl::console::print_info("                     -x_dim X           = the x dimension of the mesh primitive. "
-                           "(default: ");
-  pcl::console::print_value("%f", 1.0);
-  pcl::console::print_info(")\n");
-  pcl::console::print_info("                     -y_dim X           = the y dimension of the mesh primitive. "
-                           "(default: ");
-  pcl::console::print_value("%f", 1.0);
-  pcl::console::print_info(")\n");
-  pcl::console::print_info("                     -a_dim X           = the dimension of the principle semi-axis along "
-                           "the x-axis. "
-                           "(default: ");
-  pcl::console::print_value("%f", 2.0);
-  pcl::console::print_info(")\n");
-  pcl::console::print_info("                     -b_dim X           = the dimension of the principle semi-axis along "
-                           "the y-axis. "
-                           "(default: ");
-  pcl::console::print_value("%f", 2.0);
-  pcl::console::print_info(")\n");
-  pcl::console::print_info("                     -c_dim X           = the dimension of the principle semi-axis along "
-                           "the z-axis. "
-                           "(default: ");
-  pcl::console::print_value("%f", 1.0);
-  pcl::console::print_info(")\n");
-  pcl::console::print_info("                     -resolution X           = defines the resolution of the ellipsoid. "
-                           "The longitudes will be split into resolution segments (i.e. there are resolution + 1 "
-                           "latitude lines including the north and south pole). The latitudes will be split into 2 * "
-                           "resolution segments (i.e. there are 2 * resolution longitude lines.) "
-                           "(default: ");
-  pcl::console::print_value("%i", 20);
-  pcl::console::print_info(")\n");
-  pcl::console::print_info("                     -tf X              = the transformation applied to each of the mesh. "
-                           "vertices"
-                           "(default: ");
-  pcl::console::print_value("%s", "Eigen::Isometry3d::Identity()");
-  pcl::console::print_info(")\n");
-  pcl::console::print_info("Format for -tf is as follows: \n");
-  pcl::console::print_value("%s",
-                            "-tf \"x: 0.0 \n"
-                            "y: 0.0 \n"
-                            "z: 0.0 \n"
-                            "qw: 0.0 \n"
-                            "qx: 0.0 \n"
-                            "qy: 0.0 \n"
-                            "qz: 0.0\" \n");
-  pcl::console::print_info("Where x,y,z are the translation components in meters and qw, qx, qy, qz are the quaternion "
-                           "components that represent the rotation component of the transformation \n");
-}
-
-void printSuccess(char** argv)
-{
-  pcl::console::print_info("Generated a %s mesh and saved it to %s. \n"
-                           "For more information on available primative types and mesh parameters, "
-                           "use: %s -h or %s --help \n",
-                           argv[2],
-                           argv[1],
-                           argv[0],
-                           argv[0]);
-}
 
 int main(int argc, char** argv)
 {
-  if (argc < 3 || pcl::console::find_argument(argc, argv, "--help") > 0 ||
-      pcl::console::find_argument(argc, argv, "-h") > 0)
+  namespace po = boost::program_options;
+  po::options_description opts("Mesh primitive generation options");
+
+  // clang-format off
+  opts.add_options()
+    ("help,h", "Produce help message")
+    ("type,t", po::value<std::string>()->default_value("plane")->required(), "Primitive type")
+    ("out_file,o", po::value<std::string>()->required(), "Output mesh file");
+
+  // Plane options
+  po::options_description plane_opts("Plane options");
+  plane_opts.add_options()
+    ("lx", po::value<float>()->default_value(1.0f), "Length (m) in the x direction")
+    ("ly", po::value<float>()->default_value(1.0f), "Width (m) in the y direction");
+
+  // Ellipsoid options
+  po::options_description ellipsoid_opts("Ellipsoid options");
+  ellipsoid_opts.add_options()
+    ("rx", po::value<float>()->default_value(1.0f), "Radius (m) in the x direction")
+    ("ry", po::value<float>()->default_value(1.0f), "Radius (m) in the y direction")
+    ("rz", po::value<float>()->default_value(1.5f), "Radius (m) in the z direction")
+    ("resolution,r", po::value<int>()->default_value(20), "Number of points in each ring of the ellipsoid")
+    ("theta", po::value<float>()->default_value(180.0f), "Angle range (deg) of ellipsoid spanning from pole to pole, on (0, pi]")
+    ("phi", po::value<float>()->default_value(360.0f), "Angle range (deg) of ellipsoid around z-axis passing through both poles, on (0, 2 * pi]");
+
+  po::options_description origin_opts("Origin options");
+  origin_opts.add_options()
+    ("o.x", po::value<double>()->default_value(0.0), "Translation (m) in the x direction")
+    ("o.y", po::value<double>()->default_value(0.0), "Translation (m) in the y direction")
+    ("o.z", po::value<double>()->default_value(0.0), "Translation (m) in the z direction")
+    ("o.rx", po::value<double>()->default_value(0.0), "Euler XYZ rotation (deg) about the x axis")
+    ("o.ry", po::value<double>()->default_value(0.0), "Euler XYZ rotation (deg) about the y axis")
+    ("o.rz", po::value<double>()->default_value(0.0), "Euler XYZ rotation (deg) about the z axis");
+  // clang-format on
+
+  // Add the primitive options to the general options
+  opts.add(plane_opts).add(ellipsoid_opts).add(origin_opts);
+
+  po::variables_map vm;
+  po::store(po::parse_command_line(argc, argv, opts), vm);
+  po::notify(vm);
+
+  if (vm.count("help"))
   {
-    printHelp(argv);
-    return (-1);
+    std::cout << opts << std::endl;
+    return 1;
   }
 
-  // Parse command line arguments
-  std::string output_file = argv[1];
-  std::string output_extension = std::filesystem::path(output_file).extension().string();
-  if (output_extension != ".stl" && output_extension != ".ply")
+  Eigen::Isometry3d origin = Eigen::Isometry3d::Identity();
+  if (vm.count("o.x"))
+    origin.translation().x() = vm.at("o.x").as<double>();
+  if (vm.count("o.y"))
+    origin.translation().y() = vm.at("o.y").as<double>();
+  if (vm.count("o.z"))
+    origin.translation().z() = vm.at("o.z").as<double>();
+  if (vm.count("o.rx"))
+    origin.rotate(Eigen::AngleAxisd(vm.at("o.rx").as<double>() * M_PI / 180.0, Eigen::Vector3d::UnitX()));
+  if (vm.count("o.ry"))
+    origin.rotate(Eigen::AngleAxisd(vm.at("o.ry").as<double>() * M_PI / 180.0, Eigen::Vector3d::UnitY()));
+  if (vm.count("o.rz"))
+    origin.rotate(Eigen::AngleAxisd(vm.at("o.rz").as<double>() * M_PI / 180.0, Eigen::Vector3d::UnitZ()));
+
+  pcl::PolygonMesh mesh;
+  const auto type = vm.at("type").as<std::string>();
+  if (type == "plane")
   {
-    pcl::console::print_error("The only output file types supported are: .stl and .ply.\n");
-    return (-1);
+    std::cout << "Generating plane mesh..." << std::endl;
+    const auto lx = vm.at("lx").as<float>();
+    const auto ly = vm.at("ly").as<float>();
+    mesh = noether::createPlaneMesh(lx, ly, origin);
+  }
+  else if (type == "ellipsoid")
+  {
+    std::cout << "Generating ellipsoid mesh..." << std::endl;
+    const auto rx = vm.at("rx").as<float>();
+    const auto ry = vm.at("ry").as<float>();
+    const auto rz = vm.at("rz").as<float>();
+    const auto resolution = vm.at("resolution").as<int>();
+    const auto theta_range = vm.at("theta").as<float>() * static_cast<float>(M_PI / 180.0);
+    const auto phi_range = vm.at("phi").as<float>() * static_cast<float>(M_PI / 180.0);
+    mesh = noether::createEllipsoidMesh(rx, ry, rz, resolution, theta_range, phi_range, origin);
+  }
+  else
+  {
+    std::cout << "Unsupported primitive type: '" << type << "'" << std::endl;
+    return -1;
   }
 
-  std::string primitive_type = argv[2];
-  if (primitive_type != "plane" && primitive_type != "ellipsoid")
+  const std::string out_file = vm.at("out_file").as<std::string>();
+  if (pcl::io::save(out_file, mesh) < 0)
   {
-    pcl::console::print_error("Argument type can only be \"plane\" or \"ellipsoid\".\n");
-    return (-1);
+    std::cout << "Failed to save mesh to '" << out_file << "'" << std::endl;
+    return -1;
+  }
+  else
+  {
+    std::cout << "Saved mesh to '" << out_file << "'" << std::endl;
   }
 
-  double x_dimension = 1.0;
-  pcl::console::parse_argument(argc, argv, "-x_dim", x_dimension);
-  if (x_dimension <= 0)
-  {
-    pcl::console::print_error("Argument -x_dim must be greater than zero.\n");
-    return (-1);
-  }
-
-  double y_dimension = 1.0;
-  pcl::console::parse_argument(argc, argv, "-y_dim", y_dimension);
-  if (y_dimension <= 0)
-  {
-    pcl::console::print_error("Argument -y_dim must be greater than zero.\n");
-    return (-1);
-  }
-
-  double a_dimension = 2.0;
-  pcl::console::parse_argument(argc, argv, "-a_dim", a_dimension);
-  if (a_dimension <= 0)
-  {
-    pcl::console::print_error("Argument -a_dim must be greater than zero.\n");
-    return (-1);
-  }
-
-  double b_dimension = 2.0;
-  pcl::console::parse_argument(argc, argv, "-b_dim", b_dimension);
-  if (b_dimension <= 0)
-  {
-    pcl::console::print_error("Argument -b_dim must be greater than zero.\n");
-    return (-1);
-  }
-
-  double c_dimension = 1.0;
-  pcl::console::parse_argument(argc, argv, "-c_dim", c_dimension);
-  if (c_dimension <= 0)
-  {
-    pcl::console::print_error("Argument -c_dim must be greater than zero.\n");
-    return (-1);
-  }
-
-  int resolution = 20;
-  pcl::console::parse_argument(argc, argv, "-resolution", resolution);
-  if (resolution <= 0)
-  {
-    pcl::console::print_error("Argument -resolution must be greater than zero.\n");
-    return (-1);
-  }
-
-  // Convert tf argument from string to EigenIsometry3d using defined YAML serialization
-  std::string tf_string;
-  pcl::console::parse_argument(argc, argv, "-tf", tf_string);
-  Eigen::Isometry3d tf{ Eigen::Isometry3d::Identity() };
-  if (!tf_string.empty())
-  {
-    YAML::Node tf_yaml;
-    try
-    {
-      tf_yaml = YAML::Load(tf_string);
-    }
-    catch (const YAML::Exception& e)
-    {
-      pcl::console::print_error(e.what());
-    }
-    tf = tf_yaml.as<Eigen::Isometry3d>();
-  }
-
-  pcl::PolygonMesh output_mesh;
-  if (primitive_type == "plane")
-  {
-    output_mesh = noether::createPlaneMesh(x_dimension, y_dimension, tf);
-  }
-
-  if (primitive_type == "ellipsoid")
-  {
-    output_mesh = noether::createEllipsoidMesh(a_dimension, b_dimension, c_dimension, resolution, tf);
-  }
-
-  // Save the generated mesh to file
-  if (output_extension == ".ply")
-  {
-    if (pcl::io::savePolygonFilePLY(output_file, output_mesh))
-    {
-      printSuccess(argv);
-      return 0;
-    }
-    else
-    {
-      pcl::io::savePolygonFilePLY(output_file, output_mesh);
-      printHelp(argv);
-      return -1;
-    }
-  }
-  if (output_extension == ".stl")
-  {
-    if (pcl::io::savePolygonFileSTL(output_file, output_mesh))
-    {
-      pcl::io::savePolygonFileSTL(output_file, output_mesh);
-      printSuccess(argv);
-      return 0;
-    }
-    else
-    {
-      pcl::io::savePolygonFileSTL(output_file, output_mesh);
-      printHelp(argv);
-      return -1;
-    }
-  }
+  return 1;
 }

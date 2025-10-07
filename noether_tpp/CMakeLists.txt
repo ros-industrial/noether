@@ -11,11 +11,11 @@ project(
 )
 
 find_package(boost_plugin_loader REQUIRED)
+find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(Eigen3 REQUIRED)
 find_package(
   PCL REQUIRED
   COMPONENTS common
-             console
              io
              surface
              segmentation
@@ -147,7 +147,7 @@ target_clang_tidy(${PROJECT_NAME} ENABLE ${NOETHER_ENABLE_CLANG_TIDY})
 
 # Executable to generate mesh primitives
 add_executable(generate_mesh_primitives src/generate_mesh_primitive.cpp)
-target_link_libraries(generate_mesh_primitives PRIVATE ${PROJECT_NAME} ${PCL_LIBRARIES} Eigen3::Eigen)
+target_link_libraries(generate_mesh_primitives PRIVATE ${PROJECT_NAME} ${PCL_LIBRARIES} Eigen3::Eigen Boost::program_options)
 
 # Plugin Library
 add_library(${PROJECT_NAME}_plugins SHARED src/plugins.cpp)
@@ -172,6 +172,7 @@ endif()
 configure_package(
   NAMESPACE noether
   DEPENDENCIES
+    "Boost REQUIRED COMPONENTS program_options"
     Eigen3
     "PCL REQUIRED COMPONENTS common io surface segmentation"
     VTK
