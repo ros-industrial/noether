@@ -50,10 +50,9 @@ std::tuple<double, std::vector<double>> computeLength(const ToolPathSegment& seg
  */
 void printException(const std::exception& e, std::ostream& ss, int level = 0);
 
-/* @brief Creates a mesh of an xy plane with a specified length and width.
- * @details The plane normal is the z-axis and the centroid of the plane located at the specified origin.
- *
- * The plane mesh has the following structure. 0-3 represent vertices and A and B represent polygons.
+/**
+ * @brief Creates a mesh of an x-y plane (z-axis is normal) with a specified length and width.
+ * @details The plane is comprised of 4 vertices and two triangles:
  *
  *    0---3
  *    |A /|
@@ -62,30 +61,32 @@ void printException(const std::exception& e, std::ostream& ss, int level = 0);
  *
  * @param lx Length (m) along the x direction
  * @param ly Length (m) along the y direction
+ * @param origin Transform to the desired origin of the primitive
  */
 pcl::PolygonMesh createPlaneMesh(const float lx = 1.0,
                                  const float ly = 1.0,
                                  const Eigen::Isometry3d& origin = Eigen::Isometry3d::Identity());
 
-/* @brief Creates a mesh of an ellipsoid with specified semi-axes and resolution.
- * @details The centroid of the ellipsoid is the specifed origin. The implementation is adapted from Open3d
+/**
+ * @brief Creates a mesh of an ellipsoid
+ * @details The implementation is adapted from Open3d
  * https://github.com/isl-org/Open3D/blob/v0.19.0/cpp/open3d/geometry/TriangleMeshFactory.cpp#L216-L381
- *
- * Equation of an ellipsoid is x^2/a^2 + y^2/b^2 + z^2/c^2 = 1
- * where a, b, c are the semi-axes in meters
- *
- * Parameterization of ellipsoid from spherical coordinates to cartesian coordinates where 0 <= theta <= PI and 0 <= phi
- * <= 2*PI x = a * sin(theta) * cos(phi) y = b * sin(theta) * sin(phi) z = c * cos(theta)
- *
- * @param rx Radius in the x direction
- * @param ry Radius in the y direction
- * @param rz Radius in the z direction
- *
+ * @param rx Radius (m) along the x direction
+ * @param ry Radius (m) along the y direction
+ * @param rz Radius (m) along the z direction
+ * @param resolution Number of vertices in each "ring" of the ellipsoid
+ * @param theta_range Angle range (radians) of the ellipsoid spanning between the two poles on (0, pi]. If the value is
+ * less than pi, an ellipsoid shell is created.
+ * @param phi_range Angle range (radians) around the z-axis that passes through both poles, on (0, 2 * pi]. If the value
+ * is less than 2 * pi, an ellipsoid shell is crated.
+ * @param origin Transform to the desired origin of the primitive
  */
-pcl::PolygonMesh createEllipsoidMesh(const float rx = 2.0,
-                                     const float ry = 2.0,
-                                     const float rz = 1.0,
+pcl::PolygonMesh createEllipsoidMesh(const float rx = 1.0,
+                                     const float ry = 1.0,
+                                     const float rz = 1.5,
                                      const int resolution = 20,
+                                     const float theta_range = M_PI,
+                                     const float phi_range = 2.0 * M_PI,
                                      const Eigen::Isometry3d& origin = Eigen::Isometry3d::Identity());
 
 }  // namespace noether

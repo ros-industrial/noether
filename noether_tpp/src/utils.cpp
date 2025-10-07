@@ -1,5 +1,6 @@
 #include <pcl/common/transforms.h>
 #include <noether_tpp/utils.h>
+#include <algorithm>
 
 namespace noether
 {
@@ -219,14 +220,11 @@ void printException(const std::exception& e, std::ostream& ss, int level)
 
 pcl::PolygonMesh createPlaneMesh(const float lx, const float ly, const Eigen::Isometry3d& origin)
 {
-  if (lx <= 0.0)
-  {
-    throw std::runtime_error("Plane length must be > 0");
-  }
-  if (ly <= 0.0)
-  {
-    throw std::runtime_error("Plane width must be > 0");
-  }
+  if (lx <= 0.0f)
+    throw std::runtime_error("Plane length (x) must be > 0");
+
+  if (ly <= 0.0f)
+    throw std::runtime_error("Plane length (y) must be > 0");
 
   pcl::PolygonMesh mesh;
 
@@ -264,52 +262,97 @@ pcl::PolygonMesh createPlaneMesh(const float lx, const float ly, const Eigen::Is
   return mesh;
 }
 
-// ----------------------------------------------------------------------------
-// -                        Open3D: www.open3d.org                            -
-// ----------------------------------------------------------------------------
-// Copyright (c) 2018-2024 www.open3d.org
-// SPDX-License-Identifier: MIT
-// ----------------------------------------------------------------------------
+/**
+ * Original function from Open3D under MIT license:
+ * https://github.com/isl-org/Open3D/blob/v0.19.0/cpp/open3d/geometry/TriangleMeshFactory.cpp#L216-L381 Copyright (c)
+ * 2018-2023 www.open3d.org Modified by Southwest Research Institute 10/2025
+ */
 pcl::PolygonMesh createEllipsoidMesh(const float rx,
                                      const float ry,
                                      const float rz,
                                      const int resolution,
+                                     const float theta_range,
+                                     const float phi_range,
                                      const Eigen::Isometry3d& origin)
 {
-  pcl::PolygonMesh mesh;
-  if (rx <= 0.0 || ry <= 0.0 || rz <= 0.0)
-  {
+  if (rx <= 0 || ry <= 0 || rz <= 0)
     throw std::runtime_error("A semi major axis is <= 0");
-  }
-  if (resolution <= 2)
+
+  if (resolution < 3)
+    throw std::runtime_error("Resolution must be greater than 3");
+
+  // Extract the theta angles
+  // The theta angle is the angle that spans from pole to pole; its maximum is 180 degrees
+  const float MAX_THETA = static_cast<float>(M_PI);
+  Eigen::VectorXf theta(resolution);
   {
-    throw std::runtime_error("resolution should be >= 3");
+    // Extract the appropriate range of theta, bounded by pi
+    const float range = std::min(theta_range, MAX_THETA);
+
+    // The points at the poles of the ellipsoid are added separately, so the theta range should start and end a step
+    // before the poles The theta angle should be centered on MAX_THETA / 2.0 The desired number of intermediate theta
+    // points is `resolution`, so we need `resolution + 1` divisions
+    float step = range / (resolution + 1);
+    float start = (MAX_THETA - range) / 2.0 + step;
+    float end = (MAX_THETA + range) / 2.0 - step;
+    theta.setLinSpaced(start, end);
   }
 
-  // Set up cloud of mesh
-  pcl::PointCloud<pcl::PointXYZ> cloud;
-
-  // Set up vertices for the poles
-  cloud.points.resize(2 * resolution * (resolution - 1 + 2));
-  cloud.points[0].x = 0.0;
-  cloud.points[0].y = 0.0;
-  cloud.points[0].z = rz;
-  cloud.points[1].x = 0.0;
-  cloud.points[1].y = 0.0;
-  cloud.points[1].z = -rz;
-
-  // Set up vertices for the rest of the ellipsoid
-  float step = M_PI / (float)resolution;
-  for (int i = 1; i < resolution; i++)
+  // Extract the phi angles
+  // Phi is the angle around the axis that passes through both poles; its maximum is 360 degrees
+  const float MAX_PHI = static_cast<float>(2.0 * M_PI);
+  Eigen::VectorXf phi(resolution);
   {
-    float theta = step * i;
-    int base = 2 + 2 * resolution * (i - 1);
-    for (int j = 0; j < 2 * resolution; j++)
+    // Extract the appropriate range of phi, bounded by 360 degrees
+    const float range = std::min(phi_range, MAX_PHI);
+
+    // If the full range of phi is used, make `resolution` number of points spaced from zero to one step before
+    // `PHI_MAX`
+    if (std::abs(range - MAX_PHI) < std::numeric_limits<float>::epsilon())
     {
-      float phi = step * j;
-      cloud.points[base + j].x = rx * sin(theta) * cos(phi);
-      cloud.points[base + j].y = ry * sin(theta) * sin(phi);
-      cloud.points[base + j].z = rz * cos(theta);
+      float step = MAX_PHI / resolution;
+      phi.setLinSpaced(0.0, MAX_PHI - step);
+    }
+    else
+    {
+      // If a smaller range of phi is used, center the angle on zero and make sure to start and end at half the range
+      float start = -range / 2.0;
+      float end = range / 2.0;
+      phi.setLinSpaced(start, end);
+    }
+  }
+
+  // Skip the addition of poles if the theta angle is less than maximum
+  const bool skip_poles = theta_range < MAX_THETA;
+  const int n_poles = skip_poles ? 0 : 2;
+
+  // Set up a point cloud for the vertices of the mesh
+  pcl::PointCloud<pcl::PointXYZ> cloud;
+  cloud.points.resize(resolution * resolution + n_poles);
+
+  // Conditionally add the pole vertices as the first two points in the cloud
+  if (n_poles > 0)
+  {
+    // Pole 1
+    cloud.points[0].x = 0.0;
+    cloud.points[0].y = 0.0;
+    cloud.points[0].z = rz;
+
+    // Pole 2
+    cloud.points[1].x = 0.0;
+    cloud.points[1].y = 0.0;
+    cloud.points[1].z = -rz;
+  }
+
+  // Add the vertices of the body of the ellipsoid
+  for (int i = 0; i < resolution; ++i)
+  {
+    for (int j = 0; j < resolution; ++j)
+    {
+      const int idx = n_poles + i * resolution + j;
+      cloud.points[idx].x = rx * std::sin(theta(i)) * std::cos(phi(j));
+      cloud.points[idx].y = ry * std::sin(theta(i)) * std::sin(phi(j));
+      cloud.points[idx].z = rz * std::cos(theta(i));
     }
   }
 
@@ -318,49 +361,101 @@ pcl::PolygonMesh createEllipsoidMesh(const float rx,
   cloud.height = 1;
   cloud.is_dense = true;
 
-  // Transform the pointcloud
+  // Transform the point cloud
   pcl::PointCloud<pcl::PointXYZ> transformed_cloud;
   pcl::transformPointCloud(cloud, transformed_cloud, origin.matrix());
+
+  pcl::PolygonMesh mesh;
   pcl::toPCLPointCloud2(transformed_cloud, mesh.cloud);
 
-  // Triangles for poles.
-  for (int j = 0; j < 2 * resolution; j++)
-  {
-    int j1 = (j + 1) % (2 * resolution);
-    int base = 2;
-    pcl::Vertices pcl_indices;
-    pcl_indices.vertices.emplace_back(0);
-    pcl_indices.vertices.emplace_back(base + j);
-    pcl_indices.vertices.emplace_back(base + j1);
-    mesh.polygons.emplace_back(pcl_indices);
+  // Allocate memory for triangles
+  const int n_pole_triangles = n_poles * resolution;
+  // (# of rings - 1) * (# of squares per ring) * (# of triangles per square)
+  const int n_body_triangles = (resolution - 1) * resolution * 2;
+  mesh.polygons.reserve(n_pole_triangles + n_body_triangles);
 
-    base = 2 + 2 * resolution * (resolution - 2);
-    pcl::Vertices pcl_indices_2;
-    pcl_indices_2.vertices.emplace_back(1);
-    pcl_indices_2.vertices.emplace_back(base + j1);
-    pcl_indices_2.vertices.emplace_back(base + j);
-    mesh.polygons.emplace_back(pcl_indices_2);
+  // Add triangles for the poles
+  if (n_poles > 0)
+  {
+    for (int j = 0; j < resolution; ++j)
+    {
+      // Index of the first body vertex in the triangle
+      const int v1_relative_idx = j;
+      // Index of the second body vertex in the triangle (first vertex index plus one)
+      // This index wraps around at `resolution + 1` to create a triangle between the pole, the last vertex in the
+      // "ring" and the first vertex in the "ring"
+      const int v2_relative_idx = (v1_relative_idx + 1) % resolution;
+
+      // Pole 1
+      {
+        pcl::Vertices tri;
+        tri.vertices.emplace_back(0);
+
+        // The index of the first body vertex next to pole 0 is after the pole vertices
+        const int start_idx = n_poles;
+        tri.vertices.emplace_back(start_idx + v1_relative_idx);
+        tri.vertices.emplace_back(start_idx + v2_relative_idx);
+        mesh.polygons.emplace_back(tri);
+      }
+
+      // Pole 2
+      {
+        pcl::Vertices tri;
+        tri.vertices.emplace_back(1);
+
+        // The index of the first body vertex next to pole 1 is after the pole vertices and after `n-1` "rings" of size
+        // `n`
+        const int start_idx = n_poles + (resolution - 1) * resolution;
+        tri.vertices.emplace_back(start_idx + v2_relative_idx);
+        tri.vertices.emplace_back(start_idx + v1_relative_idx);
+        mesh.polygons.emplace_back(tri);
+      }
+    }
   }
 
-  // Triangles for non-polar region.
-  for (int i = 1; i < resolution - 1; i++)
-  {
-    int base1 = 2 + 2 * resolution * (i - 1);
-    int base2 = base1 + 2 * resolution;
-    for (int j = 0; j < 2 * resolution; j++)
-    {
-      int j1 = (j + 1) % (2 * resolution);
-      pcl::Vertices pcl_indices;
-      pcl_indices.vertices.emplace_back(base2 + j);
-      pcl_indices.vertices.emplace_back(base1 + j1);
-      pcl_indices.vertices.emplace_back(base1 + j);
-      mesh.polygons.emplace_back(pcl_indices);
+  // Triangles for body
+  // If the phi angle is not full range, we don't want to connect the last triangles with the first triangles in order
+  // to make a shell rather than a closed shape
+  const bool skip_connecting_triangles = phi_range < MAX_PHI;
+  const int n_phi = skip_connecting_triangles ? resolution - 1 : resolution;
 
-      pcl::Vertices pcl_indices_2;
-      pcl_indices_2.vertices.emplace_back(base2 + j);
-      pcl_indices_2.vertices.emplace_back(base2 + j1);
-      pcl_indices_2.vertices.emplace_back(base1 + j1);
-      mesh.polygons.emplace_back(pcl_indices_2);
+  for (int i = 0; i < resolution - 1; ++i)
+  {
+    // Theta indices (i.e., "rings")
+    int t1_idx = i;
+    int t2_idx = i + 1;
+
+    for (int j = 0; j < n_phi; ++j)
+    {
+      // A quadrilateral is formed between two adjacent vertices on one "ring" and the two adjacent vertices with the
+      // same relative index on the next "ring"
+
+      // Vertex at theta ("ring") 1, phi 1
+      int t1_p1_idx = n_poles + t1_idx * resolution + j;
+      // Vertex at theta ("ring") 1, phi 2
+      int t1_p2_idx = n_poles + t1_idx * resolution + ((j + 1) % resolution);
+      // Vertex at theta ("ring") 2, phi 1
+      int t2_p1_idx = n_poles + t2_idx * resolution + j;
+      // Vertex at theta ("ring") 2, phi 2
+      int t2_p2_idx = n_poles + t2_idx * resolution + ((j + 1) % resolution);
+
+      // Split this quad into two triangles
+      // Triangle 1
+      {
+        pcl::Vertices tri;
+        tri.vertices.emplace_back(t1_p1_idx);
+        tri.vertices.emplace_back(t2_p1_idx);
+        tri.vertices.emplace_back(t2_p2_idx);
+        mesh.polygons.emplace_back(tri);
+      }
+      // Triangle 2
+      {
+        pcl::Vertices tri;
+        tri.vertices.emplace_back(t1_p1_idx);
+        tri.vertices.emplace_back(t2_p2_idx);
+        tri.vertices.emplace_back(t1_p2_idx);
+        mesh.polygons.emplace_back(tri);
+      }
     }
   }
 
