@@ -52,12 +52,12 @@ void printException(const std::exception& e, std::ostream& ss, int level = 0);
 
 /**
  * @brief Creates a mesh of an x-y plane (z-axis is normal) with a specified length and width.
- * @details The plane is comprised of 4 vertices and two triangles:
+ * @details The plane is comprised of 4 vertices and two triangles per the diagram below:
  *
- *    0---3
- *    |A /|
- *    |/ B|
- *    1---2
+ * 0 --- 3 \n
+ * | A / | \n
+ * | / B | \n
+ * 1 --- 2 \n
  *
  * @param lx Length (m) along the x direction
  * @param ly Length (m) along the y direction
@@ -69,8 +69,8 @@ pcl::PolygonMesh createPlaneMesh(const float lx = 1.0,
 
 /**
  * @brief Creates a mesh of an ellipsoid
- * @details The implementation is adapted from Open3d
- * https://github.com/isl-org/Open3D/blob/v0.19.0/cpp/open3d/geometry/TriangleMeshFactory.cpp#L216-L381
+ * @details The implementation is adapted from <a
+ * href="https://github.com/isl-org/Open3D/blob/v0.19.0/cpp/open3d/geometry/TriangleMeshFactory.cpp#L216-L381">Open3D</a>
  * @param rx Radius (m) along the x direction
  * @param ry Radius (m) along the y direction
  * @param rz Radius (m) along the z direction

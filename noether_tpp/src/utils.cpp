@@ -263,9 +263,9 @@ pcl::PolygonMesh createPlaneMesh(const float lx, const float ly, const Eigen::Is
 }
 
 /**
- * Original function from Open3D under MIT license:
- * https://github.com/isl-org/Open3D/blob/v0.19.0/cpp/open3d/geometry/TriangleMeshFactory.cpp#L216-L381 Copyright (c)
- * 2018-2023 www.open3d.org Modified by Southwest Research Institute 10/2025
+ * Original function from Open3D under MIT license.
+ * Copyright (c) 2018-2023 www.open3d.org.
+ * Modified by Southwest Research Institute 10/2025.
  */
 pcl::PolygonMesh createEllipsoidMesh(const float rx,
                                      const float ry,
