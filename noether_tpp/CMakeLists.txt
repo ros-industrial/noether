@@ -145,10 +145,6 @@ target_cxx_version(
 )
 target_clang_tidy(${PROJECT_NAME} ENABLE ${NOETHER_ENABLE_CLANG_TIDY})
 
-# Executable to generate mesh primitives
-add_executable(generate_mesh_primitives src/generate_mesh_primitive.cpp)
-target_link_libraries(generate_mesh_primitives PRIVATE ${PROJECT_NAME} ${PCL_LIBRARIES} Eigen3::Eigen Boost::program_options)
-
 # Plugin Library
 add_library(${PROJECT_NAME}_plugins SHARED src/plugins.cpp)
 target_link_libraries(${PROJECT_NAME}_plugins PUBLIC ${PROJECT_NAME} yaml-cpp boost_plugin_loader::boost_plugin_loader)
@@ -158,6 +154,16 @@ target_cxx_version(
   VERSION 14
 )
 target_clang_tidy(${PROJECT_NAME}_plugins ENABLE ${NOETHER_ENABLE_CLANG_TIDY})
+
+# Mesh primitive generation application
+add_executable(mesh_primitive_generator src/app/mesh_primitive_generator.cpp)
+target_link_libraries(mesh_primitive_generator PRIVATE ${PROJECT_NAME} Boost::program_options)
+target_cxx_version(
+  mesh_primitive_generator
+  PUBLIC
+  VERSION 14
+)
+target_clang_tidy(mesh_primitive_generator ENABLE ${NOETHER_ENABLE_CLANG_TIDY})
 
 # Install headers
 install(DIRECTORY include/ DESTINATION include/)
@@ -177,5 +183,8 @@ configure_package(
     "PCL REQUIRED COMPONENTS common io surface segmentation"
     VTK
     boost_plugin_loader
-  TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_plugins generate_mesh_primitives
+  TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_plugins mesh_primitive_generator
 )
+
+# Install the executables for access by ROS
+install(TARGETS mesh_primitive_generator DESTINATION lib/${PROJECT_NAME})
