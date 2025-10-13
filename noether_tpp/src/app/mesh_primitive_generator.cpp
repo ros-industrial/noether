@@ -43,6 +43,14 @@ int main(int argc, char** argv)
     ("resolution,r", po::value<int>()->default_value(20), "Number of points in each ring of the ellipsoid")
     ("theta", po::value<float>()->default_value(180.0f), "Angle range (deg) of ellipsoid spanning from pole to pole, on (0, 180]")
     ("phi", po::value<float>()->default_value(360.0f), "Angle range (deg) of ellipsoid around z-axis passing through both poles, on (0, 360]");
+
+  po::options_description cylinder_opts("Cylinder options");
+  cylinder_opts.add_options()
+    ("radius", po::value<float>()->default_value(1.0f), "Radius (m) of the cylinder")
+    ("length", po::value<float>()->default_value(1.0f), "Length (m) of the cylinder")
+    ("resolution,r", po::value<int>()->default_value(20), "Number of points in each ring of the ellipsoid")
+    ("theta", po::value<float>()->default_value(360.0f), "Angle range (deg) of ellipsoid spanning from pole to pole, on (0, 360]")
+    ("cap", po::value<bool>()->default_value(true), "Flag to include the caps of the cylinder");
   // clang-format on
 
   try
@@ -56,7 +64,7 @@ int main(int argc, char** argv)
 
     if (vm.count("help"))
     {
-      std::cout << opts << "\n" << plane_opts << "\n" << ellipsoid_opts << "\n" << std::endl;
+      std::cout << opts << "\n" << plane_opts << "\n" << ellipsoid_opts << "\n" << cylinder_opts << std::endl;
       return 0;
     }
 
@@ -105,6 +113,22 @@ int main(int argc, char** argv)
 
       std::cout << "Generating ellipsoid mesh..." << std::endl;
       mesh = noether::createEllipsoidMesh(rx, ry, rz, resolution, theta_range, phi_range, origin);
+    }
+    else if (type == "cylinder")
+    {
+      // Re-parse the CLI arguments, including the shape specific options
+      opts.add(cylinder_opts);
+      po::store(po::parse_command_line(argc, argv, opts), vm);
+      po::notify(vm);
+
+      const auto radius = vm.at("radius").as<float>();
+      const auto length = vm.at("length").as<float>();
+      const auto resolution = vm.at("resolution").as<int>();
+      const auto cap = vm.at("cap").as<bool>();
+      const auto theta_range = vm.at("theta").as<float>() * static_cast<float>(M_PI / 180.0);
+
+      std::cout << "Generating cylinder mesh..." << std::endl;
+      mesh = noether::createCylinderMesh(radius, length, resolution, theta_range, cap, origin);
     }
     else
     {
