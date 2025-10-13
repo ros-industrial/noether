@@ -15,6 +15,19 @@ int main(int argc, char** argv)
     ("type,t", po::value<std::string>()->required(), "Primitive type")
     ("out_file,o", po::value<std::string>()->required(), "Output mesh file");
 
+  po::options_description origin_opts("Origin options");
+  origin_opts.add_options()
+    ("o.x", po::value<double>()->default_value(0.0), "Translation (m) in the x direction")
+    ("o.y", po::value<double>()->default_value(0.0), "Translation (m) in the y direction")
+    ("o.z", po::value<double>()->default_value(0.0), "Translation (m) in the z direction")
+    ("o.rx", po::value<double>()->default_value(0.0), "Euler XYZ rotation (deg) about the x axis")
+    ("o.ry", po::value<double>()->default_value(0.0), "Euler XYZ rotation (deg) about the y axis")
+    ("o.rz", po::value<double>()->default_value(0.0), "Euler XYZ rotation (deg) about the z axis");
+
+  // Combine the origin options into the main options
+  opts.add(origin_opts);
+
+  // Define the shape specific options separately
   // Plane options
   po::options_description plane_opts("Plane options");
   plane_opts.add_options()
@@ -28,30 +41,22 @@ int main(int argc, char** argv)
     ("ry", po::value<float>()->default_value(1.0f), "Radius (m) in the y direction")
     ("rz", po::value<float>()->default_value(1.5f), "Radius (m) in the z direction")
     ("resolution,r", po::value<int>()->default_value(20), "Number of points in each ring of the ellipsoid")
-    ("theta", po::value<float>()->default_value(180.0f), "Angle range (deg) of ellipsoid spanning from pole to pole, on (0, pi]")
-    ("phi", po::value<float>()->default_value(360.0f), "Angle range (deg) of ellipsoid around z-axis passing through both poles, on (0, 2 * pi]");
-
-  po::options_description origin_opts("Origin options");
-  origin_opts.add_options()
-    ("o.x", po::value<double>()->default_value(0.0), "Translation (m) in the x direction")
-    ("o.y", po::value<double>()->default_value(0.0), "Translation (m) in the y direction")
-    ("o.z", po::value<double>()->default_value(0.0), "Translation (m) in the z direction")
-    ("o.rx", po::value<double>()->default_value(0.0), "Euler XYZ rotation (deg) about the x axis")
-    ("o.ry", po::value<double>()->default_value(0.0), "Euler XYZ rotation (deg) about the y axis")
-    ("o.rz", po::value<double>()->default_value(0.0), "Euler XYZ rotation (deg) about the z axis");
+    ("theta", po::value<float>()->default_value(180.0f), "Angle range (deg) of ellipsoid spanning from pole to pole, on (0, 180]")
+    ("phi", po::value<float>()->default_value(360.0f), "Angle range (deg) of ellipsoid around z-axis passing through both poles, on (0, 360]");
   // clang-format on
-
-  // Add the primitive options to the general options
-  opts.add(plane_opts).add(ellipsoid_opts).add(origin_opts);
 
   try
   {
+    // Parse only the nominal options first
+    // Use a custom command line parser that allows unregistered options (e.g., shape-specific options)
+    const po::parsed_options parsed_options =
+        po::command_line_parser(argc, argv).options(opts).allow_unregistered().run();
     po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, opts), vm);
+    po::store(parsed_options, vm);
 
     if (vm.count("help"))
     {
-      std::cout << opts << std::endl;
+      std::cout << opts << "\n" << plane_opts << "\n" << ellipsoid_opts << "\n" << std::endl;
       return 0;
     }
 
@@ -75,20 +80,30 @@ int main(int argc, char** argv)
     const auto type = vm.at("type").as<std::string>();
     if (type == "plane")
     {
-      std::cout << "Generating plane mesh..." << std::endl;
+      // Re-parse the CLI arguments, including the shape specific options
+      po::store(po::parse_command_line(argc, argv, opts.add(plane_opts)), vm);
+      po::notify(vm);
+
       const auto lx = vm.at("lx").as<float>();
       const auto ly = vm.at("ly").as<float>();
+
+      std::cout << "Generating plane mesh..." << std::endl;
       mesh = noether::createPlaneMesh(lx, ly, origin);
     }
     else if (type == "ellipsoid")
     {
-      std::cout << "Generating ellipsoid mesh..." << std::endl;
+      // Re-parse the CLI arguments, including the shape specific options
+      po::store(po::parse_command_line(argc, argv, opts.add(ellipsoid_opts)), vm);
+      po::notify(vm);
+
       const auto rx = vm.at("rx").as<float>();
       const auto ry = vm.at("ry").as<float>();
       const auto rz = vm.at("rz").as<float>();
       const auto resolution = vm.at("resolution").as<int>();
       const auto theta_range = vm.at("theta").as<float>() * static_cast<float>(M_PI / 180.0);
       const auto phi_range = vm.at("phi").as<float>() * static_cast<float>(M_PI / 180.0);
+
+      std::cout << "Generating ellipsoid mesh..." << std::endl;
       mesh = noether::createEllipsoidMesh(rx, ry, rz, resolution, theta_range, phi_range, origin);
     }
     else
