@@ -52,7 +52,7 @@ std::string MeshModifierPlugin::getSection()
 Factory::Factory()
 {
   auto loader = std::make_shared<boost_plugin_loader::PluginLoader>();
-  loader->search_libraries.insert(NOETHER_PLUGIN_LIB);
+  loader->search_libraries.emplace_back(NOETHER_PLUGIN_LIB);
   loader->search_libraries_env = NOETHER_PLUGIN_LIBS_ENV;
   loader->search_paths_env = NOETHER_PLUGIN_PATHS_ENV;
   loader_ = loader;

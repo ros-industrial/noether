@@ -5,4 +5,4 @@
 - git:
     local-name: boost_plugin_loader
     uri: 'https://github.com/tesseract-robotics/boost_plugin_loader.git'
-    version: 0.3.2
+    version: 0.4.2
