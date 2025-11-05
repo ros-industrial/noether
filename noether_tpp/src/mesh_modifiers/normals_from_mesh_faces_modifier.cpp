@@ -22,15 +22,12 @@ namespace noether
  * @param c - input - third vertex
  * @return Eigen::Vector3d representing the face's normal
  */
-Eigen::Vector3d calculateNormalFromThreePoints(
-    const pcl::PointXYZ& a,
-    const pcl::PointXYZ& b,
-    const pcl::PointXYZ& c)
+Eigen::Vector3d calculateNormalFromThreePoints(const pcl::PointXYZ& a, const pcl::PointXYZ& b, const pcl::PointXYZ& c)
 {
   // Convert the three points to Eigen::Vector3d
-  Eigen::Vector3d ae (a.x, a.y, a.z);
-  Eigen::Vector3d be (b.x, b.y, b.z);
-  Eigen::Vector3d ce (c.x, c.y, c.z);
+  Eigen::Vector3d ae(a.x, a.y, a.z);
+  Eigen::Vector3d be(b.x, b.y, b.z);
+  Eigen::Vector3d ce(c.x, c.y, c.z);
 
   // Calculate the vectors that represent two sides of a triangle
   Eigen::Vector3d ab = be - ae;
@@ -59,7 +56,7 @@ std::vector<Eigen::Vector3d> getNormalsFromMeshWithoutDuplicatePoints(const pcl:
   pcl::fromPCLPointCloud2(mesh.cloud, cloud);
 
   // Make acculumulators for normal calculations
-  std::vector<Eigen::Vector3d> normals (cloud.size(), Eigen::Vector3d::Zero());
+  std::vector<Eigen::Vector3d> normals(cloud.size(), Eigen::Vector3d::Zero());
 
   // Iterate across the polygons, calculating their normals and accumulating the normals onto all
   // adjacent vertices
@@ -75,19 +72,15 @@ std::vector<Eigen::Vector3d> getNormalsFromMeshWithoutDuplicatePoints(const pcl:
 
     // Ensure the first three vertex references are valid,
     // since we will use these when calculating the normal
-    if (p.vertices[0] >= cloud.size() ||
-        p.vertices[1] >= cloud.size() ||
-        p.vertices[2] >= cloud.size())
+    if (p.vertices[0] >= cloud.size() || p.vertices[1] >= cloud.size() || p.vertices[2] >= cloud.size())
     {
       // Throw an exception here if you want, otherwise skip this face
       continue;
     }
 
     // Calculate the normal for this face with helper function
-    Eigen::Vector3d normal = calculateNormalFromThreePoints(
-        cloud[p.vertices[0]],
-        cloud[p.vertices[1]],
-        cloud[p.vertices[2]]);
+    Eigen::Vector3d normal =
+        calculateNormalFromThreePoints(cloud[p.vertices[0]], cloud[p.vertices[1]], cloud[p.vertices[2]]);
 
     // Add this normal to the accumulators for this face's valid vertices
     for (std::size_t i = 0; i < p.vertices.size(); ++i)
@@ -103,14 +96,14 @@ std::vector<Eigen::Vector3d> getNormalsFromMeshWithoutDuplicatePoints(const pcl:
   // unit length afterward, dividing by a non-zero finite scalar first has no effect.
   for (std::size_t i = 0; i < normals.size(); ++i)
   {
-    if (normals[i].norm() >= 0.0001) // make sure that a normal was ever added here
+    if (normals[i].norm() >= 0.0001)  // make sure that a normal was ever added here
     {
       normals[i] = normals[i].normalized();
     }
   }
 
   return normals;
-} // function getNormalsFromMeshWithoutDuplicatePoints()
+}  // function getNormalsFromMeshWithoutDuplicatePoints()
 
 std::vector<pcl::PolygonMesh> NormalsFromMeshFacesMeshModifier::modify(const pcl::PolygonMesh& mesh) const
 {
@@ -141,7 +134,7 @@ std::vector<pcl::PolygonMesh> NormalsFromMeshFacesMeshModifier::modify(const pcl
     throw std::runtime_error("Failed to concatenate normals into mesh vertex cloud");
 
   return { output };
-} // function modify()
+}  // function modify()
 
 }  // namespace noether
 
