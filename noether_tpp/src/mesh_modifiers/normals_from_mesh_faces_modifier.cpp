@@ -1,96 +1,147 @@
 #include <noether_tpp/mesh_modifiers/normals_from_mesh_faces_modifier.h>
 #include <noether_tpp/utils.h>
 
-#include <pcl/point_types.h>
+#include <vector>
+
+#include <Eigen/Dense>
 #include <pcl/common/io.h>
 #include <pcl/conversions.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/PolygonMesh.h>
 #include <yaml-cpp/yaml.h>
 
 namespace noether
 {
-Eigen::Vector3f computeFaceNormal(const pcl::PolygonMesh& mesh,
-                                  const TriangleMesh& tri_mesh,
-                                  const TriangleMesh::FaceIndex& face_idx)
+
+/**
+ * @brief calculateNormalFromThreePoints - Calculate the normal of a face based on three vertices,
+ * traversing in counter-clockwise order
+ * @param a - input - first vertex
+ * @param b - input - second vertex
+ * @param c - input - third vertex
+ * @return Eigen::Vector3d representing the face's normal
+ */
+Eigen::Vector3d calculateNormalFromThreePoints(
+    const pcl::PointXYZ& a,
+    const pcl::PointXYZ& b,
+    const pcl::PointXYZ& c)
 {
-  using VAFC = TriangleMesh::VertexAroundFaceCirculator;
+  // Convert the three points to Eigen::Vector3d
+  Eigen::Vector3d ae (a.x, a.y, a.z);
+  Eigen::Vector3d be (b.x, b.y, b.z);
+  Eigen::Vector3d ce (c.x, c.y, c.z);
 
-  // Get the vertices of this triangle
-  VAFC v_circ = tri_mesh.getVertexAroundFaceCirculator(face_idx);
+  // Calculate the vectors that represent two sides of a triangle
+  Eigen::Vector3d ab = be - ae;
+  Eigen::Vector3d ac = ce - ae;
 
-  const TriangleMesh::VertexIndex v1_idx = v_circ++.getTargetIndex();
-  const TriangleMesh::VertexIndex v2_idx = v_circ++.getTargetIndex();
-  const TriangleMesh::VertexIndex v3_idx = v_circ++.getTargetIndex();
-
-  // Check the validity of the vertices
-  if (!v1_idx.isValid() || !v2_idx.isValid() || !v3_idx.isValid())
-    return Eigen::Vector3f::Constant(std::numeric_limits<float>::quiet_NaN());
-
-  const Eigen::Vector3f v1 = getPoint(mesh.cloud, v1_idx.get());
-  const Eigen::Vector3f v2 = getPoint(mesh.cloud, v2_idx.get());
-  const Eigen::Vector3f v3 = getPoint(mesh.cloud, v3_idx.get());
-
-  // Get the edges v1 -> v2 and v1 -> v3
-  const Eigen::Vector3f edge_12 = v2 - v1;
-  const Eigen::Vector3f edge_13 = v3 - v1;
-
-  // Compute the face normal as the cross product between edge v1 -> v2 and edge v1 -> v3
-  return edge_12.cross(edge_13).normalized();
+  // Calculate the face normal as the cross product of two sides
+  Eigen::Vector3d normal = ab.cross(ac).normalized();
+  return normal;
 }
+
+/**
+ * @brief getNormalsFromMeshWithoutDuplicatePoints - Calculate the normals of all vertices in a
+ * polygon mesh. The normal of each vertex is calculated as the average of the normals of all faces
+ * which include that vertex. This function handles supra-triangular polygonal faces, but ignores
+ * 'faces' that include less than three vertices. Well-behaved on meshes with holes. Note that a
+ * mesh with inconsistent face normals will generate inconsistent vertex normals. Note that a
+ * non-manifold mesh may produce numerically unstable results.
+ * @param mesh - input - a polygonal mesh.
+ * @return std::vector<Eigen::Vector3d> containing one normal for each vertex in the input mesh, in
+ * the same order as the input mesh's vertex list
+ */
+std::vector<Eigen::Vector3d> getNormalsFromMeshWithoutDuplicatePoints(const pcl::PolygonMesh& mesh)
+{
+  // Pull the point cloud out of the mesh
+  pcl::PointCloud<pcl::PointXYZ> cloud;
+  pcl::fromPCLPointCloud2(mesh.cloud, cloud);
+
+  // Make acculumulators for normal calculations
+  std::vector<Eigen::Vector3d> normals (cloud.size(), Eigen::Vector3d::Zero());
+
+  // Iterate across the polygons, calculating their normals and accumulating the normals onto all
+  // adjacent vertices
+  for (const auto& p : mesh.polygons)
+  {
+    // Ensure this polygon has at least three vertices, as
+    // we will use the first three to calculate the normal
+    if (p.vertices.size() < 3)
+    {
+      // Throw an exception here if desired, otherwise skip this face
+      continue;
+    }
+
+    // Ensure the first three vertex references are valid,
+    // since we will use these when calculating the normal
+    if (p.vertices[0] >= cloud.size() ||
+        p.vertices[1] >= cloud.size() ||
+        p.vertices[2] >= cloud.size())
+    {
+      // Throw an exception here if you want, otherwise skip this face
+      continue;
+    }
+
+    // Calculate the normal for this face with helper function
+    Eigen::Vector3d normal = calculateNormalFromThreePoints(
+        cloud[p.vertices[0]],
+        cloud[p.vertices[1]],
+        cloud[p.vertices[2]]);
+
+    // Add this normal to the accumulators for this face's valid vertices
+    for (std::size_t i = 0; i < p.vertices.size(); ++i)
+    {
+      if (p.vertices[i] < cloud.size())
+      {
+        normals[p.vertices[i]] += normal;
+      }
+    }
+  }
+
+  // No need to divide by the number of contributing faces. Since we still need to normalize() to
+  // unit length afterward, dividing by a non-zero finite scalar first has no effect.
+  for (std::size_t i = 0; i < normals.size(); ++i)
+  {
+    if (normals[i].norm() >= 0.0001) // make sure that a normal was ever added here
+    {
+      normals[i] = normals[i].normalized();
+    }
+  }
+
+  return normals;
+} // function getNormalsFromMeshWithoutDuplicatePoints()
 
 std::vector<pcl::PolygonMesh> NormalsFromMeshFacesMeshModifier::modify(const pcl::PolygonMesh& mesh) const
 {
-  // Create a triangle mesh representation of the input mesh
-  TriangleMesh tri_mesh = createTriangleMesh(mesh);
+  // Calculate the normals
+  std::vector<Eigen::Vector3d> normals = getNormalsFromMeshWithoutDuplicatePoints(mesh);
 
+  // Reserve space for PCL representation of normals
   pcl::PointCloud<pcl::Normal> normals_cloud;
-  normals_cloud.reserve(mesh.cloud.height * mesh.cloud.width);
+  normals_cloud.reserve(normals.size());
 
-  // For each vertex, circulate the faces around and average the face normals
-  for (std::size_t i = 0; i < tri_mesh.getVertexDataCloud().size(); ++i)
+  // Convert normals to PCL representation
+  for (const auto& normal_pt : normals)
   {
-    Eigen::Vector3f avg_face_normal = Eigen::Vector3f::Zero();
-    int n_faces = 0;
-
-    using FAVC = TriangleMesh::FaceAroundVertexCirculator;
-    FAVC circ = tri_mesh.getFaceAroundVertexCirculator(TriangleMesh::VertexIndex(i));
-
-    FAVC circ_end = circ;
-    do
-    {
-      if (n_faces > mesh.polygons.size())
-        throw std::runtime_error("Vertex " + std::to_string(i) +
-                                 " appears to participate in more faces than exist in the mesh; this mesh likely "
-                                 "contains degenerate half-edges.");
-
-      if (circ.isValid())
-      {
-        TriangleMesh::FaceIndex face_idx = circ.getTargetIndex();
-        if (face_idx.isValid())
-        {
-          avg_face_normal += computeFaceNormal(mesh, tri_mesh, face_idx);
-          ++n_faces;
-        }
-      }
-    } while (++circ != circ_end);
-
     pcl::Normal normal;
-    normal.getNormalVector3fMap() = (avg_face_normal / n_faces).normalized();
+    normal.getNormalVector3fMap() = normal_pt.cast<float>().normalized();
     normals_cloud.push_back(normal);
   }
 
   // Convert to message type
-  pcl::PCLPointCloud2 normals;
-  pcl::toPCLPointCloud2(normals_cloud, normals);
+  pcl::PCLPointCloud2 normals_pcl2;
+  pcl::toPCLPointCloud2(normals_cloud, normals_pcl2);
 
-  // Copy the mesh
+  // Create output mesh
   pcl::PolygonMesh output = mesh;
 
   // Concatenate the normals with the nominal mesh information
-  if (!pcl::concatenateFields(mesh.cloud, normals, output.cloud))
+  if (!pcl::concatenateFields(mesh.cloud, normals_pcl2, output.cloud))
     throw std::runtime_error("Failed to concatenate normals into mesh vertex cloud");
 
   return { output };
-}
+} // function modify()
 
 }  // namespace noether
 
