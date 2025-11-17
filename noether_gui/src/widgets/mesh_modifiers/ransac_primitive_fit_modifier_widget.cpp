@@ -13,13 +13,13 @@ static const std::string MAX_ITERATIONS_KEY = "max_iterations";
 
 namespace noether
 {
-RansacPrimitiveFitModifierWidget::RansacPrimitiveFitModifierWidget(QWidget* parent)
+RansacPrimitiveFitMeshModifierWidget::RansacPrimitiveFitMeshModifierWidget(QWidget* parent)
   : ui_(new Ui::RansacPrimitiveFit()), axis_(new Ui::Vector3dEditor())
 {
   ui_->setupUi(this);
 }
 
-void RansacPrimitiveFitModifierWidget::configure(const YAML::Node& config)
+void RansacPrimitiveFitMeshModifierWidget::configure(const YAML::Node& config)
 {
   ui_->distance_threshold->setValue(YAML::getMember<double>(config, DIST_THRESH_KEY));
   ui_->min_vertices->setValue(YAML::getMember<int>(config, MIN_VERTICES_KEY));
@@ -27,7 +27,7 @@ void RansacPrimitiveFitModifierWidget::configure(const YAML::Node& config)
   ui_->max_iterations->setValue(YAML::getMember<int>(config, MAX_ITERATIONS_KEY));
 }
 
-void RansacPrimitiveFitModifierWidget::save(YAML::Node& config) const
+void RansacPrimitiveFitMeshModifierWidget::save(YAML::Node& config) const
 {
   config[DIST_THRESH_KEY] = ui_->distance_threshold->value();
   config[MIN_VERTICES_KEY] = ui_->min_vertices->value();

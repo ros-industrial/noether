@@ -60,13 +60,12 @@ add_library(
   src/mesh_modifiers/subset_extraction/extruded_polygon_subset_extractor.cpp
   src/mesh_modifiers/compound_modifier.cpp
   src/mesh_modifiers/clean_data_modifier.cpp
-  src/mesh_modifiers/cylinder_fit_modifier.cpp
-  src/mesh_modifiers/cylinder_projection_modifier.cpp
   src/mesh_modifiers/euclidean_clustering_modifier.cpp
   src/mesh_modifiers/fill_holes_modifier.cpp
   src/mesh_modifiers/windowed_sinc_smoothing.cpp
-  src/mesh_modifiers/plane_projection_modifier.cpp
   src/mesh_modifiers/ransac_primitive_fit_modifier.cpp
+  src/mesh_modifiers/ransac_cylinder_fit_modifier.cpp
+  src/mesh_modifiers/ransac_plane_fit_modifier.cpp
   src/mesh_modifiers/normal_estimation_pcl.cpp
   src/mesh_modifiers/normals_from_mesh_faces_modifier.cpp
   # Tool Path Modifiers

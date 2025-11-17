@@ -10,10 +10,10 @@ class Vector3dEditor;
 
 namespace noether
 {
-class RansacPrimitiveFitModifierWidget : public BaseWidget
+class RansacPrimitiveFitMeshModifierWidget : public BaseWidget
 {
 public:
-  RansacPrimitiveFitModifierWidget(QWidget* parent = nullptr);
+  RansacPrimitiveFitMeshModifierWidget(QWidget* parent = nullptr);
 
   void configure(const YAML::Node& config) override;
   void save(YAML::Node& config) const override;

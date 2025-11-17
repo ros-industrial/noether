@@ -57,10 +57,9 @@ protected:
   virtual std::shared_ptr<pcl::SampleConsensusModel<pcl::PointXYZ>> createModel(const pcl::PolygonMesh& mesh) const = 0;
 
   /**
-   * @brief Creates a sub-mesh from the inliers of the fit primitive model
+   * @brief Creates a sub-mesh from the results of the model primitive fitting
    * @param mesh Full input mesh
-   * @param inliers Indices of the inliers of the primitive fit
-   * @param coefficients Coefficients of the primitive fit model
+   * @param ransac RANSAC model after successful completion of the model primitive fit
    * @return
    */
   virtual pcl::PolygonMesh

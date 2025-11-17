@@ -7,10 +7,10 @@ namespace noether
 /**
  * @ingroup gui_widgets_mesh_modifiers
  */
-class PlaneProjectionMeshModifierWidget : public RansacPrimitiveFitModifierWidget
+class RansacPlaneProjectionMeshModifierWidget : public RansacPrimitiveFitMeshModifierWidget
 {
 public:
-  using RansacPrimitiveFitModifierWidget::RansacPrimitiveFitModifierWidget;
+  using RansacPrimitiveFitMeshModifierWidget::RansacPrimitiveFitMeshModifierWidget;
 
   void save(YAML::Node&) const override;
 };

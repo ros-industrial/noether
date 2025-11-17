@@ -32,12 +32,12 @@
 #include <noether_gui/widgets/tool_path_modifiers/uniform_spacing_spline_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/uniform_spacing_linear_modifier_widget.h>
 // Mesh Modifiers
-#include <noether_gui/widgets/mesh_modifiers/cylinder_projection_modifier_widget.h>
-#include <noether_gui/widgets/mesh_modifiers/plane_projection_modifier_widget.h>
 #include <noether_gui/widgets/mesh_modifiers/euclidean_clustering_modifier_widget.h>
+#include <noether_gui/widgets/mesh_modifiers/fill_holes_modifier_widget.h>
 #include <noether_gui/widgets/mesh_modifiers/normal_estimation_pcl_widget.h>
 #include <noether_gui/widgets/mesh_modifiers/normals_from_mesh_faces_modifier_widget.h>
-#include <noether_gui/widgets/mesh_modifiers/fill_holes_modifier_widget.h>
+#include <noether_gui/widgets/mesh_modifiers/ransac_cylinder_fit_modifier_widget.h>
+#include <noether_gui/widgets/mesh_modifiers/ransac_plane_fit_modifier_widget.h>
 
 #include <QWidget>
 #include <QMessageBox>
@@ -46,14 +46,14 @@
 namespace noether
 {
 // Mesh Modifiers
-EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(CylinderFitModifierWidget, CylinderFit)
-EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(CylinderProjectionModifierWidget, CylinderProjection)
 EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(EuclideanClusteringMeshModifierWidget, EuclideanClustering)
 EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(FillHolesModifierWidget, FillHoles)
 EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(NormalEstimationPCLMeshModifierWidget, NormalEstimationPCL)
 EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(NormalsFromMeshFacesMeshModifierWidget, NormalsFromMeshFaces)
+EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(RansacCylinderFitMeshModifierWidget, RansacCylinderFit)
+EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(RansacCylinderProjectionMeshModifierWidget, RansacCylinderProjection)
 //! [GUI Plugin Alias Correspondence]
-EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(PlaneProjectionMeshModifierWidget, PlaneProjection)
+EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(RansacPlaneProjectionMeshModifierWidget, RansacPlaneProjection)
 //! [GUI Plugin Alias Correspondence]
 
 // Direction Generators

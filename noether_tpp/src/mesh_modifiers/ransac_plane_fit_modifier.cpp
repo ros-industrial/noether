@@ -1,4 +1,4 @@
-#include <noether_tpp/mesh_modifiers/plane_projection_modifier.h>
+#include <noether_tpp/mesh_modifiers/ransac_plane_fit_modifier.h>
 #include <noether_tpp/mesh_modifiers/subset_extraction/subset_extractor.h>
 #include <noether_tpp/utils.h>
 #include <noether_tpp/serialization.h>
@@ -54,7 +54,7 @@ void projectInPlace(pcl::PCLPointCloud2& cloud, const Eigen::Vector4f& plane_coe
 }
 
 std::shared_ptr<pcl::SampleConsensusModel<pcl::PointXYZ>>
-PlaneProjectionMeshModifier::createModel(const pcl::PolygonMesh& mesh) const
+RansacPlaneProjectionMeshModifier::createModel(const pcl::PolygonMesh& mesh) const
 {
   auto cloud = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
   pcl::fromPCLPointCloud2(mesh.cloud, *cloud);
@@ -63,7 +63,7 @@ PlaneProjectionMeshModifier::createModel(const pcl::PolygonMesh& mesh) const
   return pcl::make_shared<pcl::SampleConsensusModelPlane<pcl::PointXYZ>>(cloud);
 }
 
-pcl::PolygonMesh PlaneProjectionMeshModifier::createSubMesh(
+pcl::PolygonMesh RansacPlaneProjectionMeshModifier::createSubMesh(
     const pcl::PolygonMesh& mesh,
     std::shared_ptr<const pcl::RandomSampleConsensus<pcl::PointXYZ>> ransac) const
 {
@@ -115,12 +115,13 @@ pcl::PolygonMesh PlaneProjectionMeshModifier::createSubMesh(
 namespace YAML
 {
 /** @cond */
-Node convert<noether::PlaneProjectionMeshModifier>::encode(const noether::PlaneProjectionMeshModifier& val)
+Node convert<noether::RansacPlaneProjectionMeshModifier>::encode(const noether::RansacPlaneProjectionMeshModifier& val)
 {
   return convert<noether::RansacPrimitiveFitMeshModifier>::encode(val);
 }
 
-bool convert<noether::PlaneProjectionMeshModifier>::decode(const Node& node, noether::PlaneProjectionMeshModifier& val)
+bool convert<noether::RansacPlaneProjectionMeshModifier>::decode(const Node& node,
+                                                                 noether::RansacPlaneProjectionMeshModifier& val)
 {
   return convert<noether::RansacPrimitiveFitMeshModifier>::decode(node, val);
 }

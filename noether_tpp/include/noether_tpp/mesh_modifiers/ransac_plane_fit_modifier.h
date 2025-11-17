@@ -10,14 +10,14 @@ namespace noether
  * @ingroup mesh_modifiers
  * @brief MeshModifier that fits planes to the input mesh and projects the vertices onto the fitted planes
  */
-class PlaneProjectionMeshModifier : public RansacPrimitiveFitMeshModifier
+class RansacPlaneProjectionMeshModifier : public RansacPrimitiveFitMeshModifier
 {
 public:
   using RansacPrimitiveFitMeshModifier::RansacPrimitiveFitMeshModifier;
 
 protected:
-  PlaneProjectionMeshModifier() = default;
-  DECLARE_YAML_FRIEND_CLASSES(PlaneProjectionMeshModifier)
+  RansacPlaneProjectionMeshModifier() = default;
+  DECLARE_YAML_FRIEND_CLASSES(RansacPlaneProjectionMeshModifier)
 
   /**
    * @brief Creates a SAC plane model
@@ -34,4 +34,4 @@ protected:
 
 }  // namespace noether
 
-FWD_DECLARE_YAML_CONVERT(noether::PlaneProjectionMeshModifier)
+FWD_DECLARE_YAML_CONVERT(noether::RansacPlaneProjectionMeshModifier)

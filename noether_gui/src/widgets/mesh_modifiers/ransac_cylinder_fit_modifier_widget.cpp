@@ -1,16 +1,18 @@
-#include <noether_gui/widgets/mesh_modifiers/cylinder_projection_modifier_widget.h>
+#include <noether_gui/widgets/mesh_modifiers/ransac_cylinder_fit_modifier_widget.h>
 #include <noether_gui/widgets/angle_double_spin_box.h>
 #include <noether_gui/widgets/distance_double_spin_box.h>
 #include "../ui_vector3d_editor_widget.h"
-#include "ui_cylinder_projection_modifier_widget.h"
+#include "ui_ransac_cylinder_fit_modifier_widget.h"
 #include "ui_ransac_primitive_fit_modifier_widget.h"
 
 #include <noether_tpp/serialization.h>
 
 namespace noether
 {
-CylinderProjectionModifierWidget::CylinderProjectionModifierWidget(QWidget* parent)
-  : RansacPrimitiveFitModifierWidget(parent), model_ui_(new Ui::CylinderProjection()), axis_(new Ui::Vector3dEditor())
+RansacCylinderProjectionMeshModifierWidget::RansacCylinderProjectionMeshModifierWidget(QWidget* parent)
+  : RansacPrimitiveFitMeshModifierWidget(parent)
+  , model_ui_(new Ui::RansacCylinderProjection())
+  , axis_(new Ui::Vector3dEditor())
 {
   // Add a tab for the SAC parameters
   {
@@ -29,9 +31,9 @@ CylinderProjectionModifierWidget::CylinderProjectionModifierWidget(QWidget* pare
   }
 }
 
-void CylinderProjectionModifierWidget::configure(const YAML::Node& config)
+void RansacCylinderProjectionMeshModifierWidget::configure(const YAML::Node& config)
 {
-  RansacPrimitiveFitModifierWidget::configure(config);
+  RansacPrimitiveFitMeshModifierWidget::configure(config);
 
   model_ui_->radius_min->setValue(YAML::getMember<double>(config, "min_radius"));
   model_ui_->radius_max->setValue(YAML::getMember<double>(config, "max_radius"));
@@ -45,11 +47,11 @@ void CylinderProjectionModifierWidget::configure(const YAML::Node& config)
   model_ui_->normal_distance_weight->setValue(YAML::getMember<double>(config, "normal_distance_weight"));
 }
 
-void CylinderProjectionModifierWidget::save(YAML::Node& config) const
+void RansacCylinderProjectionMeshModifierWidget::save(YAML::Node& config) const
 {
-  config["name"] = "CylinderProjection";
+  config["name"] = "RansacCylinderProjection";
 
-  RansacPrimitiveFitModifierWidget::save(config);
+  RansacPrimitiveFitMeshModifierWidget::save(config);
 
   config["min_radius"] = model_ui_->radius_min->value();
   config["max_radius"] = model_ui_->radius_max->value();
@@ -64,10 +66,10 @@ void CylinderProjectionModifierWidget::save(YAML::Node& config) const
   config["normal_distance_weight"] = model_ui_->normal_distance_weight->value();
 }
 
-void CylinderFitModifierWidget::save(YAML::Node& config) const
+void RansacCylinderFitMeshModifierWidget::save(YAML::Node& config) const
 {
-  CylinderProjectionModifierWidget::save(config);
-  config["name"] = "CylinderFit";
+  RansacCylinderProjectionMeshModifierWidget::save(config);
+  config["name"] = "RansacCylinderFit";
 }
 
 }  // namespace noether

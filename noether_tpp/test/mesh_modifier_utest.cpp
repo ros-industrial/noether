@@ -25,7 +25,7 @@ std::string config_str = R"(
   vz: 10.0
 - &normals_from_mesh_faces
   name: NormalsFromMeshFaces
-- name: PlaneProjection
+- name: RansacPlaneProjection
   distance_threshold: 2.5
   max_planes: 1
   min_vertices: 1
