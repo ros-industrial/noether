@@ -64,4 +64,10 @@ void CylinderProjectionModifierWidget::save(YAML::Node& config) const
   config["normal_distance_weight"] = model_ui_->normal_distance_weight->value();
 }
 
+void CylinderFitModifierWidget::save(YAML::Node& config) const
+{
+  CylinderProjectionModifierWidget::save(config);
+  config["name"] = "CylinderFit";
+}
+
 }  // namespace noether

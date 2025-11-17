@@ -23,4 +23,13 @@ protected:
   Ui::Vector3dEditor* axis_;
 };
 
+class CylinderFitModifierWidget : public CylinderProjectionModifierWidget
+{
+public:
+  using CylinderProjectionModifierWidget::configure;
+  using CylinderProjectionModifierWidget::CylinderProjectionModifierWidget;
+
+  void save(YAML::Node& config) const override;
+};
+
 }  // namespace noether

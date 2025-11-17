@@ -46,6 +46,7 @@
 namespace noether
 {
 // Mesh Modifiers
+EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(CylinderFitModifierWidget, CylinderFit)
 EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(CylinderProjectionModifierWidget, CylinderProjection)
 EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(EuclideanClusteringMeshModifierWidget, EuclideanClustering)
 EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(FillHolesModifierWidget, FillHoles)
