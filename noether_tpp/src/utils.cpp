@@ -462,4 +462,164 @@ pcl::PolygonMesh createEllipsoidMesh(const float rx,
   return mesh;
 }
 
+pcl::PolygonMesh createCylinderMesh(const float radius,
+                                    const float length,
+                                    const int resolution,
+                                    const float theta_range,
+                                    const bool include_caps,
+                                    const Eigen::Isometry3d& origin)
+{
+  pcl::PointCloud<pcl::PointXYZ> cloud;
+  cloud.resize(2 * resolution);
+
+  // Add the rings
+  // Extract the theta angles
+  // Theta is the angle around the axis that passes through both poles; its maximum is 360 degrees
+  const float MAX_THETA = static_cast<float>(2.0 * M_PI);
+  Eigen::VectorXf theta(resolution);
+  {
+    // Extract the appropriate range of theta, bounded by 360 degrees
+    const float range = std::min(theta_range, MAX_THETA);
+
+    // If the full range of theta is used, make `resolution` number of points spaced from zero to one step before
+    // `THETA_MAX`
+    if (std::abs(range - MAX_THETA) < std::numeric_limits<float>::epsilon())
+    {
+      float step = MAX_THETA / resolution;
+      theta.setLinSpaced(0.0, MAX_THETA - step);
+    }
+    else
+    {
+      // If a smaller range of theta is used, center the angle on zero and make sure to start and end at half the range
+      float start = -range / 2.0;
+      float end = range / 2.0;
+      theta.setLinSpaced(start, end);
+    }
+  }
+
+  // Add the vertices
+  for (int i = 0; i < resolution; ++i)
+  {
+    // Positive z cap
+    {
+      pcl::PointXYZ& pt = cloud.points[i];
+      pt.x = radius * std::cos(theta(i));
+      pt.y = radius * std::sin(theta(i));
+      pt.z = length / 2.0f;
+    }
+    // Negative z cap
+    {
+      pcl::PointXYZ& pt = cloud.points[resolution + i];
+      pt.x = radius * std::cos(theta(i));
+      pt.y = radius * std::sin(theta(i));
+      pt.z = -length / 2.0f;
+    }
+  }
+
+  // Add "pole" points in the center of the "caps"
+  if (include_caps)
+  {
+    {
+      pcl::PointXYZ pole;
+      pole.x = 0.0;
+      pole.y = 0.0;
+      pole.z = length / 2.0f;
+      cloud.points.push_back(pole);
+    }
+    {
+      pcl::PointXYZ pole;
+      pole.x = 0.0;
+      pole.y = 0.0;
+      pole.z = -length / 2.0f;
+      cloud.points.push_back(pole);
+    }
+  }
+
+  // Set up parameters of the cloud
+  cloud.width = cloud.points.size();
+  cloud.height = 1;
+  cloud.is_dense = true;
+
+  // Transform the point cloud
+  pcl::PointCloud<pcl::PointXYZ> transformed_cloud;
+  pcl::transformPointCloud(cloud, transformed_cloud, origin.matrix());
+
+  pcl::PolygonMesh mesh;
+  pcl::toPCLPointCloud2(transformed_cloud, mesh.cloud);
+
+  // Add the triangles for the body of the cylinder
+  const bool skip_connecting_triangles = theta_range < MAX_THETA;
+  const int n = skip_connecting_triangles ? resolution - 1 : resolution;
+  mesh.polygons.reserve(n);
+  for (int i = 0; i < n; ++i)
+  {
+    // A quadrilateral is formed between two adjacent vertices on one cap and the two adjacent vertices with the
+    // same relative index on the other cap
+
+    // Vertex at cap 1 (positive), theta 1
+    int c1_t1_idx = i;
+    // Vertex at cap 1 (positive), theta 2
+    int c1_t2_idx = ((c1_t1_idx + 1) % resolution);
+    // Vertex at cap 2 (negative), theta 1
+    int c2_t1_idx = resolution + i;
+    // Vertex at cap 2 (negative), theta 1
+    int c2_t2_idx = resolution + ((i + 1) % resolution);
+
+    // Triangle 1
+    {
+      pcl::Vertices tri;
+      tri.vertices.push_back(c1_t1_idx);
+      tri.vertices.push_back(c2_t1_idx);
+      tri.vertices.push_back(c1_t2_idx);
+      mesh.polygons.push_back(tri);
+    }
+
+    // Triangle 2
+    {
+      pcl::Vertices tri;
+      tri.vertices.push_back(c2_t1_idx);
+      tri.vertices.push_back(c2_t2_idx);
+      tri.vertices.push_back(c1_t2_idx);
+      mesh.polygons.push_back(tri);
+    }
+  }
+
+  // Cap triangles
+  if (include_caps)
+  {
+    // Compute the indices of the pole points
+    const int idx_pole_1 = resolution * 2;
+    const int idx_pole_2 = idx_pole_1 + 1;
+
+    for (int i = 0; i < resolution; ++i)
+    {
+      // Compute the indices of the two adjacent vertices around the cap
+      int idx_v1 = i;
+      int idx_v2 = (i + 1) % resolution;
+
+      // Cap for pole 1 (positive end)
+      {
+        pcl::Vertices tri;
+        tri.vertices.push_back(idx_pole_1);
+        tri.vertices.push_back(idx_v1);
+        tri.vertices.push_back(idx_v2);
+        mesh.polygons.push_back(tri);
+      }
+
+      // Cap for pole 2 (negative end)
+      {
+        pcl::Vertices tri;
+        tri.vertices.push_back(idx_pole_2);
+        // Offset the vertex indices by the number of vertices in the first cap (`resolution`) to get to the start of
+        // the second cap Add the triangles in reverse order to get the normal vector facing out
+        tri.vertices.push_back(resolution + idx_v2);
+        tri.vertices.push_back(resolution + idx_v1);
+        mesh.polygons.push_back(tri);
+      }
+    }
+  }
+
+  return mesh;
+}
+
 }  // namespace noether

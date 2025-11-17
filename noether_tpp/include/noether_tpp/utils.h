@@ -85,8 +85,26 @@ pcl::PolygonMesh createEllipsoidMesh(const float rx = 1.0,
                                      const float ry = 1.0,
                                      const float rz = 1.5,
                                      const int resolution = 20,
-                                     const float theta_range = M_PI,
-                                     const float phi_range = 2.0 * M_PI,
+                                     const float theta_range = static_cast<float>(M_PI),
+                                     const float phi_range = static_cast<float>(2.0 * M_PI),
                                      const Eigen::Isometry3d& origin = Eigen::Isometry3d::Identity());
+
+/**
+ * @brief Creates a mesh of a cylinder with optional end caps
+ * @param radius Radius (m) of the cylinder
+ * @param length Length (m) of the cylinder
+ * @param resolution Number of vertices around the perimeter of the cylinder
+ * @param theta_range Angle range (radians) of the cylinder, on (0, 2 * pi]. If the value is less than 2 * pi, a
+ * cylinder shell is created
+ * @param include_caps Flag to indicate whether the caps of the cylinder should be included
+ * @param origin Transform to the desired origin of the primitive
+ * @return
+ */
+pcl::PolygonMesh createCylinderMesh(const float radius,
+                                    const float length,
+                                    const int resolution = 20,
+                                    const float theta_range = static_cast<float>(2.0 * M_PI),
+                                    const bool include_caps = true,
+                                    const Eigen::Isometry3d& origin = Eigen::Isometry3d::Identity());
 
 }  // namespace noether
