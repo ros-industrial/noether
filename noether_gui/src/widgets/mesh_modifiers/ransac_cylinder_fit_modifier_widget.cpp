@@ -6,6 +6,8 @@
 #include "ui_ransac_primitive_fit_modifier_widget.h"
 
 #include <noether_tpp/serialization.h>
+#include <QCheckBox>
+#include <QSpinBox>
 
 namespace noether
 {
@@ -66,10 +68,52 @@ void RansacCylinderProjectionMeshModifierWidget::save(YAML::Node& config) const
   config["normal_distance_weight"] = model_ui_->normal_distance_weight->value();
 }
 
+RansacCylinderFitMeshModifierWidget::RansacCylinderFitMeshModifierWidget(QWidget* parent)
+  : RansacCylinderProjectionMeshModifierWidget(parent)
+  , resolution_(new QSpinBox(this))
+  , include_caps_(new QCheckBox(this))
+{
+  // Add a tab for the primitive parameters
+  auto w = new QWidget(this);
+  auto layout = new QVBoxLayout(w);
+
+  // Resolution
+  {
+    resolution_->setMinimum(6);
+    resolution_->setMaximum(1e6);
+    resolution_->setSingleStep(1);
+    resolution_->setValue(50);
+    resolution_->setToolTip("Number of vertices around the perimiter of the cylinder primitive");
+
+    auto form_layout = new QFormLayout(w);
+    form_layout->addRow("Resolution", resolution_);
+    layout->addLayout(form_layout);
+  }
+
+  // Include caps
+  {
+    include_caps_->setChecked(false);
+    include_caps_->setText("Include caps");
+    include_caps_->setToolTip("Include the caps of the cylinder primitive");
+    layout->addWidget(include_caps_);
+  }
+
+  ui_->tab_widget->addTab(w, "Primitive");
+}
+
+void RansacCylinderFitMeshModifierWidget::configure(const YAML::Node& config)
+{
+  RansacCylinderProjectionMeshModifierWidget::configure(config);
+  resolution_->setValue(YAML::getMember<int>(config, "resolution"));
+  include_caps_->setChecked(YAML::getMember<bool>(config, "include_caps"));
+}
+
 void RansacCylinderFitMeshModifierWidget::save(YAML::Node& config) const
 {
   RansacCylinderProjectionMeshModifierWidget::save(config);
   config["name"] = "RansacCylinderFit";
+  config["resolution"] = resolution_->value();
+  config["include_caps"] = include_caps_->isChecked();
 }
 
 }  // namespace noether

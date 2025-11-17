@@ -2,6 +2,9 @@
 
 #include <noether_gui/widgets/mesh_modifiers/ransac_primitive_fit_modifier_widget.h>
 
+class QSpinBox;
+class QCheckBox;
+
 namespace Ui
 {
 class RansacCylinderProjection;
@@ -26,10 +29,14 @@ protected:
 class RansacCylinderFitMeshModifierWidget : public RansacCylinderProjectionMeshModifierWidget
 {
 public:
-  using RansacCylinderProjectionMeshModifierWidget::configure;
-  using RansacCylinderProjectionMeshModifierWidget::RansacCylinderProjectionMeshModifierWidget;
+  RansacCylinderFitMeshModifierWidget(QWidget* parent);
 
+  void configure(const YAML::Node& config) override;
   void save(YAML::Node& config) const override;
+
+protected:
+  QSpinBox* resolution_;
+  QCheckBox* include_caps_;
 };
 
 }  // namespace noether

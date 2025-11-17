@@ -86,6 +86,8 @@ public:
    * @param min_vertices Minimum number of vertices that a cluster (identfied as a cylinder) must have
    * @param max_cylinders Maximum number of cylinders to detect
    * @param max_iterations Maximum number of RANSAC iterations to perform
+   * @param resolution Number of vertices around the perimeter of the cylinder primitive
+   * @param include_caps Flag to indicate whether the caps should be included on the fitted cylinder primitive(s)
    */
   RansacCylinderFitMeshModifier(float min_radius,
                                 float max_radius,
@@ -95,7 +97,9 @@ public:
                                 float normal_distance_weight = 0.1,
                                 unsigned min_vertices = 1,
                                 int max_cylinders = -1,
-                                unsigned max_iterations = 100);
+                                unsigned max_iterations = 100,
+                                unsigned resolution = 20,
+                                bool include_caps = false);
 
 protected:
   RansacCylinderFitMeshModifier() = default;
@@ -104,6 +108,9 @@ protected:
   pcl::PolygonMesh
   createSubMesh(const pcl::PolygonMesh& mesh,
                 std::shared_ptr<const pcl::RandomSampleConsensus<pcl::PointXYZ>> ransac) const override;
+
+  unsigned resolution_;
+  bool include_caps_;
 };
 
 }  // namespace noether
