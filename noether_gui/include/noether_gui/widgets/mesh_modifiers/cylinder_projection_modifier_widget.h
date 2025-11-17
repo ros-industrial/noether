@@ -1,16 +1,16 @@
 #pragma once
 
-#include <noether_gui/widgets.h>
+#include <noether_gui/widgets/mesh_modifiers/ransac_primitive_fit_modifier_widget.h>
 
 namespace Ui
 {
-class CylinderSegmentation;
+class CylinderProjection;
 class Vector3dEditor;
 }  // namespace Ui
 
 namespace noether
 {
-class CylinderProjectionModifierWidget : public BaseWidget
+class CylinderProjectionModifierWidget : public RansacPrimitiveFitModifierWidget
 {
 public:
   CylinderProjectionModifierWidget(QWidget* parent = nullptr);
@@ -19,7 +19,7 @@ public:
   void save(YAML::Node& config) const override;
 
 protected:
-  Ui::CylinderSegmentation* ui_;
+  Ui::CylinderProjection* model_ui_;
   Ui::Vector3dEditor* axis_;
 };
 

@@ -1,28 +1,18 @@
 #pragma once
 
-#include <noether_gui/widgets.h>
-
-class QSpinBox;
+#include <noether_gui/widgets/mesh_modifiers/ransac_primitive_fit_modifier_widget.h>
 
 namespace noether
 {
-class DistanceDoubleSpinBox;
-
 /**
  * @ingroup gui_widgets_mesh_modifiers
  */
-class PlaneProjectionMeshModifierWidget : public BaseWidget
+class PlaneProjectionMeshModifierWidget : public RansacPrimitiveFitModifierWidget
 {
 public:
-  PlaneProjectionMeshModifierWidget(QWidget* parent = nullptr);
+  using RansacPrimitiveFitModifierWidget::RansacPrimitiveFitModifierWidget;
 
-  void configure(const YAML::Node&) override;
   void save(YAML::Node&) const override;
-
-private:
-  DistanceDoubleSpinBox* distance_threshold_;
-  QSpinBox* max_planes_;
-  QSpinBox* min_vertices_;
 };
 
 }  // namespace noether
