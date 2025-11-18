@@ -71,7 +71,7 @@ bool hasNormals(const pcl::PolygonMesh& mesh)
   return nx_it != mesh.cloud.fields.end() && ny_it != mesh.cloud.fields.end() && nz_it != mesh.cloud.fields.end();
 }
 
-Eigen::Vector3f getPoint(const pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
+Eigen::Map<Eigen::Vector3f> getPoint(pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
 {
   // Find the x, y, and z fields
   auto x_it = noether::findFieldOrThrow(cloud.fields, "x");
@@ -83,8 +83,37 @@ Eigen::Vector3f getPoint(const pcl::PCLPointCloud2& cloud, const std::uint32_t p
     throw std::runtime_error("XYZ fields are not contiguous floats");
 
   const std::uint32_t offset = pt_idx * cloud.point_step;
-  const auto* xyz = reinterpret_cast<const float*>(cloud.data.data() + offset + x_it->offset);
-  return Eigen::Map<const Eigen::Vector3f>(xyz);
+  auto* xyz = reinterpret_cast<float*>(cloud.data.data() + offset + x_it->offset);
+  return Eigen::Map<Eigen::Vector3f>(xyz);
+}
+
+Eigen::Map<const Eigen::Vector3f> getPoint(const pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
+{
+  pcl::PCLPointCloud2& cloud_mutable = const_cast<pcl::PCLPointCloud2&>(cloud);
+  Eigen::Map<Eigen::Vector3f> pt_mutable = getPoint(cloud_mutable, pt_idx);
+  return Eigen::Map<const Eigen::Vector3f>(pt_mutable.data());
+}
+
+Eigen::Map<Eigen::Vector3f> getNormal(pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
+{
+  auto nx_it = noether::findFieldOrThrow(cloud.fields, "normal_x");
+  auto ny_it = noether::findFieldOrThrow(cloud.fields, "normal_y");
+  auto nz_it = noether::findFieldOrThrow(cloud.fields, "normal_z");
+
+          // Check that the xyz fields are floats and contiguous
+  if ((ny_it->offset - nx_it->offset != 4) || (nz_it->offset - ny_it->offset != 4))
+    throw std::runtime_error("Normal fields are not contiguous floats");
+
+  const std::uint32_t offset = pt_idx * cloud.point_step;
+  auto* nx = reinterpret_cast<float*>(cloud.data.data() + offset + nx_it->offset);
+  return Eigen::Map<Eigen::Vector3f>(nx);
+}
+
+Eigen::Map<const Eigen::Vector3f> getNormal(const pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
+{
+  pcl::PCLPointCloud2& cloud_mutable = const_cast<pcl::PCLPointCloud2&>(cloud);
+  Eigen::Map<Eigen::Vector3f> normal_mutable = getNormal(cloud_mutable, pt_idx);
+  return Eigen::Map<const Eigen::Vector3f>(normal_mutable.data());
 }
 
 Eigen::Vector3f getFaceNormal(const pcl::PolygonMesh& mesh, const pcl::Vertices& polygon)
@@ -106,31 +135,14 @@ Eigen::Vector3f getFaceNormal(const pcl::PolygonMesh& mesh, const pcl::Vertices&
    *    1      1---2
    *
    */
-  const Eigen::Vector3f pt_0 = getPoint(mesh.cloud, polygon.vertices[0]);
-  const Eigen::Vector3f pt_1 = getPoint(mesh.cloud, polygon.vertices[1]);
-  const Eigen::Vector3f pt_n = getPoint(mesh.cloud, polygon.vertices.back());
+  const Eigen::Map<const Eigen::Vector3f> pt_0 = getPoint(mesh.cloud, polygon.vertices[0]);
+  const Eigen::Map<const Eigen::Vector3f> pt_1 = getPoint(mesh.cloud, polygon.vertices[1]);
+  const Eigen::Map<const Eigen::Vector3f> pt_n = getPoint(mesh.cloud, polygon.vertices.back());
 
   const Eigen::Vector3f edge_01 = pt_1 - pt_0;
   const Eigen::Vector3f edge_0n = pt_n - pt_0;
 
   return edge_01.cross(edge_0n).normalized();
-}
-
-Eigen::Vector3f getNormal(const pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
-{
-  auto nx_it = noether::findField(cloud.fields, "normal_x");
-  auto ny_it = noether::findField(cloud.fields, "normal_y");
-  auto nz_it = noether::findField(cloud.fields, "normal_z");
-
-  if (nx_it == cloud.fields.end() || ny_it == cloud.fields.end() || nz_it == cloud.fields.end())
-    throw std::runtime_error("Not all vertex normal fields exist in the point cloud");
-
-  const std::uint32_t offset = pt_idx * cloud.point_step;
-  const auto* nx = reinterpret_cast<const float*>(cloud.data.data() + offset + nx_it->offset);
-  const auto* ny = reinterpret_cast<const float*>(cloud.data.data() + offset + ny_it->offset);
-  const auto* nz = reinterpret_cast<const float*>(cloud.data.data() + offset + nz_it->offset);
-
-  return Eigen::Vector3f(*nx, *ny, *nz);
 }
 
 TriangleMesh createTriangleMesh(const pcl::PolygonMesh& input)
