@@ -27,8 +27,9 @@ std::string config_str = R"(
   name: NormalsFromMeshFaces
 - name: RansacPlaneProjection
   distance_threshold: 2.5
-  max_planes: 1
+  max_primitives: 1
   min_vertices: 1
+  max_iterations: 100
 - name: WindowedSincSmoothing
   num_iter: 100
   enable_boundary_smoothing: true
