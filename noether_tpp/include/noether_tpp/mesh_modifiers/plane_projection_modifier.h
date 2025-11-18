@@ -1,7 +1,6 @@
 #pragma once
 
-#include <noether_tpp/core/mesh_modifier.h>
-#include <noether_tpp/macros.h>
+#include <noether_tpp/mesh_modifiers/ransac_primitive_fit_modifier.h>
 
 FWD_DECLARE_YAML_STRUCTS()
 
@@ -9,22 +8,28 @@ namespace noether
 {
 /**
  * @ingroup mesh_modifiers
- * @brief MeshModifier that fits planes to the input mesh and projects the vertices onto the face
+ * @brief MeshModifier that fits planes to the input mesh and projects the vertices onto the fitted planes
  */
-class PlaneProjectionMeshModifier : public MeshModifier
+class PlaneProjectionMeshModifier : public RansacPrimitiveFitMeshModifier
 {
 public:
-  PlaneProjectionMeshModifier(double distance_threshold, unsigned max_planes = 1, unsigned min_vertices = 1);
-
-  std::vector<pcl::PolygonMesh> modify(const pcl::PolygonMesh& mesh) const override;
+  using RansacPrimitiveFitMeshModifier::RansacPrimitiveFitMeshModifier;
 
 protected:
-  double distance_threshold_;
-  unsigned max_planes_;
-  unsigned min_vertices_;
-
   PlaneProjectionMeshModifier() = default;
   DECLARE_YAML_FRIEND_CLASSES(PlaneProjectionMeshModifier)
+
+  /**
+   * @brief Creates a SAC plane model
+   */
+  std::shared_ptr<pcl::SampleConsensusModel<pcl::PointXYZ>> createModel(const pcl::PolygonMesh&) const override;
+
+  /**
+   * @brief Creates a sub-mesh by projecting the inlier vertices/triangles onto the fitted plane
+   */
+  pcl::PolygonMesh
+  createSubMesh(const pcl::PolygonMesh& mesh,
+                std::shared_ptr<const pcl::RandomSampleConsensus<pcl::PointXYZ>> ransac) const override;
 };
 
 }  // namespace noether

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <noether_tpp/core/mesh_modifier.h>
-#include <noether_tpp/macros.h>
+#include <noether_tpp/mesh_modifiers/ransac_primitive_fit_modifier.h>
 
 FWD_DECLARE_YAML_STRUCTS()
 
@@ -17,7 +16,7 @@ namespace noether
  * the input mesh until either 1) the maximum number of cylinder models have been fitted 2) too few inliers remain in
  * the input mesh, or 3) no more valid cylinders can be fit to the input mesh.
  */
-class CylinderProjectionModifier : public MeshModifier
+class CylinderProjectionModifier : public RansacPrimitiveFitMeshModifier
 {
 public:
   /**
@@ -44,21 +43,21 @@ public:
                              int max_cylinders = -1,
                              unsigned max_iterations = 100);
 
-  std::vector<pcl::PolygonMesh> modify(const pcl::PolygonMesh& mesh) const override;
-
 protected:
   CylinderProjectionModifier() = default;
   DECLARE_YAML_FRIEND_CLASSES(CylinderProjectionModifier)
 
+  std::shared_ptr<pcl::SampleConsensusModel<pcl::PointXYZ>> createModel(const pcl::PolygonMesh& mesh) const override;
+
+  pcl::PolygonMesh
+  createSubMesh(const pcl::PolygonMesh& mesh,
+                std::shared_ptr<const pcl::RandomSampleConsensus<pcl::PointXYZ>> ransac) const override;
+
   float min_radius_;
   float max_radius_;
-  float distance_threshold_;
   Eigen::Vector3f axis_;
   float axis_threshold_;
   float normal_distance_weight_;
-  unsigned min_vertices_;
-  int max_cylinders_;
-  unsigned max_iterations_;
 };
 
 }  // namespace noether

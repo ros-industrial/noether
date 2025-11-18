@@ -3,7 +3,6 @@
 #include <noether_tpp/serialization.h>
 #include <noether_tpp/utils.h>
 
-#include <numeric>
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_cylinder.h>
 #include <pcl/conversions.h>
@@ -87,21 +86,21 @@ CylinderProjectionModifier::CylinderProjectionModifier(float min_radius,
                                                        unsigned min_vertices,
                                                        int max_cylinders,
                                                        unsigned max_iterations)
-  : MeshModifier()
+  : RansacPrimitiveFitMeshModifier(distance_threshold, min_vertices, max_cylinders, max_iterations)
   , min_radius_(min_radius)
   , max_radius_(max_radius)
-  , distance_threshold_(distance_threshold)
   , axis_(axis)
   , axis_threshold_(axis_threshold)
   , normal_distance_weight_(normal_distance_weight)
-  , min_vertices_(min_vertices)
-  , max_cylinders_(max_cylinders)
-  , max_iterations_(max_iterations)
 {
 }
 
-std::vector<pcl::PolygonMesh> CylinderProjectionModifier::modify(const pcl::PolygonMesh& mesh) const
+std::shared_ptr<pcl::SampleConsensusModel<pcl::PointXYZ>>
+CylinderProjectionModifier::createModel(const pcl::PolygonMesh& mesh) const
 {
+  if (!hasNormals(mesh))
+    throw std::runtime_error("Cylinder fit requires mesh to have vertex normals");
+
   // Convert the mesh vertices to a point cloud
   auto cloud_points = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
   pcl::fromPCLPointCloud2(mesh.cloud, *cloud_points);
@@ -109,9 +108,6 @@ std::vector<pcl::PolygonMesh> CylinderProjectionModifier::modify(const pcl::Poly
   // Convert the mesh vertex normals to a point cloud of normals
   auto cloud_normals = pcl::make_shared<pcl::PointCloud<pcl::Normal>>();
   pcl::fromPCLPointCloud2(mesh.cloud, *cloud_normals);
-
-  // Set up the output data structure
-  std::vector<pcl::PolygonMesh> output;
 
   // Set up the RANSAC cylinder fit model
   auto model = pcl::make_shared<pcl::SampleConsensusModelCylinder<pcl::PointXYZ, pcl::Normal>>(cloud_points);
@@ -121,66 +117,26 @@ std::vector<pcl::PolygonMesh> CylinderProjectionModifier::modify(const pcl::Poly
   model->setAxis(axis_);
   model->setEpsAngle(axis_threshold_);
 
-  auto ransac = pcl::make_shared<pcl::RandomSampleConsensus<pcl::PointXYZ>>(model);
-  ransac->setDistanceThreshold(distance_threshold_);
-  ransac->setMaxIterations(max_iterations_);
+  return model;
+}
 
-  // Create a vector of indices for the remaining indices to which a cylinder model can be fit
-  // To start, all indices are remaining (i.e., [0, 1, 2, ..., cloud->size() - 1])
-  std::vector<int> all_indices(cloud_points->size());
-  std::iota(all_indices.begin(), all_indices.end(), 0);
-  std::vector<int> remaining_indices = all_indices;
+pcl::PolygonMesh
+CylinderProjectionModifier::createSubMesh(const pcl::PolygonMesh& mesh,
+                                          std::shared_ptr<const pcl::RandomSampleConsensus<pcl::PointXYZ>> ransac) const
+{
+  Eigen::VectorXf coefficients;
+  ransac->getModelCoefficients(coefficients);
 
-  /* Detect as many cylinders as possible while:
-   *   - there are at least enough vertices left to form a new model cluster, and
-   *   - we haven't detected more than the maximum number of cylinders
-   */
-  while (remaining_indices.size() >= min_vertices_ && output.size() < max_cylinders_)
-  {
-    // Fit a cylinder model to the vertices using RANSAC
-    model->setIndices(remaining_indices);
-    if (!ransac->computeModel())
-      break;
+  std::vector<int> inliers;
+  ransac->getInliers(inliers);
 
-    // Refine the fit model
-    if (!ransac->refineModel())
-      break;
+  // Extract the inlier submesh
+  pcl::PolygonMesh output_mesh = extractSubMeshFromInlierVertices(mesh, inliers);
 
-    // Extract the inliers and ensure there are enough to form a valid model cluster
-    std::vector<int> inliers;
-    ransac->getInliers(inliers);
-    if (inliers.size() < min_vertices_)
-      break;
+  // Project the mesh
+  projectInPlace(output_mesh.cloud, coefficients);
 
-    // Extract the inlier submesh
-    pcl::PolygonMesh output_mesh = extractSubMeshFromInlierVertices(mesh, inliers);
-    if (!output_mesh.polygons.empty())
-    {
-      // Project the mesh
-      Eigen::VectorXf coefficients;
-      ransac->getModelCoefficients(coefficients);
-      projectInPlace(output_mesh.cloud, coefficients);
-
-      // Append the extracted and projected mesh to the vector of output meshes
-      output.push_back(output_mesh);
-    }
-
-    // Remove the inlier indices from the list of remaining indices
-    std::size_t num_outliers = remaining_indices.size() - inliers.size();
-    if (num_outliers < min_vertices_)
-      break;
-
-    std::vector<int> outliers;
-    outliers.reserve(num_outliers);
-    std::set_difference(remaining_indices.begin(),
-                        remaining_indices.end(),
-                        inliers.begin(),
-                        inliers.end(),
-                        std::back_inserter(outliers));
-    remaining_indices = outliers;
-  }
-
-  return output;
+  return output_mesh;
 }
 
 }  // namespace noether
@@ -190,33 +146,27 @@ namespace YAML
 /** @cond */
 Node convert<noether::CylinderProjectionModifier>::encode(const noether::CylinderProjectionModifier& val)
 {
-  Node node;
+  Node node = convert<noether::RansacPrimitiveFitMeshModifier>::encode(val);
   node["min_radius"] = val.min_radius_;
   node["max_radius"] = val.max_radius_;
-  node["distance_threshold"] = val.distance_threshold_;
   node["axis"] = val.axis_;
   node["axis_threshold"] = val.axis_threshold_;
   node["normal_distance_weight"] = val.normal_distance_weight_;
-  node["min_vertices"] = val.min_vertices_;
-  node["max_cylinders"] = val.max_cylinders_;
-  node["max_iterations"] = val.max_iterations_;
 
   return node;
 }
 
 bool convert<noether::CylinderProjectionModifier>::decode(const Node& node, noether::CylinderProjectionModifier& val)
 {
+  bool ret = convert<noether::RansacPrimitiveFitMeshModifier>::decode(node, val);
+
   val.min_radius_ = YAML::getMember<double>(node, "min_radius");
   val.max_radius_ = YAML::getMember<double>(node, "max_radius");
-  val.distance_threshold_ = YAML::getMember<double>(node, "distance_threshold");
   val.axis_ = YAML::getMember<Eigen::Vector3f>(node, "axis");
   val.axis_threshold_ = YAML::getMember<double>(node, "axis_threshold");
   val.normal_distance_weight_ = YAML::getMember<double>(node, "normal_distance_weight");
-  val.min_vertices_ = YAML::getMember<int>(node, "min_vertices");
-  val.max_cylinders_ = YAML::getMember<int>(node, "max_cylinders");
-  val.max_iterations_ = YAML::getMember<int>(node, "max_iterations");
 
-  return true;
+  return ret;
 }
 /** @endcond */
 

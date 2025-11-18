@@ -3,9 +3,8 @@
 #include <noether_tpp/utils.h>
 #include <noether_tpp/serialization.h>
 
-#include <numeric>
-#include <pcl/sample_consensus/sac_model_plane.h>
 #include <pcl/sample_consensus/ransac.h>
+#include <pcl/sample_consensus/sac_model_plane.h>
 #include <pcl/conversions.h>
 
 namespace noether
@@ -54,108 +53,61 @@ void projectInPlace(pcl::PCLPointCloud2& cloud, const Eigen::Vector4f& plane_coe
   }
 }
 
-PlaneProjectionMeshModifier::PlaneProjectionMeshModifier(double distance_threshold,
-                                                         unsigned max_planes,
-                                                         unsigned min_vertices)
-  : MeshModifier()
-  , distance_threshold_(distance_threshold)
-  , max_planes_(max_planes < 1 ? std::numeric_limits<int>::max() : max_planes)
-  , min_vertices_(min_vertices)
+std::shared_ptr<pcl::SampleConsensusModel<pcl::PointXYZ>>
+PlaneProjectionMeshModifier::createModel(const pcl::PolygonMesh& mesh) const
 {
-}
-
-std::vector<pcl::PolygonMesh> PlaneProjectionMeshModifier::modify(const pcl::PolygonMesh& mesh) const
-{
-  // Convert the mesh vertices to a point cloud
   auto cloud = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
   pcl::fromPCLPointCloud2(mesh.cloud, *cloud);
 
-  // Set up the output data structure
-  std::vector<pcl::PolygonMesh> output;
-
   // Set up the RANSAC plane fit model
-  auto model = pcl::make_shared<pcl::SampleConsensusModelPlane<pcl::PointXYZ>>(cloud);
-  auto ransac = pcl::make_shared<pcl::RandomSampleConsensus<pcl::PointXYZ>>(model);
-  ransac->setDistanceThreshold(distance_threshold_);
+  return pcl::make_shared<pcl::SampleConsensusModelPlane<pcl::PointXYZ>>(cloud);
+}
 
-  // Create a vector of indices for the remaining indices to which a plane model can be fit
-  std::vector<int> remaining_indices(cloud->size());
-  std::iota(remaining_indices.begin(), remaining_indices.end(), 0);
+pcl::PolygonMesh PlaneProjectionMeshModifier::createSubMesh(
+    const pcl::PolygonMesh& mesh,
+    std::shared_ptr<const pcl::RandomSampleConsensus<pcl::PointXYZ>> ransac) const
+{
+  // Extract the model coefficients
+  Eigen::VectorXf plane_coeffs;
+  ransac->getModelCoefficients(plane_coeffs);
 
-  while (remaining_indices.size() >= min_vertices_ && output.size() < max_planes_)
+  std::vector<int> inliers;
+  ransac->getInliers(inliers);
+
+  // Extract the inlier sub-mesh
+  pcl::PolygonMesh output_mesh = extractSubMeshFromInlierVertices(mesh, inliers);
+
+  // Compute the unprojected face normals
+  Eigen::MatrixX3f normals(output_mesh.polygons.size(), 3);
+  for (Eigen::Index i = 0; i < normals.rows(); ++i)
+    normals.row(i) = getFaceNormal(output_mesh, output_mesh.polygons[i]);
+
+  // Compute the dot products of each unprojected face normal with the nominal plane normal
+  Eigen::VectorXf dot_products = normals * plane_coeffs.head<3>();
+
+  // Invert the fitted plane coefficients if the average face normal and plane normal do not align (i.e., their dot
+  // product is < 0)
+  if (dot_products.mean() < 0)
   {
-    // Fit a plane model to the vertices using RANSAC
-    model->setIndices(remaining_indices);
-    if (!ransac->computeModel())
-      break;
-
-    // Refine the model
-    ransac->refineModel();
-
-    // Extract the inliers
-    std::vector<int> inliers;
-    ransac->getInliers(inliers);
-    if (inliers.size() < min_vertices_)
-      break;
-
-    // Get the optimized model coefficients
-    Eigen::VectorXf plane_coeffs(4);
-    ransac->getModelCoefficients(plane_coeffs);
-
-    // Extract the inlier submesh
-    pcl::PolygonMesh output_mesh = extractSubMeshFromInlierVertices(mesh, inliers);
-    if (!output_mesh.polygons.empty())
-    {
-      // Compute the unprojected face normals
-      Eigen::MatrixX3f normals(output_mesh.polygons.size(), 3);
-      for (Eigen::Index i = 0; i < normals.rows(); ++i)
-        normals.row(i) = getFaceNormal(output_mesh, output_mesh.polygons[i]);
-
-      // Compute the dot products of each unprojected face normal with the nominal plane normal
-      Eigen::VectorXf dot_products = normals * plane_coeffs.head<3>();
-
-      // Invert the fitted plane coefficients if the average face normal and plane normal do not align (i.e., their dot
-      // product is < 0)
-      if (dot_products.mean() < 0)
-      {
-        plane_coeffs *= -1;
-      }
-
-      // Project the inlier vertices onto the plane
-      projectInPlace(output_mesh.cloud, plane_coeffs);
-
-      // Compute the projected face normals
-      for (Eigen::Index i = 0; i < normals.rows(); ++i)
-        normals.row(i) = getFaceNormal(output_mesh, output_mesh.polygons[i]);
-
-      // Compute the dot products of each projected face normal with the plane normal
-      dot_products = normals * plane_coeffs.head<3>();
-
-      // Reverse any faces that do not align with the fitted plane normal
-      for (Eigen::Index i = 0; i < dot_products.size(); ++i)
-        if (dot_products[i] < 0.0)
-          std::reverse(output_mesh.polygons[i].vertices.begin(), output_mesh.polygons[i].vertices.end());
-
-      // Append the extracted and projected mesh to the vector of output meshes
-      output.push_back(output_mesh);
-    }
-
-    // Remove the inlier indices from the list of remaining indices
-    std::size_t num_outliers = remaining_indices.size() - inliers.size();
-    if (num_outliers < min_vertices_)
-      break;
-
-    std::vector<int> outliers;
-    outliers.reserve(num_outliers);
-    std::set_difference(remaining_indices.begin(),
-                        remaining_indices.end(),
-                        inliers.begin(),
-                        inliers.end(),
-                        std::back_inserter(outliers));
-    remaining_indices = outliers;
+    plane_coeffs *= -1;
   }
 
-  return output;
+  // Project the inlier vertices onto the plane
+  projectInPlace(output_mesh.cloud, plane_coeffs);
+
+  // Compute the projected face normals
+  for (Eigen::Index i = 0; i < normals.rows(); ++i)
+    normals.row(i) = getFaceNormal(output_mesh, output_mesh.polygons[i]);
+
+  // Compute the dot products of each projected face normal with the plane normal
+  dot_products = normals * plane_coeffs.head<3>();
+
+  // Reverse any faces that do not align with the fitted plane normal
+  for (Eigen::Index i = 0; i < dot_products.size(); ++i)
+    if (dot_products[i] < 0.0)
+      std::reverse(output_mesh.polygons[i].vertices.begin(), output_mesh.polygons[i].vertices.end());
+
+  return output_mesh;
 }
 
 }  // namespace noether
@@ -165,19 +117,12 @@ namespace YAML
 /** @cond */
 Node convert<noether::PlaneProjectionMeshModifier>::encode(const noether::PlaneProjectionMeshModifier& val)
 {
-  Node node;
-  node["distance_threshold"] = val.distance_threshold_;
-  node["max_planes"] = val.max_planes_;
-  node["min_vertices"] = val.min_vertices_;
-  return node;
+  return convert<noether::RansacPrimitiveFitMeshModifier>::encode(val);
 }
 
 bool convert<noether::PlaneProjectionMeshModifier>::decode(const Node& node, noether::PlaneProjectionMeshModifier& val)
 {
-  val.distance_threshold_ = getMember<double>(node, "distance_threshold");
-  val.max_planes_ = getMember<int>(node, "max_planes");
-  val.min_vertices_ = getMember<int>(node, "min_vertices");
-  return true;
+  return convert<noether::RansacPrimitiveFitMeshModifier>::decode(node, val);
 }
 /** @endcond */
 
