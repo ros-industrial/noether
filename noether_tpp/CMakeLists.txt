@@ -60,6 +60,7 @@ add_library(
   src/mesh_modifiers/subset_extraction/extruded_polygon_subset_extractor.cpp
   src/mesh_modifiers/compound_modifier.cpp
   src/mesh_modifiers/clean_data_modifier.cpp
+  src/mesh_modifiers/cylinder_fit_modifier.cpp
   src/mesh_modifiers/cylinder_projection_modifier.cpp
   src/mesh_modifiers/euclidean_clustering_modifier.cpp
   src/mesh_modifiers/fill_holes_modifier.cpp
