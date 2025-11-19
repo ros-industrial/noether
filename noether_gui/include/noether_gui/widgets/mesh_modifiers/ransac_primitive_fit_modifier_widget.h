@@ -4,22 +4,22 @@
 
 namespace Ui
 {
-class CylinderSegmentation;
+class RansacPrimitiveFit;
 class Vector3dEditor;
 }  // namespace Ui
 
 namespace noether
 {
-class CylinderProjectionModifierWidget : public BaseWidget
+class RansacPrimitiveFitMeshModifierWidget : public BaseWidget
 {
 public:
-  CylinderProjectionModifierWidget(QWidget* parent = nullptr);
+  RansacPrimitiveFitMeshModifierWidget(QWidget* parent = nullptr);
 
   void configure(const YAML::Node& config) override;
   void save(YAML::Node& config) const override;
 
 protected:
-  Ui::CylinderSegmentation* ui_;
+  Ui::RansacPrimitiveFit* ui_;
   Ui::Vector3dEditor* axis_;
 };
 

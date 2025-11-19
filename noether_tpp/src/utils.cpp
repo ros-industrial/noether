@@ -469,7 +469,7 @@ pcl::PolygonMesh createCylinderMesh(const float radius,
                                     const bool include_caps,
                                     const Eigen::Isometry3d& origin)
 {
-  pcl::PointCloud<pcl::PointXYZ> cloud;
+  pcl::PointCloud<pcl::PointNormal> cloud;
   cloud.resize(2 * resolution);
 
   // Add the rings
@@ -502,17 +502,25 @@ pcl::PolygonMesh createCylinderMesh(const float radius,
   {
     // Positive z cap
     {
-      pcl::PointXYZ& pt = cloud.points[i];
+      pcl::PointNormal& pt = cloud.points[i];
       pt.x = radius * std::cos(theta(i));
       pt.y = radius * std::sin(theta(i));
       pt.z = length / 2.0f;
+
+      pt.normal_x = std::cos(theta[i]);
+      pt.normal_y = std::sin(theta[i]);
+      pt.normal_z = 0.0;
     }
     // Negative z cap
     {
-      pcl::PointXYZ& pt = cloud.points[resolution + i];
+      pcl::PointNormal& pt = cloud.points[resolution + i];
       pt.x = radius * std::cos(theta(i));
       pt.y = radius * std::sin(theta(i));
       pt.z = -length / 2.0f;
+
+      pt.normal_x = std::cos(theta[i]);
+      pt.normal_y = std::sin(theta[i]);
+      pt.normal_z = 0.0;
     }
   }
 
@@ -520,17 +528,21 @@ pcl::PolygonMesh createCylinderMesh(const float radius,
   if (include_caps)
   {
     {
-      pcl::PointXYZ pole;
+      pcl::PointNormal pole;
       pole.x = 0.0;
       pole.y = 0.0;
       pole.z = length / 2.0f;
+      pole.getNormalVector3fMap() = Eigen::Vector3f::UnitZ();
+
       cloud.points.push_back(pole);
     }
     {
-      pcl::PointXYZ pole;
+      pcl::PointNormal pole;
       pole.x = 0.0;
       pole.y = 0.0;
       pole.z = -length / 2.0f;
+      pole.getNormalVector3fMap() = -1.0 * Eigen::Vector3f::UnitZ();
+
       cloud.points.push_back(pole);
     }
   }
@@ -541,7 +553,7 @@ pcl::PolygonMesh createCylinderMesh(const float radius,
   cloud.is_dense = true;
 
   // Transform the point cloud
-  pcl::PointCloud<pcl::PointXYZ> transformed_cloud;
+  pcl::PointCloud<pcl::PointNormal> transformed_cloud;
   pcl::transformPointCloud(cloud, transformed_cloud, origin.matrix());
 
   pcl::PolygonMesh mesh;

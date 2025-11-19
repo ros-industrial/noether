@@ -4,12 +4,12 @@
 // Mesh modifiers
 #include <noether_tpp/mesh_modifiers/clean_data_modifier.h>
 #include <noether_tpp/mesh_modifiers/compound_modifier.h>
-#include <noether_tpp/mesh_modifiers/cylinder_projection_modifier.h>
 #include <noether_tpp/mesh_modifiers/euclidean_clustering_modifier.h>
 #include <noether_tpp/mesh_modifiers/fill_holes_modifier.h>
 #include <noether_tpp/mesh_modifiers/normal_estimation_pcl.h>
 #include <noether_tpp/mesh_modifiers/normals_from_mesh_faces_modifier.h>
-#include <noether_tpp/mesh_modifiers/plane_projection_modifier.h>
+#include <noether_tpp/mesh_modifiers/ransac_cylinder_fit_modifier.h>
+#include <noether_tpp/mesh_modifiers/ransac_plane_fit_modifier.h>
 #include <noether_tpp/mesh_modifiers/windowed_sinc_smoothing_modifier.h>
 
 // Direction Generators
@@ -50,13 +50,14 @@ namespace noether
 {
 // Mesh Modifiers
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(CleanData, CleanData)
-EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(CylinderProjectionModifier, CylinderSegmentation)
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(EuclideanClusteringMeshModifier, EuclideanClustering)
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(FillHoles, FillHoles)
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(NormalEstimationPCLMeshModifier, NormalEstimationPCL)
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(NormalsFromMeshFacesMeshModifier, NormalsFromMeshFaces)
+EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(RansacCylinderFitMeshModifier, RansacCylinderFit)
+EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(RansacCylinderProjectionMeshModifier, RansacCylinderProjection)
 //! [Plugin Alias Correspondence]
-EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(PlaneProjectionMeshModifier, PlaneProjection)
+EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(RansacPlaneProjectionMeshModifier, RansacPlaneProjection)
 //! [Plugin Alias Correspondence]
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(WindowedSincSmoothing, WindowedSincSmoothing)
 
