@@ -7,20 +7,20 @@ FWD_DECLARE_YAML_STRUCTS()
 
 namespace noether
 {
-class UpsamplingMeshModifier : public MeshModifier
+class FaceSubdivisionMeshModifier : public MeshModifier
 {
 public:
-  UpsamplingMeshModifier(double max_area);
+  FaceSubdivisionMeshModifier(double max_area);
 
   std::vector<pcl::PolygonMesh> modify(const pcl::PolygonMesh& mesh) const override;
 
 protected:
-  UpsamplingMeshModifier() = default;
-  DECLARE_YAML_FRIEND_CLASSES(UpsamplingMeshModifier)
+  FaceSubdivisionMeshModifier() = default;
+  DECLARE_YAML_FRIEND_CLASSES(FaceSubdivisionMeshModifier)
 
   double max_area_;
 };
 
 }  // namespace noether
 
-FWD_DECLARE_YAML_CONVERT(noether::UpsamplingMeshModifier)
+FWD_DECLARE_YAML_CONVERT(noether::FaceSubdivisionMeshModifier)

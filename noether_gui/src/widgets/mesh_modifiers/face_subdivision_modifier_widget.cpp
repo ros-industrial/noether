@@ -1,4 +1,4 @@
-#include <noether_gui/widgets/mesh_modifiers/upsampling_modifier_widget.h>
+#include <noether_gui/widgets/mesh_modifiers/face_subdivision_modifier_widget.h>
 #include <noether_tpp/serialization.h>
 
 #include <QDoubleSpinBox>
@@ -7,7 +7,7 @@
 
 namespace noether
 {
-UpsamplingMeshModifierWidget::UpsamplingMeshModifierWidget(QWidget* parent)
+FaceSubdivisionMeshModifierWidget::FaceSubdivisionMeshModifierWidget(QWidget* parent)
   : BaseWidget(parent), max_area_(new QDoubleSpinBox(this))
 {
   auto* layout = new QVBoxLayout(this);
@@ -22,11 +22,15 @@ UpsamplingMeshModifierWidget::UpsamplingMeshModifierWidget(QWidget* parent)
   layout->addLayout(form_layout);
 }
 
-void UpsamplingMeshModifierWidget::configure(const YAML::Node& config)
+void FaceSubdivisionMeshModifierWidget::configure(const YAML::Node& config)
 {
   max_area_->setValue(YAML::getMember<double>(config, "max_area"));
 }
 
-void UpsamplingMeshModifierWidget::save(YAML::Node& config) const { config["max_area"] = max_area_->value(); }
+void FaceSubdivisionMeshModifierWidget::save(YAML::Node& config) const
+{
+  config["name"] = "FaceSubdivision";
+  config["max_area"] = max_area_->value();
+}
 
 }  // namespace noether

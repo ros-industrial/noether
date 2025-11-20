@@ -61,6 +61,7 @@ add_library(
   src/mesh_modifiers/compound_modifier.cpp
   src/mesh_modifiers/clean_data_modifier.cpp
   src/mesh_modifiers/euclidean_clustering_modifier.cpp
+  src/mesh_modifiers/face_subdivision_modifier.cpp
   src/mesh_modifiers/fill_holes_modifier.cpp
   src/mesh_modifiers/windowed_sinc_smoothing.cpp
   src/mesh_modifiers/ransac_primitive_fit_modifier.cpp
@@ -68,7 +69,6 @@ add_library(
   src/mesh_modifiers/ransac_plane_fit_modifier.cpp
   src/mesh_modifiers/normal_estimation_pcl.cpp
   src/mesh_modifiers/normals_from_mesh_faces_modifier.cpp
-  src/mesh_modifiers/upsampling_modifier.cpp
   # Tool Path Modifiers
   src/tool_path_modifiers/biased_tool_drag_orientation_modifier.cpp
   src/tool_path_modifiers/circular_lead_in_modifier.cpp

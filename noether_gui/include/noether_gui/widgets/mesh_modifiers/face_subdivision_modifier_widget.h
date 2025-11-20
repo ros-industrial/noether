@@ -1,16 +1,15 @@
 #pragma once
 
 #include <noether_gui/widgets.h>
-#include <noether_tpp/core/mesh_modifier.h>
 
 class QDoubleSpinBox;
 
 namespace noether
 {
-class UpsamplingMeshModifierWidget : public BaseWidget
+class FaceSubdivisionMeshModifierWidget : public BaseWidget
 {
 public:
-  UpsamplingMeshModifierWidget(QWidget* parent = nullptr);
+  FaceSubdivisionMeshModifierWidget(QWidget* parent = nullptr);
 
   void configure(const YAML::Node& config) override;
   void save(YAML::Node& config) const override;

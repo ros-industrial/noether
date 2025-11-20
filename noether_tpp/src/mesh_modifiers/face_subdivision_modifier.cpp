@@ -1,4 +1,4 @@
-#include <noether_tpp/mesh_modifiers/upsampling_modifier.h>
+#include <noether_tpp/mesh_modifiers/face_subdivision_modifier.h>
 #include <noether_tpp/serialization.h>
 #include <noether_tpp/utils.h>
 
@@ -65,9 +65,9 @@ uint32_t getOrCreateMidpoint(VertexIndex idx_start,
 
 namespace noether
 {
-UpsamplingMeshModifier::UpsamplingMeshModifier(double max_area) : MeshModifier(), max_area_(max_area) {}
+FaceSubdivisionMeshModifier::FaceSubdivisionMeshModifier(double max_area) : MeshModifier(), max_area_(max_area) {}
 
-std::vector<pcl::PolygonMesh> UpsamplingMeshModifier::modify(const pcl::PolygonMesh& mesh) const
+std::vector<pcl::PolygonMesh> FaceSubdivisionMeshModifier::modify(const pcl::PolygonMesh& mesh) const
 {
   pcl::PolygonMesh output;
   output.header = mesh.header;
@@ -152,15 +152,15 @@ std::vector<pcl::PolygonMesh> UpsamplingMeshModifier::modify(const pcl::PolygonM
 namespace YAML
 {
 /** @cond */
-Node convert<noether::UpsamplingMeshModifier>::encode(const noether::UpsamplingMeshModifier& val)
+Node convert<noether::FaceSubdivisionMeshModifier>::encode(const noether::FaceSubdivisionMeshModifier& val)
 {
   Node node;
   node["max_area"] = val.max_area_;
   return node;
 }
 
-bool convert<noether::UpsamplingMeshModifier>::decode(const Node& node,
-                                                              noether::UpsamplingMeshModifier& val)
+bool convert<noether::FaceSubdivisionMeshModifier>::decode(const Node& node,
+                                                              noether::FaceSubdivisionMeshModifier& val)
 {
   val.max_area_ = YAML::getMember<double>(node, "max_area");
   return true;

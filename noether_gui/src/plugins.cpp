@@ -33,12 +33,12 @@
 #include <noether_gui/widgets/tool_path_modifiers/uniform_spacing_linear_modifier_widget.h>
 // Mesh Modifiers
 #include <noether_gui/widgets/mesh_modifiers/euclidean_clustering_modifier_widget.h>
+#include <noether_gui/widgets/mesh_modifiers/face_subdivision_modifier_widget.h>
 #include <noether_gui/widgets/mesh_modifiers/fill_holes_modifier_widget.h>
 #include <noether_gui/widgets/mesh_modifiers/normal_estimation_pcl_widget.h>
 #include <noether_gui/widgets/mesh_modifiers/normals_from_mesh_faces_modifier_widget.h>
 #include <noether_gui/widgets/mesh_modifiers/ransac_cylinder_fit_modifier_widget.h>
 #include <noether_gui/widgets/mesh_modifiers/ransac_plane_fit_modifier_widget.h>
-#include <noether_gui/widgets/mesh_modifiers/upsampling_modifier_widget.h>
 
 #include <QWidget>
 #include <QMessageBox>
@@ -48,6 +48,7 @@ namespace noether
 {
 // Mesh Modifiers
 EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(EuclideanClusteringMeshModifierWidget, EuclideanClustering)
+EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(FaceSubdivisionMeshModifierWidget, FaceSubdivision);
 EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(FillHolesModifierWidget, FillHoles)
 EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(NormalEstimationPCLMeshModifierWidget, NormalEstimationPCL)
 EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(NormalsFromMeshFacesMeshModifierWidget, NormalsFromMeshFaces)
@@ -56,7 +57,6 @@ EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(RansacCylinderProjectionMeshModifierWi
 //! [GUI Plugin Alias Correspondence]
 EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(RansacPlaneProjectionMeshModifierWidget, RansacPlaneProjection)
 //! [GUI Plugin Alias Correspondence]
-EXPORT_SIMPLE_MESH_MODIFIER_WIDGET_PLUGIN(UpsamplingMeshModifierWidget, Upsampling);
 
 // Direction Generators
 EXPORT_SIMPLE_DIRECTION_GENERATOR_WIDGET_PLUGIN(FixedDirectionGeneratorWidget, FixedDirection)
