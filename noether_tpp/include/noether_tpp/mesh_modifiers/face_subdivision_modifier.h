@@ -50,6 +50,30 @@ protected:
   float max_area_;
 };
 
+/**
+ * @brief Mesh modifier that subdivides mesh faces into smaller faces until all edges have less than the specified maximum length
+ * @ingroup mesh_modifiers
+ */
+class FaceSubdivisionByEdgeLengthMeshModifier : public FaceSubdivisionMeshModifier
+{
+public:
+  FaceSubdivisionByEdgeLengthMeshModifier(float max_edge_length,
+                                          float min_edge_length = 1.0e-6);
+
+protected:
+  FaceSubdivisionByEdgeLengthMeshModifier() = default;
+  DECLARE_YAML_FRIEND_CLASSES(FaceSubdivisionByEdgeLengthMeshModifier)
+
+  /**
+   * @brief Returns true if the area of the face has a greater area than the specified maximum face area
+   */
+  bool requiresSubdivision(const pcl::PolygonMesh& mesh, const pcl::Vertices& face) const override;
+
+  float max_edge_length_;
+  float min_edge_length_x2_;
+};
+
 }  // namespace noether
 
 FWD_DECLARE_YAML_CONVERT(noether::FaceSubdivisionByAreaMeshModifier)
+FWD_DECLARE_YAML_CONVERT(noether::FaceSubdivisionByEdgeLengthMeshModifier)

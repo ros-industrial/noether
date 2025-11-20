@@ -195,6 +195,36 @@ bool FaceSubdivisionByAreaMeshModifier::requiresSubdivision(const pcl::PolygonMe
   return area > max_area_;
 }
 
+FaceSubdivisionByEdgeLengthMeshModifier::FaceSubdivisionByEdgeLengthMeshModifier(float max_edge_length, float min_edge_length)
+  : FaceSubdivisionMeshModifier()
+  , max_edge_length_(max_edge_length)
+  , min_edge_length_x2_(min_edge_length * 2.0f)
+{
+}
+
+bool FaceSubdivisionByEdgeLengthMeshModifier::requiresSubdivision(const pcl::PolygonMesh& mesh, const pcl::Vertices& face) const
+{
+  bool requires_subdivision = false;
+
+  for(pcl::index_t i = 0; i < face.vertices.size(); ++i)
+  {
+    // Get the ith and (i+1)th vertices
+    // Wrap around (using the modulus) to check the edge from vertex n to vertex 0
+    Eigen::Map<const Eigen::Vector3f> v0 = getPoint(mesh.cloud, face.vertices[i % face.vertices.size()]);
+    Eigen::Map<const Eigen::Vector3f> v1 = getPoint(mesh.cloud, face.vertices[(i + 1) % face.vertices.size()]);
+
+    const float edge_length = (v1 - v0).norm();
+
+    // If the division of any one edge would be less than the minimimum edge length, do not do the subdivision
+    if (edge_length < min_edge_length_x2_)
+      return false;
+
+    requires_subdivision |= edge_length > max_edge_length_;
+  }
+
+  return requires_subdivision;
+}
+
 }  // namespace noether
 
 namespace YAML
@@ -210,7 +240,23 @@ Node convert<noether::FaceSubdivisionByAreaMeshModifier>::encode(const noether::
 bool convert<noether::FaceSubdivisionByAreaMeshModifier>::decode(const Node& node,
                                                                  noether::FaceSubdivisionByAreaMeshModifier& val)
 {
-  val.max_area_ = YAML::getMember<double>(node, "max_area");
+  val.max_area_ = YAML::getMember<float>(node, "max_area");
+  return true;
+}
+
+Node convert<noether::FaceSubdivisionByEdgeLengthMeshModifier>::encode(const noether::FaceSubdivisionByEdgeLengthMeshModifier& val)
+{
+  Node node;
+  node["max_edge_length"] = val.max_edge_length_;
+  node["min_edge_length"] = val.min_edge_length_x2_ / 2.0f;
+  return node;
+}
+
+bool convert<noether::FaceSubdivisionByEdgeLengthMeshModifier>::decode(const Node& node,
+                                                                       noether::FaceSubdivisionByEdgeLengthMeshModifier& val)
+{
+  val.max_edge_length_ = YAML::getMember<float>(node, "max_edge_length");
+  val.min_edge_length_x2_ = YAML::getMember<float>(node, "min_edge_length") * 2.0f;
   return true;
 }
 /** @endcond */
