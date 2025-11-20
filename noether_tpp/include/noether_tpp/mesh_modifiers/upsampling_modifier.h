@@ -1,10 +1,9 @@
 #pragma once
 
 #include <noether_tpp/core/mesh_modifier.h>
-#include <pcl/PolygonMesh.h>
-#include <pcl/point_types.h>
-#include <map>
-#include <vector>
+#include <noether_tpp/macros.h>
+
+FWD_DECLARE_YAML_STRUCTS()
 
 namespace noether
 {
@@ -16,13 +15,12 @@ public:
   std::vector<pcl::PolygonMesh> modify(const pcl::PolygonMesh& mesh) const override;
 
 protected:
-  double max_area_;
+  UpsamplingMeshModifier() = default;
+  DECLARE_YAML_FRIEND_CLASSES(UpsamplingMeshModifier)
 
-  // Helper function to get or create midpoint
-  uint32_t getOrCreateMidpoint(uint32_t idx_start,
-                               uint32_t idx_end,
-                               std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ>>& vertices,
-                               std::map<std::pair<uint32_t, uint32_t>, uint32_t>& edge_midpoints) const;
+  double max_area_;
 };
 
 }  // namespace noether
+
+FWD_DECLARE_YAML_CONVERT(noether::UpsamplingMeshModifier)
