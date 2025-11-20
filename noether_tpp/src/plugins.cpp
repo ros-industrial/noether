@@ -52,7 +52,7 @@ namespace noether
 // Mesh Modifiers
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(CleanData, CleanData)
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(EuclideanClusteringMeshModifier, EuclideanClustering)
-EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(FaceSubdivisionMeshModifier, FaceSubdivision);
+EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(FaceSubdivisionByAreaMeshModifier, FaceSubdivisionByArea);
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(FillHoles, FillHoles)
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(NormalEstimationPCLMeshModifier, NormalEstimationPCL)
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(NormalsFromMeshFacesMeshModifier, NormalsFromMeshFaces)

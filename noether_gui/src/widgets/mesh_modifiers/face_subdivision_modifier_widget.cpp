@@ -7,7 +7,7 @@
 
 namespace noether
 {
-FaceSubdivisionMeshModifierWidget::FaceSubdivisionMeshModifierWidget(QWidget* parent)
+FaceSubdivisionByAreaMeshModifierWidget::FaceSubdivisionByAreaMeshModifierWidget(QWidget* parent)
   : BaseWidget(parent), max_area_(new QDoubleSpinBox(this))
 {
   auto* layout = new QVBoxLayout(this);
@@ -22,14 +22,14 @@ FaceSubdivisionMeshModifierWidget::FaceSubdivisionMeshModifierWidget(QWidget* pa
   layout->addLayout(form_layout);
 }
 
-void FaceSubdivisionMeshModifierWidget::configure(const YAML::Node& config)
+void FaceSubdivisionByAreaMeshModifierWidget::configure(const YAML::Node& config)
 {
   max_area_->setValue(YAML::getMember<double>(config, "max_area"));
 }
 
-void FaceSubdivisionMeshModifierWidget::save(YAML::Node& config) const
+void FaceSubdivisionByAreaMeshModifierWidget::save(YAML::Node& config) const
 {
-  config["name"] = "FaceSubdivision";
+  config["name"] = "FaceSubdivisionByArea";
   config["max_area"] = max_area_->value();
 }
 

@@ -11,21 +11,62 @@
 #include <queue>
 #include <stdexcept>
 
-pcl::Vertices createTriangleVertices(const std::initializer_list<uint32_t>& indices)
+/**
+ * @brief Divides a (possibly non-triangular) polygonal mesh face into a set of constituent triangles
+ */
+std::vector<pcl::Vertices> polygonToTriangles(const pcl::Vertices& poly)
+{
+  if (poly.vertices.size() < 3)
+    throw std::runtime_error("Polygon has fewer than 3 vertices");
+
+  const std::size_t n_triangles = poly.vertices.size() - 2;
+  std::vector<pcl::Vertices> triangles(n_triangles);
+
+  // Create individual triangles from the polygon (n_vert - 2 total triangles)
+  for (std::size_t tri = 0; tri < n_triangles; ++tri)
+  {
+    pcl::Vertices& triangle = triangles[tri];
+    triangle.vertices.resize(3);
+
+    // Get the vertices of a triangle with the first point as the common point
+    for (pcl::index_t i = 0; i < 3; ++i)
+    {
+      pcl::index_t v_ind;
+      switch (i)
+      {
+        case 0:
+          v_ind = poly.vertices[0];
+          break;
+        case 1:
+          v_ind = poly.vertices[tri + 1];
+          break;
+        case 2:
+          v_ind = poly.vertices[tri + 2];
+          break;
+      }
+
+      triangle.vertices[i] = v_ind;
+    }
+  }
+
+  return triangles;
+}
+
+pcl::Vertices createTriangleVertices(const std::initializer_list<pcl::index_t>& indices)
 {
   pcl::Vertices vertex;
   vertex.vertices.insert(vertex.vertices.end(), indices.begin(), indices.end());
   return vertex;
 }
 
-using VertexIndex = uint32_t;
+using VertexIndex = pcl::index_t;
 using MeshEdge = std::pair<VertexIndex, VertexIndex>;
 using MidpointVertexIndexMapping = std::map<MeshEdge, VertexIndex>;
 
-uint32_t getOrCreateMidpoint(VertexIndex idx_start,
-                             VertexIndex idx_end,
-                             pcl::PolygonMesh& mesh,
-                             MidpointVertexIndexMapping& edge_midpoints)
+pcl::index_t getOrCreateMidpoint(VertexIndex idx_start,
+                                 VertexIndex idx_end,
+                                 pcl::PolygonMesh& mesh,
+                                 MidpointVertexIndexMapping& edge_midpoints)
 {
   // Ensure consistent ordering of edge vertices
   MeshEdge edge_key = std::minmax(idx_start, idx_end);
@@ -48,7 +89,7 @@ uint32_t getOrCreateMidpoint(VertexIndex idx_start,
       mesh.cloud.width += 1;
     }
 
-    const uint32_t idx_midpoint = static_cast<uint32_t>(mesh.cloud.width - 1);
+    const pcl::index_t idx_midpoint = static_cast<pcl::index_t>(mesh.cloud.width - 1);
 
     // Update the position of the midpoint
     Eigen::Map<Eigen::Vector3f> midpoint = noether::getPoint(mesh.cloud, idx_midpoint);
@@ -65,8 +106,6 @@ uint32_t getOrCreateMidpoint(VertexIndex idx_start,
 
 namespace noether
 {
-FaceSubdivisionMeshModifier::FaceSubdivisionMeshModifier(double max_area) : MeshModifier(), max_area_(max_area) {}
-
 std::vector<pcl::PolygonMesh> FaceSubdivisionMeshModifier::modify(const pcl::PolygonMesh& mesh) const
 {
   pcl::PolygonMesh output;
@@ -88,7 +127,7 @@ std::vector<pcl::PolygonMesh> FaceSubdivisionMeshModifier::modify(const pcl::Pol
   // Use a map to store edge midpoints
   MidpointVertexIndexMapping edge_midpoints;
 
-  // Stack to process faces
+  // Create stack of faces to evaluate for subdivision
   std::queue<pcl::Vertices> faces_queue;
   for (const pcl::Vertices& face : mesh.polygons)
     faces_queue.push(face);
@@ -98,53 +137,62 @@ std::vector<pcl::PolygonMesh> FaceSubdivisionMeshModifier::modify(const pcl::Pol
     pcl::Vertices face = faces_queue.front();
     faces_queue.pop();
 
-    if (face.vertices.size() != 3)
+    if (!requiresSubdivision(output, face))
     {
-      throw std::runtime_error("Face is not a triangle");
-    }
-
-    uint32_t idx0 = face.vertices[0];
-    uint32_t idx1 = face.vertices[1];
-    uint32_t idx2 = face.vertices[2];
-
-    Eigen::Map<Eigen::Vector3f> v0 = getPoint(output.cloud, idx0);
-    Eigen::Map<Eigen::Vector3f> v1 = getPoint(output.cloud, idx1);
-    Eigen::Map<Eigen::Vector3f> v2 = getPoint(output.cloud, idx2);
-
-    if (v0.isApprox(v1))
-      throw std::runtime_error("You've done something wrong");
-
-    if (v0.isApprox(v2))
-      throw std::runtime_error("You've done something wrong again");
-
-    float area = 0.5f * ((v1 - v0).cross(v2 - v0)).norm();
-
-    if (!std::isfinite(area))
-      throw std::runtime_error("Invalid area");
-
-    if (area <= max_area_)
-    {
-      // Add face to final list
+      // Add face to the output mesh
       output.polygons.push_back(face);
     }
     else
     {
-      // Subdivide the triangle
-      // Get or create midpoints
-      uint32_t m0 = getOrCreateMidpoint(idx0, idx1, output, edge_midpoints);
-      uint32_t m1 = getOrCreateMidpoint(idx1, idx2, output, edge_midpoints);
-      uint32_t m2 = getOrCreateMidpoint(idx2, idx0, output, edge_midpoints);
+      // Subdivide each triangle of the face
+      for (const pcl::Vertices& tri : polygonToTriangles(face))
+      {
+        // Get or create midpoints
+        const pcl::index_t m0 = getOrCreateMidpoint(tri.vertices[0], tri.vertices[1], output, edge_midpoints);
+        const pcl::index_t m1 = getOrCreateMidpoint(tri.vertices[1], tri.vertices[2], output, edge_midpoints);
+        const pcl::index_t m2 = getOrCreateMidpoint(tri.vertices[2], tri.vertices[0], output, edge_midpoints);
 
-      // Create new faces and add to stack
-      faces_queue.push(createTriangleVertices({ idx0, m0, m2 }));
-      faces_queue.push(createTriangleVertices({ m0, idx1, m1 }));
-      faces_queue.push(createTriangleVertices({ m2, m1, idx2 }));
-      faces_queue.push(createTriangleVertices({ m0, m1, m2 }));
+        // Create new faces and add to stack
+        faces_queue.push(createTriangleVertices({ tri.vertices[0], m0, m2 }));
+        faces_queue.push(createTriangleVertices({ m0, tri.vertices[1], m1 }));
+        faces_queue.push(createTriangleVertices({ m2, m1, tri.vertices[2] }));
+        faces_queue.push(createTriangleVertices({ m0, m1, m2 }));
+      }
     }
   }
 
+  // Update the row step
+  output.cloud.row_step = output.cloud.height * output.cloud.width * output.cloud.point_step;
+
   // Return the modified mesh
   return { output };
+}
+
+FaceSubdivisionByAreaMeshModifier::FaceSubdivisionByAreaMeshModifier(float max_area)
+  : FaceSubdivisionMeshModifier()
+  , max_area_(max_area)
+{
+}
+
+bool FaceSubdivisionByAreaMeshModifier::requiresSubdivision(const pcl::PolygonMesh& mesh, const pcl::Vertices& face) const
+{
+  float area = 0.0f;
+
+  for(const pcl::Vertices& tri : polygonToTriangles(face))
+  {
+    Eigen::Map<const Eigen::Vector3f> v0 = getPoint(mesh.cloud, tri.vertices[0]);
+    Eigen::Map<const Eigen::Vector3f> v1 = getPoint(mesh.cloud, tri.vertices[1]);
+    Eigen::Map<const Eigen::Vector3f> v2 = getPoint(mesh.cloud, tri.vertices[2]);
+
+    float tri_area = 0.5f * ((v1 - v0).cross(v2 - v0)).norm();
+
+    if (!std::isfinite(tri_area))
+      throw std::runtime_error("Triangle area is not finite");
+
+    area += tri_area;
+  }
+
+  return area > max_area_;
 }
 
 }  // namespace noether
@@ -152,15 +200,15 @@ std::vector<pcl::PolygonMesh> FaceSubdivisionMeshModifier::modify(const pcl::Pol
 namespace YAML
 {
 /** @cond */
-Node convert<noether::FaceSubdivisionMeshModifier>::encode(const noether::FaceSubdivisionMeshModifier& val)
+Node convert<noether::FaceSubdivisionByAreaMeshModifier>::encode(const noether::FaceSubdivisionByAreaMeshModifier& val)
 {
   Node node;
   node["max_area"] = val.max_area_;
   return node;
 }
 
-bool convert<noether::FaceSubdivisionMeshModifier>::decode(const Node& node,
-                                                              noether::FaceSubdivisionMeshModifier& val)
+bool convert<noether::FaceSubdivisionByAreaMeshModifier>::decode(const Node& node,
+                                                                 noether::FaceSubdivisionByAreaMeshModifier& val)
 {
   val.max_area_ = YAML::getMember<double>(node, "max_area");
   return true;

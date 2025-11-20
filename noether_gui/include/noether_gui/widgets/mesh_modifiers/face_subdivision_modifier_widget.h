@@ -6,10 +6,10 @@ class QDoubleSpinBox;
 
 namespace noether
 {
-class FaceSubdivisionMeshModifierWidget : public BaseWidget
+class FaceSubdivisionByAreaMeshModifierWidget : public BaseWidget
 {
 public:
-  FaceSubdivisionMeshModifierWidget(QWidget* parent = nullptr);
+  FaceSubdivisionByAreaMeshModifierWidget(QWidget* parent = nullptr);
 
   void configure(const YAML::Node& config) override;
   void save(YAML::Node& config) const override;
