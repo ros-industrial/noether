@@ -169,9 +169,12 @@ std::vector<pcl::PolygonMesh> FaceSubdivisionMeshModifier::modify(const pcl::Pol
       for (const pcl::Vertices& tri : polygonToTriangles(face))
       {
         // Get or create midpoints
-        const pcl::index_t m0 = getOrCreateMidpoint(tri.vertices[0], tri.vertices[1], output, edge_midpoints, has_normals, has_color);
-        const pcl::index_t m1 = getOrCreateMidpoint(tri.vertices[1], tri.vertices[2], output, edge_midpoints, has_normals, has_color);
-        const pcl::index_t m2 = getOrCreateMidpoint(tri.vertices[2], tri.vertices[0], output, edge_midpoints, has_normals, has_color);
+        const pcl::index_t m0 =
+            getOrCreateMidpoint(tri.vertices[0], tri.vertices[1], output, edge_midpoints, has_normals, has_color);
+        const pcl::index_t m1 =
+            getOrCreateMidpoint(tri.vertices[1], tri.vertices[2], output, edge_midpoints, has_normals, has_color);
+        const pcl::index_t m2 =
+            getOrCreateMidpoint(tri.vertices[2], tri.vertices[0], output, edge_midpoints, has_normals, has_color);
 
         // Create new faces and add to stack
         faces_queue.push(createTriangleVertices({ tri.vertices[0], m0, m2 }));
@@ -190,16 +193,16 @@ std::vector<pcl::PolygonMesh> FaceSubdivisionMeshModifier::modify(const pcl::Pol
 }
 
 FaceSubdivisionByAreaMeshModifier::FaceSubdivisionByAreaMeshModifier(float max_area)
-  : FaceSubdivisionMeshModifier()
-  , max_area_(max_area)
+  : FaceSubdivisionMeshModifier(), max_area_(max_area)
 {
 }
 
-bool FaceSubdivisionByAreaMeshModifier::requiresSubdivision(const pcl::PolygonMesh& mesh, const pcl::Vertices& face) const
+bool FaceSubdivisionByAreaMeshModifier::requiresSubdivision(const pcl::PolygonMesh& mesh,
+                                                            const pcl::Vertices& face) const
 {
   float area = 0.0f;
 
-  for(const pcl::Vertices& tri : polygonToTriangles(face))
+  for (const pcl::Vertices& tri : polygonToTriangles(face))
   {
     Eigen::Map<const Eigen::Vector3f> v0 = getPoint(mesh.cloud, tri.vertices[0]);
     Eigen::Map<const Eigen::Vector3f> v1 = getPoint(mesh.cloud, tri.vertices[1]);
@@ -216,18 +219,18 @@ bool FaceSubdivisionByAreaMeshModifier::requiresSubdivision(const pcl::PolygonMe
   return area > max_area_;
 }
 
-FaceSubdivisionByEdgeLengthMeshModifier::FaceSubdivisionByEdgeLengthMeshModifier(float max_edge_length, float min_edge_length)
-  : FaceSubdivisionMeshModifier()
-  , max_edge_length_(max_edge_length)
-  , min_edge_length_x2_(min_edge_length * 2.0f)
+FaceSubdivisionByEdgeLengthMeshModifier::FaceSubdivisionByEdgeLengthMeshModifier(float max_edge_length,
+                                                                                 float min_edge_length)
+  : FaceSubdivisionMeshModifier(), max_edge_length_(max_edge_length), min_edge_length_x2_(min_edge_length * 2.0f)
 {
 }
 
-bool FaceSubdivisionByEdgeLengthMeshModifier::requiresSubdivision(const pcl::PolygonMesh& mesh, const pcl::Vertices& face) const
+bool FaceSubdivisionByEdgeLengthMeshModifier::requiresSubdivision(const pcl::PolygonMesh& mesh,
+                                                                  const pcl::Vertices& face) const
 {
   bool requires_subdivision = false;
 
-  for(pcl::index_t i = 0; i < face.vertices.size(); ++i)
+  for (pcl::index_t i = 0; i < face.vertices.size(); ++i)
   {
     // Get the ith and (i+1)th vertices
     // Wrap around (using the modulus) to check the edge from vertex n to vertex 0
@@ -265,7 +268,8 @@ bool convert<noether::FaceSubdivisionByAreaMeshModifier>::decode(const Node& nod
   return true;
 }
 
-Node convert<noether::FaceSubdivisionByEdgeLengthMeshModifier>::encode(const noether::FaceSubdivisionByEdgeLengthMeshModifier& val)
+Node convert<noether::FaceSubdivisionByEdgeLengthMeshModifier>::encode(
+    const noether::FaceSubdivisionByEdgeLengthMeshModifier& val)
 {
   Node node;
   node["max_edge_length"] = val.max_edge_length_;
@@ -273,8 +277,9 @@ Node convert<noether::FaceSubdivisionByEdgeLengthMeshModifier>::encode(const noe
   return node;
 }
 
-bool convert<noether::FaceSubdivisionByEdgeLengthMeshModifier>::decode(const Node& node,
-                                                                       noether::FaceSubdivisionByEdgeLengthMeshModifier& val)
+bool convert<noether::FaceSubdivisionByEdgeLengthMeshModifier>::decode(
+    const Node& node,
+    noether::FaceSubdivisionByEdgeLengthMeshModifier& val)
 {
   val.max_edge_length_ = YAML::getMember<float>(node, "max_edge_length");
   val.min_edge_length_x2_ = YAML::getMember<float>(node, "min_edge_length") * 2.0f;

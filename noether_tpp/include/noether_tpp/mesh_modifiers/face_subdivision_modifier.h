@@ -30,7 +30,8 @@ protected:
 };
 
 /**
- * @brief Mesh modifier that subdivides mesh faces into smaller faces until all faces have less than the specified maximum area
+ * @brief Mesh modifier that subdivides mesh faces into smaller faces until all faces have less than the specified
+ * maximum area
  * @ingroup mesh_modifiers
  */
 class FaceSubdivisionByAreaMeshModifier : public FaceSubdivisionMeshModifier
@@ -51,14 +52,14 @@ protected:
 };
 
 /**
- * @brief Mesh modifier that subdivides mesh faces into smaller faces until all edges have less than the specified maximum length
+ * @brief Mesh modifier that subdivides mesh faces into smaller faces until all edges have less than the specified
+ * maximum length
  * @ingroup mesh_modifiers
  */
 class FaceSubdivisionByEdgeLengthMeshModifier : public FaceSubdivisionMeshModifier
 {
 public:
-  FaceSubdivisionByEdgeLengthMeshModifier(float max_edge_length,
-                                          float min_edge_length = 1.0e-6);
+  FaceSubdivisionByEdgeLengthMeshModifier(float max_edge_length, float min_edge_length = 1.0e-6);
 
 protected:
   FaceSubdivisionByEdgeLengthMeshModifier() = default;
