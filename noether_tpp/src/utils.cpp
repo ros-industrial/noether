@@ -71,7 +71,7 @@ bool hasNormals(const pcl::PCLPointCloud2& cloud)
   return nx_it != cloud.fields.end() && ny_it != cloud.fields.end() && nz_it != cloud.fields.end();
 }
 
-Eigen::Map<Eigen::Vector3f> getPoint(pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
+Eigen::Map<const Eigen::Vector3f> getPoint(const pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
 {
   // Find the x, y, and z fields
   auto x_it = noether::findFieldOrThrow(cloud.fields, "x");
@@ -83,18 +83,18 @@ Eigen::Map<Eigen::Vector3f> getPoint(pcl::PCLPointCloud2& cloud, const std::uint
     throw std::runtime_error("XYZ fields are not contiguous floats");
 
   const std::uint32_t offset = pt_idx * cloud.point_step;
-  auto* xyz = reinterpret_cast<float*>(cloud.data.data() + offset + x_it->offset);
-  return Eigen::Map<Eigen::Vector3f>(xyz);
+  const auto* xyz = reinterpret_cast<const float*>(cloud.data.data() + offset + x_it->offset);
+  return Eigen::Map<const Eigen::Vector3f>(xyz);
 }
 
-Eigen::Map<const Eigen::Vector3f> getPoint(const pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
+Eigen::Map<Eigen::Vector3f> getPoint(pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
 {
-  pcl::PCLPointCloud2& cloud_mutable = const_cast<pcl::PCLPointCloud2&>(cloud);
-  Eigen::Map<Eigen::Vector3f> pt_mutable = getPoint(cloud_mutable, pt_idx);
-  return Eigen::Map<const Eigen::Vector3f>(pt_mutable.data());
+  const pcl::PCLPointCloud2& cloud_const = const_cast<const pcl::PCLPointCloud2&>(cloud);
+  Eigen::Map<const Eigen::Vector3f> pt_const = getPoint(cloud_const, pt_idx);
+  return Eigen::Map<Eigen::Vector3f>(const_cast<float*>(pt_const.data()));
 }
 
-Eigen::Map<Eigen::Vector3f> getNormal(pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
+Eigen::Map<const Eigen::Vector3f> getNormal(const pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
 {
   auto nx_it = noether::findFieldOrThrow(cloud.fields, "normal_x");
   auto ny_it = noether::findFieldOrThrow(cloud.fields, "normal_y");
@@ -105,31 +105,31 @@ Eigen::Map<Eigen::Vector3f> getNormal(pcl::PCLPointCloud2& cloud, const std::uin
     throw std::runtime_error("Normal fields are not contiguous floats");
 
   const std::uint32_t offset = pt_idx * cloud.point_step;
-  auto* nx = reinterpret_cast<float*>(cloud.data.data() + offset + nx_it->offset);
-  return Eigen::Map<Eigen::Vector3f>(nx);
+  const auto* nx = reinterpret_cast<const float*>(cloud.data.data() + offset + nx_it->offset);
+  return Eigen::Map<const Eigen::Vector3f>(nx);
 }
 
-Eigen::Map<const Eigen::Vector3f> getNormal(const pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
+Eigen::Map<Eigen::Vector3f> getNormal(pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
 {
-  pcl::PCLPointCloud2& cloud_mutable = const_cast<pcl::PCLPointCloud2&>(cloud);
-  Eigen::Map<Eigen::Vector3f> normal_mutable = getNormal(cloud_mutable, pt_idx);
-  return Eigen::Map<const Eigen::Vector3f>(normal_mutable.data());
+  const pcl::PCLPointCloud2& cloud_const = const_cast<const pcl::PCLPointCloud2&>(cloud);
+  Eigen::Map<const Eigen::Vector3f> normal_const = getNormal(cloud_const, pt_idx);
+  return Eigen::Map<Eigen::Vector3f>(const_cast<float*>(normal_const.data()));
 }
 
-Eigen::Map<Eigen::Vector<uint8_t, 4>> getRgba(pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
+Eigen::Map<const Eigen::Vector<uint8_t, 4>> getRgba(const pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
 {
   // Find the rgba field
   auto rgba_it = noether::findFieldOrThrow(cloud.fields, "rgba");
 
   const std::uint32_t offset = pt_idx * cloud.point_step;
-  return Eigen::Map<Eigen::Vector<uint8_t, 4>>(cloud.data.data() + offset + rgba_it->offset);
+  return Eigen::Map<const Eigen::Vector<uint8_t, 4>>(cloud.data.data() + offset + rgba_it->offset);
 }
 
-Eigen::Map<const Eigen::Vector<uint8_t, 4>> getRgba(const pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
+Eigen::Map<Eigen::Vector<uint8_t, 4>> getRgba(pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
 {
-  pcl::PCLPointCloud2& cloud_mutable = const_cast<pcl::PCLPointCloud2&>(cloud);
-  Eigen::Map<Eigen::Vector<uint8_t, 4>> rgba_mutable = getRgba(cloud_mutable, pt_idx);
-  return Eigen::Map<const Eigen::Vector<uint8_t, 4>>(rgba_mutable.data());
+  const pcl::PCLPointCloud2& cloud_const = const_cast<const pcl::PCLPointCloud2&>(cloud);
+  Eigen::Map<const Eigen::Vector<uint8_t, 4>> rgba_const = getRgba(cloud_const, pt_idx);
+  return Eigen::Map<Eigen::Vector<uint8_t, 4>>(const_cast<uint8_t*>(rgba_const.data()));
 }
 
 Eigen::Vector3f getFaceNormal(const pcl::PolygonMesh& mesh, const pcl::Vertices& polygon)

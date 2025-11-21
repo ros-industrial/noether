@@ -25,11 +25,11 @@ std::vector<pcl::PCLPointField>::const_iterator findFieldOrThrow(const std::vect
 
 bool hasNormals(const pcl::PCLPointCloud2& cloud);
 
-Eigen::Map<Eigen::Vector3f> getPoint(pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx);
 Eigen::Map<const Eigen::Vector3f> getPoint(const pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx);
+Eigen::Map<Eigen::Vector3f> getPoint(pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx);
 
-Eigen::Map<Eigen::Vector3f> getNormal(pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx);
 Eigen::Map<const Eigen::Vector3f> getNormal(const pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx);
+Eigen::Map<Eigen::Vector3f> getNormal(pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx);
 
 Eigen::Map<const Eigen::Vector<uint8_t, 4>> getRgba(const pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx);
 Eigen::Map<Eigen::Vector<uint8_t, 4>> getRgba(pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx);
