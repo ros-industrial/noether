@@ -23,7 +23,7 @@ std::vector<pcl::PCLPointField>::const_iterator findField(const std::vector<pcl:
 std::vector<pcl::PCLPointField>::const_iterator findFieldOrThrow(const std::vector<pcl::PCLPointField>& fields,
                                                                  const std::string& name);
 
-bool hasNormals(const pcl::PolygonMesh& mesh);
+bool hasNormals(const pcl::PCLPointCloud2& cloud);
 
 Eigen::Map<Eigen::Vector3f> getPoint(pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx);
 Eigen::Map<const Eigen::Vector3f> getPoint(const pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx);

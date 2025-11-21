@@ -62,13 +62,13 @@ std::vector<pcl::PCLPointField>::const_iterator findFieldOrThrow(const std::vect
   return it;
 }
 
-bool hasNormals(const pcl::PolygonMesh& mesh)
+bool hasNormals(const pcl::PCLPointCloud2& cloud)
 {
-  auto nx_it = noether::findField(mesh.cloud.fields, "normal_x");
-  auto ny_it = noether::findField(mesh.cloud.fields, "normal_y");
-  auto nz_it = noether::findField(mesh.cloud.fields, "normal_z");
+  auto nx_it = noether::findField(cloud.fields, "normal_x");
+  auto ny_it = noether::findField(cloud.fields, "normal_y");
+  auto nz_it = noether::findField(cloud.fields, "normal_z");
 
-  return nx_it != mesh.cloud.fields.end() && ny_it != mesh.cloud.fields.end() && nz_it != mesh.cloud.fields.end();
+  return nx_it != cloud.fields.end() && ny_it != cloud.fields.end() && nz_it != cloud.fields.end();
 }
 
 Eigen::Map<Eigen::Vector3f> getPoint(pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx)
