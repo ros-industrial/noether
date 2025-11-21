@@ -17,6 +17,13 @@ static const std::string mesh_modifiers_data_retaining = R"(
   tolerance: 1.0
   min_cluster_size: 1
   max_cluster_size: -1
+- name: FaceMidpointSubdivision
+  n_iterations: 2
+- name: FaceSubdivisionByArea
+  max_area: 0.01
+- name: FaceSubdivisionByEdgeLength
+  max_edge_length: 0.5
+  min_edge_length: 0.1
 - &fill_holes
   name: FillHoles
   max_hole_size: 5.0
