@@ -123,7 +123,7 @@ RansacCylinderProjectionMeshModifier::RansacCylinderProjectionMeshModifier(float
 std::shared_ptr<pcl::SampleConsensusModel<pcl::PointXYZ>>
 RansacCylinderProjectionMeshModifier::createModel(const pcl::PolygonMesh& mesh) const
 {
-  if (!hasNormals(mesh))
+  if (!hasNormals(mesh.cloud))
     throw std::runtime_error("Cylinder fit requires mesh to have vertex normals");
 
   // Convert the mesh vertices to a point cloud

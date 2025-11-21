@@ -445,7 +445,7 @@ void PlaneSlicerRasterPlanner::generateRastersBidirectionally(const bool bidirec
 
 ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
 {
-  if (!hasNormals(mesh))
+  if (!hasNormals(mesh.cloud))
   {
     std::stringstream ss;
     ss << "The input mesh does not have vertex normals, which are required for the plane slice raster tool path "

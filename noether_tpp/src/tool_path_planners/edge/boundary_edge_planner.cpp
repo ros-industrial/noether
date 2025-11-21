@@ -91,13 +91,13 @@ ToolPaths BoundaryEdgePlanner::planImpl(const pcl::PolygonMesh& mesh) const
       // Get the source vertex of the edge
       const TriangleMesh::VertexIndex source = tri_mesh.getOriginatingVertexIndex(*edge);
       const std::uint32_t source_idx = tri_mesh.getVertexDataCloud()[source.get()];
-      const Eigen::Vector3f source_point = getPoint(mesh.cloud, source_idx);
-      const Eigen::Vector3f source_normal = getNormal(mesh.cloud, source_idx);
+      const Eigen::Map<const Eigen::Vector3f> source_point = getPoint(mesh.cloud, source_idx);
+      const Eigen::Map<const Eigen::Vector3f> source_normal = getNormal(mesh.cloud, source_idx);
 
       // Get the target vertex of the edge
       const TriangleMesh::VertexIndex target = tri_mesh.getTerminatingVertexIndex(*edge);
       const std::uint32_t target_idx = tri_mesh.getVertexDataCloud()[target.get()];
-      const Eigen::Vector3f target_point = getPoint(mesh.cloud, target_idx);
+      Eigen::Map<const Eigen::Vector3f> target_point = getPoint(mesh.cloud, target_idx);
 
       // Generate the pose of the tool path waypoint
       Eigen::Isometry3f pose;
