@@ -66,7 +66,9 @@ using MidpointVertexIndexMapping = std::map<MeshEdge, VertexIndex>;
 pcl::index_t getOrCreateMidpoint(VertexIndex idx_start,
                                  VertexIndex idx_end,
                                  pcl::PolygonMesh& mesh,
-                                 MidpointVertexIndexMapping& edge_midpoints)
+                                 MidpointVertexIndexMapping& edge_midpoints,
+                                 const bool has_normals,
+                                 const bool has_colors)
 {
   // Ensure consistent ordering of edge vertices
   MeshEdge edge_key = std::minmax(idx_start, idx_end);
@@ -78,10 +80,7 @@ pcl::index_t getOrCreateMidpoint(VertexIndex idx_start,
   }
   else
   {
-    Eigen::Map<Eigen::Vector3f> v_start = noether::getPoint(mesh.cloud, idx_start);
-    Eigen::Map<Eigen::Vector3f> v_end = noether::getPoint(mesh.cloud, idx_end);
-
-    // Copy v_start as midpoint
+    // Copy the point data from the start waypoint to the end of the cloud data
     {
       const auto* start = mesh.cloud.data.data() + idx_start * mesh.cloud.point_step;
       const auto* end = start + mesh.cloud.point_step;
@@ -92,11 +91,30 @@ pcl::index_t getOrCreateMidpoint(VertexIndex idx_start,
     const pcl::index_t idx_midpoint = static_cast<pcl::index_t>(mesh.cloud.width - 1);
 
     // Update the position of the midpoint
-    Eigen::Map<Eigen::Vector3f> midpoint = noether::getPoint(mesh.cloud, idx_midpoint);
-    midpoint = 0.5f * (v_start + v_end);
+    {
+      Eigen::Map<Eigen::Vector3f> start = noether::getPoint(mesh.cloud, idx_start);
+      Eigen::Map<Eigen::Vector3f> end = noether::getPoint(mesh.cloud, idx_end);
+      Eigen::Map<Eigen::Vector3f> midpoint = noether::getPoint(mesh.cloud, idx_midpoint);
+      midpoint = 0.5f * (start + end);
+    }
 
-    // TODO: Update the normal
-    // TODO: Update the color
+    // Update the normal
+    if (has_normals)
+    {
+      Eigen::Map<Eigen::Vector3f> start = noether::getNormal(mesh.cloud, idx_start);
+      Eigen::Map<Eigen::Vector3f> end = noether::getNormal(mesh.cloud, idx_end);
+      Eigen::Map<Eigen::Vector3f> midpoint = noether::getNormal(mesh.cloud, idx_midpoint);
+      midpoint = 0.5f * (start + end);
+    }
+
+    // Update the color
+    if (has_colors)
+    {
+      Eigen::Map<Eigen::Vector<uint8_t, 4>> start = noether::getRgba(mesh.cloud, idx_start);
+      Eigen::Map<Eigen::Vector<uint8_t, 4>> end = noether::getRgba(mesh.cloud, idx_end);
+      Eigen::Map<Eigen::Vector<uint8_t, 4>> midpoint = noether::getRgba(mesh.cloud, idx_midpoint);
+      midpoint = ((start.cast<unsigned>() + end.cast<unsigned>()) / 2).cast<uint8_t>();
+    }
 
     // Add the vertex index to the midpoint map
     edge_midpoints[edge_key] = idx_midpoint;
@@ -124,6 +142,9 @@ std::vector<pcl::PolygonMesh> FaceSubdivisionMeshModifier::modify(const pcl::Pol
     output.cloud.width = n;
   }
 
+  const bool has_normals = hasNormals(output.cloud);
+  const bool has_color = findField(output.cloud.fields, "rgba") != output.cloud.fields.end();
+
   // Use a map to store edge midpoints
   MidpointVertexIndexMapping edge_midpoints;
 
@@ -148,9 +169,9 @@ std::vector<pcl::PolygonMesh> FaceSubdivisionMeshModifier::modify(const pcl::Pol
       for (const pcl::Vertices& tri : polygonToTriangles(face))
       {
         // Get or create midpoints
-        const pcl::index_t m0 = getOrCreateMidpoint(tri.vertices[0], tri.vertices[1], output, edge_midpoints);
-        const pcl::index_t m1 = getOrCreateMidpoint(tri.vertices[1], tri.vertices[2], output, edge_midpoints);
-        const pcl::index_t m2 = getOrCreateMidpoint(tri.vertices[2], tri.vertices[0], output, edge_midpoints);
+        const pcl::index_t m0 = getOrCreateMidpoint(tri.vertices[0], tri.vertices[1], output, edge_midpoints, has_normals, has_color);
+        const pcl::index_t m1 = getOrCreateMidpoint(tri.vertices[1], tri.vertices[2], output, edge_midpoints, has_normals, has_color);
+        const pcl::index_t m2 = getOrCreateMidpoint(tri.vertices[2], tri.vertices[0], output, edge_midpoints, has_normals, has_color);
 
         // Create new faces and add to stack
         faces_queue.push(createTriangleVertices({ tri.vertices[0], m0, m2 }));
