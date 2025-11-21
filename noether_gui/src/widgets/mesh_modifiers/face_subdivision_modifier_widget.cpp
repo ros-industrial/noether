@@ -39,18 +39,25 @@ FaceSubdivisionByEdgeLengthMeshModifierWidget::FaceSubdivisionByEdgeLengthMeshMo
   auto* form_layout = new QFormLayout(this);
 
   // Max
-  max_edge_length_->setRange(1.0e-6, 1.0e6);
+  max_edge_length_->setRange(0.001, 1.0e6);
   max_edge_length_->setValue(0.005);
   max_edge_length_->setSingleStep(0.005);
   max_edge_length_->setDecimals(4);
   form_layout->addRow(new QLabel("Max Edge Length", this), max_edge_length_);
 
   // Min
-  min_edge_length_->setRange(1.0e-6, 1.0e6);
+  min_edge_length_->setRange(1.0e-6, 0.005);
   min_edge_length_->setValue(0.001);
   min_edge_length_->setSingleStep(0.001);
   min_edge_length_->setDecimals(4);
   form_layout->addRow(new QLabel("Min Edge Length", this), min_edge_length_);
+
+  connect(max_edge_length_, &DistanceDoubleSpinBox::editingFinished, [this]() {
+    min_edge_length_->setMaximum(max_edge_length_->value());
+  });
+  connect(min_edge_length_, &DistanceDoubleSpinBox::editingFinished, [this]() {
+    max_edge_length_->setMinimum(min_edge_length_->value());
+  });
 }
 
 void FaceSubdivisionByEdgeLengthMeshModifierWidget::configure(const YAML::Node& config)
