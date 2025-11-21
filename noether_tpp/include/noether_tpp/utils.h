@@ -31,6 +31,9 @@ Eigen::Map<const Eigen::Vector3f> getPoint(const pcl::PCLPointCloud2& cloud, con
 Eigen::Map<Eigen::Vector3f> getNormal(pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx);
 Eigen::Map<const Eigen::Vector3f> getNormal(const pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx);
 
+Eigen::Map<const Eigen::Vector<uint8_t, 4>> getRgba(const pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx);
+Eigen::Map<Eigen::Vector<uint8_t, 4>> getRgba(pcl::PCLPointCloud2& cloud, const std::uint32_t pt_idx);
+
 Eigen::Vector3f getFaceNormal(const pcl::PolygonMesh& mesh, const pcl::Vertices& polygon);
 
 using MeshTraits = pcl::geometry::DefaultMeshTraits<std::uint32_t>;
