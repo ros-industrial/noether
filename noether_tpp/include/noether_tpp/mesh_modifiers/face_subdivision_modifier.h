@@ -8,7 +8,11 @@ FWD_DECLARE_YAML_STRUCTS()
 namespace noether
 {
 /**
- * @brief Mesh modifiers that subdivides mesh faces into smaller faces until a user-specified criteria is met
+ * @brief MeshModifier that subdivides mesh faces into smaller faces until a user-specified criteria is met
+ * @details This class subdivides faces by adding new vertices at the midpoints of edges of a face and creating smaller
+ * new faces by connecting the midpoints and existing vertices. All new vertices added to the mesh retain the ancillary
+ * data fields associated with the original vertices (e.g., color, normals, curvature, etc.) If normal and color
+ * (`rgba`) data fields exists, added midpoints average the normal and color fields of the parent vertices.
  * @ingroup mesh_modifiers
  */
 class FaceSubdivisionMeshModifier : public MeshModifier
@@ -30,7 +34,7 @@ protected:
 };
 
 /**
- * @brief Mesh modifier that subdivides mesh faces into smaller faces until all faces have less than the specified
+ * @brief MeshModifier that subdivides mesh faces into smaller faces until all faces have less than the specified
  * maximum area
  * @ingroup mesh_modifiers
  */
@@ -48,12 +52,19 @@ protected:
    */
   bool requiresSubdivision(const pcl::PolygonMesh& mesh, const pcl::Vertices& face) const override;
 
+  /**
+   * @brief Maximum allowable face area (m^2)
+   */
   float max_area_;
 };
 
 /**
- * @brief Mesh modifier that subdivides mesh faces into smaller faces until all edges have less than the specified
- * maximum length
+ * @brief MeshModifier that subdivides mesh faces into smaller faces until all edges have a length that is 1) greater
+ * than the specified minimum length and 2) less than the specified maximum length
+ * @details If a face has an edge that would become shorter than the minimum length when subdivided, then the
+ * subdivision is skipped, even if other edges in the face have lengths longer than the maximum edge length. This is
+ * intended to prevent the formation of long skinny triangles whose shortest side shrinks dramatically to allow the
+ * longer sides to be reduced to less than the maximum edge length.
  * @ingroup mesh_modifiers
  */
 class FaceSubdivisionByEdgeLengthMeshModifier : public FaceSubdivisionMeshModifier
@@ -70,7 +81,14 @@ protected:
    */
   bool requiresSubdivision(const pcl::PolygonMesh& mesh, const pcl::Vertices& face) const override;
 
+  /**
+   * @brief Maximum edge length (m)
+   */
   float max_edge_length_;
+
+  /**
+   * @brief Minimumum edge length (m), multiplied by 2
+   */
   float min_edge_length_x2_;
 };
 
