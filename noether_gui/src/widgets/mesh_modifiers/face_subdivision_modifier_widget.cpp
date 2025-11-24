@@ -8,6 +8,28 @@
 
 namespace noether
 {
+FaceMidpointSubdivisionMeshModifierWidget::FaceMidpointSubdivisionMeshModifierWidget(QWidget* parent)
+  : BaseWidget(parent), n_iterations_(new QSpinBox(this))
+{
+  auto* form_layout = new QFormLayout(this);
+  n_iterations_->setRange(1, 10);
+  n_iterations_->setValue(1);
+  n_iterations_->setSingleStep(1);
+  n_iterations_->setToolTip("Number of subdivision iterations to run");
+  form_layout->addRow(new QLabel("Iterations", this), n_iterations_);
+}
+
+void FaceMidpointSubdivisionMeshModifierWidget::configure(const YAML::Node& config)
+{
+  n_iterations_->setValue(YAML::getMember<double>(config, "n_iterations"));
+}
+
+void FaceMidpointSubdivisionMeshModifierWidget::save(YAML::Node& config) const
+{
+  config["name"] = "FaceMidpointSubdivision";
+  config["n_iterations"] = n_iterations_->value();
+}
+
 FaceSubdivisionByAreaMeshModifierWidget::FaceSubdivisionByAreaMeshModifierWidget(QWidget* parent)
   : BaseWidget(parent), max_area_(new QDoubleSpinBox(this))
 {
@@ -15,7 +37,7 @@ FaceSubdivisionByAreaMeshModifierWidget::FaceSubdivisionByAreaMeshModifierWidget
   max_area_->setMinimum(0.0);
   max_area_->setValue(0.01);
   max_area_->setSingleStep(0.005);
-  max_area_->setDecimals(4);
+  max_area_->setDecimals(6);
   max_area_->setSuffix(" m^2");
   form_layout->addRow(new QLabel("Max Area", this), max_area_);
 }

@@ -8,11 +8,45 @@ FWD_DECLARE_YAML_STRUCTS()
 namespace noether
 {
 /**
- * @brief MeshModifier that subdivides mesh faces into smaller faces until a user-specified criteria is met
+ * @brief MeshModifier that applies iterative midpoint subdivision to create smaller mesh faces
  * @details This class subdivides faces by adding new vertices at the midpoints of edges of a face and creating smaller
  * new faces by connecting the midpoints and existing vertices. All new vertices added to the mesh retain the ancillary
- * data fields associated with the original vertices (e.g., color, normals, curvature, etc.) If normal and color
+ * data fields associated with the original vertices (e.g., color, normals, curvature, etc.). If normal and color
  * (`rgba`) data fields exists, added midpoints average the normal and color fields of the parent vertices.
+ *
+ * Note: midpoint subdivision increases the number of vertices and triangles by a factor of 4^n, so only a small number
+ * of iterations is recommended.
+ *
+ * @ingroup mesh_modifiers
+ */
+class FaceMidpointSubdivisionMeshModifier : public MeshModifier
+{
+public:
+  /**
+   * @brief Constructor
+   * @param n_iterations Number of iterations to perform midpoint subdivision
+   */
+  FaceMidpointSubdivisionMeshModifier(unsigned n_iterations);
+  virtual ~FaceMidpointSubdivisionMeshModifier() = default;
+
+  std::vector<pcl::PolygonMesh> modify(const pcl::PolygonMesh& mesh) const override;
+
+protected:
+  FaceMidpointSubdivisionMeshModifier() = default;
+  DECLARE_YAML_FRIEND_CLASSES(FaceMidpointSubdivisionMeshModifier)
+
+  /**
+   * @brief Number of iterations of subdivision to run
+   */
+  unsigned n_iterations_;
+};
+
+/**
+ * @brief MeshModifier that subdivides mesh faces until a user-defined criteria is met.
+ * @details This class subdivides mesh faces by introducing a single new vertex in the middle of a triangle to create 3
+ * new triangles per face. All new vertices added to the mesh retain the ancillary data fields associated with the
+ * original vertices (e.g., color, normals, curvature, etc.). If normal and color (`rgba`) data fields exists, added
+ * midpoints average the normal and color fields of the parent vertices.
  * @ingroup mesh_modifiers
  */
 class FaceSubdivisionMeshModifier : public MeshModifier
@@ -30,7 +64,7 @@ protected:
    * @param face Polygonal mesh face to check
    * @return True if the face should be subdivided, false otherwise
    */
-  virtual bool requiresSubdivision(const pcl::PolygonMesh& mesh, const pcl::Vertices& face) const = 0;
+  virtual bool requiresSubdivision(const pcl::PolygonMesh& mesh, const std::vector<pcl::index_t>& face) const = 0;
 };
 
 /**
@@ -42,6 +76,7 @@ class FaceSubdivisionByAreaMeshModifier : public FaceSubdivisionMeshModifier
 {
 public:
   FaceSubdivisionByAreaMeshModifier(float max_area);
+  virtual ~FaceSubdivisionByAreaMeshModifier() = default;
 
 protected:
   FaceSubdivisionByAreaMeshModifier() = default;
@@ -50,7 +85,7 @@ protected:
   /**
    * @brief Returns true if the area of the face has a greater area than the specified maximum face area
    */
-  bool requiresSubdivision(const pcl::PolygonMesh& mesh, const pcl::Vertices& face) const override;
+  bool requiresSubdivision(const pcl::PolygonMesh& mesh, const std::vector<pcl::index_t>& face) const override;
 
   /**
    * @brief Maximum allowable face area (m^2)
@@ -71,6 +106,7 @@ class FaceSubdivisionByEdgeLengthMeshModifier : public FaceSubdivisionMeshModifi
 {
 public:
   FaceSubdivisionByEdgeLengthMeshModifier(float max_edge_length, float min_edge_length = 1.0e-6);
+  virtual ~FaceSubdivisionByEdgeLengthMeshModifier() = default;
 
 protected:
   FaceSubdivisionByEdgeLengthMeshModifier() = default;
@@ -79,7 +115,7 @@ protected:
   /**
    * @brief Returns true if the area of the face has a greater area than the specified maximum face area
    */
-  bool requiresSubdivision(const pcl::PolygonMesh& mesh, const pcl::Vertices& face) const override;
+  bool requiresSubdivision(const pcl::PolygonMesh& mesh, const std::vector<pcl::index_t>& face) const override;
 
   /**
    * @brief Maximum edge length (m)
@@ -94,5 +130,6 @@ protected:
 
 }  // namespace noether
 
+FWD_DECLARE_YAML_CONVERT(noether::FaceMidpointSubdivisionMeshModifier)
 FWD_DECLARE_YAML_CONVERT(noether::FaceSubdivisionByAreaMeshModifier)
 FWD_DECLARE_YAML_CONVERT(noether::FaceSubdivisionByEdgeLengthMeshModifier)

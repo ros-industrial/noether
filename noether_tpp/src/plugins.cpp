@@ -52,6 +52,7 @@ namespace noether
 // Mesh Modifiers
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(CleanData, CleanData)
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(EuclideanClusteringMeshModifier, EuclideanClustering)
+EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(FaceMidpointSubdivisionMeshModifier, FaceMidpointSubdivision);
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(FaceSubdivisionByAreaMeshModifier, FaceSubdivisionByArea);
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(FaceSubdivisionByEdgeLengthMeshModifier, FaceSubdivisionByEdgeLength);
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(FillHoles, FillHoles)
