@@ -72,6 +72,7 @@ RansacCylinderFitMeshModifierWidget::RansacCylinderFitMeshModifierWidget(QWidget
   : RansacCylinderProjectionMeshModifierWidget(parent)
   , resolution_(new QSpinBox(this))
   , include_caps_(new QCheckBox(this))
+  , uniform_triangles_(new QCheckBox(this))
 {
   // Add a tab for the primitive parameters
   auto w = new QWidget(this);
@@ -98,6 +99,14 @@ RansacCylinderFitMeshModifierWidget::RansacCylinderFitMeshModifierWidget(QWidget
     layout->addWidget(include_caps_);
   }
 
+  // Uniform triangles
+  {
+    uniform_triangles_->setChecked(true);
+    uniform_triangles_->setText("Uniform triangles");
+    uniform_triangles_->setToolTip("Generate cylinder body with uniform shaped triangles");
+    layout->addWidget(uniform_triangles_);
+  }
+
   ui_->tab_widget->addTab(w, "Primitive");
 }
 
@@ -106,6 +115,7 @@ void RansacCylinderFitMeshModifierWidget::configure(const YAML::Node& config)
   RansacCylinderProjectionMeshModifierWidget::configure(config);
   resolution_->setValue(YAML::getMember<int>(config, "resolution"));
   include_caps_->setChecked(YAML::getMember<bool>(config, "include_caps"));
+  uniform_triangles_->setChecked(YAML::getMember<bool>(config, "uniform_triangles"));
 }
 
 void RansacCylinderFitMeshModifierWidget::save(YAML::Node& config) const
@@ -114,6 +124,7 @@ void RansacCylinderFitMeshModifierWidget::save(YAML::Node& config) const
   config["name"] = "RansacCylinderFit";
   config["resolution"] = resolution_->value();
   config["include_caps"] = include_caps_->isChecked();
+  config["uniform_triangles"] = uniform_triangles_->isChecked();
 }
 
 }  // namespace noether

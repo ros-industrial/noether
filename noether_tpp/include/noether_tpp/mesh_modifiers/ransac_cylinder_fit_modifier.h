@@ -88,6 +88,8 @@ public:
    * @param max_iterations Maximum number of RANSAC iterations to perform
    * @param resolution Number of vertices around the perimeter of the cylinder primitive
    * @param include_caps Flag to indicate whether the caps should be included on the fitted cylinder primitive(s)
+   * @param uniform_triangles Flag to indicate whether the cylinder body should be constructed of uniform shaped
+   * triangles (true) or a minimum set of triangles (false)
    */
   RansacCylinderFitMeshModifier(float min_radius,
                                 float max_radius,
@@ -99,7 +101,8 @@ public:
                                 int max_cylinders = -1,
                                 unsigned max_iterations = 100,
                                 unsigned resolution = 20,
-                                bool include_caps = false);
+                                bool include_caps = false,
+                                bool uniform_triangles = true);
 
 protected:
   RansacCylinderFitMeshModifier() = default;
@@ -111,6 +114,7 @@ protected:
 
   unsigned resolution_;
   bool include_caps_;
+  bool uniform_triangles_;
 };
 
 }  // namespace noether
