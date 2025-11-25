@@ -1,14 +1,16 @@
-#include <gtest/gtest.h>
-#include <pcl/io/vtk_lib_io.h>
-
 #include <noether_tpp/plugin_interface.h>
 #include <noether_tpp/serialization.h>
 #include "utils.h"
 
+#include <filesystem>
+#include <gtest/gtest.h>
+#include <pcl/io/vtk_lib_io.h>
+
 /**
- * @brief YAML configuration string for the mesh modifiers
+ * @brief YAML configuration string for mesh modifiers that retain the full set of data fields of the input mesh vertex
+ * cloud
  */
-std::string config_str = R"(
+static const std::string mesh_modifiers_data_retaining = R"(
 - name: CleanData
 - &clustering
   name: EuclideanClustering
@@ -25,6 +27,19 @@ std::string config_str = R"(
   vz: 10.0
 - &normals_from_mesh_faces
   name: NormalsFromMeshFaces
+- name: RansacCylinderProjection
+  distance_threshold: 1.0
+  max_primitives: 1
+  min_vertices: 1
+  max_iterations: 100
+  min_radius: 0.1
+  max_radius: 10.0
+  axis:
+    x: 0.0
+    y: 0.0
+    z: 1.0
+  axis_threshold: 3.14159
+  normal_distance_weight: 0.015
 - name: RansacPlaneProjection
   distance_threshold: 2.5
   max_primitives: 1
@@ -46,29 +61,78 @@ std::string config_str = R"(
     - *normals_from_mesh_faces
 )";
 
+/**
+ * @brief YAML configuration string for mesh modifiers that do not retain the full set of data fields of the input mesh
+ * vertex cloud
+ */
+static const std::string mesh_modifiers_data_mutating = R"(
+- name: RansacCylinderFit
+  distance_threshold: 1.0
+  max_primitives: 1
+  min_vertices: 1
+  max_iterations: 100
+  min_radius: 0.1
+  max_radius: 10.0
+  axis:
+    x: 0.0
+    y: 0.0
+    z: 1.0
+  axis_threshold: 3.14159
+  normal_distance_weight: 0.015
+  resolution: 50
+  include_caps: false
+)";
+
+/** @brief A combination of all mesh modifier configurations to test */
+static const std::string all_mesh_modifiers = mesh_modifiers_data_mutating + mesh_modifiers_data_retaining;
+
 using namespace noether;
 
-pcl::PolygonMesh loadWavyMeshWithHole()
+pcl::PolygonMesh loadMesh(const std::string& mesh_file)
 {
   pcl::PolygonMesh mesh;
-  const std::string mesh_file = MESH_DIR + std::string("/wavy_mesh_with_hole.ply");
   if (pcl::io::loadPolygonFile(mesh_file, mesh) > 0)
     return mesh;
   throw std::runtime_error("Failed to load test mesh from '" + mesh_file + "'");
 }
 
-/**
- * @brief Test fixture for all mesh modifiers
- */
-class MeshModifierTestFixture : public testing::TestWithParam<std::shared_ptr<const MeshModifier>>
+bool operator==(const pcl::PCLPointField& lhs, const pcl::PCLPointField& rhs)
 {
-};
+  bool equivalent = true;
+  equivalent &= lhs.count == rhs.count;
+  equivalent &= lhs.datatype == rhs.datatype;
+  equivalent &= lhs.name == rhs.name;
+  equivalent &= lhs.offset == rhs.offset;
+  return equivalent;
+}
 
-TEST_P(MeshModifierTestFixture, WavyMeshWithHole)
+using MeshModifierTestParams = std::tuple<std::string, std::shared_ptr<const MeshModifier>>;
+
+/** @brief Prints name of class for unit test output */
+std::string printMeshModifierTestParams(const testing::TestParamInfo<MeshModifierTestParams> info)
 {
-  auto modifier = GetParam();
+  std::string mesh_file;
+  std::shared_ptr<const MeshModifier> modifier;
+  std::tie(mesh_file, modifier) = info.param;
+
+  return std::to_string(info.index) + "_" + mesh_file.substr(0, mesh_file.find(".")) + "_" + getClassName(*modifier);
+}
+
+using MeshModifierTestFixture = testing::TestWithParam<MeshModifierTestParams>;
+
+/** @brief Test that runs a mesh modifier on a mesh and checks that a non-empty output mesh is created */
+TEST_P(MeshModifierTestFixture, RunMeshModifiers)
+{
+  std::string mesh_file;
+  std::shared_ptr<const MeshModifier> modifier;
+  std::tie(mesh_file, modifier) = GetParam();
+
+  pcl::PolygonMesh original_mesh;
+  ASSERT_NO_THROW(original_mesh = loadMesh(std::filesystem::path(MESH_DIR) / mesh_file));
+
   std::vector<pcl::PolygonMesh> meshes;
-  ASSERT_NO_THROW(meshes = modifier->modify(loadWavyMeshWithHole()));
+  ASSERT_NO_THROW(meshes = modifier->modify(original_mesh));
+
   ASSERT_FALSE(meshes.empty());
   for (const pcl::PolygonMesh& mesh : meshes)
   {
@@ -77,8 +141,39 @@ TEST_P(MeshModifierTestFixture, WavyMeshWithHole)
   }
 }
 
-// Create a vector of implementations for the modifiers
-std::vector<std::shared_ptr<const MeshModifier>> createModifiers()
+using DataRetainingMeshModifierTestFixture = testing::TestWithParam<MeshModifierTestParams>;
+
+/** @brief Test that runs a mesh modifier on a mesh and checks that a non-empty output mesh is created and that the data
+ * fields of the parent mesh are retained */
+TEST_P(DataRetainingMeshModifierTestFixture, RunMeshModifiers)
+{
+  std::string mesh_file;
+  std::shared_ptr<const MeshModifier> modifier;
+  std::tie(mesh_file, modifier) = GetParam();
+
+  pcl::PolygonMesh original_mesh;
+  ASSERT_NO_THROW(original_mesh = loadMesh(std::filesystem::path(MESH_DIR) / mesh_file));
+
+  std::vector<pcl::PolygonMesh> meshes;
+  ASSERT_NO_THROW(meshes = modifier->modify(original_mesh));
+
+  ASSERT_FALSE(meshes.empty());
+  for (const pcl::PolygonMesh& mesh : meshes)
+  {
+    EXPECT_FALSE(mesh.polygons.empty());
+    EXPECT_GT(mesh.cloud.width * mesh.cloud.height, 0);
+
+    // Check that the output mesh fragment vertex cloud retains all the same data fields as the original mesh
+    ASSERT_GE(mesh.cloud.fields.size(), original_mesh.cloud.fields.size());
+    for (std::size_t i = 0; i < original_mesh.cloud.fields.size(); ++i)
+    {
+      ASSERT_TRUE(original_mesh.cloud.fields[i] == mesh.cloud.fields[i]);
+    }
+  }
+}
+
+/** @brief Creates a vector of implementations for the modifiers */
+std::vector<std::shared_ptr<const MeshModifier>> createModifiers(const std::string& config_str)
 {
   // Create the factory
   auto loader = std::make_shared<boost_plugin_loader::PluginLoader>();
@@ -102,10 +197,25 @@ std::vector<std::shared_ptr<const MeshModifier>> createModifiers()
   return modifiers;
 }
 
+/** @brief Creates a list of mesh files (relative to `MESH_DIR`) to use in the unit test */
+std::vector<std::string> getMeshFiles()
+{
+  return {
+    "wavy_mesh_with_hole.ply",
+  };
+}
+
 INSTANTIATE_TEST_SUITE_P(MeshModifierTests,
                          MeshModifierTestFixture,
-                         testing::ValuesIn(createModifiers()),
-                         print<const MeshModifier>);
+                         testing::Combine(testing::ValuesIn(getMeshFiles()),
+                                          testing::ValuesIn(createModifiers(all_mesh_modifiers))),
+                         printMeshModifierTestParams);
+
+INSTANTIATE_TEST_SUITE_P(MeshModifierTests,
+                         DataRetainingMeshModifierTestFixture,
+                         testing::Combine(testing::ValuesIn(getMeshFiles()),
+                                          testing::ValuesIn(createModifiers(mesh_modifiers_data_retaining))),
+                         printMeshModifierTestParams);
 
 int main(int argc, char** argv)
 {
