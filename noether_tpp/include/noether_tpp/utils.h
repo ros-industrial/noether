@@ -56,8 +56,8 @@ std::tuple<double, std::vector<double>> computeLength(const ToolPathSegment& seg
 void printException(const std::exception& e, std::ostream& ss, int level = 0);
 
 /**
- * @brief Creates a mesh of an x-y plane (z-axis is normal) with a specified length and width.
- * @details The plane is comprised of 4 vertices and two triangles per the diagram below:
+ * @details Creates a mesh of an x-y plane (z-axis is normal) with a specified length and width.
+ * The plane is comprised of 4 vertices and two triangles per the diagram below:
  *
  * 0 --- 3 \n
  * | A / | \n
@@ -67,6 +67,7 @@ void printException(const std::exception& e, std::ostream& ss, int level = 0);
  * @param lx Length (m) along the x direction
  * @param ly Length (m) along the y direction
  * @param origin Transform to the desired origin of the primitive
+ * @ingroup mesh_primitive_generation
  */
 pcl::PolygonMesh createPlaneMesh(const float lx = 1.0,
                                  const float ly = 1.0,
@@ -85,6 +86,7 @@ pcl::PolygonMesh createPlaneMesh(const float lx = 1.0,
  * @param phi_range Angle range (radians) around the z-axis that passes through both poles, on (0, 2 * pi]. If the value
  * is less than 2 * pi, an ellipsoid shell is crated.
  * @param origin Transform to the desired origin of the primitive
+ * @ingroup mesh_primitive_generation
  */
 pcl::PolygonMesh createEllipsoidMesh(const float rx = 1.0,
                                      const float ry = 1.0,
@@ -104,7 +106,7 @@ pcl::PolygonMesh createEllipsoidMesh(const float rx = 1.0,
  * cylinder shell is created
  * @param include_caps Flag to indicate whether the caps of the cylinder should be included
  * @param origin Transform to the desired origin of the primitive
- * @return
+ * @ingroup mesh_primitive_generation
  */
 pcl::PolygonMesh createCylinderMesh(const float radius,
                                     const float length,
@@ -118,6 +120,7 @@ pcl::PolygonMesh createCylinderMesh(const float radius,
  * @details Overload of @ref createCylinderMesh that creates a mesh of a cylinder with optional end caps and a minimal
  * number of triangles
  * @sa createCylinderMesh
+ * @ingroup mesh_primitive_generation
  */
 pcl::PolygonMesh createCylinderMesh(const float radius,
                                     const float length,
@@ -130,6 +133,7 @@ pcl::PolygonMesh createCylinderMesh(const float radius,
  * @details Overload of @ref createCylinderMesh that creates a mesh of a cylinder with optional end caps and uniform
  * isoceles triangles
  * @sa createCylinderMesh
+ * @ingroup mesh_primitive_generation
  */
 pcl::PolygonMesh
 createCylinderMeshWithUniformTriangles(const float radius,

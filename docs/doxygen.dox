@@ -264,4 +264,8 @@ arbitrary mesh surfaces. See the following pages for more information on using N
 
     @image html static/architecture_gui.png
   @}
+  @defgroup mesh_primitive_generation Mesh Generation for Shape Primitives
+  @{
+    @brief Functions for generating meshes for various types of shape primitives
+  @}
 */

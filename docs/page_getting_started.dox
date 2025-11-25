@@ -17,12 +17,51 @@ rosdep install --from-paths src -iry
 
 @section s_gui GUI
 
-Noether provides a GUI for configuring and operating a @ref s_pipeline.
+This project provides a GUI for configuring and operating a @ref s_pipeline.
 
 @image html static/gui.png
 
-Run the application using the following command:
+Run the application from the workspace install directory using the following command:
 
-    ros2 run noether_gui noether_gui_app
+```
+cd <ws/install>/noether_gui/bin/
+./noether_gui_app
+```
+
+or alternatively using ROS 2:
+
+```
+ros2 run noether_gui noether_gui_app
+```
+
+@section s_mesh_primitive_generator Mesh Generation for Shape Primitives
+
+This project also provides a CLI utility for generating meshes for various types of shape primitives (e.g., plane, ellipsoid, cylinder, etc.).
+See @ref mesh_primitive_generation for more details on the functions available for generating meshes for shape primitives.
+
+Run this application from the workspace install directory using the following command:
+
+```
+cd <ws/install>/noether_tpp/bin
+./mesh_primitive_generator <options>
+```
+
+or alternatively using ROS 2:
+
+```
+ros2 run noether_tpp mesh_primitive_generator <options>
+```
+
+More information about the required parameters can be found by running:
+
+```
+./mesh_primitive_generator --help
+```
+
+or
+
+```
+ros2 run noether_tpp mesh_primitive_generator --help
+```
 
 */
