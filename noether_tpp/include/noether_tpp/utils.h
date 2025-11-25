@@ -89,7 +89,7 @@ pcl::PolygonMesh createPlaneMesh(const float lx = 1.0,
 pcl::PolygonMesh createEllipsoidMesh(const float rx = 1.0,
                                      const float ry = 1.0,
                                      const float rz = 1.5,
-                                     const int resolution = 20,
+                                     const std::size_t resolution = 20lu,
                                      const float theta_range = static_cast<float>(M_PI),
                                      const float phi_range = static_cast<float>(2.0 * M_PI),
                                      const Eigen::Isometry3d& origin = Eigen::Isometry3d::Identity());
@@ -107,7 +107,7 @@ pcl::PolygonMesh createEllipsoidMesh(const float rx = 1.0,
  */
 pcl::PolygonMesh createCylinderMesh(const float radius,
                                     const float length,
-                                    const int resolution = 20,
+                                    const std::size_t resolution = 20lu,
                                     const float theta_range = static_cast<float>(2.0 * M_PI),
                                     const bool include_caps = true,
                                     const Eigen::Isometry3d& origin = Eigen::Isometry3d::Identity());
