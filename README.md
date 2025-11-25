@@ -15,3 +15,6 @@ This repository provides software for performing tool path planning on arbitrary
 
 ## Documentation
 See the [documentation](https://ros-industrial.github.io/noether/) for more information on the capabilities and usage of this repository.
+
+## Related Repositories
+For a ROS2 interface to Noether's functionality, see [noether_ros2](https://github.com/ros-industrial/noether_ros2).
