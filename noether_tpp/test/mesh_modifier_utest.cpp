@@ -25,6 +25,34 @@ std::string config_str = R"(
   vz: 10.0
 - &normals_from_mesh_faces
   name: NormalsFromMeshFaces
+- name: RansacCylinderFit
+  distance_threshold: 1.0
+  max_primitives: 1
+  min_vertices: 1
+  max_iterations: 100
+  min_radius: 0.1
+  max_radius: 10.0
+  axis:
+    x: 0.0
+    y: 0.0
+    z: 1.0
+  axis_threshold: 3.14159
+  normal_distance_weight: 0.015
+  resolution: 50
+  include_caps: false
+- name: RansacCylinderProjection
+  distance_threshold: 1.0
+  max_primitives: 1
+  min_vertices: 1
+  max_iterations: 100
+  min_radius: 0.1
+  max_radius: 10.0
+  axis:
+    x: 0.0
+    y: 0.0
+    z: 1.0
+  axis_threshold: 3.14159
+  normal_distance_weight: 0.015
 - name: RansacPlaneProjection
   distance_threshold: 2.5
   max_primitives: 1
