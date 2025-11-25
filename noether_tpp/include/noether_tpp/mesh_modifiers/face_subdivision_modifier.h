@@ -93,43 +93,7 @@ protected:
   float max_area_;
 };
 
-/**
- * @brief MeshModifier that subdivides mesh faces into smaller faces until all edges have a length that is 1) greater
- * than the specified minimum length and 2) less than the specified maximum length
- * @details If a face has an edge that would become shorter than the minimum length when subdivided, then the
- * subdivision is skipped, even if other edges in the face have lengths longer than the maximum edge length. This is
- * intended to prevent the formation of long skinny triangles whose shortest side shrinks dramatically to allow the
- * longer sides to be reduced to less than the maximum edge length.
- * @ingroup mesh_modifiers
- */
-class FaceSubdivisionByEdgeLengthMeshModifier : public FaceSubdivisionMeshModifier
-{
-public:
-  FaceSubdivisionByEdgeLengthMeshModifier(float max_edge_length, float min_edge_length = 1.0e-6);
-  virtual ~FaceSubdivisionByEdgeLengthMeshModifier() = default;
-
-protected:
-  FaceSubdivisionByEdgeLengthMeshModifier() = default;
-  DECLARE_YAML_FRIEND_CLASSES(FaceSubdivisionByEdgeLengthMeshModifier)
-
-  /**
-   * @brief Returns true if the area of the face has a greater area than the specified maximum face area
-   */
-  bool requiresSubdivision(const pcl::PolygonMesh& mesh, const std::vector<pcl::index_t>& face) const override;
-
-  /**
-   * @brief Maximum edge length (m)
-   */
-  float max_edge_length_;
-
-  /**
-   * @brief Minimumum edge length (m), multiplied by 2
-   */
-  float min_edge_length_x2_;
-};
-
 }  // namespace noether
 
 FWD_DECLARE_YAML_CONVERT(noether::FaceMidpointSubdivisionMeshModifier)
 FWD_DECLARE_YAML_CONVERT(noether::FaceSubdivisionByAreaMeshModifier)
-FWD_DECLARE_YAML_CONVERT(noether::FaceSubdivisionByEdgeLengthMeshModifier)
