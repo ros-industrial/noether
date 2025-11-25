@@ -2,7 +2,6 @@
 #include <noether_gui/widgets/distance_double_spin_box.h>
 
 #include <noether_tpp/serialization.h>
-#include <QDoubleSpinBox>
 #include <QFormLayout>
 #include <QLabel>
 
@@ -15,8 +14,11 @@ FaceMidpointSubdivisionMeshModifierWidget::FaceMidpointSubdivisionMeshModifierWi
   n_iterations_->setRange(1, 10);
   n_iterations_->setValue(1);
   n_iterations_->setSingleStep(1);
-  n_iterations_->setToolTip("Number of subdivision iterations to run");
-  form_layout->addRow(new QLabel("Iterations", this), n_iterations_);
+
+  auto label = new QLabel("Iterations", this);
+  label->setToolTip("Number of subdivision iterations to run");
+
+  form_layout->addRow(label, n_iterations_);
 }
 
 void FaceMidpointSubdivisionMeshModifierWidget::configure(const YAML::Node& config)
@@ -31,26 +33,31 @@ void FaceMidpointSubdivisionMeshModifierWidget::save(YAML::Node& config) const
 }
 
 FaceSubdivisionByAreaMeshModifierWidget::FaceSubdivisionByAreaMeshModifierWidget(QWidget* parent)
-  : BaseWidget(parent), max_area_(new QDoubleSpinBox(this))
+  : BaseWidget(parent), triangle_characteristic_length_(new DistanceDoubleSpinBox(this))
 {
   auto* form_layout = new QFormLayout(this);
-  max_area_->setMinimum(0.0);
-  max_area_->setValue(0.01);
-  max_area_->setSingleStep(0.005);
-  max_area_->setDecimals(6);
-  max_area_->setSuffix(" m^2");
-  form_layout->addRow(new QLabel("Max Area", this), max_area_);
+  triangle_characteristic_length_->setMinimum(0.0);
+  triangle_characteristic_length_->setValue(0.01);
+  triangle_characteristic_length_->setSingleStep(0.005);
+
+  auto label = new QLabel("Triangle Characteristic Length", this);
+  label->setToolTip("Characteristic length of a triangle (l), such that the area (A) of the triangle is: A = 0.5 * "
+                    "l^2. This roughly equates to the maximum allowable triangle edge length (assuming an equilateral "
+                    "triangle).");
+
+  form_layout->addRow(label, triangle_characteristic_length_);
 }
 
 void FaceSubdivisionByAreaMeshModifierWidget::configure(const YAML::Node& config)
 {
-  max_area_->setValue(YAML::getMember<double>(config, "max_area"));
+  const auto max_area = YAML::getMember<double>(config, "max_area");
+  triangle_characteristic_length_->setValue(std::sqrt(2 * max_area));
 }
 
 void FaceSubdivisionByAreaMeshModifierWidget::save(YAML::Node& config) const
 {
   config["name"] = "FaceSubdivisionByArea";
-  config["max_area"] = max_area_->value();
+  config["max_area"] = 0.5 * std::pow(triangle_characteristic_length_->value(), 2.0);
 }
 
 }  // namespace noether

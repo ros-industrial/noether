@@ -2,7 +2,6 @@
 
 #include <noether_gui/widgets.h>
 
-class QDoubleSpinBox;
 class QSpinBox;
 
 namespace noether
@@ -30,7 +29,7 @@ public:
   void save(YAML::Node& config) const override;
 
 protected:
-  QDoubleSpinBox* max_area_;
+  DistanceDoubleSpinBox* triangle_characteristic_length_;
 };
 
 }  // namespace noether
