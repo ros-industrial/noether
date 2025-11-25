@@ -298,7 +298,7 @@ pcl::PolygonMesh createPlaneMesh(const float lx, const float ly, const Eigen::Is
 pcl::PolygonMesh createEllipsoidMesh(const float rx,
                                      const float ry,
                                      const float rz,
-                                     const int resolution,
+                                     const std::size_t resolution,
                                      const float theta_range,
                                      const float phi_range,
                                      const Eigen::Isometry3d& origin)
@@ -352,7 +352,7 @@ pcl::PolygonMesh createEllipsoidMesh(const float rx,
 
   // Skip the addition of poles if the theta angle is less than maximum
   const bool skip_poles = theta_range < MAX_THETA;
-  const int n_poles = skip_poles ? 0 : 2;
+  const std::size_t n_poles = skip_poles ? 0 : 2;
 
   // Set up a point cloud for the vertices of the mesh
   pcl::PointCloud<pcl::PointXYZ> cloud;
@@ -373,11 +373,11 @@ pcl::PolygonMesh createEllipsoidMesh(const float rx,
   }
 
   // Add the vertices of the body of the ellipsoid
-  for (int i = 0; i < resolution; ++i)
+  for (std::size_t i = 0; i < resolution; ++i)
   {
-    for (int j = 0; j < resolution; ++j)
+    for (std::size_t j = 0; j < resolution; ++j)
     {
-      const int idx = n_poles + i * resolution + j;
+      const std::size_t idx = n_poles + i * resolution + j;
       cloud.points[idx].x = rx * std::sin(theta(i)) * std::cos(phi(j));
       cloud.points[idx].y = ry * std::sin(theta(i)) * std::sin(phi(j));
       cloud.points[idx].z = rz * std::cos(theta(i));
@@ -397,22 +397,22 @@ pcl::PolygonMesh createEllipsoidMesh(const float rx,
   pcl::toPCLPointCloud2(transformed_cloud, mesh.cloud);
 
   // Allocate memory for triangles
-  const int n_pole_triangles = n_poles * resolution;
+  const std::size_t n_pole_triangles = n_poles * resolution;
   // (# of rings - 1) * (# of squares per ring) * (# of triangles per square)
-  const int n_body_triangles = (resolution - 1) * resolution * 2;
+  const std::size_t n_body_triangles = (resolution - 1) * resolution * 2;
   mesh.polygons.reserve(n_pole_triangles + n_body_triangles);
 
   // Add triangles for the poles
   if (n_poles > 0)
   {
-    for (int j = 0; j < resolution; ++j)
+    for (std::size_t j = 0; j < resolution; ++j)
     {
       // Index of the first body vertex in the triangle
-      const int v1_relative_idx = j;
+      const std::size_t v1_relative_idx = j;
       // Index of the second body vertex in the triangle (first vertex index plus one)
       // This index wraps around at `resolution + 1` to create a triangle between the pole, the last vertex in the
       // "ring" and the first vertex in the "ring"
-      const int v2_relative_idx = (v1_relative_idx + 1) % resolution;
+      const std::size_t v2_relative_idx = (v1_relative_idx + 1) % resolution;
 
       // Pole 1
       {
@@ -420,7 +420,7 @@ pcl::PolygonMesh createEllipsoidMesh(const float rx,
         tri.vertices.emplace_back(0);
 
         // The index of the first body vertex next to pole 0 is after the pole vertices
-        const int start_idx = n_poles;
+        const std::size_t start_idx = n_poles;
         tri.vertices.emplace_back(start_idx + v1_relative_idx);
         tri.vertices.emplace_back(start_idx + v2_relative_idx);
         mesh.polygons.emplace_back(tri);
@@ -433,7 +433,7 @@ pcl::PolygonMesh createEllipsoidMesh(const float rx,
 
         // The index of the first body vertex next to pole 1 is after the pole vertices and after `n-1` "rings" of size
         // `n`
-        const int start_idx = n_poles + (resolution - 1) * resolution;
+        const std::size_t start_idx = n_poles + (resolution - 1) * resolution;
         tri.vertices.emplace_back(start_idx + v2_relative_idx);
         tri.vertices.emplace_back(start_idx + v1_relative_idx);
         mesh.polygons.emplace_back(tri);
@@ -445,27 +445,27 @@ pcl::PolygonMesh createEllipsoidMesh(const float rx,
   // If the phi angle is not full range, we don't want to connect the last triangles with the first triangles in order
   // to make a shell rather than a closed shape
   const bool skip_connecting_triangles = phi_range < MAX_PHI;
-  const int n_phi = skip_connecting_triangles ? resolution - 1 : resolution;
+  const std::size_t n_phi = skip_connecting_triangles ? resolution - 1 : resolution;
 
-  for (int i = 0; i < resolution - 1; ++i)
+  for (std::size_t i = 0; i < resolution - 1; ++i)
   {
     // Theta indices (i.e., "rings")
-    int t1_idx = i;
-    int t2_idx = i + 1;
+    const std::size_t t1_idx = i;
+    const std::size_t t2_idx = i + 1;
 
-    for (int j = 0; j < n_phi; ++j)
+    for (std::size_t j = 0; j < n_phi; ++j)
     {
       // A quadrilateral is formed between two adjacent vertices on one "ring" and the two adjacent vertices with the
       // same relative index on the next "ring"
 
       // Vertex at theta ("ring") 1, phi 1
-      int t1_p1_idx = n_poles + t1_idx * resolution + j;
+      const std::size_t t1_p1_idx = n_poles + t1_idx * resolution + j;
       // Vertex at theta ("ring") 1, phi 2
-      int t1_p2_idx = n_poles + t1_idx * resolution + ((j + 1) % resolution);
+      const std::size_t t1_p2_idx = n_poles + t1_idx * resolution + ((j + 1) % resolution);
       // Vertex at theta ("ring") 2, phi 1
-      int t2_p1_idx = n_poles + t2_idx * resolution + j;
+      const std::size_t t2_p1_idx = n_poles + t2_idx * resolution + j;
       // Vertex at theta ("ring") 2, phi 2
-      int t2_p2_idx = n_poles + t2_idx * resolution + ((j + 1) % resolution);
+      const std::size_t t2_p2_idx = n_poles + t2_idx * resolution + ((j + 1) % resolution);
 
       // Split this quad into two triangles
       // Triangle 1
@@ -492,15 +492,18 @@ pcl::PolygonMesh createEllipsoidMesh(const float rx,
 
 pcl::PolygonMesh createCylinderMesh(const float radius,
                                     const float length,
-                                    const int resolution,
+                                    const std::size_t resolution,
+                                    std::size_t vertical_resolution,
                                     const float theta_range,
                                     const bool include_caps,
                                     const Eigen::Isometry3d& origin)
 {
-  pcl::PointCloud<pcl::PointNormal> cloud;
-  cloud.resize(2 * resolution);
+  // Ensure the vertical resolution is at least 2 for the top and bottom edges of the cylinder
+  vertical_resolution = std::max(2lu, vertical_resolution);
 
-  // Add the rings
+  pcl::PointCloud<pcl::PointNormal> cloud;
+  cloud.resize(vertical_resolution * resolution);
+
   // Extract the theta angles
   // Theta is the angle around the axis that passes through both poles; its maximum is 360 degrees
   const float MAX_THETA = static_cast<float>(2.0 * M_PI);
@@ -525,29 +528,24 @@ pcl::PolygonMesh createCylinderMesh(const float radius,
     }
   }
 
+  // Set up the vertical resolution
+  Eigen::VectorXf z(vertical_resolution);
+  z.setLinSpaced(length / 2.0f, -length / 2.0f);
+
   // Add the vertices
-  for (int i = 0; i < resolution; ++i)
+  for (std::size_t z_idx = 0; z_idx < vertical_resolution; ++z_idx)
   {
-    // Positive z cap
+    for (std::size_t t_idx = 0; t_idx < resolution; ++t_idx)
     {
-      pcl::PointNormal& pt = cloud.points[i];
-      pt.x = radius * std::cos(theta(i));
-      pt.y = radius * std::sin(theta(i));
-      pt.z = length / 2.0f;
+      const std::size_t idx = z_idx * resolution + t_idx;
+      pcl::PointNormal& pt = cloud.points[idx];
 
-      pt.normal_x = std::cos(theta[i]);
-      pt.normal_y = std::sin(theta[i]);
-      pt.normal_z = 0.0;
-    }
-    // Negative z cap
-    {
-      pcl::PointNormal& pt = cloud.points[resolution + i];
-      pt.x = radius * std::cos(theta(i));
-      pt.y = radius * std::sin(theta(i));
-      pt.z = -length / 2.0f;
+      pt.x = radius * std::cos(theta(t_idx));
+      pt.y = radius * std::sin(theta(t_idx));
+      pt.z = z(z_idx);
 
-      pt.normal_x = std::cos(theta[i]);
-      pt.normal_y = std::sin(theta[i]);
+      pt.normal_x = std::cos(theta[t_idx]);
+      pt.normal_y = std::sin(theta[t_idx]);
       pt.normal_z = 0.0;
     }
   }
@@ -555,6 +553,8 @@ pcl::PolygonMesh createCylinderMesh(const float radius,
   // Add "pole" points in the center of the "caps"
   if (include_caps)
   {
+    cloud.points.reserve(cloud.points.size() + 2);
+
     {
       pcl::PointNormal pole;
       pole.x = 0.0;
@@ -589,38 +589,45 @@ pcl::PolygonMesh createCylinderMesh(const float radius,
 
   // Add the triangles for the body of the cylinder
   const bool skip_connecting_triangles = theta_range < MAX_THETA;
-  const int n = skip_connecting_triangles ? resolution - 1 : resolution;
-  mesh.polygons.reserve(n);
-  for (int i = 0; i < n; ++i)
+  const std::size_t n = skip_connecting_triangles ? resolution - 1 : resolution;
+  mesh.polygons.reserve(n * vertical_resolution);
+
+  for (std::size_t z_idx = 0; z_idx < vertical_resolution - 1; ++z_idx)
   {
-    // A quadrilateral is formed between two adjacent vertices on one cap and the two adjacent vertices with the
-    // same relative index on the other cap
+    const std::size_t r1_idx = z_idx * resolution;
+    const std::size_t r2_idx = (z_idx + 1) * resolution;
 
-    // Vertex at cap 1 (positive), theta 1
-    int c1_t1_idx = i;
-    // Vertex at cap 1 (positive), theta 2
-    int c1_t2_idx = ((c1_t1_idx + 1) % resolution);
-    // Vertex at cap 2 (negative), theta 1
-    int c2_t1_idx = resolution + i;
-    // Vertex at cap 2 (negative), theta 1
-    int c2_t2_idx = resolution + ((i + 1) % resolution);
-
-    // Triangle 1
+    for (int t_idx = 0; t_idx < n; ++t_idx)
     {
-      pcl::Vertices tri;
-      tri.vertices.push_back(c1_t1_idx);
-      tri.vertices.push_back(c2_t1_idx);
-      tri.vertices.push_back(c1_t2_idx);
-      mesh.polygons.push_back(tri);
-    }
+      // A quadrilateral is formed between two adjacent vertices on one ring and the two adjacent vertices with the
+      // same relative index on the next ring
 
-    // Triangle 2
-    {
-      pcl::Vertices tri;
-      tri.vertices.push_back(c2_t1_idx);
-      tri.vertices.push_back(c2_t2_idx);
-      tri.vertices.push_back(c1_t2_idx);
-      mesh.polygons.push_back(tri);
+      // Vertex at ring 1, theta 1
+      const std::size_t r1_t1_idx = r1_idx + t_idx;
+      // Vertex at ring 1, theta 2
+      const std::size_t r1_t2_idx = r1_idx + (t_idx + 1) % resolution;
+      // Vertex at ring 2, theta 1
+      const std::size_t r2_t1_idx = r2_idx + t_idx;
+      // Vertex at ring 2, theta 1
+      const std::size_t r2_t2_idx = r2_idx + ((t_idx + 1) % resolution);
+
+      // Triangle 1
+      {
+        pcl::Vertices tri;
+        tri.vertices.push_back(r1_t1_idx);
+        tri.vertices.push_back(r2_t1_idx);
+        tri.vertices.push_back(r1_t2_idx);
+        mesh.polygons.push_back(tri);
+      }
+
+      // Triangle 2
+      {
+        pcl::Vertices tri;
+        tri.vertices.push_back(r2_t1_idx);
+        tri.vertices.push_back(r2_t2_idx);
+        tri.vertices.push_back(r1_t2_idx);
+        mesh.polygons.push_back(tri);
+      }
     }
   }
 
@@ -628,14 +635,14 @@ pcl::PolygonMesh createCylinderMesh(const float radius,
   if (include_caps)
   {
     // Compute the indices of the pole points
-    const int idx_pole_1 = resolution * 2;
-    const int idx_pole_2 = idx_pole_1 + 1;
+    const std::size_t idx_pole_1 = vertical_resolution * resolution;
+    const std::size_t idx_pole_2 = idx_pole_1 + 1;
 
-    for (int i = 0; i < resolution; ++i)
+    for (std::size_t i = 0; i < resolution; ++i)
     {
       // Compute the indices of the two adjacent vertices around the cap
-      int idx_v1 = i;
-      int idx_v2 = (i + 1) % resolution;
+      const std::size_t idx_v1 = i;
+      const std::size_t idx_v2 = (i + 1) % resolution;
 
       // Cap for pole 1 (positive end)
       {
@@ -660,6 +667,28 @@ pcl::PolygonMesh createCylinderMesh(const float radius,
   }
 
   return mesh;
+}
+
+pcl::PolygonMesh createCylinderMesh(const float radius,
+                                    const float length,
+                                    const std::size_t resolution,
+                                    const float theta_range,
+                                    const bool include_caps,
+                                    const Eigen::Isometry3d& origin)
+{
+  return createCylinderMesh(radius, length, resolution, 2lu, theta_range, include_caps, origin);
+}
+
+pcl::PolygonMesh createCylinderMeshWithUniformTriangles(const float radius,
+                                                        const float length,
+                                                        const std::size_t resolution,
+                                                        const float theta_range,
+                                                        const bool include_caps,
+                                                        const Eigen::Isometry3d& origin)
+{
+  const float segment_arc_length = radius * (theta_range / resolution);
+  const std::size_t vertical_resolution = static_cast<std::size_t>(std::ceil(length / segment_arc_length));
+  return createCylinderMesh(radius, length, resolution, vertical_resolution, theta_range, include_caps, origin);
 }
 
 }  // namespace noether

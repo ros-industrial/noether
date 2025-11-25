@@ -201,7 +201,8 @@ RansacCylinderFitMeshModifier::RansacCylinderFitMeshModifier(float min_radius,
                                                              int max_cylinders,
                                                              unsigned max_iterations,
                                                              unsigned primitive_resolution,
-                                                             bool include_primitive_caps)
+                                                             bool include_primitive_caps,
+                                                             bool uniform_triangles)
   : RansacCylinderProjectionMeshModifier(min_radius,
                                          max_radius,
                                          distance_threshold,
@@ -213,6 +214,7 @@ RansacCylinderFitMeshModifier::RansacCylinderFitMeshModifier(float min_radius,
                                          max_iterations)
   , resolution_(std::max(6u, primitive_resolution))
   , include_caps_(include_primitive_caps)
+  , uniform_triangles_(uniform_triangles)
 {
 }
 
@@ -250,7 +252,10 @@ pcl::PolygonMesh RansacCylinderFitMeshModifier::createSubMesh(
   const Eigen::Isometry3d transform = createTransform(origin.cast<double>(), axis.cast<double>());
 
   // Create the cylinder primitive
-  return createCylinderMesh(radius, length, resolution_, 2.0 * M_PI, include_caps_, transform);
+  if (uniform_triangles_)
+    return createCylinderMeshWithUniformTriangles(radius, length, resolution_, 2.0 * M_PI, include_caps_, transform);
+  else
+    return createCylinderMesh(radius, length, resolution_, 2.0 * M_PI, include_caps_, transform);
 }
 
 }  // namespace noether
@@ -290,6 +295,7 @@ Node convert<noether::RansacCylinderFitMeshModifier>::encode(const noether::Rans
   Node node = convert<noether::RansacCylinderProjectionMeshModifier>::encode(val);
   node["resolution"] = val.resolution_;
   node["include_caps"] = val.include_caps_;
+  node["uniform_triangles"] = val.uniform_triangles_;
   return node;
 }
 
@@ -299,6 +305,7 @@ bool convert<noether::RansacCylinderFitMeshModifier>::decode(const Node& node,
   bool ret = convert<noether::RansacCylinderProjectionMeshModifier>::decode(node, val);
   val.resolution_ = YAML::getMember<unsigned>(node, "resolution");
   val.include_caps_ = YAML::getMember<bool>(node, "include_caps");
+  val.uniform_triangles_ = YAML::getMember<bool>(node, "uniform_triangles");
   return ret;
 }
 /** @endcond */

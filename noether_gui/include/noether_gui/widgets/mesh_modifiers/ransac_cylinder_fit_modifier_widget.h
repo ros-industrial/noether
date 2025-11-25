@@ -37,6 +37,7 @@ public:
 protected:
   QSpinBox* resolution_;
   QCheckBox* include_caps_;
+  QCheckBox* uniform_triangles_;
 };
 
 }  // namespace noether

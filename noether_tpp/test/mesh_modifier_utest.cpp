@@ -81,6 +81,7 @@ static const std::string mesh_modifiers_data_mutating = R"(
   normal_distance_weight: 0.015
   resolution: 50
   include_caps: false
+  uniform_triangles: true
 )";
 
 /** @brief A combination of all mesh modifier configurations to test */
