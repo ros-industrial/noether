@@ -9,7 +9,7 @@
 #include <pcl/common/io.h>
 #include <pcl/conversions.h>
 #include <pcl/Vertices.h>
-#include <queue>
+#include <stack>
 
 /**
  * @brief Divides a (possibly non-triangular) polygonal mesh face into a set of constituent triangles
@@ -264,14 +264,14 @@ std::vector<pcl::PolygonMesh> FaceSubdivisionMeshModifier::modify(const pcl::Pol
   const bool has_color = findField(output.cloud.fields, "rgba") != output.cloud.fields.end();
 
   // Create stack of faces to evaluate for subdivision
-  std::queue<std::vector<pcl::index_t>> faces_queue;
+  std::stack<std::vector<pcl::index_t>> faces_stack;
   for (const pcl::Vertices& face : mesh.polygons)
-    faces_queue.emplace(face.vertices);
+    faces_stack.emplace(face.vertices);
 
-  while (!faces_queue.empty())
+  while (!faces_stack.empty())
   {
-    std::vector<pcl::index_t> face = faces_queue.front();
-    faces_queue.pop();
+    std::vector<pcl::index_t> face = faces_stack.top();
+    faces_stack.pop();
 
     if (!requiresSubdivision(output, face))
     {
@@ -291,9 +291,9 @@ std::vector<pcl::PolygonMesh> FaceSubdivisionMeshModifier::modify(const pcl::Pol
         updatePointData(output.cloud, m, { tri[0], tri[1], tri[2] }, has_normals, has_color);
 
         // Create new faces and add to stack
-        faces_queue.push({ tri[0], tri[1], m });
-        faces_queue.push({ m, tri[1], tri[2] });
-        faces_queue.push({ tri[0], m, tri[2] });
+        faces_stack.push({ tri[0], tri[1], m });
+        faces_stack.push({ m, tri[1], tri[2] });
+        faces_stack.push({ tri[0], m, tri[2] });
       }
     }
   }
