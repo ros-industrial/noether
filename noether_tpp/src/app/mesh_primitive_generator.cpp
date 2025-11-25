@@ -48,9 +48,11 @@ int main(int argc, char** argv)
   cylinder_opts.add_options()
     ("radius", po::value<float>()->default_value(1.0f), "Radius (m) of the cylinder")
     ("length", po::value<float>()->default_value(1.0f), "Length (m) of the cylinder")
-    ("resolution,r", po::value<std::size_t>()->default_value(20ul), "Number of points in each ring of the ellipsoid")
-    ("theta", po::value<float>()->default_value(360.0f), "Angle range (deg) of ellipsoid spanning from pole to pole, on (0, 360]")
-    ("cap", po::value<bool>()->default_value(true), "Flag to include the caps of the cylinder");
+    ("resolution,r", po::value<std::size_t>()->default_value(20ul), "Number of points in each ring of the cylinder")
+    ("vertical-resolution,vr", po::value<std::size_t>()->default_value(2ul), "Number of rings down the length of the cylinder")
+    ("theta", po::value<float>()->default_value(360.0f), "Angle range (deg) of cylinder spanning from pole to pole, on (0, 360]")
+    ("cap", po::value<bool>()->default_value(true), "Flag to include the caps of the cylinder")
+    ("uniform", po::value<bool>()->default_value(true), "Flag to make the triangles of the cylinder uniform");
   // clang-format on
 
   try
@@ -124,11 +126,16 @@ int main(int argc, char** argv)
       const auto radius = vm.at("radius").as<float>();
       const auto length = vm.at("length").as<float>();
       const auto resolution = vm.at("resolution").as<std::size_t>();
-      const auto cap = vm.at("cap").as<bool>();
+      const auto vertical_resolution = vm.at("vertical-resolution").as<std::size_t>();
       const auto theta_range = vm.at("theta").as<float>() * static_cast<float>(M_PI / 180.0);
+      const auto cap = vm.at("cap").as<bool>();
+      const auto uniform = vm.at("uniform").as<bool>();
 
       std::cout << "Generating cylinder mesh..." << std::endl;
-      mesh = noether::createCylinderMesh(radius, length, resolution, theta_range, cap, origin);
+      if (uniform)
+        mesh = noether::createCylinderMeshWithUniformTriangles(radius, length, resolution, theta_range, cap, origin);
+      else
+        mesh = noether::createCylinderMesh(radius, length, resolution, vertical_resolution, theta_range, cap, origin);
     }
     else
     {
