@@ -40,7 +40,7 @@ std::vector<pcl::PolygonMesh> NormalEstimationPCLMeshModifier::modify(const pcl:
   pcl::PolygonMesh output = mesh;
 
   // Concatenate
-  if (!pcl::concatenateFields(mesh.cloud, normals, output.cloud))
+  if (!pcl::concatenateFields(normals, mesh.cloud, output.cloud))
     throw std::runtime_error("Failed to concatenate normals into mesh vertex cloud");
 
   return { output };
