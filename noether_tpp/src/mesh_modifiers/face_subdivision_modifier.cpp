@@ -113,11 +113,14 @@ void updatePointData(pcl::PCLPointCloud2& cloud,
   }
 }
 
+/** @details Typedef for a mesh edge, comprised of a pair of vertex indices */
 using MeshEdge = std::pair<pcl::index_t, pcl::index_t>;
+
+/** @details Typedef for a mapping of a mesh edge to its midpoint vertex index */
 using MidpointVertexIndexMapping = std::map<MeshEdge, pcl::index_t>;
 
 /**
- * @brief Returns the index in the vertex cloud of the midpoint of an edge.
+ * @details Returns the index in the vertex cloud of the midpoint of an edge.
  * If the midpoint has not been added, it is created and added to the end of the vertex cloud.
  */
 pcl::index_t getOrCreateMidpoint(pcl::index_t idx_start,
@@ -148,7 +151,7 @@ pcl::index_t getOrCreateMidpoint(pcl::index_t idx_start,
 }
 
 /**
- * @brief Applies recursive midpoint subdivision on a single triangle.
+ * @details Applies recursive midpoint subdivision on a single triangle.
  * The newly created midpoints and triangles are added directly to the input mesh
  */
 void subdivideTriangleRecursive(const std::array<pcl::index_t, 3>& tri,

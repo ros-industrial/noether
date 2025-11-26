@@ -47,6 +47,11 @@ protected:
  * new triangles per face. All new vertices added to the mesh retain the ancillary data fields associated with the
  * original vertices (e.g., color, normals, curvature, etc.). If normal and color (`rgba`) data fields exists, added
  * midpoints average the normal and color fields of the parent vertices.
+ *
+ * @note This class subdivides faces by inserting a vertex in the middle of the face, which means that all original
+ * triangle edges are retained. Therefore, the criteria for face subdivision should **not** be based on a property of a
+ * triangle edge (e.g., maximum allowable length).
+ *
  * @ingroup mesh_modifiers
  */
 class FaceSubdivisionMeshModifier : public MeshModifier
@@ -59,7 +64,7 @@ public:
 
 protected:
   /**
-   * @brief Checks if the provided mesh face requires subdivision
+   * @details Checks if the provided mesh face requires subdivision.
    * @param mesh Input mesh (for access to vertices, etc.)
    * @param face Polygonal mesh face to check
    * @return True if the face should be subdivided, false otherwise
