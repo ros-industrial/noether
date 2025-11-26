@@ -21,12 +21,8 @@ std::vector<pcl::PolygonMesh> NormalsFromMeshFacesMeshModifier::modify(const pcl
   // Iterate across the polygons, calculating their normals and accumulating the normals onto all adjacent vertices
   for (const auto& p : mesh.polygons)
   {
-    // Compute the normal
-    const Eigen::Vector3f normal = getFaceNormal(mesh, p);
-
-    // Add this normal to the accumulators for this face's valid vertices
-    for (const std::size_t v_idx : p.vertices)
-      normals_map.col(v_idx).head<3>() += normal;
+    // Compute the normal and add to the accumulators for this face's valid vertices
+    normals_map({ 0, 1, 2 }, p.vertices).colwise() += getFaceNormal(mesh, p);
   }
 
   // Normalize the normals
