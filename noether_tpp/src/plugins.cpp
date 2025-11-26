@@ -5,6 +5,7 @@
 #include <noether_tpp/mesh_modifiers/clean_data_modifier.h>
 #include <noether_tpp/mesh_modifiers/compound_modifier.h>
 #include <noether_tpp/mesh_modifiers/euclidean_clustering_modifier.h>
+#include <noether_tpp/mesh_modifiers/face_subdivision_modifier.h>
 #include <noether_tpp/mesh_modifiers/fill_holes_modifier.h>
 #include <noether_tpp/mesh_modifiers/normal_estimation_pcl.h>
 #include <noether_tpp/mesh_modifiers/normals_from_mesh_faces_modifier.h>
@@ -51,6 +52,8 @@ namespace noether
 // Mesh Modifiers
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(CleanData, CleanData)
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(EuclideanClusteringMeshModifier, EuclideanClustering)
+EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(FaceMidpointSubdivisionMeshModifier, FaceMidpointSubdivision);
+EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(FaceSubdivisionByAreaMeshModifier, FaceSubdivisionByArea);
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(FillHoles, FillHoles)
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(NormalEstimationPCLMeshModifier, NormalEstimationPCL)
 EXPORT_SIMPLE_MESH_MODIFIER_PLUGIN(NormalsFromMeshFacesMeshModifier, NormalsFromMeshFaces)
