@@ -30,7 +30,7 @@ std::vector<pcl::PolygonMesh> NormalsFromMeshFacesMeshModifier::modify(const pcl
   }
 
   // Normalize the normals
-  normals_map.colwise().normalize();
+  normals_map({ 0, 1, 2 }, Eigen::all).colwise().normalize();
 
   // Replace nan values with 0
   normals_map.unaryExpr([](float v) { return std::isfinite(v) ? v : 0.0; });
