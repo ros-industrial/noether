@@ -124,16 +124,8 @@ public:
 protected:
   std::shared_ptr<const boost_plugin_loader::PluginLoader> loader_;
 
-private:
   template <typename PluginT>
-  typename PluginT::ComponentT::Ptr create(std::map<std::string, typename PluginT::Ptr>& plugin_map,
-                                           const YAML::Node& config) const;
-
-  mutable std::map<std::string, MeshModifierPlugin::Ptr> mesh_modifier_plugins_;
-  mutable std::map<std::string, ToolPathPlannerPlugin::Ptr> tool_path_planner_plugins_;
-  mutable std::map<std::string, DirectionGeneratorPlugin::Ptr> direction_generator_plugins_;
-  mutable std::map<std::string, OriginGeneratorPlugin::Ptr> origin_generator_plugins_;
-  mutable std::map<std::string, ToolPathModifierPlugin::Ptr> tool_path_modifier_plugins_;
+  typename PluginT::ComponentT::Ptr create(const YAML::Node& config) const;
 };
 
 }  // namespace noether

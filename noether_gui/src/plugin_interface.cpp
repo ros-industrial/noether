@@ -30,11 +30,9 @@ WidgetFactory::WidgetFactory(std::shared_ptr<const boost_plugin_loader::PluginLo
 template <typename PluginT>
 BaseWidget* WidgetFactory::createWidget(const std::string& name, const YAML::Node& config, QWidget* parent) const
 {
-  if (widget_plugins_.find(name) == widget_plugins_.end())
-    widget_plugins_[name] = loader_->createInstance<PluginT>(name);
-
+  auto plugin = loader_->createInstance<PluginT>(name);
   auto this_shared = std::shared_ptr<const WidgetFactory>(this, [](const WidgetFactory*) {});
-  return widget_plugins_[name]->create(config, this_shared, parent);
+  return plugin->create(config, this_shared, parent);
 }
 
 BaseWidget* WidgetFactory::createMeshModifierWidget(const std::string& name,
