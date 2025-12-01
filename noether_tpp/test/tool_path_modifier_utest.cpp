@@ -291,8 +291,8 @@ std::vector<std::shared_ptr<const ToolPathModifier>> createModifiers()
 {
   // Create the factory
   auto loader = std::make_shared<boost_plugin_loader::PluginLoader>();
-  loader->search_libraries.insert(NOETHER_PLUGIN_LIB);
-  loader->search_paths.insert(PLUGIN_DIR);
+  loader->search_libraries.emplace_back(NOETHER_PLUGIN_LIB);
+  loader->search_paths.emplace_back(PLUGIN_DIR);
 
   Factory factory(loader);
 

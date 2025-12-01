@@ -18,8 +18,8 @@ std::string ToolPathModifierWidgetPlugin::getSection() { return STRINGIFY(NOETHE
 WidgetFactory::WidgetFactory()
 {
   auto loader = std::make_shared<boost_plugin_loader::PluginLoader>();
-  loader->search_libraries.insert(NOETHER_PLUGIN_LIB);
-  loader->search_libraries.insert(NOETHER_GUI_PLUGIN_LIB);
+  loader->search_libraries.emplace_back(NOETHER_PLUGIN_LIB);
+  loader->search_libraries.emplace_back(NOETHER_GUI_PLUGIN_LIB);
   loader->search_libraries_env = NOETHER_PLUGIN_LIBS_ENV;
   loader->search_paths_env = NOETHER_PLUGIN_PATHS_ENV;
   loader_ = loader;
@@ -30,11 +30,9 @@ WidgetFactory::WidgetFactory(std::shared_ptr<const boost_plugin_loader::PluginLo
 template <typename PluginT>
 BaseWidget* WidgetFactory::createWidget(const std::string& name, const YAML::Node& config, QWidget* parent) const
 {
-  if (widget_plugins_.find(name) == widget_plugins_.end())
-    widget_plugins_[name] = loader_->createInstance<PluginT>(name);
-
+  auto plugin = loader_->createInstance<PluginT>(name);
   auto this_shared = std::shared_ptr<const WidgetFactory>(this, [](const WidgetFactory*) {});
-  return widget_plugins_[name]->create(config, this_shared, parent);
+  return plugin->create(config, this_shared, parent);
 }
 
 BaseWidget* WidgetFactory::createMeshModifierWidget(const std::string& name,

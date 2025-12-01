@@ -159,9 +159,6 @@ public:
   BaseWidget* createToolPathModifierWidget(const std::string& name,
                                            const YAML::Node& config = {},
                                            QWidget* parent = nullptr) const;
-
-private:
-  mutable std::map<std::string, WidgetPlugin::Ptr> widget_plugins_;
 };
 
 }  // namespace noether
