@@ -1,0 +1,33 @@
+name: CMake-Format
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+  pull_request:
+    paths:
+      - 'noether**'
+      - '.github/workflows/cmake_format.yml'
+      - '**cmake-format'
+  schedule:
+    - cron: '0 5 * * *'
+
+jobs:
+  cmake_format:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Run CMake Lang Format Check
+        run: |
+          sudo pip3 install cmakelang
+          RED='\033[0;31m'
+          NC='\033[0m' # No Color
+          git config --global --add safe.directory '*'
+          ./.run-cmake-format
+          output=$(git diff)
+          if [ -n "$output" ]; then printf "${RED}CMake format error: run script './.run-cmake-formate'${NC}\n"; fi
+          if [ -n "$output" ]; then printf "${RED}${output}${NC}\n"; fi
+          if [ -n "$output" ]; then exit 1; else exit 0; fi
+

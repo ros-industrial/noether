@@ -11,9 +11,19 @@ CompoundModifier::CompoundModifier(std::vector<ToolPathModifier::ConstPtr> modif
 ToolPaths CompoundModifier::modify(ToolPaths paths) const
 {
   // Apply the modifiers in order
-  for (const auto& modifier : modifiers_)
+  for (std::size_t i = 0; i < modifiers_.size(); ++i)
   {
-    paths = modifier->modify(paths);
+    try
+    {
+      const auto& modifier = modifiers_[i];
+      paths = modifier->modify(paths);
+    }
+    catch (const std::exception& ex)
+    {
+      std::stringstream ss;
+      ss << "Error applying tool path modifier at index " << i << ".";
+      std::throw_with_nested(std::runtime_error(ss.str()));
+    }
   }
   return paths;
 }
@@ -26,9 +36,19 @@ OneTimeCompoundModifier::OneTimeCompoundModifier(std::vector<OneTimeToolPathModi
 ToolPaths OneTimeCompoundModifier::modify(ToolPaths paths) const
 {
   // Apply the modifiers in order
-  for (const auto& modifier : modifiers_)
+  for (std::size_t i = 0; i < modifiers_.size(); ++i)
   {
-    paths = modifier->modify(paths);
+    try
+    {
+      const auto& modifier = modifiers_[i];
+      paths = modifier->modify(paths);
+    }
+    catch (const std::exception& ex)
+    {
+      std::stringstream ss;
+      ss << "Error applying tool path modifier at index " << i << ".";
+      std::throw_with_nested(std::runtime_error(ss.str()));
+    }
   }
   return paths;
 }

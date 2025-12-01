@@ -1,4 +1,5 @@
 #include <noether_tpp/tool_path_planners/raster/plane_slicer_raster_planner.h>
+#include <noether_tpp/utils.h>
 
 #include <algorithm>  // std::find(), std::reverse(), std::unique()
 #include <numeric>    // std::iota()
@@ -10,7 +11,7 @@
 #include <pcl/common/common.h>  // pcl::getMinMax3d()
 #include <pcl/common/pca.h>     // pcl::PCA
 #include <pcl/conversions.h>    // pcl::fromPCLPointCloud2
-#include <pcl/surface/vtk_smoothing/vtk_utils.h>
+#include <pcl/io/vtk_lib_io.h>
 #include <vtkAppendPolyData.h>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
@@ -257,43 +258,14 @@ void mergeRasterSegments(const vtkSmartPointer<vtkPoints>& points,
   });
 }
 
-void rectifyDirection(const vtkSmartPointer<vtkPoints>& points,
-                      const Eigen::Vector3d& ref_point,
-                      std::vector<std::vector<vtkIdType>>& points_lists)
-{
-  Eigen::Vector3d p0, pf;
-  if (points_lists.size() < 2)
-    return;
-
-  // getting first and last points
-  points->GetPoint(points_lists.front().front(), p0.data());
-  points->GetPoint(points_lists.back().back(), pf.data());
-
-  bool reverse = (ref_point - p0).norm() > (ref_point - pf).norm();
-  if (reverse)
-  {
-    for (auto& s : points_lists)
-    {
-      std::reverse(s.begin(), s.end());
-    }
-    std::reverse(points_lists.begin(), points_lists.end());
-  }
-}
-
 noether::ToolPaths convertToPoses(const std::vector<RasterConstructData>& rasters_data)
 {
   noether::ToolPaths rasters_array;
-  bool reverse = true;
   for (const RasterConstructData& rd : rasters_data)
   {
-    reverse = !reverse;
     noether::ToolPath raster_path;
     std::vector<vtkSmartPointer<vtkPolyData>> raster_segments;
     raster_segments.assign(rd.raster_segments.begin(), rd.raster_segments.end());
-    if (reverse)
-    {
-      std::reverse(raster_segments.begin(), raster_segments.end());
-    }
 
     for (const vtkSmartPointer<vtkPolyData>& polydata : raster_segments)
     {
@@ -303,10 +275,6 @@ noether::ToolPaths convertToPoses(const std::vector<RasterConstructData>& raster
       Eigen::Isometry3d pose;
       std::vector<int> indices(num_points);
       std::iota(indices.begin(), indices.end(), 0);
-      if (reverse)
-      {
-        std::reverse(indices.begin(), indices.end());
-      }
       for (std::size_t i = 0; i < indices.size() - 1; i++)
       {
         int idx = indices[i];
@@ -399,6 +367,60 @@ bool insertNormals(const double search_radius,
   data->GetPointData()->SetNormals(new_normals);
   return true;
 }
+
+/**
+ * @brief Gets the distances (normal to the cut plane) from the cut origin to the closest and furthest corners of the
+ * mesh
+ * @param obb_size Column-wise matrix of the object-aligned size vectors of the mesh (from PCA), relative to the mesh
+ * origin
+ * @param pca_centroid Centroid of the mesh determined by PCA, relative to the mesh origin
+ * @param origin Origin of the raster pattern, relative to the mesh origin
+ * @param dir Raster cut plane normal, relative to the mesh origin
+ * @return Tuple of (min distance, max distance)
+ */
+static std::tuple<double, double> getDistancesToMinMaxCuts(const Eigen::Matrix3d& obb_size,
+                                                           const Eigen::Vector3d& obb_centroid,
+                                                           const Eigen::Vector3d& cut_origin,
+                                                           const Eigen::Vector3d& cut_normal)
+{
+  /* Create the 8 corners of the object-aligned bounding box using vectorization
+   *
+   * | x0  x1  x2 | * | 1 -1  1 -1  1 -1  1 -1 | +  | ox | = | cx0  cx1  ... |
+   * | y0  y1  y2 |   | 1  1 -1 -1  1  1 -1 -1 |    | oy |   | cy0  cy1  ... |
+   * | z0  z1  zz |   | 1  1  1  1 -1 -1 -1 -1 |    | oz |   | cz0  cz1  ... |
+   */
+  Eigen::MatrixXi corner_mask(3, 8);
+  // clang-format off
+  corner_mask <<
+      1, -1, 1, -1, 1, -1, 1, -1,
+      1, 1, -1, -1, 1, 1, -1, -1,
+      1, 1, 1, 1, -1, -1, -1, -1;
+  // clang-format on
+  Eigen::MatrixXd corners = (obb_size / 2.0) * corner_mask.cast<double>();
+  corners.colwise() += obb_centroid;
+
+  // For each corner, compute the distance from the raster origin to a plane that passes through the OBB corner and
+  // whose normal is the input raster direction. Save the largest and smallest distances to the corners
+  double d_max = -std::numeric_limits<double>::max();
+  double d_min = std::numeric_limits<double>::max();
+  for (Eigen::Index col = 0; col < corners.cols(); ++col)
+  {
+    Eigen::Hyperplane<double, 3> plane(cut_normal, corners.col(col));
+    double d = plane.signedDistance(cut_origin);
+
+    // Negate the signed distance because points "in front" of the cut plane have to travel in the negative plane
+    // direction to get back to the plane
+    d *= -1;
+
+    if (d > d_max)
+      d_max = d;
+    else if (d < d_min)
+      d_min = d;
+  }
+
+  return std::make_tuple(d_min, d_max);
+}
+
 }  // namespace
 
 namespace noether
@@ -413,39 +435,31 @@ void PlaneSlicerRasterPlanner::setMinSegmentSize(const double min_segment_size)
 {
   min_segment_size_ = min_segment_size;
 }
+
 void PlaneSlicerRasterPlanner::setSearchRadius(const double search_radius) { search_radius_ = search_radius; }
+
+void PlaneSlicerRasterPlanner::generateRastersBidirectionally(const bool bidirectional)
+{
+  bidirectional_ = bidirectional;
+}
 
 ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
 {
+  if (!hasNormals(mesh.cloud))
+  {
+    std::stringstream ss;
+    ss << "The input mesh does not have vertex normals, which are required for the plane slice raster tool path "
+          "planner. "
+       << "Use a MeshModifier to generate vertex normals for the mesh, or provide a different mesh with vertex "
+          "normals.";
+    throw std::runtime_error(ss.str());
+  }
+
   // Convert input mesh to VTK type & calculate normals if necessary
   vtkSmartPointer<vtkPolyData> mesh_data_ = vtkSmartPointer<vtkPolyData>::New();
-  pcl::VTKUtils::mesh2vtk(mesh, mesh_data_);
+  pcl::io::mesh2vtk(mesh, mesh_data_);
   mesh_data_->BuildLinks();
   mesh_data_->BuildCells();
-  if (!mesh_data_->GetPointData()->GetNormals() || !mesh_data_->GetCellData()->GetNormals())
-  {
-    vtkSmartPointer<vtkPolyDataNormals> normal_generator = vtkSmartPointer<vtkPolyDataNormals>::New();
-    normal_generator->SetInputData(mesh_data_);
-    normal_generator->ComputePointNormalsOn();
-    normal_generator->SetComputeCellNormals(!mesh_data_->GetCellData()->GetNormals());
-    normal_generator->SetFeatureAngle(M_PI_2);
-    normal_generator->SetSplitting(true);
-    normal_generator->SetConsistency(true);
-    normal_generator->SetAutoOrientNormals(false);
-    normal_generator->SetFlipNormals(false);
-    normal_generator->SetNonManifoldTraversal(false);
-    normal_generator->Update();
-
-    if (!mesh_data_->GetPointData()->GetNormals())
-    {
-      mesh_data_->GetPointData()->SetNormals(normal_generator->GetOutput()->GetPointData()->GetNormals());
-    }
-
-    if (!mesh_data_->GetCellData()->GetNormals())
-    {
-      mesh_data_->GetCellData()->SetNormals(normal_generator->GetOutput()->GetCellData()->GetNormals());
-    }
-  }
 
   // Use principal component analysis (PCA) to determine the principal axes of the mesh
   Eigen::Vector3d mesh_normal;  // Unit vector along shortest mesh PCA direction
@@ -473,16 +487,31 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
   }
 
   // Get the initial cutting plane
-  Eigen::Vector3d cut_direction = dir_gen_->generate(mesh);
-  Eigen::Vector3d cut_normal = (cut_direction.normalized().cross(mesh_normal)).normalized();
+  const Eigen::Vector3d cut_direction = dir_gen_->generate(mesh);
+  const Eigen::Vector3d cut_normal = (cut_direction.normalized().cross(mesh_normal)).normalized();
 
-  // Calculate the number of planes needed to cover the mesh according to the length of the principle axes
-  double max_extent =
-      std::sqrt(pca_vecs.col(0).squaredNorm() + pca_vecs.col(1).squaredNorm() + pca_vecs.col(2).squaredNorm());
-  std::size_t num_planes = static_cast<std::size_t>(max_extent / line_spacing_);
+  // Get the initial plane starting location
+  const Eigen::Vector3d cut_origin = origin_gen_->generate(mesh);
 
-  // Calculate the start location as the centroid less half the full diagonal of the bounding box
-  Eigen::Vector3d start_loc = centroid - (max_extent / 2.0) * cut_normal;
+  double d_min_cut, d_max_cut;
+  std::tie(d_min_cut, d_max_cut) = getDistancesToMinMaxCuts(pca_vecs, centroid, cut_origin, cut_normal);
+
+  // If we don't want to generate rasters bidirectionally...
+  if (!bidirectional_)
+  {
+    // ... and the furthest cut distance is behind the cutting plane, then don't make any cuts
+    if (d_max_cut < 0.0)
+      return {};
+
+    // ... and the closest cut distance is behined the cutting plane, set the distance to the closest cutting plane
+    // equal to zero (i.e., at the nominal cut origin)
+    if (d_min_cut < 0.0)
+      d_min_cut = 0.0;
+  }
+
+  const double cut_span = std::abs(d_max_cut - d_min_cut);
+  const auto num_planes = static_cast<std::size_t>(std::ceil(cut_span / line_spacing_));
+  const Eigen::Vector3d start_loc = cut_origin + cut_normal * d_min_cut;
 
   // Generate each plane and collect the intersection points
   vtkSmartPointer<vtkAppendPolyData> raster_data = vtkSmartPointer<vtkAppendPolyData>::New();
@@ -537,7 +566,7 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
 
     // collecting raster segments based on min hole size
     vtkSmartPointer<vtkPolyData> raster_lines = raster_data->GetInput(i);
-    vtkIdType* indices;
+    const vtkIdType* indices;
     vtkIdType num_points;
     vtkIdType num_lines = raster_lines->GetNumberOfLines();
     vtkCellArray* cells = raster_lines->GetLines();
@@ -585,14 +614,6 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
     // merging segments
     mergeRasterSegments(raster_lines->GetPoints(), min_hole_size_, raster_ids);
 
-    // rectifying
-    if (rasters_data_vec.size() > 1)
-    {
-      Eigen::Vector3d ref_point;
-      rasters_data_vec.back().raster_segments.front()->GetPoint(0, ref_point.data());  // first point in previous raster
-      rectifyDirection(raster_lines->GetPoints(), ref_point, raster_ids);
-    }
-
     for (auto& rpoint_ids : raster_ids)
     {
       // Populating with points
@@ -604,7 +625,7 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
       });
 
       // compute length and add points if segment length is greater than threshold
-      double line_length = computeLength(points);
+      double line_length = ::computeLength(points);
       if (line_length > min_segment_size_ && points->GetNumberOfPoints() > 1)
       {
         // enforce point spacing
@@ -635,6 +656,19 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
   // converting to poses msg now
   ToolPaths tool_paths = convertToPoses(rasters_data_vec);
   return tool_paths;
+}
+
+ToolPathPlanner::ConstPtr PlaneSlicerRasterPlannerFactory::create() const
+{
+  auto planner = std::make_unique<PlaneSlicerRasterPlanner>(direction_gen(), origin_gen());
+  planner->setLineSpacing(line_spacing);
+  planner->setPointSpacing(point_spacing);
+  planner->setMinHoleSize(min_hole_size);
+  planner->setSearchRadius(search_radius);
+  planner->setMinSegmentSize(min_segment_size);
+  planner->generateRastersBidirectionally(bidirectional);
+
+  return std::move(planner);
 }
 
 }  // namespace noether

@@ -2,17 +2,17 @@
 
 #include <noether_gui/widgets.h>
 
-#include <noether_tpp/core/tool_path_modifier.h>
-
 namespace noether
 {
-struct SnakeOrganizationModifierWidget : public ToolPathModifierWidget
+/**
+ * @ingroup gui_widgets_tool_path_modifiers
+ */
+struct SnakeOrganizationModifierWidget : public BaseWidget
 {
-  Q_OBJECT
 public:
-  using ToolPathModifierWidget::ToolPathModifierWidget;
+  using BaseWidget::BaseWidget;
 
-  ToolPathModifier::ConstPtr create() const override;
+  void save(YAML::Node&) const override;
 };
 
 }  // namespace noether

@@ -1,10 +1,12 @@
 #pragma once
 
 #include <noether_tpp/core/tool_path_modifier.h>
+#include <noether_tpp/macros.h>
 
 namespace noether
 {
 /**
+ * @ingroup tool_path_modifiers
  * @brief Aligns the x-axis of all waypoints with the direction of travel between adjacent waypoints
  */
 struct DirectionOfTravelOrientationModifier : public OneTimeToolPathModifier
@@ -13,3 +15,5 @@ struct DirectionOfTravelOrientationModifier : public OneTimeToolPathModifier
 };
 
 }  // namespace noether
+
+FWD_DECLARE_YAML_CONVERT(noether::DirectionOfTravelOrientationModifier)

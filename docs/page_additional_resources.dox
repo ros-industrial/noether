@@ -1,0 +1,64 @@
+/**
+@page page_additional_resources Additional Resources
+
+@tableofcontents
+
+@section s_faq FAQ
+
+@subsection s_combo_plugin_library Can I create a single library for both TPP and GUI plugins?
+
+Generally, no.
+A given TPP component and its associated GUI widget typically share the same plugin alias, and a plugin alias can only exist once in a library.
+See @ref ss_configuration_file for more information.
+Therefore, one library should be created for TPP plugins and a second library should be created for the corresponding GUI plugins.
+
+The exception to this answer is when the TPP and GUI plugins do not share the same alias name(s).
+In this case, they can both be declared in the same library.
+
+@subsection s_plugins Why does my plugin compile but it can't be found?
+
+First read the @ref plugins and @ref s_gui_plugin_interface sections to understand the structure and requirements for plugins.
+Then, check the following topics if your plugin still cannot be found:
+
+@subsubsection sss_env_var Noether plugins environment variables
+
+The plugin loader looks for the names of plugins in the environment variable `NOETHER_PLUGIN_LIBS`.
+Check that this environment variable contains the name of your plugin library, without OS decorators (e.g,. the prefix `lib` and suffix `.so` in Linux).
+For example, a library called `libmy_noether_plugins.so` should be added to `NOETHER_PLUGIN_LIBS` as `my_noether_plugins`.
+
+Multiple plugin library names can be specified and must be separated by a colon (`:`).
+Plugins can also be specified by absolute paths.
+
+The plugin loader looks for these named plugins in two locations:
+  - In "system" folders (e.g., `/usr/lib`, `/usr/local/lib`, folders specified in the `LD_LIBRARY_PATH` environment variable)
+  - In folders specified in the `NOETHER_PLUGIN_PATHS` environment variable.
+
+Make sure the location of your plugin library can be found in either of these locations.
+
+@subsubsection sss_undefined_symbols Undefined symbols in the plugin library
+
+Undefined symbols in a library will prevent that library from being loaded by the plugin loader and typically cause the plugin loader to report that the library has a "bad file descriptor".
+This issue is tricky to catch when compiling a plugin library (opposed to an executable) because the symbols get resolved at run-time rather than compile-time.
+
+One way to ensure your plugin library does not have undefined symbols is to compile an executable in which you instantiate your custom tool path planning components.
+Typically this executable will fail to compile while undefined symbols exist.
+
+Here is an example of what an executable could look like to test the noether::NormalsFromMeshFacesMeshModifier component:
+
+@code{.cpp}
+#include <noether_tpp/mesh_modifiers/normals_from_mesh_faces_modifier.h>
+
+int main(int argc, char** argv)
+{
+  noether_tpp::NormalsFromMeshFacesMeshModifier mod;
+  return 0;
+}
+@endcode
+
+@section s_noether_roscon_2024 ROSCon 2024 Workshop
+
+See this <a href="https://github.com/marip8/noether_roscon_2024">repository</a> for a workshop that was put on at <a
+href="https://roscon.ros.org/2024/">ROSCon 2024</a>. The repository includes exercises and demonstrations for creating
+custom implementations of Noether interfaces, including integration with the GUI.
+
+*/

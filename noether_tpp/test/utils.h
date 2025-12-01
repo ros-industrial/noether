@@ -25,7 +25,7 @@ std::string getClassName(const T& obj)
 template <typename T>
 std::string print(const testing::TestParamInfo<std::shared_ptr<T>> info)
 {
-  return getClassName(*info.param) + "_" + std::to_string(info.index);
+  return std::to_string(info.index) + "_" + getClassName(*info.param);
 }
 
 }  // namespace noether

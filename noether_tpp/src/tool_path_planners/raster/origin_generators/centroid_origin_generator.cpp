@@ -1,6 +1,7 @@
 #include <noether_tpp/tool_path_planners/raster/origin_generators/centroid_origin_generator.h>
 
 #include <pcl/common/centroid.h>
+#include <yaml-cpp/yaml.h>
 
 namespace noether
 {
@@ -16,3 +17,16 @@ Eigen::Vector3d CentroidOriginGenerator::generate(const pcl::PolygonMesh& mesh) 
 }
 
 }  // namespace noether
+
+namespace YAML
+{
+/** @cond */
+Node convert<noether::CentroidOriginGenerator>::encode(const noether::CentroidOriginGenerator& val) { return {}; }
+
+bool convert<noether::CentroidOriginGenerator>::decode(const Node& node, noether::CentroidOriginGenerator& val)
+{
+  return true;
+}
+/** @endcond */
+
+}  // namespace YAML

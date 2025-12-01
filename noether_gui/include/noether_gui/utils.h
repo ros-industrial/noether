@@ -1,6 +1,5 @@
 #pragma once
 
-#include <boost_plugin_loader/plugin_loader.h>
 #include <QLayoutItem>
 #include <QLayout>
 #include <QStringList>
@@ -12,13 +11,11 @@
 
 namespace noether
 {
-template <typename PluginT>
-inline QStringList getAvailablePlugins(const boost_plugin_loader::PluginLoader& loader)
+inline QStringList toQStringList(const std::vector<std::string>& list)
 {
-  std::vector<std::string> plugins = loader.getAvailablePlugins<PluginT>();
   QStringList out;
-  out.reserve(plugins.size());
-  std::transform(plugins.begin(), plugins.end(), std::back_inserter(out), &QString::fromStdString);
+  out.reserve(list.size());
+  std::transform(list.begin(), list.end(), std::back_inserter(out), &QString::fromStdString);
 
   // Insert blank at the beginning
   out.insert(out.begin(), QString{});
@@ -48,35 +45,6 @@ inline void overwriteWidget(QLayout* layout, QWidget*& from, QWidget* to)
   // reference
   delete from;
   from = to;
-}
-
-template <typename T>
-T getEntry(const YAML::Node& config, const std::string& key)
-{
-  try
-  {
-    return config[key].as<T>();
-  }
-  catch (const YAML::Exception&)
-  {
-    throw std::runtime_error("Failed to load parameter '" + key + "'");
-  }
-}
-
-/**
- * @details Adapted from https://en.cppreference.com/w/cpp/error/throw_with_nested
- */
-inline void printException(const std::exception& e, std::ostream& ss, int level = 0)
-{
-  ss << std::string(level * 4, ' ') << e.what() << '\n';
-  try
-  {
-    std::rethrow_if_nested(e);
-  }
-  catch (const std::exception& nested_exception)
-  {
-    printException(nested_exception, ss, level + 1);
-  }
 }
 
 }  // namespace noether

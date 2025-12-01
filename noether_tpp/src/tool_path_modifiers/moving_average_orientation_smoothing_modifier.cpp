@@ -1,4 +1,5 @@
 #include <noether_tpp/tool_path_modifiers/moving_average_orientation_smoothing_modifier.h>
+#include <noether_tpp/serialization.h>
 
 namespace noether
 {
@@ -87,3 +88,25 @@ ToolPaths MovingAverageOrientationSmoothingModifier::modify(ToolPaths tool_paths
 }
 
 }  // namespace noether
+
+namespace YAML
+{
+/** @cond */
+Node convert<noether::MovingAverageOrientationSmoothingModifier>::encode(
+    const noether::MovingAverageOrientationSmoothingModifier& val)
+{
+  Node node;
+  node["window_size"] = val.window_size_;
+  return node;
+}
+
+bool convert<noether::MovingAverageOrientationSmoothingModifier>::decode(
+    const Node& node,
+    noether::MovingAverageOrientationSmoothingModifier& val)
+{
+  val.window_size_ = static_cast<std::size_t>(getMember<double>(node, "window_size"));
+  return true;
+}
+/** @endcond */
+
+}  // namespace YAML

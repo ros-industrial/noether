@@ -1,7 +1,6 @@
 #pragma once
 
-#include <boost_plugin_loader/plugin_loader.h>
-#include <QWidget>
+#include <noether_gui/plugin_interface.h>
 
 namespace Ui
 {
@@ -19,23 +18,25 @@ namespace noether
  * @brief Widget for loading widget plugins
  */
 template <typename PluginT>
-class PluginLoaderWidget : public QWidget
+class PluginLoaderWidget : public BaseWidget
 {
 public:
-  PluginLoaderWidget(boost_plugin_loader::PluginLoader loader, const QString& title, QWidget* parent = nullptr);
+  PluginLoaderWidget(std::shared_ptr<const WidgetFactory> factory, const QString& title, QWidget* parent = nullptr);
+  ~PluginLoaderWidget();
 
   QWidgetList getWidgets() const;
 
-  void configure(const YAML::Node& config);
-  void save(YAML::Node& config) const;
+  void configure(const YAML::Node& config) override;
+  void save(YAML::Node& config) const override;
 
   void removeWidgets();
 
-private:
+protected:
   void addWidget(const QString& plugin_name, const YAML::Node& config);
+  void shiftCurrentWidget(const int offset);
 
   Ui::PluginLoader* ui_;
-  const boost_plugin_loader::PluginLoader loader_;
+  std::shared_ptr<const WidgetFactory> factory_;
 };
 
 }  // namespace noether

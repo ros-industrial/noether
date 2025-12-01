@@ -1,0 +1,12 @@
+# Uncomment for use with GPU
+# services:
+#   noether:
+#     environment:
+#       NVIDIA_DRIVER_CAPABILITIES: all
+#     deploy:
+#       resources:
+#         reservations:
+#           devices:
+#             - driver: nvidia
+#               count: 1
+#               capabilities: [gpu]

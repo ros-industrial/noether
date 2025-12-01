@@ -1,19 +1,24 @@
 #pragma once
 
 #include <noether_tpp/core/tool_path_modifier.h>
+#include <noether_tpp/macros.h>
 
 namespace noether
 {
 /**
+ * @ingroup tool_path_modifiers
  * @brief Organizes a tool path into a snake-style pattern
- * @details A RasterOrganizationModifier is first used to organize the tool paths into a raster pattern. The tool paths
- * at odd indices are then reversed to produce the snake pattern.
+ * @details The tool paths at odd indices are the reversed to produce the snake pattern. This modifier typically needs
+ * to be run behind a modifier that can organize tool path segments properly (e.g., raster organization tool path
+ * modifier)
  */
-struct SnakeOrganizationModifier : OneTimeToolPathModifier
+struct SnakeOrganizationModifier : ToolPathModifier
 {
-  using OneTimeToolPathModifier::OneTimeToolPathModifier;
+  using ToolPathModifier::ToolPathModifier;
 
   ToolPaths modify(ToolPaths) const override;
 };
 
 }  // namespace noether
+
+FWD_DECLARE_YAML_CONVERT(noether::SnakeOrganizationModifier)

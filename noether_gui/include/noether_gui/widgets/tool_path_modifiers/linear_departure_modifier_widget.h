@@ -4,13 +4,15 @@
 
 namespace noether
 {
+/**
+ * @ingroup gui_widgets_tool_path_modifiers
+ */
 class LinearDepartureToolPathModifierWidget : public LinearApproachToolPathModifierWidget
 {
-  Q_OBJECT
 public:
   using LinearApproachToolPathModifierWidget::LinearApproachToolPathModifierWidget;
 
-  ToolPathModifier::ConstPtr create() const override;
+  void save(YAML::Node&) const override;
 };
 
 }  // namespace noether

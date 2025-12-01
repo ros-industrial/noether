@@ -1,12 +1,21 @@
-name: Ubuntu
+name: Ubuntu [Jammy, Noble]
 
 on:
   push:
     branches:
       - master
+      - dev
   pull_request:
+    paths:
+      - 'noether**'
+      - '.github/workflows/ubuntu.yml'
+      - '*.repos'
   schedule:
     - cron: '0 5 * * *'
+  workflow_dispatch:
+  release:
+    types:
+      - released
 
 jobs:
   ci:
@@ -15,38 +24,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro: [noetic]
+        distro: [jammy, noble]
+    container:
+      image: ubuntu:${{ matrix.distro }}
+      env:
+        CCACHE_DIR: ${{ github.workspace }}/${{ matrix.distro }}/.ccache
+        DEBIAN_FRONTEND: noninteractive
+        TZ: Etc/UTC
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Free Disk Space
-        run: |
-          sudo swapoff -a
-          sudo rm -f /swapfile
-          sudo apt clean
-          docker rmi $(docker image ls -aq)
-          df -h
-
-      - name: Prepare ccache timestamp
-        id: ccache_cache_timestamp
-        shell: cmake -P {0}
-        run: |
-          string(TIMESTAMP current_date "%Y-%m-%d-%H;%M;%S" UTC)
-          message("::set-output name=timestamp::${current_date}")
-
-      - name: ccache cache files
-        uses: actions/cache@v1.1.0
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          path: ${{ matrix.distro }}/.ccache
-          key: ${{ matrix.distro }}-ccache-${{ steps.ccache_cache_timestamp.outputs.timestamp }}
-          restore-keys: |
-            ${{ matrix.distro }}-ccache-
+          path: target_ws/src
 
-      - uses: 'ros-industrial/industrial_ci@master'
-        env:
-          ROS_DISTRO: ${{ matrix.distro }}
-          ROS_REPO: main
-          NOT_TEST_BUILD: true
-          UPSTREAM_WORKSPACE: 'dependencies.rosinstall'
-          CCACHE_DIR: "/home/runner/work/noether/noether/${{ matrix.distro }}/.ccache"
-          TARGET_CMAKE_ARGS: "-DNURBS_FOUND=FALSE"
+      - name: Build and Tests
+        uses: tesseract-robotics/colcon-action@v11
+        with:
+          ccache-prefix: ${{ matrix.distro }}
+          add-ros-ppa: true
+          vcs-file: dependencies.repos
+          before-script: 'apt install -y -qq clang-tidy'
+          rosdep-install-args: '-iry --skip-keys libvtk'
+          target-path: target_ws/src
+          target-args: --cmake-args -DCMAKE_BUILD_TYPE=Debug -DNOETHER_ENABLE_TESTING=ON

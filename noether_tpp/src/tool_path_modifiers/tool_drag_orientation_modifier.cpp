@@ -1,5 +1,6 @@
 #include <noether_tpp/tool_path_modifiers/tool_drag_orientation_modifier.h>
 #include <noether_tpp/utils.h>
+#include <noether_tpp/serialization.h>
 
 namespace noether
 {
@@ -23,8 +24,9 @@ ToolPaths ToolDragOrientationToolPathModifier::modify(ToolPaths tool_paths) cons
     {
       for (Eigen::Isometry3d& waypoint : segment)
       {
-        waypoint.rotate(Eigen::AngleAxisd(sign * -angle_offset_, Eigen::Vector3d::UnitY()))
-            .translate(Eigen::Vector3d(sign * tool_radius_, 0, 0));
+        double z_offset = tool_radius_ * std::sin(angle_offset_);
+        waypoint.translate(Eigen::Vector3d(0.0, 0.0, z_offset))
+            .rotate(Eigen::AngleAxisd(sign * -angle_offset_, Eigen::Vector3d::UnitY()));
       }
     }
   }
@@ -33,3 +35,26 @@ ToolPaths ToolDragOrientationToolPathModifier::modify(ToolPaths tool_paths) cons
 }
 
 }  // namespace noether
+
+namespace YAML
+{
+/** @cond */
+Node convert<noether::ToolDragOrientationToolPathModifier>::encode(
+    const noether::ToolDragOrientationToolPathModifier& val)
+{
+  Node node;
+  node["angle_offset"] = val.angle_offset_;
+  node["tool_radius"] = val.tool_radius_;
+  return node;
+}
+
+bool convert<noether::ToolDragOrientationToolPathModifier>::decode(const Node& node,
+                                                                   noether::ToolDragOrientationToolPathModifier& val)
+{
+  val.angle_offset_ = getMember<double>(node, "angle_offset");
+  val.tool_radius_ = getMember<double>(node, "tool_radius");
+  return true;
+}
+/** @endcond */
+
+}  // namespace YAML

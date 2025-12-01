@@ -1,12 +1,12 @@
 #pragma once
 
-#include <memory>
-
 #include <noether_tpp/tool_path_planners/raster/raster_planner.h>
+#include <noether_tpp/macros.h>
 
 namespace noether
 {
 /**
+ * @ingroup origin_generators
  * @brief Returns the centroid of the mesh vertices as the origin
  */
 struct CentroidOriginGenerator : public OriginGenerator
@@ -15,3 +15,5 @@ struct CentroidOriginGenerator : public OriginGenerator
 };
 
 }  // namespace noether
+
+FWD_DECLARE_YAML_CONVERT(noether::CentroidOriginGenerator)

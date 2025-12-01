@@ -1,10 +1,9 @@
 #pragma once
 
 #include <noether_gui/plugin_interface.h>
+#include <noether_gui/widgets/plugin_loader_widget.h>
 
-#include <boost_plugin_loader/plugin_loader.h>
 #include <noether_tpp/core/tool_path_planner_pipeline.h>
-#include <QWidget>
 
 namespace Ui
 {
@@ -13,25 +12,21 @@ class TPPPipeline;
 
 namespace noether
 {
-template <typename T>
-class PluginLoaderWidget;
-
 /**
  * @brief Widget for creating a tool path planning pipeline
  */
-class TPPPipelineWidget : public QWidget
+class TPPPipelineWidget : public BaseWidget
 {
-  Q_OBJECT
 public:
-  TPPPipelineWidget(boost_plugin_loader::PluginLoader loader, QWidget* parent = nullptr);
+  TPPPipelineWidget(std::shared_ptr<const WidgetFactory> factory, QWidget* parent = nullptr);
 
   ToolPathPlannerPipeline createPipeline() const;
 
-  void configure(const YAML::Node& config);
-  void save(YAML::Node& config) const;
+  void configure(const YAML::Node& config) override;
+  void save(YAML::Node& config) const override;
 
-private:
-  const boost_plugin_loader::PluginLoader loader_;
+protected:
+  std::shared_ptr<const WidgetFactory> factory_;
   PluginLoaderWidget<MeshModifierWidgetPlugin>* mesh_modifier_loader_widget_;
   PluginLoaderWidget<ToolPathModifierWidgetPlugin>* tool_path_modifier_loader_widget_;
   Ui::TPPPipeline* ui_;

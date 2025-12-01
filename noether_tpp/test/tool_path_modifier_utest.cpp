@@ -1,12 +1,71 @@
 #include <gtest/gtest.h>
 #include <random>
-#include <regex>
 
-#include <noether_tpp/core/tool_path_modifier.h>
+#include <noether_tpp/plugin_interface.h>
+#include <noether_tpp/serialization.h>
 // Implementations
-#include <noether_tpp/tool_path_modifiers/waypoint_orientation_modifiers.h>
-#include <noether_tpp/tool_path_modifiers/organization_modifiers.h>
+#include <noether_tpp/tool_path_modifiers/raster_organization_modifier.h>
+#include <noether_tpp/tool_path_modifiers/snake_organization_modifier.h>
+#include <noether_tpp/tool_path_modifiers/standard_edge_paths_organization_modifier.h>
 #include "utils.h"
+
+/**
+ * @brief YAML configuration string for the tool path modifiers
+ */
+std::string config_str = R"(
+- name: BiasedToolDragOrientation
+  angle_offset: &angle_offset 0.175  # 10 * M_PI / 180.0
+  tool_radius: &tool_radius 0.025
+- name: CircularLeadIn
+  arc_angle: &arc_angle 1.571   # M_PI / 2.0
+  arc_radius: &arc_radius 0.1
+  n_points: &n_points 5
+- name: CircularLeadOut
+  arc_angle: *arc_angle
+  arc_radius: *arc_radius
+  n_points: *n_points
+- name: Concatenate
+- name: DirectionOfTravelOrientation
+- name: FixedOrientation
+  ref_x_dir:
+    x: 1.0
+    y: 0.0
+    z: 0.0
+- &linear_approach
+  name: LinearApproach
+  offset: &linear_offset
+    x: 0.1
+    y: 0.2
+    z: 0.3
+  n_points: *n_points
+- &linear_departure
+  name: LinearDeparture
+  offset: *linear_offset
+  n_points: *n_points
+- name: MovingAverageOrientationSmoothing
+  window_size: 3
+- name: Offset
+  offset:
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    qw: 1.0
+    qx: 0.0
+    qy: 0.0
+    qz: 0.0
+- name: ToolDragOrientation
+  angle_offset: *angle_offset
+  tool_radius: *tool_radius
+- name: UniformOrientation
+- name: UniformSpacingLinear
+  point_spacing: 0.025
+- name: UniformSpacingSpline
+  point_spacing: 0.025
+- name: CompoundToolPathModifier
+  modifiers:
+    - *linear_approach
+    - *linear_departure
+)";
 
 using namespace noether;
 
@@ -109,7 +168,8 @@ ToolPaths createSquareToolPaths(const unsigned p, const unsigned w)
   paths.reserve(p);
 
   // Vector of scales such that each tool path will be a different sized square
-  Eigen::VectorXd scales = Eigen::VectorXd::LinSpaced(Eigen::Sequential, p, 1.0, 2.0).reverse();
+  Eigen::VectorXd scales(p);
+  scales.setLinSpaced(1.0, 2.0).reverseInPlace();
 
   for (unsigned p_idx = 0; p_idx < p; ++p_idx)
   {
@@ -153,8 +213,8 @@ ToolPaths shuffle(ToolPaths tool_paths, const bool shuffle_waypoints, const std:
     std::shuffle(tool_path.begin(), tool_path.end(), rand);
   }
 
-  // Shuffle the order of tool paths within the container
-  std::shuffle(tool_paths.begin(), tool_paths.end(), rand);
+  // Shuffle the order of tool paths 1 through n within the container. Keep the original first tool path first
+  std::shuffle(tool_paths.begin() + 1, tool_paths.end(), rand);
 
   return tool_paths;
 }
@@ -229,13 +289,27 @@ TEST_P(OneTimeToolPathModifierTestFixture, TestOperation)
 // Create a vector of implementations for the modifiers
 std::vector<std::shared_ptr<const ToolPathModifier>> createModifiers()
 {
-  return { std::make_shared<FixedOrientationModifier>(Eigen::Vector3d(1, 0, 0)),
-           std::make_shared<UniformOrientationModifier>(),
-           std::make_shared<DirectionOfTravelOrientationModifier>(),
-           std::make_shared<RasterOrganizationModifier>(),
-           std::make_shared<SnakeOrganizationModifier>(),
-           std::make_shared<StandardEdgePathsOrganizationModifier>(),
-           std::make_shared<MovingAverageOrientationSmoothingModifier>(3) };
+  // Create the factory
+  auto loader = std::make_shared<boost_plugin_loader::PluginLoader>();
+  loader->search_libraries.emplace_back(NOETHER_PLUGIN_LIB);
+  loader->search_paths.emplace_back(PLUGIN_DIR);
+
+  Factory factory(loader);
+
+  // Load the plugin YAML config
+  YAML::Node config = YAML::Load(config_str);
+
+  // Load the tool path modifiers
+  std::vector<std::shared_ptr<const ToolPathModifier>> modifiers;
+  modifiers.reserve(config.size());
+
+  for (const YAML::Node& entry_config : config)
+  {
+    auto name = YAML::getMember<std::string>(entry_config, "name");
+    modifiers.push_back(factory.createToolPathModifier(entry_config));
+  }
+
+  return modifiers;
 }
 
 std::vector<std::shared_ptr<const OneTimeToolPathModifier>> createOneTimeModifiers()
@@ -286,9 +360,9 @@ TEST(ToolPathModifierTests, OrganizationModifiersTest)
   raster_tool_paths = raster.modify(shuffled_tool_paths);
   compare(tool_paths, raster_tool_paths);
 
-  // Create a snake pattern from the shuffled tool paths
+  // Create a snake pattern from the raster tool paths
   SnakeOrganizationModifier snake;
-  const ToolPaths snake_tool_paths = snake.modify(shuffled_tool_paths);
+  const ToolPaths snake_tool_paths = snake.modify(raster_tool_paths);
 
   // Check the snake pattern
   for (unsigned i = 0; i < n_paths - 1; ++i)

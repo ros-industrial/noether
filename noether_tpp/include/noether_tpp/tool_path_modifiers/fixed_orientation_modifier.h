@@ -1,10 +1,14 @@
 #pragma once
 
 #include <noether_tpp/core/tool_path_modifier.h>
+#include <noether_tpp/macros.h>
+
+FWD_DECLARE_YAML_STRUCTS()
 
 namespace noether
 {
 /**
+ * @ingroup tool_path_modifiers
  * @brief Aligns the orientation of each waypoint with the existing waypoint normal (z-axis) and the specified reference
  * x-axis direction
  * @details The new waypoint y-axis is computed as the cross-product of the existing waypoint normal (z-axis) and the
@@ -20,7 +24,12 @@ public:
 
 protected:
   /** @brief Reference x-axis direction */
-  const Eigen::Vector3d ref_x_dir_;
+  Eigen::Vector3d ref_x_dir_;
+
+  FixedOrientationModifier() = default;
+  DECLARE_YAML_FRIEND_CLASSES(FixedOrientationModifier)
 };
 
 }  // namespace noether
+
+FWD_DECLARE_YAML_CONVERT(noether::FixedOrientationModifier)

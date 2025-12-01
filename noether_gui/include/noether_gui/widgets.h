@@ -1,39 +1,28 @@
 #pragma once
 
 #include <QWidget>
-
-namespace YAML
-{
-class Node;
-}
+#include <yaml-cpp/yaml.h>
 
 namespace noether
 {
-class ToolPathPlanner;
-class ToolPathModifier;
-class DirectionGenerator;
-class OriginGenerator;
-class MeshModifier;
-
 /**
- * @brief Base class for a widget "factory" that can produce classes of a specifiable type
+ * @ingroup gui_interfaces_widgets
+ * @brief Base class for a widget that can configure tool path planning components
  */
-template <typename T>
 class BaseWidget : public QWidget
 {
 public:
   BaseWidget(QWidget* parent = nullptr) : QWidget(parent) {}
 
-  virtual typename T::ConstPtr create() const = 0;
-
+  /**
+   * @brief Configures the elements of the widget from a YAML node
+   */
   virtual void configure(const YAML::Node&) {}
-  virtual void save(YAML::Node&) const {}
-};
 
-using ToolPathPlannerWidget = BaseWidget<ToolPathPlanner>;
-using DirectionGeneratorWidget = BaseWidget<DirectionGenerator>;
-using OriginGeneratorWidget = BaseWidget<OriginGenerator>;
-using ToolPathModifierWidget = BaseWidget<ToolPathModifier>;
-using MeshModifierWidget = BaseWidget<MeshModifier>;
+  /**
+   * @brief Saves the configuration of the widget to a YAML node
+   */
+  virtual void save(YAML::Node&) const = 0;
+};
 
 }  // namespace noether

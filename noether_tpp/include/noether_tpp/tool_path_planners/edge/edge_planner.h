@@ -19,19 +19,17 @@
 
 #pragma once
 
-#include <memory>
-
-#include <noether_tpp/core/tool_path_modifier.h>
 #include <noether_tpp/core/tool_path_planner.h>
 
 namespace noether
 {
 /**
- * @brief The EdgePlanner class - A specification of the tool path planner interface for generating
- * paths around the edges of surfaces.  Each edge planner will return a list of closed-loop edges.
- * Segments will be in sequential order in the ToolPath.  The ToolPaths (closed loops) are ordered
- * by descending length of the closed loops.  All loops will start near a specified point, and all
- * loops will process in the same direction.
+ * @ingroup tool_path_planners
+ * @brief A specification of the tool path planner interface for generating paths around the edges of surfaces
+ * @details Each edge planner will return a list of closed-loop edges.
+ * Segments will be in sequential order in the ToolPath.
+ * The ToolPaths (closed loops) are ordered by descending length of the closed loops.
+ * All loops will start near a specified point, and all loops will process in the same direction.
  */
 class EdgePlanner : public ToolPathPlanner
 {
@@ -40,27 +38,16 @@ public:
 
 protected:
   /**
-   * @brief planImpl
-   * @param mesh
-   * @return
+   * @brief Hook for inherited classes to implement the edge planning process before sending to the common edge tool
+   * path modifiers
    */
   virtual ToolPaths planImpl(const pcl::PolygonMesh& mesh) const = 0;
-
-  void setPointSpacing(const double point_spacing);
-
-private:
-  /** @brief Distance between waypoints on the same raster line (m) */
-  double point_spacing_;
 };
 
 /**
  * @brief Interface for creating instances of edge tool path planners.
  * @details This class contains the generic parameters for configuring edge tool path planners
  */
-struct EdgePlannerFactory : public ToolPathPlannerFactory
-{
-  /** @brief Distance between waypoints on the same raster line (m) */
-  double point_spacing;
-};
+using EdgePlannerFactory = ToolPathPlannerFactory;
 
 }  // namespace noether
