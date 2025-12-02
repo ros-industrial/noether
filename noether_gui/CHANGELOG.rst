@@ -2,6 +2,11 @@
 Changelog for package noether_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fixed undefined references to template functions in the factory classes (`#345 <https://github.com/marip8/noether/issues/345>`_)
+* Contributors: Michael Ripperger
+
 0.15.0 (2025-12-01)
 -------------------
 * Updated to ``boost_plugin_loader`` version 0.4.3 and removed plugin cache from factory objects (`#331 <https://github.com/marip8/noether/issues/331>`_)
