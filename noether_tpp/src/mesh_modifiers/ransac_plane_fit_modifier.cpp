@@ -107,6 +107,10 @@ pcl::PolygonMesh RansacPlaneProjectionMeshModifier::createSubMesh(
     if (dot_products[i] < 0.0)
       std::reverse(output_mesh.polygons[i].vertices.begin(), output_mesh.polygons[i].vertices.end());
 
+  // Copy the headers from the input mesh to the output mesh
+  output_mesh.cloud.header = mesh.cloud.header;
+  output_mesh.header = mesh.header;
+
   return output_mesh;
 }
 
