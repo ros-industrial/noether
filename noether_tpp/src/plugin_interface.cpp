@@ -94,6 +94,13 @@ ToolPathModifier::Ptr Factory::createToolPathModifier(const YAML::Node& config) 
   return create<ToolPathModifierPlugin>(config);
 }
 
+// Explicit template instantiation
+template MeshModifier::Ptr Factory::create<MeshModifierPlugin>(const YAML::Node& config) const;
+template ToolPathPlanner::Ptr Factory::create<ToolPathPlannerPlugin>(const YAML::Node& config) const;
+template DirectionGenerator::Ptr Factory::create<DirectionGeneratorPlugin>(const YAML::Node& config) const;
+template OriginGenerator::Ptr Factory::create<OriginGeneratorPlugin>(const YAML::Node& config) const;
+template ToolPathModifier::Ptr Factory::create<ToolPathModifierPlugin>(const YAML::Node& config) const;
+
 template std::vector<std::string> Factory::getAvailablePlugins<MeshModifierPlugin>() const;
 template std::vector<std::string> Factory::getAvailablePlugins<ToolPathPlannerPlugin>() const;
 template std::vector<std::string> Factory::getAvailablePlugins<DirectionGeneratorPlugin>() const;

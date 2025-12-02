@@ -36,7 +36,7 @@ RUN --mount=type=bind,target=${WORKSPACE_DIR}/src/noether \
 # Bind mount the source directory so as not to unnecessarily copy source code into the docker image
 RUN --mount=type=bind,target=${WORKSPACE_DIR}/src/noether \
   cd ${WORKSPACE_DIR} \
-  && colcon build --cmake-args \
+  && colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release \
   && rm -rf build log
 
 # Set the entrypoint to source the workspace

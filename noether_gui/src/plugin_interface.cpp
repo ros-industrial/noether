@@ -70,6 +70,23 @@ BaseWidget* WidgetFactory::createToolPathModifierWidget(const std::string& name,
   return createWidget<ToolPathModifierWidgetPlugin>(name, config, parent);
 }
 
+// Explicit template instantiation
+template BaseWidget* WidgetFactory::createWidget<MeshModifierWidgetPlugin>(const std::string& name,
+                                                                           const YAML::Node& config,
+                                                                           QWidget* parent) const;
+template BaseWidget* WidgetFactory::createWidget<ToolPathPlannerWidgetPlugin>(const std::string& name,
+                                                                              const YAML::Node& config,
+                                                                              QWidget* parent) const;
+template BaseWidget* WidgetFactory::createWidget<DirectionGeneratorWidgetPlugin>(const std::string& name,
+                                                                                 const YAML::Node& config,
+                                                                                 QWidget* parent) const;
+template BaseWidget* WidgetFactory::createWidget<OriginGeneratorWidgetPlugin>(const std::string& name,
+                                                                              const YAML::Node& config,
+                                                                              QWidget* parent) const;
+template BaseWidget* WidgetFactory::createWidget<ToolPathModifierWidgetPlugin>(const std::string& name,
+                                                                               const YAML::Node& config,
+                                                                               QWidget* parent) const;
+
 template std::vector<std::string> Factory::getAvailablePlugins<MeshModifierWidgetPlugin>() const;
 template std::vector<std::string> Factory::getAvailablePlugins<ToolPathPlannerWidgetPlugin>() const;
 template std::vector<std::string> Factory::getAvailablePlugins<DirectionGeneratorWidgetPlugin>() const;
