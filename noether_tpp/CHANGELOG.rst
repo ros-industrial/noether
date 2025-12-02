@@ -2,8 +2,8 @@
 Changelog for package noether_tpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.15.1 (2025-12-01)
+-------------------
 * Fixed undefined references to template functions in the factory classes (`#345 <https://github.com/marip8/noether/issues/345>`_)
 * Contributors: Michael Ripperger
 
