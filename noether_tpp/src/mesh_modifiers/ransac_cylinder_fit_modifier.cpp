@@ -161,6 +161,10 @@ pcl::PolygonMesh RansacCylinderProjectionMeshModifier::createSubMesh(
   // Project the mesh
   projectInPlace(output_mesh.cloud, coefficients);
 
+  // Copy the headers from the input mesh to the output mesh
+  output_mesh.cloud.header = mesh.cloud.header;
+  output_mesh.header = mesh.header;
+
   return output_mesh;
 }
 
@@ -252,10 +256,18 @@ pcl::PolygonMesh RansacCylinderFitMeshModifier::createSubMesh(
   const Eigen::Isometry3d transform = createTransform(origin.cast<double>(), axis.cast<double>());
 
   // Create the cylinder primitive
+  pcl::PolygonMesh output_mesh;
   if (uniform_triangles_)
-    return createCylinderMeshWithUniformTriangles(radius, length, resolution_, 2.0 * M_PI, include_caps_, transform);
+    output_mesh =
+        createCylinderMeshWithUniformTriangles(radius, length, resolution_, 2.0 * M_PI, include_caps_, transform);
   else
-    return createCylinderMesh(radius, length, resolution_, 2.0 * M_PI, include_caps_, transform);
+    output_mesh = createCylinderMesh(radius, length, resolution_, 2.0 * M_PI, include_caps_, transform);
+
+  // Copy the headers from the input mesh to the output mesh
+  output_mesh.cloud.header = mesh.cloud.header;
+  output_mesh.header = mesh.header;
+
+  return output_mesh;
 }
 
 }  // namespace noether
