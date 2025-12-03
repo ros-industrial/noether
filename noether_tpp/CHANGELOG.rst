@@ -2,8 +2,8 @@
 Changelog for package noether_tpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.15.2 (2025-12-03)
+-------------------
 * Copied header data from input mesh into primitive fit meshes (`#346 <https://github.com/marip8/noether/issues/346>`_)
 * Contributors: Michael Ripperger
 
