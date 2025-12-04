@@ -17,7 +17,7 @@ static std::tuple<double, std::string> split(const std::string& text)
     return std::make_tuple(0.0, "");
 
   const double sign = matches.str(1).empty() ? 1.0 : -1.0;
-  const double value = sign * std::stod(matches.str(2));
+  const double value = sign * (matches.str(2) == "." ? 0.0 : std::stod(matches.str(2)));
   const std::string unit = matches.str(3);
 
   return std::make_tuple(value, unit);
