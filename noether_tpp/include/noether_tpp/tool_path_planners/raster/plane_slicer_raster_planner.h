@@ -57,10 +57,9 @@ protected:
   /** @brief Flag indicating whether rasters should be generated in the direction of both the cut normal and its
    * negation */
   bool bidirectional_ = true;
+
   /** @brief Minimum length of valid segment (m) */
   double min_segment_size_;
-  /** @brief Search radius for calculating normals (m) */
-  double search_radius_;
 };
 
 }  // namespace noether

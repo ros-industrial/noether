@@ -24,7 +24,6 @@ PlaneSlicerRasterPlannerWidget::PlaneSlicerRasterPlannerWidget(std::shared_ptr<c
 void PlaneSlicerRasterPlannerWidget::configure(const YAML::Node& config)
 {
   RasterPlannerWidget::configure(config);
-
   ui_plane_slicer_->double_spin_box_point_spacing->setValue(YAML::getMember<double>(config, POINT_SPACING_KEY));
   ui_plane_slicer_->double_spin_box_minimum_hole_size->setValue(YAML::getMember<double>(config, MIN_HOLE_SIZE_KEY));
   ui_plane_slicer_->double_spin_box_search_radius->setValue(YAML::getMember<double>(config, SEARCH_RADIUS_KEY));
