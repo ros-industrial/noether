@@ -316,7 +316,7 @@ vtkSmartPointer<vtkActor> createLineActor(const Eigen::Isometry3d& point1,
       break;
     case LineStyle::INTER_SEGMENT:
       property->SetLineWidth(1.0);
-      property->SetColor(1, 0.8, 0);
+      property->SetColor(0, 0, 1);
       break;
     case LineStyle::INTER_PATH:
       property->SetLineWidth(0.5);
