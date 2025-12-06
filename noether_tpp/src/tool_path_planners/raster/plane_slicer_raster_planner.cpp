@@ -1,5 +1,6 @@
 #include <noether_tpp/tool_path_planners/raster/plane_slicer_raster_planner.h>
 #include <noether_tpp/utils.h>
+#include <noether_tpp/tool_path_modifiers/uniform_spacing_linear_modifier.h>
 
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -608,7 +609,9 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
       tool_paths.push_back(tool_path);
   }
 
-  return tool_paths;
+  // Add a linear uniform sampling tool path modifier to ensure the point spacing requirement is met
+  UniformSpacingLinearModifier modifier(point_spacing_);
+  return modifier.modify(tool_paths);
 }
 
 }  // namespace noether
