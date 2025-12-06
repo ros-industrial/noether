@@ -6,74 +6,11 @@
 #include <pcl/conversions.h>
 #include <random>
 
-// Planner interface
-#include <noether_tpp/core/tool_path_planner.h>
-// Raster planner
-#include <noether_tpp/tool_path_planners/raster/raster_planner.h>
-#include <noether_tpp/tool_path_planners/raster/direction_generators/fixed_direction_generator.h>
-#include <noether_tpp/tool_path_planners/raster/origin_generators/fixed_origin_generator.h>
-#include <noether_tpp/tool_path_planners/raster/plane_slicer_raster_planner.h>
-// Edge planner
-#include <noether_tpp/tool_path_planners/edge/edge_planner.h>
-#include <noether_tpp/tool_path_planners/edge/boundary_edge_planner.h>
-// Planner implementations
-// Utilities
-#include "utils.h"
+#include <noether_tpp/utils.h>
+#include <noether_tpp/plugin_interface.h>
+#include <noether_tpp/serialization.h>
 
 using namespace noether;
-
-/** @brief Create a simple planar square mesh of fixed size */
-pcl::PolygonMesh createPlaneMesh(const float dim, const Eigen::Isometry3d& transform)
-{
-  pcl::PolygonMesh mesh;
-
-  // Add 4 vertices "counter clockwise"
-  pcl::PointCloud<pcl::PointNormal> cloud;
-
-  {
-    pcl::PointNormal p1;
-    p1.getVector3fMap() = Eigen::Vector3f(0.0, 0.0, 0.0);
-    p1.getNormalVector3fMap() = Eigen::Vector3f::UnitZ();
-    cloud.push_back(p1);
-  }
-  {
-    pcl::PointNormal p2;
-    p2.getVector3fMap() = Eigen::Vector3f(dim, 0.0, 0.0);
-    p2.getNormalVector3fMap() = Eigen::Vector3f::UnitZ();
-    cloud.push_back(p2);
-  }
-  {
-    pcl::PointNormal p3;
-    p3.getVector3fMap() = Eigen::Vector3f(dim, dim, 0.0);
-    p3.getNormalVector3fMap() = Eigen::Vector3f::UnitZ();
-    cloud.push_back(p3);
-  }
-  {
-    pcl::PointNormal p4;
-    p4.getVector3fMap() = Eigen::Vector3f(0.0, dim, 0.0);
-    p4.getNormalVector3fMap() = Eigen::Vector3f::UnitZ();
-    cloud.push_back(p4);
-  }
-
-  // Apply the transform offset
-  pcl::PointCloud<pcl::PointNormal> transformed_cloud;
-  pcl::transformPointCloud(cloud, transformed_cloud, transform.matrix());
-
-  // Convert to message format
-  pcl::toPCLPointCloud2(transformed_cloud, mesh.cloud);
-
-  // Upper right triangle
-  pcl::Vertices tri_1;
-  tri_1.vertices = { 0, 1, 2 };
-  mesh.polygons.push_back(tri_1);
-
-  // Lower left triangle
-  pcl::Vertices tri_2;
-  tri_2.vertices = { 2, 3, 0 };
-  mesh.polygons.push_back(tri_2);
-
-  return mesh;
-}
 
 /**
  * @brief Loads a test mesh from the local test directory
@@ -108,35 +45,59 @@ Eigen::Isometry3d createRandomTransform(const double translation_limit, const do
          Eigen::AngleAxisd(ea(1), Eigen::Vector3d::UnitY()) * Eigen::AngleAxisd(ea(2), Eigen::Vector3d::UnitZ());
 }
 
+class ToolPathPlannerTestFixture : public testing::TestWithParam<YAML::Node>
+{
+public:
+  void SetUp() override
+  {
+    // Create the factory
+    auto loader = std::make_shared<boost_plugin_loader::PluginLoader>();
+    loader->search_libraries.emplace_back(NOETHER_PLUGIN_LIB);
+    loader->search_paths.emplace_back(PLUGIN_DIR);
+
+    factory = std::make_shared<Factory>(loader);
+  }
+
+  std::shared_ptr<Factory> factory;
+};
+
 /**
  * @brief Test fixture for all raster tool path planners
  */
-class RasterPlannerTestFixture : public testing::TestWithParam<std::shared_ptr<RasterPlannerFactory>>
+class RasterPlannerTestFixture : public ToolPathPlannerTestFixture
 {
 public:
   const unsigned n_lines{ 10 };
   const unsigned n_points{ 10 };
-  const double min_hole_size{ 0.05 };
 };
 
 TEST_P(RasterPlannerTestFixture, FlatSquareMesh)
 {
   // Create a flat plane mesh with 2 triangles
-  double dim = 1.0;
+  const double dim = 1.0;
   const Eigen::Isometry3d transform = createRandomTransform(dim * 5.0, M_PI);
   const Eigen::Vector3d direction = transform.rotation() * Eigen::Vector3d::UnitX();
-  pcl::PolygonMesh mesh = createPlaneMesh(static_cast<float>(dim), transform);
+  pcl::PolygonMesh mesh = createPlaneMesh(static_cast<float>(dim), static_cast<float>(dim), transform);
 
-  // Configure the planning factory to generate an arbitrary number of lines along the mesh x-axis starting at the mesh
-  // origin
-  std::shared_ptr<RasterPlannerFactory> factory = GetParam();
-  factory->line_spacing = dim / static_cast<double>(n_lines);
-  factory->point_spacing = dim / static_cast<double>(n_points + 1);
-  factory->direction_gen = [&direction]() { return std::make_unique<FixedDirectionGenerator>(direction); };
-  factory->origin_gen = [&transform]() { return std::make_unique<FixedOriginGenerator>(transform.translation()); };
+  // Get the planner configuration and override the relevant shared raster parameters
+  YAML::Node config = GetParam();
+  {
+    config["line_spacing"] = dim / static_cast<double>(n_lines);
+    config["point_spacing"] = dim / static_cast<double>(n_points + 1);
+
+    YAML::Node dir_gen = config["direction_generator"];
+    dir_gen["name"] = "FixedDirection";
+    dir_gen["direction"] = direction;
+
+    YAML::Node origin_gen = config["origin_generator"];
+    origin_gen["name"] = "FixedOrigin";
+    origin_gen["origin"] = Eigen::Vector3d(transform.translation());
+  }
+
+  // Create the tool path planner
+  std::shared_ptr<const ToolPathPlanner> planner = factory->createToolPathPlanner(config);
 
   // Create the tool paths
-  std::unique_ptr<const ToolPathPlanner> planner = factory->create();
   ToolPaths tool_paths;
   ASSERT_NO_THROW(tool_paths = planner->plan(mesh));
 
@@ -165,15 +126,25 @@ TEST_P(RasterPlannerTestFixture, SemiPlanarMeshFile)
   const Eigen::Vector3d direction = Eigen::Vector3d::UnitX();
   const double dim = 10.0;  // Square dimension of the mesh
 
-  // Configure the planner factory
-  std::shared_ptr<RasterPlannerFactory> factory = GetParam();
-  factory->line_spacing = dim / (n_lines);
-  factory->point_spacing = dim / (n_points + 1);
-  factory->direction_gen = [&direction]() { return std::make_unique<FixedDirectionGenerator>(direction); };
-  factory->origin_gen = [this]() { return std::make_unique<FixedOriginGenerator>(Eigen::Vector3d::Zero()); };
+  // Get the configuration and override the relevant raster parameters
+  YAML::Node config = GetParam();
+  {
+    config["line_spacing"] = dim / static_cast<double>(n_lines);
+    config["point_spacing"] = dim / static_cast<double>(n_points + 1);
+
+    YAML::Node dir_gen = config["direction_generator"];
+    dir_gen["name"] = "FixedDirection";
+    dir_gen["direction"] = direction;
+
+    YAML::Node origin_gen = config["origin_generator"];
+    origin_gen["name"] = "FixedOrigin";
+    origin_gen["origin"] = Eigen::Vector3d(Eigen::Vector3d::Zero());
+  }
+
+  // Create the tool path planner
+  std::shared_ptr<const ToolPathPlanner> planner = factory->createToolPathPlanner(config);
 
   // Plan
-  std::unique_ptr<const ToolPathPlanner> planner = factory->create();
   ToolPaths tool_paths;
   ASSERT_NO_THROW(tool_paths = planner->plan(mesh));
 
@@ -205,39 +176,19 @@ TEST_P(RasterPlannerTestFixture, SemiPlanarMeshFile)
   }
 }
 
-/** @brief Returns a list of edge planner factory implementations */
-std::vector<std::shared_ptr<RasterPlannerFactory>> createRasterPlannerFactories()
-{
-  auto plane_slicer_factory = std::make_shared<PlaneSlicerRasterPlannerFactory>();
-  plane_slicer_factory->min_segment_size = 0.010;
-  plane_slicer_factory->search_radius = 0.010;
-  plane_slicer_factory->bidirectional = true;
-
-  return {
-    plane_slicer_factory,
-  };
-}
-
-// Instantiate the implementations of the raster planner factory to test
-INSTANTIATE_TEST_SUITE_P(RasterPlannerTests,
-                         RasterPlannerTestFixture,
-                         testing::ValuesIn(createRasterPlannerFactories()),
-                         print<RasterPlannerFactory>);
-
-using EdgePlannerTestFixture = testing::TestWithParam<std::shared_ptr<EdgePlannerFactory>>;
+using EdgePlannerTestFixture = ToolPathPlannerTestFixture;
 
 TEST_P(EdgePlannerTestFixture, FlatSquareMesh)
 {
   // Create a flat plane mesh with 2 triangles
   double dim = 1.0;
   Eigen::Isometry3d transform = createRandomTransform(dim * 5.0, M_PI);
-  pcl::PolygonMesh mesh = createPlaneMesh(static_cast<float>(dim), transform);
+  pcl::PolygonMesh mesh = createPlaneMesh(static_cast<float>(dim), static_cast<float>(dim), transform);
 
-  // Configure the planning factory
-  std::shared_ptr<EdgePlannerFactory> factory = GetParam();
+  // Create the tool path planner
+  std::shared_ptr<const ToolPathPlanner> planner = factory->createToolPathPlanner(GetParam());
 
   // Plan
-  std::unique_ptr<const ToolPathPlanner> planner = factory->create();
   ToolPaths tool_paths;
   ASSERT_NO_THROW(tool_paths = planner->plan(mesh));
 
@@ -250,11 +201,10 @@ TEST_P(EdgePlannerTestFixture, SemiPlanarMeshFile)
   // Load the test mesh
   pcl::PolygonMesh mesh = loadWavyMeshWithHole();
 
-  // Configure the planning factory
-  std::shared_ptr<EdgePlannerFactory> factory = GetParam();
+  // Create the tool path planner
+  std::shared_ptr<const ToolPathPlanner> planner = factory->createToolPathPlanner(GetParam());
 
   // Plan
-  std::unique_ptr<const ToolPathPlanner> planner = factory->create();
   ToolPaths tool_paths;
   ASSERT_NO_THROW(tool_paths = planner->plan(mesh));
 
@@ -295,19 +245,49 @@ TEST_P(EdgePlannerTestFixture, SemiPlanarMeshFile)
   });
 }
 
-/** @brief Returns a list of edge planner factory implementations */
-std::vector<std::shared_ptr<EdgePlannerFactory>> createEdgePlannerFactories()
+std::vector<YAML::Node> createYamlNodes(const std::string& config_str)
 {
-  return {
-    std::make_shared<BoundaryEdgePlannerFactory>(),
-  };
+  // Load the plugin YAML config
+  YAML::Node config = YAML::Load(config_str);
+  std::vector<YAML::Node> out;
+  out.reserve(config.size());
+  std::copy(config.begin(), config.end(), std::back_inserter(out));
+  return out;
 }
+
+/** @brief Returns a YAML configuration string for raster planner implementations */
+const std::string raster_planners_config_str = R"(
+- name: PlaneSlicer
+  direction_generator:
+    name: FixedDirection
+    direction:
+      x: 1.0
+      y: 0.0
+      z: 0.0
+  origin_generator:
+    name: Centroid
+  line_spacing: 0.1
+  point_spacing: 0.05
+  min_segment_size: 0.01
+  min_hole_size: 0.05
+  bidirectional: true
+  search_radius: 0.01
+)";
+
+// Instantiate the implementations of the raster planner factory to test
+INSTANTIATE_TEST_SUITE_P(RasterPlannerTests,
+                         RasterPlannerTestFixture,
+                         testing::ValuesIn(createYamlNodes(raster_planners_config_str)));
+
+/** @brief Returns a YAML configuration string for edge planner implementations */
+const std::string edge_planners_config_str = R"(
+- name: Boundary
+)";
 
 // Instantiate the implementations of the edge planner factories to test
 INSTANTIATE_TEST_SUITE_P(EdgePlannerTests,
                          EdgePlannerTestFixture,
-                         testing::ValuesIn(createEdgePlannerFactories()),
-                         print<EdgePlannerFactory>);
+                         testing::ValuesIn(createYamlNodes(edge_planners_config_str)));
 
 int main(int argc, char** argv)
 {
