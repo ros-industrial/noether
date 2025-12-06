@@ -25,8 +25,7 @@
 
 namespace
 {
-std::optional<vtkIdType> findConnectingVertex(vtkSmartPointer<vtkIdList> s1,
-                                              vtkSmartPointer<vtkIdList> s2)
+std::optional<vtkIdType> findConnectingVertex(vtkSmartPointer<vtkIdList> s1, vtkSmartPointer<vtkIdList> s2)
 {
   vtkNew<vtkIdList> intersection;
   intersection->DeepCopy(s1);
@@ -45,13 +44,12 @@ using Vertex = std::pair<std::size_t, vtkIdType>;
 using Graph = boost::directed_graph<Vertex>;
 using VertexDescriptor = boost::graph_traits<Graph>::vertex_descriptor;
 
-VertexDescriptor findVertexDescriptor(const Graph& g,
-                                      const Vertex& vertex)
+VertexDescriptor findVertexDescriptor(const Graph& g, const Vertex& vertex)
 {
   Graph::vertex_iterator it, end;
-  for(boost::tie(it, end) = boost::vertices(g); it != end; ++it)
+  for (boost::tie(it, end) = boost::vertices(g); it != end; ++it)
   {
-    if(g[*it] == vertex)
+    if (g[*it] == vertex)
       return *it;
   }
 
@@ -71,7 +69,7 @@ void topologicalSortSegments(vtkSmartPointer<vtkPolyData> polydata)
   Graph graph;
 
   // Add the nodes (vertices in the segments) and the edge between them an the next nodes
-  for(std::size_t i = 0; i < n_segments; ++i)
+  for (std::size_t i = 0; i < n_segments; ++i)
   {
     vtkNew<vtkIdList> point_ids;
     segments->GetCellAtId(i, point_ids);
@@ -89,7 +87,7 @@ void topologicalSortSegments(vtkSmartPointer<vtkPolyData> polydata)
   }
 
   // Add edges between segments
-  for(std::size_t i = 0; i < n_segments - 1; ++i)
+  for (std::size_t i = 0; i < n_segments - 1; ++i)
   {
     vtkNew<vtkIdList> s_i;
     segments->GetCellAtId(i, s_i);
@@ -114,13 +112,13 @@ void topologicalSortSegments(vtkSmartPointer<vtkPolyData> polydata)
 
   // Reduce all vertices to sorted segment indices
   std::vector<std::size_t> sorted_idx;
-  for(const VertexDescriptor& v : topo_sort)
+  for (const VertexDescriptor& v : topo_sort)
     if (std::find(sorted_idx.begin(), sorted_idx.end(), graph[v].first) == sorted_idx.end())
       sorted_idx.push_back(graph[v].first);
 
   // Use sorted segment indices to reconstruct output
   vtkNew<vtkCellArray> sorted_segments;
-  for(const std::size_t idx : sorted_idx)
+  for (const std::size_t idx : sorted_idx)
   {
     vtkNew<vtkIdList> point_ids;
     segments->GetCellAtId(idx, point_ids);
@@ -131,14 +129,13 @@ void topologicalSortSegments(vtkSmartPointer<vtkPolyData> polydata)
   polydata->SetLines(sorted_segments);
 }
 
-void unifySegmentDirection(vtkSmartPointer<vtkPolyData> polydata,
-                           const Eigen::Vector3d& reference_direction)
+void unifySegmentDirection(vtkSmartPointer<vtkPolyData> polydata, const Eigen::Vector3d& reference_direction)
 {
   vtkSmartPointer<vtkPoints> points = polydata->GetPoints();
   vtkSmartPointer<vtkCellArray> segments = polydata->GetLines();
 
   // for(auto s1 = segments.begin(); s1 < segments.end(); ++s1)
-  for(std::size_t i = 0; i < segments->GetNumberOfCells(); ++i)
+  for (std::size_t i = 0; i < segments->GetNumberOfCells(); ++i)
   {
     vtkNew<vtkIdList> point_ids;
     segments->GetCellAtId(i, point_ids);
@@ -156,12 +153,11 @@ void unifySegmentDirection(vtkSmartPointer<vtkPolyData> polydata,
   }
 }
 
-vtkSmartPointer<vtkIdList> concatenateUnique(vtkSmartPointer<vtkIdList> l1,
-                                             vtkSmartPointer<vtkIdList> l2)
+vtkSmartPointer<vtkIdList> concatenateUnique(vtkSmartPointer<vtkIdList> l1, vtkSmartPointer<vtkIdList> l2)
 {
   vtkNew<vtkIdList> output;
   output->DeepCopy(l1);
-  for(std::size_t i = 0; i < l2->GetNumberOfIds(); ++i)
+  for (std::size_t i = 0; i < l2->GetNumberOfIds(); ++i)
   {
     output->InsertUniqueId(l2->GetId(i));
   }
@@ -189,14 +185,14 @@ void joinContiguousSegments(vtkSmartPointer<vtkPolyData> polydata)
 
   // Create a stack from the input segments (in reverse order, such that the first segment is at the top of the stack)
   std::stack<vtkSmartPointer<vtkIdList>> stack;
-  for(std::size_t i = n_segments; i-- > 0;)
+  for (std::size_t i = n_segments; i-- > 0;)
   {
     vtkNew<vtkIdList> point_ids;
     segments->GetCellAtId(i, point_ids);
     stack.push(point_ids);
   }
 
-  while(!stack.empty())
+  while (!stack.empty())
   {
     // Get the first segment
     vtkSmartPointer<vtkIdList> s1 = stack.top();
@@ -216,7 +212,8 @@ void joinContiguousSegments(vtkSmartPointer<vtkPolyData> polydata)
     // Find the connecting vertex ID
     std::optional<vtkIdType> connecting_vertex = findConnectingVertex(s1, s2);
 
-    // If no connection exists between the two segments, add the first segment to the output and return the second segment to the stack
+    // If no connection exists between the two segments, add the first segment to the output and return the second
+    // segment to the stack
     if (!connecting_vertex)
     {
       output->InsertNextCell(s1);
@@ -234,7 +231,8 @@ void joinContiguousSegments(vtkSmartPointer<vtkPolyData> polydata)
      *   3. Beginning of segment 1, beginning of segment 2 -> add a new segment to the stack that is [reverse(s2), s1]
      *   4. End of segment 1, end of segment 2 -> add a new segment to the stack that is [s1, reverse(s2)]
      *
-     * Note: when squashing segments into a new segment for the stack, we purposefully do not duplicate the shared vertex
+     * Note: when squashing segments into a new segment for the stack, we purposefully do not duplicate the shared
+     * vertex
      */
     if (idx_s1 == 0)
     {
@@ -244,14 +242,15 @@ void joinContiguousSegments(vtkSmartPointer<vtkPolyData> polydata)
         stack.push(concatenateUnique(s2, s1));
         continue;
       }
-      else if(idx_s2 == 0)
+      else if (idx_s2 == 0)
       {
         // Connection occurs at beginning of segment 1 and beginning of segment 2 -> add [reverse(s2), s1]
         stack.push(concatenateUnique(reverse(s2), s1));
       }
       else
       {
-        throw std::runtime_error("Connecting vertex exists at the beginning of one segment but not at the end or beginning of the adjacent segment");
+        throw std::runtime_error("Connecting vertex exists at the beginning of one segment but not at the end or "
+                                 "beginning of the adjacent segment");
       }
     }
     else if (idx_s1 == s1->GetNumberOfIds() - 1)
@@ -262,14 +261,15 @@ void joinContiguousSegments(vtkSmartPointer<vtkPolyData> polydata)
         stack.push(concatenateUnique(s1, s2));
         continue;
       }
-      else if(idx_s2 == s2->GetNumberOfIds() - 1)
+      else if (idx_s2 == s2->GetNumberOfIds() - 1)
       {
         // Connection occurs at end of segment 1 and end of segment 2 -> add [s1, reverse(s2)]
         stack.push(concatenateUnique(s1, reverse(s2)));
       }
       else
       {
-        throw std::runtime_error("Connecting vertex exists at the end of one segment but not at the beginning or end of the adjacent segment");
+        throw std::runtime_error("Connecting vertex exists at the end of one segment but not at the beginning or end "
+                                 "of the adjacent segment");
       }
     }
     else
@@ -282,8 +282,7 @@ void joinContiguousSegments(vtkSmartPointer<vtkPolyData> polydata)
   polydata->SetLines(output);
 }
 
-void joinCloseSegments(vtkSmartPointer<vtkPolyData> polydata,
-                       const double max_separation_distance)
+void joinCloseSegments(vtkSmartPointer<vtkPolyData> polydata, const double max_separation_distance)
 {
   vtkSmartPointer<vtkCellArray> segments = polydata->GetLines();
   vtkSmartPointer<vtkPoints> points = polydata->GetPoints();
@@ -292,19 +291,19 @@ void joinCloseSegments(vtkSmartPointer<vtkPolyData> polydata,
 
   // Create a stack from the input segments (in reverse order, such that the first segment is at the top of the stack)
   std::stack<vtkSmartPointer<vtkIdList>> stack;
-  for(std::size_t i = segments->GetNumberOfCells(); i-- > 0;)
+  for (std::size_t i = segments->GetNumberOfCells(); i-- > 0;)
   {
     vtkNew<vtkIdList> point_ids;
     segments->GetCellAtId(i, point_ids);
     stack.push(point_ids);
   }
 
-  while(!stack.empty())
+  while (!stack.empty())
   {
     vtkSmartPointer<vtkIdList> s1 = stack.top();
     stack.pop();
 
-    if(stack.empty())
+    if (stack.empty())
     {
       output->InsertNextCell(s1);
       continue;
@@ -314,7 +313,8 @@ void joinCloseSegments(vtkSmartPointer<vtkPolyData> polydata,
     stack.pop();
 
     // Get the last point in segment 1
-    const Eigen::Vector3d s1_end  = Eigen::Map<const Eigen::Vector3d>(points->GetPoint(s1->GetId(s1->GetNumberOfIds() - 1)));
+    const Eigen::Vector3d s1_end =
+        Eigen::Map<const Eigen::Vector3d>(points->GetPoint(s1->GetId(s1->GetNumberOfIds() - 1)));
 
     // Get the first point in segment 2
     const Eigen::Vector3d s2_begin = Eigen::Map<const Eigen::Vector3d>(points->GetPoint(s2->GetId(0)));
@@ -341,7 +341,8 @@ void processPolyLines(vtkSmartPointer<vtkPolyData> polydata,
                       const Eigen::Vector3d& reference_direction,
                       const double min_hole_size)
 {
-  // Topologically sort the segments such that connected segments (e.g., ones that share a common vertex) will be adjacent in the the container
+  // Topologically sort the segments such that connected segments (e.g., ones that share a common vertex) will be
+  // adjacent in the the container
   topologicalSortSegments(polydata);
 
   // Ensure that all of the segments are pointing the same direction (relative to the first segment)
@@ -358,7 +359,8 @@ Eigen::Isometry3d createTransform(const Eigen::Vector3d& position,
                                   const Eigen::Vector3d& normal,
                                   const Eigen::Vector3d& path_dir)
 {
-  Eigen::Vector3d y = normal.cross(path_dir);;
+  Eigen::Vector3d y = normal.cross(path_dir);
+  ;
   Eigen::Vector3d x = y.cross(normal);
 
   Eigen::Isometry3d transform;
@@ -384,7 +386,7 @@ noether::ToolPath convertToPoses(vtkSmartPointer<vtkPolyData> polydata)
   tool_path.reserve(n_segments);
 
   // Add each segment
-  for(std::size_t s_idx = 0; s_idx < n_segments; ++s_idx)
+  for (std::size_t s_idx = 0; s_idx < n_segments; ++s_idx)
   {
     vtkNew<vtkIdList> point_ids;
     segments->GetCellAtId(s_idx, point_ids);
@@ -393,7 +395,7 @@ noether::ToolPath convertToPoses(vtkSmartPointer<vtkPolyData> polydata)
     noether::ToolPathSegment segment;
     segment.reserve(n_points);
 
-    for(std::size_t pt_idx = 0; pt_idx < n_points; ++pt_idx)
+    for (std::size_t pt_idx = 0; pt_idx < n_points; ++pt_idx)
     {
       vtkIdType this_id = point_ids->GetId(pt_idx);
       const Eigen::Vector3d point = Eigen::Map<const Eigen::Vector3d>(points->GetPoint(this_id));
