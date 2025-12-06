@@ -44,10 +44,4 @@ protected:
   virtual ToolPaths planImpl(const pcl::PolygonMesh& mesh) const = 0;
 };
 
-/**
- * @brief Interface for creating instances of edge tool path planners.
- * @details This class contains the generic parameters for configuring edge tool path planners
- */
-using EdgePlannerFactory = ToolPathPlannerFactory;
-
 }  // namespace noether

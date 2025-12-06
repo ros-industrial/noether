@@ -18,4 +18,5 @@ target_link_libraries(${PROJECT_NAME}_tool_path_planner_utest PRIVATE ${PROJECT_
 add_gtest_discover_tests(${PROJECT_NAME}_tool_path_planner_utest)
 target_compile_definitions(
   ${PROJECT_NAME}_tool_path_planner_utest PRIVATE MESH_DIR="${CMAKE_CURRENT_SOURCE_DIR}/meshes"
+                                                  PLUGIN_DIR="${CMAKE_CURRENT_BINARY_DIR}/.."
 )
