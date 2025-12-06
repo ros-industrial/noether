@@ -56,13 +56,4 @@ protected:
   double search_radius_;
 };
 
-struct PlaneSlicerRasterPlannerFactory : public RasterPlannerFactory
-{
-  bool bidirectional;
-  double min_segment_size;
-  double search_radius;
-
-  ToolPathPlanner::ConstPtr create() const override;
-};
-
 }  // namespace noether

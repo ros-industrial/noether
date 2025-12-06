@@ -121,8 +121,6 @@ ToolPaths BoundaryEdgePlanner::planImpl(const pcl::PolygonMesh& mesh) const
   return tool_paths;
 }
 
-ToolPathPlanner::ConstPtr BoundaryEdgePlannerFactory::create() const { return std::make_unique<BoundaryEdgePlanner>(); }
-
 }  // namespace noether
 
 namespace YAML

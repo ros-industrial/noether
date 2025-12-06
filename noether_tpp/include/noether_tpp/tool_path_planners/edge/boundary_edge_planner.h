@@ -18,11 +18,6 @@ public:
   ToolPaths planImpl(const pcl::PolygonMesh&) const override;
 };
 
-struct BoundaryEdgePlannerFactory : public EdgePlannerFactory
-{
-  ToolPathPlanner::ConstPtr create() const override;
-};
-
 }  // namespace noether
 
 FWD_DECLARE_YAML_CONVERT(noether::BoundaryEdgePlanner)

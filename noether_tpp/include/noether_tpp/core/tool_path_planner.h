@@ -37,13 +37,4 @@ struct ToolPathPlanner
   virtual ToolPaths plan(const pcl::PolygonMesh& mesh) const = 0;
 };
 
-/**
- * @brief Interface for creating implementations of the ToolPathPlanner interface
- */
-struct ToolPathPlannerFactory
-{
-  virtual ~ToolPathPlannerFactory() = default;
-  virtual ToolPathPlanner::ConstPtr create() const = 0;
-};
-
 }  // namespace noether
