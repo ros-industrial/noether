@@ -511,7 +511,13 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
 
   const double cut_span = std::abs(d_max_cut - d_min_cut);
   const auto num_planes = static_cast<std::size_t>(std::ceil(cut_span / line_spacing_));
-  const Eigen::Vector3d start_loc = cut_origin + cut_normal * d_min_cut;
+
+  // Compute the starting raster location such that one cut passes through the cut origin
+  // The start location needs to move some integer number of line spacings (determined by the distance to the minimum
+  // cut) in the cut normal direction
+  const auto n_planes_start_offset = static_cast<std::size_t>(std::floor(std::abs(d_min_cut) / line_spacing_));
+  const double start_offset = n_planes_start_offset * line_spacing_;
+  const Eigen::Vector3d start_loc = cut_origin + cut_normal * std::copysign(start_offset, d_min_cut);
 
   // Generate each plane and collect the intersection points
   vtkSmartPointer<vtkAppendPolyData> raster_data = vtkSmartPointer<vtkAppendPolyData>::New();

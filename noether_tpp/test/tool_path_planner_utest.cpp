@@ -82,8 +82,8 @@ TEST_P(RasterPlannerTestFixture, FlatSquareMesh)
   // Get the planner configuration and override the relevant shared raster parameters
   YAML::Node config = GetParam();
   {
-    config["line_spacing"] = dim / static_cast<double>(n_lines);
-    config["point_spacing"] = dim / static_cast<double>(n_points + 1);
+    config["line_spacing"] = 0.95 * dim / static_cast<double>(n_lines);
+    config["point_spacing"] = 0.95 * dim / static_cast<double>(n_points + 1);
 
     YAML::Node dir_gen = config["direction_generator"];
     dir_gen["name"] = "FixedDirection";
@@ -101,7 +101,7 @@ TEST_P(RasterPlannerTestFixture, FlatSquareMesh)
   ToolPaths tool_paths;
   ASSERT_NO_THROW(tool_paths = planner->plan(mesh));
 
-  EXPECT_EQ(tool_paths.size(), n_lines);
+  EXPECT_EQ(tool_paths.size(), n_lines + 1);
   for (ToolPath& path : tool_paths)
   {
     // Check that there is only a single segment in the path
@@ -124,7 +124,7 @@ TEST_P(RasterPlannerTestFixture, SemiPlanarMeshFile)
   // Load a mesh from the test directory
   pcl::PolygonMesh mesh = loadWavyMeshWithHole();
   const Eigen::Vector3d direction = Eigen::Vector3d::UnitX();
-  const double dim = 10.0;  // Square dimension of the mesh
+  const double dim = 10.5;  // Square dimension of the mesh
 
   // Get the configuration and override the relevant raster parameters
   YAML::Node config = GetParam();
