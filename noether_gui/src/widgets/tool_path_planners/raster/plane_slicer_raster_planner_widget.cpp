@@ -13,19 +13,9 @@ namespace noether
 PlaneSlicerRasterPlannerWidget::PlaneSlicerRasterPlannerWidget(std::shared_ptr<const WidgetFactory> factory,
                                                                QWidget* parent)
   : RasterPlannerWidget(factory, parent)
-  , search_radius_(new DistanceDoubleSpinBox(this))
   , min_segment_size_(new DistanceDoubleSpinBox(this))
   , bidirectional_(new QCheckBox(this))
 {
-  // Search radius
-  search_radius_->setMinimum(0.0);
-  search_radius_->setSingleStep(0.1);
-  search_radius_->setValue(0.1);
-  search_radius_->setDecimals(3);
-  auto search_radius_label = new QLabel("Normal Radius", this);
-  search_radius_label->setToolTip("Radius with which to estimate mesh normals");
-  ui_->form_layout->addRow(search_radius_label, search_radius_);
-
   // Min segment length
   min_segment_size_->setMinimum(0.0);
   min_segment_size_->setSingleStep(0.1);
@@ -45,7 +35,6 @@ PlaneSlicerRasterPlannerWidget::PlaneSlicerRasterPlannerWidget(std::shared_ptr<c
 void PlaneSlicerRasterPlannerWidget::configure(const YAML::Node& config)
 {
   RasterPlannerWidget::configure(config);
-  search_radius_->setValue(YAML::getMember<double>(config, "search_radius"));
   min_segment_size_->setValue(YAML::getMember<double>(config, "min_segment_size"));
 
   // Optionally get bidirectional parameter to maintain backwards compatibility
@@ -62,7 +51,6 @@ void PlaneSlicerRasterPlannerWidget::save(YAML::Node& config) const
 {
   config["name"] = "PlaneSlicer";
   RasterPlannerWidget::save(config);
-  config["search_radius"] = search_radius_->value();
   config["min_segment_size"] = min_segment_size_->value();
   config["bidirectional"] = bidirectional_->isChecked();
 }
