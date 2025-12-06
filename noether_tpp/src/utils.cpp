@@ -257,16 +257,16 @@ pcl::PolygonMesh createPlaneMesh(const float lx, const float ly, const Eigen::Is
   pcl::PolygonMesh mesh;
 
   // Fill in the points of the mesh cloud
-  pcl::PointCloud<pcl::PointXYZ> cloud;
+  pcl::PointCloud<pcl::PointNormal> cloud;
   cloud.width = 4;
   cloud.height = 1;
   cloud.is_dense = true;
   cloud.points.reserve(cloud.width);
 
-  pcl::PointXYZ p0 = { -lx / 2, ly / 2, 0 };
-  pcl::PointXYZ p1 = { -lx / 2, -ly / 2, 0 };
-  pcl::PointXYZ p2 = { lx / 2, -ly / 2, 0 };
-  pcl::PointXYZ p3 = { lx / 2, ly / 2, 0 };
+  pcl::PointNormal p0 = { -lx / 2, ly / 2, 0, 0.0, 0.0, 1.0 };
+  pcl::PointNormal p1 = { -lx / 2, -ly / 2, 0, 0.0, 0.0, 1.0 };
+  pcl::PointNormal p2 = { lx / 2, -ly / 2, 0, 0.0, 0.0, 1.0 };
+  pcl::PointNormal p3 = { lx / 2, ly / 2, 0, 0.0, 0.0, 1.0 };
 
   cloud.points.push_back(p0);
   cloud.points.push_back(p1);
@@ -274,7 +274,7 @@ pcl::PolygonMesh createPlaneMesh(const float lx, const float ly, const Eigen::Is
   cloud.points.push_back(p3);
 
   // Transform the pointcloud
-  pcl::PointCloud<pcl::PointXYZ> transformed_cloud;
+  pcl::PointCloud<pcl::PointNormal> transformed_cloud;
   pcl::transformPointCloud(cloud, transformed_cloud, origin.matrix());
   pcl::toPCLPointCloud2(transformed_cloud, mesh.cloud);
 
