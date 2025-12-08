@@ -5,15 +5,14 @@
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/topological_sort.hpp>
-#include <stdexcept>  // std::runtime_error
-#include <utility>    // std::move()
-#include <vector>     // std::vector
-#include <stack>
-
-#include <pcl/common/common.h>  // pcl::getMinMax3d()
-#include <pcl/common/pca.h>     // pcl::PCA
-#include <pcl/conversions.h>    // pcl::fromPCLPointCloud2
+#include <pcl/common/common.h>
+#include <pcl/common/pca.h>
+#include <pcl/conversions.h>
 #include <pcl/io/vtk_lib_io.h>
+#include <stdexcept>
+#include <stack>
+#include <utility>
+#include <vector>
 #include <vtkAppendPolyData.h>
 #include <vtkCutter.h>
 #include <vtkErrorCode.h>
@@ -25,6 +24,11 @@
 
 namespace
 {
+/**
+ * @brief Finds the single shared vertex ID between two line possibly connected segments
+ * @return The ID of the single shared vertex (if one exists); otherwise returns a null optional
+ * @throws Throws an exception if the segments share more than one vertex
+ */
 std::optional<vtkIdType> findConnectingVertex(vtkSmartPointer<vtkIdList> s1, vtkSmartPointer<vtkIdList> s2)
 {
   vtkNew<vtkIdList> intersection;
@@ -40,10 +44,20 @@ std::optional<vtkIdType> findConnectingVertex(vtkSmartPointer<vtkIdList> s1, vtk
   return intersection->GetId(0);
 }
 
+/** @details Typedef for a vertex in a graph of line segments, where the first element is the segment index to which the
+ * cut vertex belongs and the second is ID of the cut vertex itself */
 using Vertex = std::pair<std::size_t, vtkIdType>;
+/** @details Typedef for a graph of line segments */
 using Graph = boost::directed_graph<Vertex>;
+/** @details Vertex for a vertex descriptor */
 using VertexDescriptor = boost::graph_traits<Graph>::vertex_descriptor;
 
+/**
+ * @details Finds the vertex descriptor in the graph that matches the input vertex information
+ * @param g Graph
+ * @param vertex Vertex (i.e., segment index and cut vertex ID)
+ * @return
+ */
 VertexDescriptor findVertexDescriptor(const Graph& g, const Vertex& vertex)
 {
   Graph::vertex_iterator it, end;
@@ -56,48 +70,71 @@ VertexDescriptor findVertexDescriptor(const Graph& g, const Vertex& vertex)
   return Graph::null_vertex();
 }
 
+/**
+ * @brief Performs a topological sort on the line segments in the input polydata
+ * @details The output from a VTKCutter + VTKStripper is a set of potentially unorganized line segments, which may or
+ * may not have shared vertices between them. In order to easily join contiguous segments (those which have a shared
+ * vertex), we first need to order the segments such that physically adjacent segments (i.e., contiguous segments with a
+ * shared vertex) are also adjacent in the data container that holds them (i.e., the VTKCellArray). Under the following
+ * assumptions, we can formulate this task as as a topological sort of a directed acyclic graph:
+ *   1. The line segments are inherently directed graphs (e.g., no cycles)
+ *   2. Each line segment has at most 2 connections to other line segments (e.g. at the front and back of the segment)
+ *   3. The line segments together do not form a cycle
+ * For segments that share a connecting vertex, we add an edge in the graph.
+ * The direction of this edge can be arbitrary because we only care about sorting the order of the segments in the
+ * container. A different function can be used later to order and join contiguous segments.
+ * @param polydata VTK polydata output from a VTKStripper (run after a VTKCutter)
+ */
 void topologicalSortSegments(vtkSmartPointer<vtkPolyData> polydata)
 {
+  // Get the line segments from the polydata
   vtkSmartPointer<vtkCellArray> segments = polydata->GetLines();
-  // segments->InitTraversal();
 
   const std::size_t n_segments = segments->GetNumberOfCells();
   if (n_segments <= 1)
     return;
 
-  // Allocate the graph
+  // Create the graph
   Graph graph;
 
-  // Add the nodes (vertices in the segments) and the edge between them an the next nodes
+  // Add the nodes (i.e., vertices in the segments) and the edge between them and the adjacent nodes
   for (std::size_t i = 0; i < n_segments; ++i)
   {
+    // Extract segment i
     vtkNew<vtkIdList> point_ids;
     segments->GetCellAtId(i, point_ids);
-    const std::size_t n_points = point_ids->GetNumberOfIds();
+    const std::size_t n_vertices = point_ids->GetNumberOfIds();
 
+    // Add a vertex for the 0th point
     VertexDescriptor v_prev = boost::add_vertex(std::make_pair(i, point_ids->GetId(0)), graph);
 
-    for (std::size_t j = 1; j < n_points; ++j)
+    // Add vertices for the rest of the vertices
+    for (std::size_t j = 1; j < n_vertices; ++j)
     {
       VertexDescriptor v_next = boost::add_vertex(std::make_pair(i, point_ids->GetId(j)), graph);
+
+      // Add an edge between adjacent vertices
       boost::add_edge(v_prev, v_next, graph);
 
       v_prev = v_next;
     }
   }
 
-  // Add edges between segments
+  // Check all possible combinations of segments for a connecting vertex and add an edge for each connection found
   for (std::size_t i = 0; i < n_segments - 1; ++i)
   {
-    vtkNew<vtkIdList> s_i;
-    segments->GetCellAtId(i, s_i);
+    // Get the first segment
+    vtkNew<vtkIdList> segment_i;
+    segments->GetCellAtId(i, segment_i);
 
+    // Get the next possible segment
     for (std::size_t j = i + 1; j < n_segments; ++j)
     {
-      vtkNew<vtkIdList> s_j;
-      segments->GetCellAtId(j, s_j);
+      vtkNew<vtkIdList> segment_j;
+      segments->GetCellAtId(j, segment_j);
 
-      std::optional<vtkIdType> intersection = findConnectingVertex(s_i, s_j);
+      // Find the intersection between the segments and add an edge (of arbitrary direction) between them
+      std::optional<vtkIdType> intersection = findConnectingVertex(segment_i, segment_j);
       if (intersection)
       {
         VertexDescriptor v1 = findVertexDescriptor(graph, std::make_pair(i, *intersection));
@@ -107,16 +144,22 @@ void topologicalSortSegments(vtkSmartPointer<vtkPolyData> polydata)
     }
   }
 
+  // Run the topological sort
   std::vector<VertexDescriptor> topo_sort;
   boost::topological_sort(graph, std::back_inserter(topo_sort));
+  std::reverse(topo_sort.begin(), topo_sort.end());
 
-  // Reduce all vertices to sorted segment indices
+  // Reduce the result of the topological sort to the sorted segment indices
   std::vector<std::size_t> sorted_idx;
   for (const VertexDescriptor& v : topo_sort)
     if (std::find(sorted_idx.begin(), sorted_idx.end(), graph[v].first) == sorted_idx.end())
       sorted_idx.push_back(graph[v].first);
 
-  // Use sorted segment indices to reconstruct output
+  // Check that the output has the same number of segments as the input
+  if (sorted_idx.size() != n_segments)
+    throw std::runtime_error("Topological sort failed");
+
+  // Use the sorted segment indices to create a new ordered container of segments
   vtkNew<vtkCellArray> sorted_segments;
   for (const std::size_t idx : sorted_idx)
   {
@@ -129,23 +172,31 @@ void topologicalSortSegments(vtkSmartPointer<vtkPolyData> polydata)
   polydata->SetLines(sorted_segments);
 }
 
+/**
+ * @brief Unifies the direction of all line segments
+ * @details By default, VTKCutter and VTKStripper do not ensure that all created segments "point" the same way.
+ * This function iterates through all segments and compares their direction (computed as the vector between the first
+ * two points) with a reference direction (e.g., the raster cut direction). If the dot product of these two vectors is
+ * less than 0, the order of the vertices in the line segment is reversed.
+ * @param polydata VTK Polydata output from a VTKCutter + VTKStripper
+ * @param reference_direction
+ */
 void unifySegmentDirection(vtkSmartPointer<vtkPolyData> polydata, const Eigen::Vector3d& reference_direction)
 {
   vtkSmartPointer<vtkPoints> points = polydata->GetPoints();
   vtkSmartPointer<vtkCellArray> segments = polydata->GetLines();
 
-  // for(auto s1 = segments.begin(); s1 < segments.end(); ++s1)
   for (std::size_t i = 0; i < segments->GetNumberOfCells(); ++i)
   {
-    vtkNew<vtkIdList> point_ids;
-    segments->GetCellAtId(i, point_ids);
+    vtkNew<vtkIdList> segment;
+    segments->GetCellAtId(i, segment);
 
     // Compute the direction vector between the first and second points in the segment
-    const Eigen::Vector3d p1 = Eigen::Map<const Eigen::Vector3d>(points->GetPoint(point_ids->GetId(0)));
-    const Eigen::Vector3d p2 = Eigen::Map<const Eigen::Vector3d>(points->GetPoint(point_ids->GetId(1)));
+    const Eigen::Vector3d p1 = Eigen::Map<const Eigen::Vector3d>(points->GetPoint(segment->GetId(0)));
+    const Eigen::Vector3d p2 = Eigen::Map<const Eigen::Vector3d>(points->GetPoint(segment->GetId(1)));
     const Eigen::Vector3d dir = p2 - p1;
 
-    // Reverse the order of segment 2 if it does not align with segment 1
+    // Reverse the order of the segment if it does not align with the reference direction
     if (dir.dot(reference_direction) < 0.0)
     {
       segments->ReverseCellAtId(i);
@@ -153,6 +204,9 @@ void unifySegmentDirection(vtkSmartPointer<vtkPolyData> polydata, const Eigen::V
   }
 }
 
+/**
+ * @brief Concatenates the unique entries in two line segments into a new line segment
+ */
 vtkSmartPointer<vtkIdList> concatenateUnique(vtkSmartPointer<vtkIdList> l1, vtkSmartPointer<vtkIdList> l2)
 {
   vtkNew<vtkIdList> output;
@@ -164,6 +218,9 @@ vtkSmartPointer<vtkIdList> concatenateUnique(vtkSmartPointer<vtkIdList> l1, vtkS
   return output;
 }
 
+/**
+ * @brief Creates a reversed copy of the input line segment
+ */
 vtkSmartPointer<vtkIdList> reverse(vtkSmartPointer<vtkIdList> l)
 {
   vtkNew<vtkIdList> output;
@@ -172,6 +229,75 @@ vtkSmartPointer<vtkIdList> reverse(vtkSmartPointer<vtkIdList> l)
   return output;
 }
 
+/**
+ * @brief Joins two segments that share a connecting vertex
+ * @details We can only (easily) handle 4 cases for the location of the connecting vertex:
+ *   1. End of segment 1, beginning of segment 2 -> add a new segment to the stack that is [s1, s2]
+ *   2. Beginning of segment 1, end of segment 2 -> add a new segment to the stack that is [s2, s1]
+ *   3. Beginning of segment 1, beginning of segment 2 -> add a new segment to the stack that is [reverse(s2), s1]
+ *   4. End of segment 1, end of segment 2 -> add a new segment to the stack that is [s1, reverse(s2)]
+ * @note When joining segments into a new segment, we purposefully do not duplicate the shared vertex
+ */
+vtkSmartPointer<vtkIdList> joinContiguousSegments(vtkSmartPointer<vtkIdList> s1,
+                                                  vtkSmartPointer<vtkIdList> s2,
+                                                  const vtkIdType connecting_vertex)
+{
+  // Find the iterator to the connection vertex in each segment
+  std::size_t idx_s1 = s1->FindIdLocation(connecting_vertex);
+  std::size_t idx_s2 = s2->FindIdLocation(connecting_vertex);
+
+  if (idx_s1 == 0)
+  {
+    if (idx_s2 == s2->GetNumberOfIds() - 1)
+    {
+      // Connection occurs at beginning of segment 1 and end of segment 2 -> add [s2, s1]
+      return concatenateUnique(s2, s1);
+    }
+    else if (idx_s2 == 0)
+    {
+      // Connection occurs at beginning of segment 1 and beginning of segment 2 -> add [reverse(s2), s1]
+      return concatenateUnique(reverse(s2), s1);
+    }
+    else
+    {
+      throw std::runtime_error("Connecting vertex exists at the beginning of one segment but not at the end or "
+                               "beginning of the adjacent segment");
+    }
+  }
+  else if (idx_s1 == s1->GetNumberOfIds() - 1)
+  {
+    if (idx_s2 == 0)
+    {
+      // Connection occurs at end of segment 1 and beginning of segment 2 -> add [s1, s2]
+      return concatenateUnique(s1, s2);
+    }
+    else if (idx_s2 == s2->GetNumberOfIds() - 1)
+    {
+      // Connection occurs at end of segment 1 and end of segment 2 -> add [s1, reverse(s2)]
+      return concatenateUnique(s1, reverse(s2));
+    }
+    else
+    {
+      throw std::runtime_error("Connecting vertex exists at the end of one segment but not at the beginning or end "
+                               "of the adjacent segment");
+    }
+  }
+
+  throw std::runtime_error("Connecting vertex does not exist at the start or end of a segment");
+}
+
+/**
+ * @brief Joins contiguous line segments (i.e., those which are connected by a shared vertex)
+ * @details The method `JoinContiguousSegmentsOn` in VTKStripper does not ensure that contiguous segments are joined in
+ * the correct order. This function finds shared vertices between adjacent line segments and iteratively reorders them
+ * correctly and joins them together under the following assumptions:
+ *   * Contiguity is denoted by the line segments containing a shared vertex ID
+ *   * The input line segments are topologically sorted such that two segments that are adjacent in the data container
+ * could potentially have a shared vertex.
+ * @param polydata VTK Polydata output from a VTKCutter/VTKStripper pipeline that has been processed by the
+ * `topologicalSortSegments` and `unifySegmentDirection` functions
+ * @note This function should run after `topologicalSortSegments` and `unifySegmentDirection`
+ */
 void joinContiguousSegments(vtkSmartPointer<vtkPolyData> polydata)
 {
   vtkSmartPointer<vtkCellArray> segments = polydata->GetLines();
@@ -218,63 +344,11 @@ void joinContiguousSegments(vtkSmartPointer<vtkPolyData> polydata)
     {
       output->InsertNextCell(s1);
       stack.push(s2);
-      continue;
-    }
-
-    // Find the iterator to the connection vertex in each segment
-    std::size_t idx_s1 = s1->FindIdLocation(*connecting_vertex);
-    std::size_t idx_s2 = s2->FindIdLocation(*connecting_vertex);
-
-    /* We can only (easily) handle 4 cases for the location of the connecting vertex:
-     *   1. End of segment 1, beginning of segment 2 -> add a new segment to the stack that is [s1, s2]
-     *   2. Beginning of segment 1, end of segment 2 -> add a new segment to the stack that is [s2, s1]
-     *   3. Beginning of segment 1, beginning of segment 2 -> add a new segment to the stack that is [reverse(s2), s1]
-     *   4. End of segment 1, end of segment 2 -> add a new segment to the stack that is [s1, reverse(s2)]
-     *
-     * Note: when squashing segments into a new segment for the stack, we purposefully do not duplicate the shared
-     * vertex
-     */
-    if (idx_s1 == 0)
-    {
-      if (idx_s2 == s2->GetNumberOfIds() - 1)
-      {
-        // Connection occurs at beginning of segment 1 and end of segment 2 -> add [s2, s1]
-        stack.push(concatenateUnique(s2, s1));
-        continue;
-      }
-      else if (idx_s2 == 0)
-      {
-        // Connection occurs at beginning of segment 1 and beginning of segment 2 -> add [reverse(s2), s1]
-        stack.push(concatenateUnique(reverse(s2), s1));
-      }
-      else
-      {
-        throw std::runtime_error("Connecting vertex exists at the beginning of one segment but not at the end or "
-                                 "beginning of the adjacent segment");
-      }
-    }
-    else if (idx_s1 == s1->GetNumberOfIds() - 1)
-    {
-      if (idx_s2 == 0)
-      {
-        // Connection occurs at end of segment 1 and beginning of segment 2 -> add [s1, s2]
-        stack.push(concatenateUnique(s1, s2));
-        continue;
-      }
-      else if (idx_s2 == s2->GetNumberOfIds() - 1)
-      {
-        // Connection occurs at end of segment 1 and end of segment 2 -> add [s1, reverse(s2)]
-        stack.push(concatenateUnique(s1, reverse(s2)));
-      }
-      else
-      {
-        throw std::runtime_error("Connecting vertex exists at the end of one segment but not at the beginning or end "
-                                 "of the adjacent segment");
-      }
     }
     else
     {
-      throw std::runtime_error("Connecting vertex does not exist at the start or end of a segment");
+      // Otherwise, join the contiguous segments and add the resulting segment to the stack
+      stack.push(joinContiguousSegments(s1, s2, *connecting_vertex));
     }
   }
 
@@ -282,6 +356,12 @@ void joinContiguousSegments(vtkSmartPointer<vtkPolyData> polydata)
   polydata->SetLines(output);
 }
 
+/**
+ * @brief Joins segments whose start and end vertices are within a specified Cartesian distance of one another
+ * @param polydata VTK Polydata output from a VTKCutter/VTKStripper pipeline and modified by the
+ * `topologicalSortSegments`, `unifySegmentDirection`, and `JoinContiguousSegments` functions.
+ * @param max_separation_distance Distance (m) below which two adjacent unconnected segments should be joined
+ */
 void joinCloseSegments(vtkSmartPointer<vtkPolyData> polydata, const double max_separation_distance)
 {
   vtkSmartPointer<vtkCellArray> segments = polydata->GetLines();
@@ -300,6 +380,7 @@ void joinCloseSegments(vtkSmartPointer<vtkPolyData> polydata, const double max_s
 
   while (!stack.empty())
   {
+    // Get the first segment
     vtkSmartPointer<vtkIdList> s1 = stack.top();
     stack.pop();
 
@@ -309,6 +390,7 @@ void joinCloseSegments(vtkSmartPointer<vtkPolyData> polydata, const double max_s
       continue;
     }
 
+    // Get the second segment
     vtkSmartPointer<vtkIdList> s2 = stack.top();
     stack.pop();
 
@@ -319,7 +401,9 @@ void joinCloseSegments(vtkSmartPointer<vtkPolyData> polydata, const double max_s
     // Get the first point in segment 2
     const Eigen::Vector3d s2_begin = Eigen::Map<const Eigen::Vector3d>(points->GetPoint(s2->GetId(0)));
 
+    // Compute the distance between the end of segment 1 and beginning of segment 2
     const double d = (s2_begin - s1_end).norm();
+
     if (d < max_separation_distance)
     {
       // Add segment 2 to segment 1 and push it onto the stack
@@ -337,22 +421,29 @@ void joinCloseSegments(vtkSmartPointer<vtkPolyData> polydata, const double max_s
   polydata->SetLines(output);
 }
 
+/**
+ * @brief Processes the polylines in the output of a VTKCutter/VTKStripper pipeline such that contiguous segments are
+ * joined in the correct order, all segments have a consistent direction, and close segments are joined together.
+ * @param polydata VTK Polydata output from a VTKCutter/VTKStripper pipeline
+ * @param reference_direction Reference segemnt direction (e.g., raster cut direction)
+ * @param max_segment_separation Distance (m) below which adjacent unconnected segments should be joined
+ */
 void processPolyLines(vtkSmartPointer<vtkPolyData> polydata,
                       const Eigen::Vector3d& reference_direction,
-                      const double min_hole_size)
+                      const double max_segment_separation)
 {
+  // Ensure that all of the segments are pointing the same direction (relative to the reference direction)
+  unifySegmentDirection(polydata, reference_direction);
+
   // Topologically sort the segments such that connected segments (e.g., ones that share a common vertex) will be
   // adjacent in the the container
   topologicalSortSegments(polydata);
-
-  // Ensure that all of the segments are pointing the same direction (relative to the first segment)
-  unifySegmentDirection(polydata, reference_direction);
 
   // Join the contiguous segments
   joinContiguousSegments(polydata);
 
   // Join segments whose endpoints are within a specific distance of each other
-  joinCloseSegments(polydata, min_hole_size);
+  joinCloseSegments(polydata, max_segment_separation);
 }
 
 Eigen::Isometry3d createTransform(const Eigen::Vector3d& position,
@@ -360,7 +451,6 @@ Eigen::Isometry3d createTransform(const Eigen::Vector3d& position,
                                   const Eigen::Vector3d& path_dir)
 {
   Eigen::Vector3d y = normal.cross(path_dir);
-  ;
   Eigen::Vector3d x = y.cross(normal);
 
   Eigen::Isometry3d transform;
@@ -388,29 +478,30 @@ noether::ToolPath convertToPoses(vtkSmartPointer<vtkPolyData> polydata)
   // Add each segment
   for (std::size_t s_idx = 0; s_idx < n_segments; ++s_idx)
   {
-    vtkNew<vtkIdList> point_ids;
-    segments->GetCellAtId(s_idx, point_ids);
-    const std::size_t n_points = point_ids->GetNumberOfIds();
+    vtkNew<vtkIdList> segment_vtk;
+    segments->GetCellAtId(s_idx, segment_vtk);
+    const std::size_t n_points = segment_vtk->GetNumberOfIds();
 
     noether::ToolPathSegment segment;
     segment.reserve(n_points);
 
     for (std::size_t pt_idx = 0; pt_idx < n_points; ++pt_idx)
     {
-      vtkIdType this_id = point_ids->GetId(pt_idx);
+      vtkIdType this_id = segment_vtk->GetId(pt_idx);
       const Eigen::Vector3d point = Eigen::Map<const Eigen::Vector3d>(points->GetPoint(this_id));
       const Eigen::Vector3d normal = Eigen::Map<const Eigen::Vector3d>(point_data->GetNormals()->GetTuple(this_id));
 
-      Eigen::Vector3d path_dir = Eigen::Vector3d::UnitX();
+      // Compute the path direction with either the next or previous point
+      Eigen::Vector3d path_dir;
       if (pt_idx < n_points - 1)
       {
-        const vtkIdType next_id = point_ids->GetId(pt_idx + 1);
+        const vtkIdType next_id = segment_vtk->GetId(pt_idx + 1);
         const Eigen::Vector3d next_point = Eigen::Map<const Eigen::Vector3d>(points->GetPoint(next_id));
         path_dir = next_point - point;
       }
       else
       {
-        const vtkIdType prev_id = point_ids->GetId(pt_idx - 1);
+        const vtkIdType prev_id = segment_vtk->GetId(pt_idx - 1);
         const Eigen::Vector3d prev_point = Eigen::Map<const Eigen::Vector3d>(points->GetPoint(prev_id));
         path_dir = point - prev_point;
       }
@@ -579,8 +670,7 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
   ToolPaths tool_paths;
   tool_paths.reserve(num_planes);
 
-  // Create and run a VTK cutter+stripper pipeline for each plane
-  // Note: the pipeline is created and run per-plane in order to be able to differentiate between segments on
+  // Create and run a VTK cutter + stripper pipeline for each plane
   for (std::size_t i = 0; i < num_planes; ++i)
   {
     const Eigen::Vector3d current_loc = start_loc + i * line_spacing_ * cut_normal;
@@ -605,7 +695,7 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
     if (stripper->GetErrorCode() != vtkErrorCode::NoError)
       continue;
 
-    // Process the tool path lines to ensure proper segment ordering and connectivity
+    // Process the tool path lines to ensure proper segment ordering, direction, and connectivity
     vtkNew<vtkPolyData> processed_output;
     processed_output->DeepCopy(stripper->GetOutput());
     processPolyLines(processed_output, cut_direction, min_hole_size_);

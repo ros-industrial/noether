@@ -24,7 +24,7 @@ namespace noether
 {
 /**
  * @ingroup raster_planners
- * @brief An implementation of the Raster Planner using a series of parallel cutting planes.
+ * @brief An implementation of RasterPlanner using a series of parallel cutting planes.
  * @details This implementation works best on approximately planar parts.
  * The direction generator defines the direction of the raster cut.
  * The cut normal (i.e., the raster step direction) is defined by the cross product of the cut direction and the
