@@ -13,7 +13,7 @@ class vtkRenderer;
 class vtkAxes;
 class vtkAxesActor;
 class vtkTubeFilter;
-class vtkAssembly;
+class vtkPropAssembly;
 class vtkPolyData;
 
 namespace Ui
@@ -101,11 +101,11 @@ protected:
   vtkSmartPointer<vtkPolyDataMapper> mesh_mapper_;
   vtkSmartPointer<vtkActor> mesh_actor_;
 
-  vtkSmartPointer<vtkAssembly> tool_path_actor_;
-  vtkSmartPointer<vtkAssembly> connected_path_actor_;
-  vtkSmartPointer<vtkAssembly> unmodified_tool_path_actor_;
-  vtkSmartPointer<vtkAssembly> unmodified_connected_path_actor_;
-  vtkSmartPointer<vtkAssembly> mesh_fragment_actor_;
+  vtkSmartPointer<vtkPropAssembly> tool_path_actor_;
+  vtkSmartPointer<vtkPropAssembly> connected_path_actor_;
+  vtkSmartPointer<vtkPropAssembly> unmodified_tool_path_actor_;
+  vtkSmartPointer<vtkPropAssembly> unmodified_connected_path_actor_;
+  vtkSmartPointer<vtkPropAssembly> mesh_fragment_actor_;
 
   vtkSmartPointer<vtkAxes> axes_;
   vtkSmartPointer<vtkAxesActor> axes_actor_;

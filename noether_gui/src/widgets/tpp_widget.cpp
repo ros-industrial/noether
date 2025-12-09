@@ -18,7 +18,7 @@
 // Rendering includes
 #include <QVTKOpenGLNativeWidget.h>
 #include <vtkAxesActor.h>
-#include <vtkAssembly.h>
+#include <vtkPropAssembly.h>
 #include <vtkOpenGLPolyDataMapper.h>
 #include <vtkOpenGLActor.h>
 #include <vtkOpenGLRenderer.h>
@@ -34,11 +34,11 @@
 #include <vtkTransform.h>
 #include <vtkTubeFilter.h>
 #include <vtkProperty.h>
+#include <vtkProperty2D.h>
 #include <vtkColorSeries.h>
-#include <vtkLine.h>
+#include <vtkLeaderActor2D.h>
 #include <vtkCaptionActor2D.h>
 #include <vtkTextProperty.h>
-#include <pcl/io/vtk_lib_io.h>
 
 namespace noether
 {
@@ -50,11 +50,11 @@ TPPWidget::TPPWidget(std::shared_ptr<const WidgetFactory> factory, QWidget* pare
   , renderer_(vtkSmartPointer<vtkOpenGLRenderer>::New())
   , mesh_mapper_(vtkSmartPointer<vtkOpenGLPolyDataMapper>::New())
   , mesh_actor_(vtkSmartPointer<vtkOpenGLActor>::New())
-  , mesh_fragment_actor_(vtkSmartPointer<vtkAssembly>::New())
-  , tool_path_actor_(vtkSmartPointer<vtkAssembly>::New())
-  , connected_path_actor_(vtkSmartPointer<vtkAssembly>::New())
-  , unmodified_tool_path_actor_(vtkSmartPointer<vtkAssembly>::New())
-  , unmodified_connected_path_actor_(vtkSmartPointer<vtkAssembly>::New())
+  , mesh_fragment_actor_(vtkSmartPointer<vtkPropAssembly>::New())
+  , tool_path_actor_(vtkSmartPointer<vtkPropAssembly>::New())
+  , connected_path_actor_(vtkSmartPointer<vtkPropAssembly>::New())
+  , unmodified_tool_path_actor_(vtkSmartPointer<vtkPropAssembly>::New())
+  , unmodified_connected_path_actor_(vtkSmartPointer<vtkPropAssembly>::New())
   , axes_(vtkSmartPointer<vtkAxes>::New())
   , axes_actor_(vtkSmartPointer<vtkAxesActor>::New())
   , tube_filter_(vtkSmartPointer<vtkTubeFilter>::New())
@@ -249,10 +249,10 @@ vtkSmartPointer<vtkTransform> toVTK(const Eigen::Isometry3d& mat)
   return t;
 }
 
-vtkSmartPointer<vtkAssembly> createToolPathActors(const std::vector<ToolPaths>& tool_paths,
-                                                  vtkAlgorithmOutput* waypoint_shape_output_port)
+vtkSmartPointer<vtkPropAssembly> createToolPathActors(const std::vector<ToolPaths>& tool_paths,
+                                                      vtkAlgorithmOutput* waypoint_shape_output_port)
 {
-  auto assembly = vtkSmartPointer<vtkAssembly>::New();
+  auto assembly = vtkSmartPointer<vtkPropAssembly>::New();
 
   for (const ToolPaths& fragment : tool_paths)
   {
@@ -281,41 +281,35 @@ vtkSmartPointer<vtkAssembly> createToolPathActors(const std::vector<ToolPaths>& 
   return assembly;
 }
 
-vtkSmartPointer<vtkActor> createLineActor(const Eigen::Isometry3d& point1,
-                                          const Eigen::Isometry3d& point2,
-                                          LineStyle lineStyle)
+vtkSmartPointer<vtkLeaderActor2D> createLineActor(const Eigen::Isometry3d& point1,
+                                                  const Eigen::Isometry3d& point2,
+                                                  LineStyle lineStyle,
+                                                  bool include_arrow)
 {
-  vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-  points->InsertNextPoint(point1.translation().data());
-  points->InsertNextPoint(point2.translation().data());
+  vtkNew<vtkLeaderActor2D> arrow;
 
-  vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
-  line->GetPointIds()->SetId(0, 0);  // the second 0 is the index of the point in vtkPoints (point1)
-  line->GetPointIds()->SetId(1, 1);  // the second 1 is the index of the point in vtkPoints (point2)
+  if (include_arrow)
+    arrow->SetArrowPlacementToPoint2();
+  else
+    arrow->SetArrowPlacementToNone();
 
-  vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
-  lines->InsertNextCell(line);
+  vtkSmartPointer<vtkCoordinate> p1 = arrow->GetPositionCoordinate();
+  p1->SetCoordinateSystemToWorld();
+  p1->SetValue(point1.translation().data());
 
-  vtkSmartPointer<vtkPolyData> linesPolyData = vtkSmartPointer<vtkPolyData>::New();
-  linesPolyData->SetPoints(points);
-  linesPolyData->SetLines(lines);
+  vtkSmartPointer<vtkCoordinate> p2 = arrow->GetPosition2Coordinate();
+  p2->SetCoordinateSystemToWorld();
+  p2->SetValue(point2.translation().data());
 
-  vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  mapper->SetInputData(linesPolyData);
-
-  vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-  actor->SetMapper(mapper);
-
-  vtkSmartPointer<vtkProperty> property = vtkSmartPointer<vtkProperty>::New();
-
+  vtkNew<vtkProperty2D> property;
   switch (lineStyle)
   {
     case LineStyle::INTRA_SEGMENT:
-      property->SetLineWidth(3.0);
+      property->SetLineWidth(1.0);
       property->SetColor(0.27, 0.74, 0.2);
       break;
     case LineStyle::INTER_SEGMENT:
-      property->SetLineWidth(1.0);
+      property->SetLineWidth(0.5);
       property->SetColor(0, 0, 1);
       break;
     case LineStyle::INTER_PATH:
@@ -324,9 +318,9 @@ vtkSmartPointer<vtkActor> createLineActor(const Eigen::Isometry3d& point1,
       break;
   }
 
-  actor->SetProperty(property);
+  arrow->SetProperty(property);
 
-  return actor;
+  return arrow;
 }
 
 /*
@@ -336,10 +330,10 @@ vtkSmartPointer<vtkActor> createLineActor(const Eigen::Isometry3d& point1,
  *  @param waypoint_shape_output_port The output port of the waypoint shape
  *  @return The assembly containing the polyline
  */
-vtkSmartPointer<vtkAssembly> createToolPathPolylineActor(const std::vector<ToolPaths>& tool_paths,
-                                                         vtkAlgorithmOutput* waypoint_shape_output_port)
+vtkSmartPointer<vtkPropAssembly> createToolPathPolylineActor(const std::vector<ToolPaths>& tool_paths,
+                                                             vtkAlgorithmOutput* waypoint_shape_output_port)
 {
-  auto assembly = vtkSmartPointer<vtkAssembly>::New();
+  auto assembly = vtkSmartPointer<vtkPropAssembly>::New();
 
   for (const ToolPaths& fragment : tool_paths)
   {
@@ -355,8 +349,8 @@ vtkSmartPointer<vtkAssembly> createToolPathPolylineActor(const std::vector<ToolP
         {
           const Eigen::Isometry3d& point = segment[k];
           const Eigen::Isometry3d& next_point = segment[k + 1];
-
-          auto actor = createLineActor(point, next_point, LineStyle::INTRA_SEGMENT);
+          const bool include_arrow = (k + 2 == segment.size());
+          auto actor = createLineActor(point, next_point, LineStyle::INTRA_SEGMENT, include_arrow);
           assembly->AddPart(actor);
         }
 
@@ -366,7 +360,7 @@ vtkSmartPointer<vtkAssembly> createToolPathPolylineActor(const std::vector<ToolP
           const Eigen::Isometry3d& w1 = segment.back();
           const Eigen::Isometry3d& w2 = next_segment.front();
 
-          auto actor = createLineActor(w1, w2, LineStyle::INTER_SEGMENT);
+          auto actor = createLineActor(w1, w2, LineStyle::INTER_SEGMENT, true);
           assembly->AddPart(actor);
         }
       }
@@ -377,7 +371,7 @@ vtkSmartPointer<vtkAssembly> createToolPathPolylineActor(const std::vector<ToolP
         const Eigen::Isometry3d& w1 = tool_path.back().back();
         const Eigen::Isometry3d& w2 = next_tool_path.front().front();
 
-        auto actor = createLineActor(w1, w2, LineStyle::INTER_PATH);
+        auto actor = createLineActor(w1, w2, LineStyle::INTER_PATH, true);
         assembly->AddPart(actor);
       }
     }
@@ -386,9 +380,9 @@ vtkSmartPointer<vtkAssembly> createToolPathPolylineActor(const std::vector<ToolP
   return assembly;
 }
 
-vtkSmartPointer<vtkAssembly> createMeshActors(const std::vector<pcl::PolygonMesh>& meshes)
+vtkSmartPointer<vtkPropAssembly> createMeshActors(const std::vector<pcl::PolygonMesh>& meshes)
 {
-  auto assembly = vtkSmartPointer<vtkAssembly>::New();
+  auto assembly = vtkSmartPointer<vtkPropAssembly>::New();
 
   // Create a color series to differentiate the meshes
   auto color_series = vtkSmartPointer<vtkColorSeries>::New();
@@ -541,7 +535,7 @@ void TPPWidget::plan()
 void TPPWidget::saveModifiedMeshes(const QDir& save_dir)
 {
   // Extract the submeshes from the actor that holds the modified meshes
-  vtkProp3DCollection* parts = mesh_fragment_actor_->GetParts();
+  vtkPropCollection* parts = mesh_fragment_actor_->GetParts();
   if (parts->GetNumberOfItems() == 0)
   {
     QMessageBox::warning(this, "Error", "No modified meshes found; please plan a tool path first.");
