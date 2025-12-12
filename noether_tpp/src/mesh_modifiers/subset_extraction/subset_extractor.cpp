@@ -48,6 +48,10 @@ pcl::PolygonMesh extractSubMeshFromInlierVertices(const pcl::PolygonMesh& input_
   pcl::PolygonMesh output_mesh;
   simplifier.simplify(intermediate_mesh, output_mesh);
 
+  // Copy the header data
+  output_mesh.header = input_mesh.header;
+  output_mesh.cloud.header = input_mesh.cloud.header;
+
   return output_mesh;
 }
 
