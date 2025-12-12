@@ -24,7 +24,7 @@ namespace noether
 {
 /**
  * @ingroup raster_planners
- * @brief An implementation of the Raster Planner using a series of parallel cutting planes.
+ * @brief An implementation of RasterPlanner using a series of parallel cutting planes.
  * @details This implementation works best on approximately planar parts.
  * The direction generator defines the direction of the raster cut.
  * The cut normal (i.e., the raster step direction) is defined by the cross product of the cut direction and the
@@ -35,7 +35,6 @@ class PlaneSlicerRasterPlanner : public RasterPlanner
 public:
   PlaneSlicerRasterPlanner(DirectionGenerator::ConstPtr dir_gen, OriginGenerator::ConstPtr origin_gen);
 
-  void setSearchRadius(const double search_radius);
   void setMinSegmentSize(const double min_segment_size);
   void generateRastersBidirectionally(const bool bidirectional);
 
@@ -50,10 +49,9 @@ protected:
   /** @brief Flag indicating whether rasters should be generated in the direction of both the cut normal and its
    * negation */
   bool bidirectional_ = true;
+
   /** @brief Minimum length of valid segment (m) */
   double min_segment_size_;
-  /** @brief Search radius for calculating normals (m) */
-  double search_radius_;
 };
 
 }  // namespace noether
