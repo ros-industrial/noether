@@ -22,7 +22,7 @@ public:
   /**
    * @brief Saves the configuration of the widget to a YAML node
    */
-  virtual void save(YAML::Node&) const = 0;
+  virtual void save(YAML::Node&) const {};
 };
 
 }  // namespace noether
