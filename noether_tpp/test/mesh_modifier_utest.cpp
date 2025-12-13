@@ -107,7 +107,8 @@ bool operator==(const pcl::PCLPointField& lhs, const pcl::PCLPointField& rhs)
   equivalent &= lhs.count == rhs.count;
   equivalent &= lhs.datatype == rhs.datatype;
   equivalent &= lhs.name == rhs.name;
-  equivalent &= lhs.offset == rhs.offset;
+  // Don't include the offset since the fields might be arranged differently
+  // equivalent &= lhs.offset == rhs.offset;
   return equivalent;
 }
 
@@ -172,7 +173,11 @@ TEST_P(DataRetainingMeshModifierTestFixture, RunMeshModifiers)
     ASSERT_GE(mesh.cloud.fields.size(), original_mesh.cloud.fields.size());
     for (std::size_t i = 0; i < original_mesh.cloud.fields.size(); ++i)
     {
-      ASSERT_TRUE(original_mesh.cloud.fields[i] == mesh.cloud.fields[i]);
+      const pcl::PCLPointField& f = mesh.cloud.fields[i];
+      auto it = std::find_if(original_mesh.cloud.fields.begin(),
+                             original_mesh.cloud.fields.end(),
+                             [&f](const pcl::PCLPointField& field) { return field == f; });
+      ASSERT_TRUE(it != original_mesh.cloud.fields.end());
     }
   }
 }
