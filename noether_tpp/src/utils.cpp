@@ -141,9 +141,9 @@ Eigen::Vector3f getFaceNormal(const pcl::PolygonMesh& mesh, const pcl::Vertices&
     throw std::runtime_error(ss.str());
   }
 
-  /* Assuming the vertices of the polygon are arranged in clockwise order, the face normal should be the cross product
-   * of the vector from vertex 0 to vertex 1 with the vector from vertex 0 to the last vertex. See the examples below
-   * for a triangle and quad face.
+  /* Assuming the vertices of the polygon are arranged in counter-clockwise order (following right-hand rule), the face
+   * normal should be the cross product of the vector from vertex 0 to vertex 1 with the vector from vertex 0 to the
+   * last vertex. See the examples below for a triangle and quad face.
    *
    *    0--2   0---3
    *    | /    |   |
