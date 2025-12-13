@@ -39,7 +39,7 @@ std::vector<pcl::PolygonMesh> NormalsFromMeshFacesMeshModifier::modify(const pcl
   pcl::PolygonMesh output = mesh;
 
   // Concatenate the normals with the nominal mesh information
-  if (!pcl::concatenateFields(normals_pc2, mesh.cloud, output.cloud))
+  if (!pcl::concatenateFields(mesh.cloud, normals_pc2, output.cloud))
     throw std::runtime_error("Failed to concatenate normals into mesh vertex cloud");
 
   return { output };
