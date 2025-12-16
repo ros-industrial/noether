@@ -37,11 +37,13 @@ public:
    * @param min_vertices Minimum number of vertices that a cluster (identfied as a primitive) must have
    * @param max_primitives Maximum number of primitives to detect
    * @param max_iterations Maximum number of RANSAC iterations to perform
+   * @param refine_model Flag indicating that a model refinement step should be run after the nominal RANSAC step
    */
   RansacPrimitiveFitMeshModifier(float distance_threshold,
                                  unsigned min_vertices = 1,
                                  int max_primitives = -1,
-                                 unsigned max_iterations = 100);
+                                 unsigned max_iterations = 100,
+                                 bool refine_model = true);
 
   virtual ~RansacPrimitiveFitMeshModifier() = default;
 
@@ -70,6 +72,7 @@ protected:
   unsigned min_vertices_;
   int max_primitives_;
   unsigned max_iterations_;
+  bool refine_model_;
 };
 
 }  // namespace noether
