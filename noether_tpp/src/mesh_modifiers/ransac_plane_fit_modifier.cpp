@@ -77,6 +77,10 @@ pcl::PolygonMesh RansacPlaneProjectionMeshModifier::createSubMesh(
   // Extract the inlier sub-mesh
   pcl::PolygonMesh output_mesh = extractSubMeshFromInlierVertices(mesh, inliers);
 
+  // If the mesh is empty, return it instead of trying to project the non-existent inliers
+  if (output_mesh.polygons.empty())
+    return output_mesh;
+
   // Compute the unprojected face normals
   Eigen::MatrixX3f normals(output_mesh.polygons.size(), 3);
   for (Eigen::Index i = 0; i < normals.rows(); ++i)

@@ -158,6 +158,10 @@ pcl::PolygonMesh RansacCylinderProjectionMeshModifier::createSubMesh(
   // Extract the inlier submesh
   pcl::PolygonMesh output_mesh = extractSubMeshFromInlierVertices(mesh, inliers);
 
+  // If the mesh is empty, return it instead of trying to project the non-existent inliers
+  if (output_mesh.polygons.empty())
+    return output_mesh;
+
   // Project the mesh
   projectInPlace(output_mesh.cloud, coefficients);
 
