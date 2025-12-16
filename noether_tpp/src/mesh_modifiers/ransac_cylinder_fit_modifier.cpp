@@ -86,10 +86,10 @@ void projectInPlace(pcl::PCLPointCloud2& cloud, const Eigen::VectorXf& model_coe
     {
       auto offset = r * cloud.row_step + c * cloud.point_step;
       float* xyz = reinterpret_cast<float*>(cloud.data.data() + offset + x_it->offset);
-      Eigen::Map<Eigen::Vector4f> p(xyz);
+      Eigen::Map<Eigen::Vector3f> p(xyz);
 
       // Project the point in place
-      p.head<3>() = projector.project(p.head<3>());
+      p = projector.project(p);
 
       // TODO: update calculation of normals
       // if (update_normals)

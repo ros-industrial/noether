@@ -26,17 +26,20 @@ void projectInPlace(pcl::PCLPointCloud2& cloud, const Eigen::Vector4f& plane_coe
 
   bool update_normals = nx_it != cloud.fields.end() && ny_it != cloud.fields.end() && nz_it != cloud.fields.end();
 
+  Eigen::Vector4f pt_homogeneous;
+  pt_homogeneous.setOnes();
   for (std::size_t r = 0; r < cloud.height; ++r)
   {
     for (std::size_t c = 0; c < cloud.width; ++c)
     {
       auto offset = r * cloud.row_step + c * cloud.point_step;
       float* xyz = reinterpret_cast<float*>(cloud.data.data() + offset + x_it->offset);
-      Eigen::Map<Eigen::Vector4f> pt(xyz);
+      Eigen::Map<Eigen::Vector3f> pt(xyz);
+      pt_homogeneous.head<3>() = pt;
 
       // Project the point
-      float d = plane_coeffs.dot(pt);
-      pt.head<3>() -= d * plane_coeffs.head<3>();
+      float d = plane_coeffs.dot(pt_homogeneous);
+      pt -= d * plane_coeffs.head<3>();
 
       if (update_normals)
       {
