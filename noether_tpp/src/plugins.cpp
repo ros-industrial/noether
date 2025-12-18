@@ -43,7 +43,7 @@
 #include <noether_tpp/tool_path_modifiers/offset_modifier.h>
 #include <noether_tpp/tool_path_modifiers/raster_organization_modifier.h>
 #include <noether_tpp/tool_path_modifiers/snake_organization_modifier.h>
-#include <noether_tpp/tool_path_modifiers/radius_of_curvature_extension_modifier.h>
+#include <noether_tpp/tool_path_modifiers/radius_of_curvature_extrapolation_modifier.h>
 #include <noether_tpp/tool_path_modifiers/standard_edge_paths_organization_modifier.h>
 #include <noether_tpp/tool_path_modifiers/tool_drag_orientation_modifier.h>
 #include <noether_tpp/tool_path_modifiers/uniform_orientation_modifier.h>
@@ -168,7 +168,7 @@ EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(ToolDragOrientationToolPathModifier, Too
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(UniformOrientationModifier, UniformOrientation)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(UniformSpacingLinearModifier, UniformSpacingLinear)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(UniformSpacingSplineModifier, UniformSpacingSpline)
-EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(RadiusOfCurvatureExtensionToolPathModifier, RadiusOfCurvatureExtension)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(RadiusOfCurvatureExtrapolationToolPathModifier, RadiusOfCurvatureExtrapolation)
 
 struct Plugin_CompoundToolPathModifier : public Plugin<ToolPathModifier>
 {

@@ -1,4 +1,4 @@
-#include <noether_tpp/tool_path_modifiers/radius_of_curvature_extension_modifier.h>
+#include <noether_tpp/tool_path_modifiers/radius_of_curvature_extrapolation_modifier.h>
 #include <noether_tpp/serialization.h>
 
 #include <unsupported/Eigen/Splines>
@@ -52,19 +52,19 @@ extrapolate(const Spline& spline, const double t, const double extension_distanc
 
 namespace noether
 {
-RadiusOfCurvatureExtensionToolPathModifier::RadiusOfCurvatureExtensionToolPathModifier(
+RadiusOfCurvatureExtrapolationToolPathModifier::RadiusOfCurvatureExtrapolationToolPathModifier(
     const double distance,
     const double normal_offset_distance,
     const bool extend_front,
     const bool extend_back)
-  : distance_(distance)
+  : extrapolation_distance_(distance)
   , normal_offset_distance_(normal_offset_distance)
-  , extend_front_(extend_front)
-  , extend_back_(extend_back)
+  , extrapolate_front_(extend_front)
+  , extrapolate_back_(extend_back)
 {
 }
 
-ToolPaths RadiusOfCurvatureExtensionToolPathModifier::modify(ToolPaths tool_paths) const
+ToolPaths RadiusOfCurvatureExtrapolationToolPathModifier::modify(ToolPaths tool_paths) const
 {
   for (ToolPath& tool_path : tool_paths)
   {
@@ -80,19 +80,19 @@ ToolPaths RadiusOfCurvatureExtensionToolPathModifier::modify(ToolPaths tool_path
       Spline spline = spline_fitting.Interpolate(points, 2);
 
       // Create an extension point at the front of the segment
-      if (extend_front_)
+      if (extrapolate_front_)
       {
         const auto& prev_z = segment.front().matrix().col(2).head<3>();
-        Eigen::Isometry3d front = extrapolate(spline, 0.0, -distance_, prev_z);
+        Eigen::Isometry3d front = extrapolate(spline, 0.0, -extrapolation_distance_, prev_z);
         front *= Eigen::Translation3d(0.0, 0.0, normal_offset_distance_);
         segment.insert(segment.begin(), front);
       }
 
       // Create an extension point at the back of the segment
-      if (extend_back_)
+      if (extrapolate_back_)
       {
         const auto& prev_z = segment.back().matrix().col(2).head<3>();
-        Eigen::Isometry3d back = extrapolate(spline, 1.0, distance_, prev_z);
+        Eigen::Isometry3d back = extrapolate(spline, 1.0, extrapolation_distance_, prev_z);
         back *= Eigen::Translation3d(0.0, 0.0, normal_offset_distance_);
         segment.push_back(back);
       }
@@ -107,25 +107,25 @@ ToolPaths RadiusOfCurvatureExtensionToolPathModifier::modify(ToolPaths tool_path
 namespace YAML
 {
 /** @cond */
-Node convert<noether::RadiusOfCurvatureExtensionToolPathModifier>::encode(
-    const noether::RadiusOfCurvatureExtensionToolPathModifier& val)
+Node convert<noether::RadiusOfCurvatureExtrapolationToolPathModifier>::encode(
+    const noether::RadiusOfCurvatureExtrapolationToolPathModifier& val)
 {
   Node node;
-  node["distance"] = val.distance_;
+  node["extrapolation_distance"] = val.extrapolation_distance_;
   node["normal_offset_distance"] = val.normal_offset_distance_;
-  node["extend_front"] = val.extend_front_;
-  node["extend_back"] = val.extend_back_;
+  node["extrapolate_front"] = val.extrapolate_front_;
+  node["extrapolate_back"] = val.extrapolate_back_;
   return {};
 }
 
-bool convert<noether::RadiusOfCurvatureExtensionToolPathModifier>::decode(
+bool convert<noether::RadiusOfCurvatureExtrapolationToolPathModifier>::decode(
     const Node& node,
-    noether::RadiusOfCurvatureExtensionToolPathModifier& val)
+    noether::RadiusOfCurvatureExtrapolationToolPathModifier& val)
 {
-  val.distance_ = YAML::getMember<double>(node, "distance");
+  val.extrapolation_distance_ = YAML::getMember<double>(node, "extrapolation_distance");
   val.normal_offset_distance_ = YAML::getMember<double>(node, "normal_offset_distance");
-  val.extend_front_ = YAML::getMember<bool>(node, "extend_front");
-  val.extend_back_ = YAML::getMember<bool>(node, "extend_back");
+  val.extrapolate_front_ = YAML::getMember<bool>(node, "extrapolate_front");
+  val.extrapolate_back_ = YAML::getMember<bool>(node, "extrapolate_back");
   return true;
 }
 /** @endcond */

@@ -64,6 +64,7 @@ add_library(
   src/widgets/tool_path_modifiers/linear_approach_modifier_widget.cpp
   src/widgets/tool_path_modifiers/linear_departure_modifier_widget.cpp
   src/widgets/tool_path_modifiers/minimum_segment_length_modifier_widget.cpp
+  src/widgets/tool_path_modifiers/radius_of_curvature_extrapolation_modifier_widget.cpp
   src/widgets/tool_path_modifiers/tool_drag_orientation_modifier_widget.cpp
   src/widgets/tool_path_modifiers/biased_tool_drag_orientation_modifier_widget.cpp
   src/widgets/tool_path_modifiers/uniform_orientation_modifier_widget.cpp
