@@ -2,8 +2,8 @@
 Changelog for package noether_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.15.3 (2025-12-22)
+-------------------
 * Visualized tool path lines as arrows (`#351 <https://github.com/marip8/noether/issues/351>`_)
 * Fixed bug in unit spin boxes and changed color of inter-segment tool path connector line to blue for better contrast (`#348 <https://github.com/marip8/noether/issues/348>`_)
 * Contributors: Michael Ripperger
