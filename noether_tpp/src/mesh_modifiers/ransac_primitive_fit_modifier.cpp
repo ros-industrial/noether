@@ -10,12 +10,14 @@ namespace noether
 RansacPrimitiveFitMeshModifier::RansacPrimitiveFitMeshModifier(float distance_threshold,
                                                                unsigned min_vertices,
                                                                int max_primitives,
-                                                               unsigned max_iterations)
+                                                               unsigned max_iterations,
+                                                               bool refine_model)
   : MeshModifier()
   , distance_threshold_(distance_threshold)
   , min_vertices_(min_vertices)
   , max_primitives_(max_primitives < 1 ? std::numeric_limits<int>::max() : max_primitives)
   , max_iterations_(max_iterations)
+  , refine_model_(refine_model)
 {
 }
 
@@ -54,8 +56,9 @@ std::vector<pcl::PolygonMesh> RansacPrimitiveFitMeshModifier::modify(const pcl::
       break;
 
     // Refine the fit model
-    if (!ransac->refineModel())
-      break;
+    if (refine_model_)
+      if (!ransac->refineModel())
+        break;
 
     // Extract the inliers and ensure there are enough to form a valid model cluster
     std::vector<int> inliers;
@@ -100,6 +103,7 @@ Node convert<noether::RansacPrimitiveFitMeshModifier>::encode(const noether::Ran
   node["min_vertices"] = val.min_vertices_;
   node["max_primitives"] = val.max_primitives_;
   node["max_iterations"] = val.max_iterations_;
+  node["refine_model"] = val.refine_model_;
 
   return node;
 }
@@ -111,6 +115,10 @@ bool convert<noether::RansacPrimitiveFitMeshModifier>::decode(const Node& node,
   val.min_vertices_ = YAML::getMember<int>(node, "min_vertices");
   val.max_primitives_ = YAML::getMember<int>(node, "max_primitives");
   val.max_iterations_ = YAML::getMember<int>(node, "max_iterations");
+  if (node["refine_model"])
+    val.refine_model_ = YAML::getMember<bool>(node, "refine_model");
+  else
+    val.refine_model_ = true;
 
   return true;
 }

@@ -10,6 +10,7 @@ static const std::string DIST_THRESH_KEY = "distance_threshold";
 static const std::string MIN_VERTICES_KEY = "min_vertices";
 static const std::string MAX_PRIMITIVES_KEY = "max_primitives";
 static const std::string MAX_ITERATIONS_KEY = "max_iterations";
+static const std::string REFINE_MODEL_KEY = "refine_model";
 
 namespace noether
 {
@@ -25,6 +26,8 @@ void RansacPrimitiveFitMeshModifierWidget::configure(const YAML::Node& config)
   ui_->min_vertices->setValue(YAML::getMember<int>(config, MIN_VERTICES_KEY));
   ui_->max_primitives->setValue(YAML::getMember<int>(config, MAX_PRIMITIVES_KEY));
   ui_->max_iterations->setValue(YAML::getMember<int>(config, MAX_ITERATIONS_KEY));
+  if (config[REFINE_MODEL_KEY])
+    ui_->refine_model->setChecked(YAML::getMember<bool>(config, REFINE_MODEL_KEY));
 }
 
 void RansacPrimitiveFitMeshModifierWidget::save(YAML::Node& config) const
@@ -33,6 +36,7 @@ void RansacPrimitiveFitMeshModifierWidget::save(YAML::Node& config) const
   config[MIN_VERTICES_KEY] = ui_->min_vertices->value();
   config[MAX_PRIMITIVES_KEY] = ui_->max_primitives->value();
   config[MAX_ITERATIONS_KEY] = ui_->max_iterations->value();
+  config[REFINE_MODEL_KEY] = ui_->refine_model->isChecked();
 }
 
 }  // namespace noether

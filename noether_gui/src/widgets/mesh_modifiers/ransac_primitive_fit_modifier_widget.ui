@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>285</width>
-    <height>196</height>
+    <width>289</width>
+    <height>228</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -23,83 +23,110 @@
       <attribute name="title">
        <string>RANSAC</string>
       </attribute>
-      <layout class="QFormLayout" name="formLayout">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_distance_threshold">
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <layout class="QFormLayout" name="formLayout">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_distance_threshold">
+           <property name="text">
+            <string>Distance threshold</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="noether::DistanceDoubleSpinBox" name="distance_threshold">
+           <property name="decimals">
+            <number>3</number>
+           </property>
+           <property name="singleStep">
+            <double>0.010000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.025000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_min_vertices">
+           <property name="text">
+            <string>Min vertices</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QSpinBox" name="min_vertices">
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>1000000000</number>
+           </property>
+           <property name="value">
+            <number>1</number>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_max_primitives">
+           <property name="text">
+            <string>Max primitives</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QSpinBox" name="max_primitives">
+           <property name="minimum">
+            <number>-1</number>
+           </property>
+           <property name="value">
+            <number>1</number>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_max_iterations">
+           <property name="text">
+            <string>Max iterations</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QSpinBox" name="max_iterations">
+           <property name="minimum">
+            <number>1</number>
+           </property>
+           <property name="maximum">
+            <number>1000000000</number>
+           </property>
+           <property name="value">
+            <number>100</number>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="refine_model">
          <property name="text">
-          <string>Distance threshold</string>
+          <string>Refine Model</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="noether::DistanceDoubleSpinBox" name="distance_threshold">
-         <property name="decimals">
-          <number>3</number>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
          </property>
-         <property name="singleStep">
-          <double>0.010000000000000</double>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
          </property>
-         <property name="value">
-          <double>0.025000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_min_vertices">
-         <property name="text">
-          <string>Min vertices</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QSpinBox" name="min_vertices">
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <number>1000000000</number>
-         </property>
-         <property name="value">
-          <number>1</number>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_max_primitives">
-         <property name="text">
-          <string>Max primitives</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QSpinBox" name="max_primitives">
-         <property name="minimum">
-          <number>-1</number>
-         </property>
-         <property name="value">
-          <number>1</number>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_max_iterations">
-         <property name="text">
-          <string>Max iterations</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QSpinBox" name="max_iterations">
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <number>1000000000</number>
-         </property>
-         <property name="value">
-          <number>100</number>
-         </property>
-        </widget>
+        </spacer>
        </item>
       </layout>
      </widget>
