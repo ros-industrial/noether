@@ -2,8 +2,8 @@
 Changelog for package noether_tpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.15.4 (2025-12-26)
+-------------------
 * Made RANSAC model refinement optional (`#359 <https://github.com/marip8/noether/issues/359>`_)
 * Fixed bugs in RANSAC projection mesh modifiers (`#358 <https://github.com/marip8/noether/issues/358>`_)
 * Contributors: Michael Ripperger

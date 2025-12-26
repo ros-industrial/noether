@@ -2,8 +2,8 @@
 Changelog for package noether_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.15.4 (2025-12-26)
+-------------------
 * Made RANSAC model refinement optional (`#359 <https://github.com/marip8/noether/issues/359>`_)
 * Contributors: Michael Ripperger
 
