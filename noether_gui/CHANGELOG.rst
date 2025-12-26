@@ -2,6 +2,11 @@
 Changelog for package noether_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Made RANSAC model refinement optional (`#359 <https://github.com/marip8/noether/issues/359>`_)
+* Contributors: Michael Ripperger
+
 0.15.3 (2025-12-22)
 -------------------
 * Visualized tool path lines as arrows (`#351 <https://github.com/marip8/noether/issues/351>`_)
