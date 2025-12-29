@@ -6,7 +6,7 @@
 using Spline = Eigen::Spline<double, 3, 2>;
 
 Eigen::Isometry3d
-extrapolate(const Spline& spline, const double t, const double extension_distance, const Eigen::Vector3d& prev_z)
+extrapolate(const Spline& spline, const double t, const double extrapolation_distance, const Eigen::Vector3d& prev_z)
 {
   // Evaluate the derivatives of the spline at the given time parameter
   const Eigen::Matrix3d s = spline.derivatives(t, 2);
@@ -26,9 +26,9 @@ extrapolate(const Spline& spline, const double t, const double extension_distanc
   const Eigen::Vector3d v_PC = s_ddot.normalized();
   const Eigen::Vector3d p_OC = p_OP + r * v_PC;
 
-  // To extend the spline, rotate the radius vector about the center of origin:
-  // extension_distance = r * theta  --> theta = extension_distance / r
-  const double theta = extension_distance / r;
+  // To extrapolate the spline, rotate the radius vector about the center of origin:
+  // extrapolation_distance = r * theta  --> theta = extrapolation_distance / r
+  const double theta = extrapolation_distance / r;
   // At the center of curvature, rotate the radius vector by 180 degrees less the rotation angle,
   const Eigen::Vector3d rotation_axis = s_ddot.cross(s_dot).normalized();
   const Eigen::Vector3d v_CP_ = Eigen::AngleAxisd(M_PI - theta, rotation_axis) * v_PC * r;
@@ -53,14 +53,14 @@ extrapolate(const Spline& spline, const double t, const double extension_distanc
 namespace noether
 {
 RadiusOfCurvatureExtrapolationToolPathModifier::RadiusOfCurvatureExtrapolationToolPathModifier(
-    const double distance,
+    const double extrapolation_distance,
     const double normal_offset_distance,
-    const bool extend_front,
-    const bool extend_back)
-  : extrapolation_distance_(distance)
+    const bool extrapolate_front,
+    const bool extrapolate_back)
+  : extrapolation_distance_(extrapolation_distance)
   , normal_offset_distance_(normal_offset_distance)
-  , extrapolate_front_(extend_front)
-  , extrapolate_back_(extend_back)
+  , extrapolate_front_(extrapolate_front)
+  , extrapolate_back_(extrapolate_back)
 {
 }
 
@@ -79,7 +79,7 @@ ToolPaths RadiusOfCurvatureExtrapolationToolPathModifier::modify(ToolPaths tool_
       Eigen::SplineFitting<Spline> spline_fitting;
       Spline spline = spline_fitting.Interpolate(points, 2);
 
-      // Create an extension point at the front of the segment
+      // Create an extrapolation point at the front of the segment
       if (extrapolate_front_)
       {
         const auto& prev_z = segment.front().matrix().col(2).head<3>();
@@ -88,7 +88,7 @@ ToolPaths RadiusOfCurvatureExtrapolationToolPathModifier::modify(ToolPaths tool_
         segment.insert(segment.begin(), front);
       }
 
-      // Create an extension point at the back of the segment
+      // Create an extrapolation point at the back of the segment
       if (extrapolate_back_)
       {
         const auto& prev_z = segment.back().matrix().col(2).head<3>();
