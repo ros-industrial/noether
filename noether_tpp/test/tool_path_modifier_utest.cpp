@@ -59,8 +59,6 @@ std::string config_str = R"(
 - name: UniformOrientation
 - name: UniformSpacingLinear
   point_spacing: 0.025
-- name: UniformSpacingSpline
-  point_spacing: 0.025
 - name: CompoundToolPathModifier
   modifiers:
     - *linear_approach
