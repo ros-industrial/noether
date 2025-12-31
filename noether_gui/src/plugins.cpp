@@ -31,7 +31,6 @@
 #include <noether_gui/widgets/tool_path_modifiers/linear_departure_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/minimum_segment_length_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/offset_modifier_widget.h>
-#include <noether_gui/widgets/tool_path_modifiers/uniform_spacing_spline_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/uniform_spacing_linear_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/spline_extrapolation_modifier_widget.h>
 // Mesh Modifiers
@@ -121,7 +120,6 @@ EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(LinearDepartureToolPathModifierWi
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(MinimumSegmentLengthToolPathModifierWidget, MinimumSegmentLength)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(ConcatenateModifierWidget, Concatenate)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(OffsetModifierWidget, Offset)
-EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(UniformSpacingSplineModifierWidget, UniformSpacingSpline)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(UniformSpacingLinearModifierWidget, UniformSpacingLinear)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(SplineExtrapolationToolPathModifierWidget, SplineExtrapolation)
 
