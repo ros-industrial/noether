@@ -1,33 +1,31 @@
 #include <noether_gui/widgets/tool_path_modifiers/uniform_spacing_linear_modifier_widget.h>
+#include "ui_uniform_spacing_linear_modifier_widget.h"
 #include <noether_gui/widgets/distance_double_spin_box.h>
 
 #include <noether_tpp/serialization.h>
-#include <QFormLayout>
 
 namespace noether
 {
 UniformSpacingLinearModifierWidget::UniformSpacingLinearModifierWidget(QWidget* parent)
-  : BaseWidget(parent), point_spacing_(new DistanceDoubleSpinBox(this))
+  : BaseWidget(parent), ui_(new Ui::UniformSpacing())
 {
-  auto* layout = new QFormLayout(this);
-
-  point_spacing_->setMinimum(0.0);
-  point_spacing_->setDecimals(3);
-  point_spacing_->setValue(0.010);
-  point_spacing_->setSingleStep(0.010);
-
-  layout->addRow("Point Spacing", point_spacing_);
+  ui_->setupUi(this);
 }
 
 void UniformSpacingLinearModifierWidget::configure(const YAML::Node& config)
 {
-  point_spacing_->setValue(YAML::getMember<double>(config, "point_spacing"));
+  ui_->point_spacing->setValue(YAML::getMember<double>(config, "point_spacing"));
+  if (config["spline_degree"])
+    ui_->spline_degree->setValue(YAML::getMember<int>(config, "spline_degree"));
+  else
+    ui_->spline_degree->setValue(1);
 }
 
 void UniformSpacingLinearModifierWidget::save(YAML::Node& config) const
 {
   config["name"] = "UniformSpacingLinear";
-  config["point_spacing"] = point_spacing_->value();
+  config["point_spacing"] = ui_->point_spacing->value();
+  config["spline_degree"] = ui_->spline_degree->value();
 }
 
 }  // namespace noether

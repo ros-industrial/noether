@@ -2,10 +2,13 @@
 
 #include <noether_gui/widgets.h>
 
+namespace Ui
+{
+class UniformSpacing;
+}
+
 namespace noether
 {
-class DistanceDoubleSpinBox;
-
 /**
  * @ingroup gui_widgets_tool_path_modifiers
  */
@@ -18,7 +21,7 @@ public:
   void save(YAML::Node& config) const override;
 
 protected:
-  DistanceDoubleSpinBox* point_spacing_;
+  Ui::UniformSpacing* ui_;
 };
 
 }  // namespace noether
