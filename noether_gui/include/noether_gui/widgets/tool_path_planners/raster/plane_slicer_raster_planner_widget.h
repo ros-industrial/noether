@@ -20,7 +20,6 @@ public:
   void save(YAML::Node&) const override;
 
 protected:
-  DistanceDoubleSpinBox* search_radius_;
   DistanceDoubleSpinBox* min_segment_size_;
   QCheckBox* bidirectional_;
 };
