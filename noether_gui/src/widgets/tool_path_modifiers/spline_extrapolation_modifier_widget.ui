@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>337</width>
-    <height>209</height>
+    <width>322</width>
+    <height>177</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,41 +17,17 @@
    <item>
     <layout class="QFormLayout" name="formLayout">
      <item row="0" column="0">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Extrapolation Distance</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="noether::DistanceDoubleSpinBox" name="double_spin_box_extrapolation_distance">
-       <property name="singleStep">
-        <double>0.010000000000000</double>
-       </property>
-       <property name="value">
-        <double>0.050000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Normal Offset</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="noether::DistanceDoubleSpinBox" name="double_spin_box_normal_offset_distance"/>
-     </item>
-     <item row="2" column="0">
       <widget class="QLabel" name="label_3">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Polynomial degree of the spline (e.g., 2=parabolic, 3=cubic)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="text">
         <string>Spline Degree</string>
        </property>
       </widget>
      </item>
-     <item row="2" column="1">
-      <widget class="QSpinBox" name="spin_box_spline_degree">
+     <item row="0" column="1">
+      <widget class="QSpinBox" name="spline_degree">
        <property name="minimum">
         <number>1</number>
        </property>
@@ -66,24 +42,85 @@
     </layout>
    </item>
    <item>
-    <widget class="QCheckBox" name="check_box_extrapolate_front">
-     <property name="text">
-      <string>Extrapolate Front</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="check_box_extrapolate_back">
-     <property name="text">
-      <string>Extrapolate Back</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-    </widget>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="2" column="1">
+      <widget class="QLabel" name="label_2">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Offset to be applied to the extrapolated waypoint normal (i.e., z-axis)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>Normal Offset</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Extrapolation Distance</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Front</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="3">
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>Back</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="noether::DistanceDoubleSpinBox" name="extrapolation_distance_front">
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
+       <property name="value">
+        <double>0.050000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="3">
+      <widget class="noether::DistanceDoubleSpinBox" name="extrapolation_distance_back">
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
+       <property name="value">
+        <double>0.050000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2">
+      <widget class="noether::DistanceDoubleSpinBox" name="normal_offset_distance_front"/>
+     </item>
+     <item row="2" column="3">
+      <widget class="noether::DistanceDoubleSpinBox" name="normal_offset_distance_back"/>
+     </item>
+     <item row="0" column="1">
+      <widget class="QCheckBox" name="lock_values">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Lock the front and back values together&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>Lock</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
     <spacer name="verticalSpacer">
@@ -108,11 +145,12 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>double_spin_box_extrapolation_distance</tabstop>
-  <tabstop>double_spin_box_normal_offset_distance</tabstop>
-  <tabstop>spin_box_spline_degree</tabstop>
-  <tabstop>check_box_extrapolate_front</tabstop>
-  <tabstop>check_box_extrapolate_back</tabstop>
+  <tabstop>spline_degree</tabstop>
+  <tabstop>extrapolation_distance_front</tabstop>
+  <tabstop>extrapolation_distance_back</tabstop>
+  <tabstop>normal_offset_distance_front</tabstop>
+  <tabstop>normal_offset_distance_back</tabstop>
+  <tabstop>lock_values</tabstop>
  </tabstops>
  <resources/>
  <connections/>
