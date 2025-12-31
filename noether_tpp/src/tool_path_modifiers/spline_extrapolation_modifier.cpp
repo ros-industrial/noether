@@ -107,15 +107,15 @@ Eigen::Isometry3d extrapolate(const Eigen::Spline3d& spline, const double dist, 
 namespace noether
 {
 SplineExtrapolationToolPathModifier::SplineExtrapolationToolPathModifier(const double spline_degree,
-                                                                         const double extrapolation_distance,
-                                                                         const double normal_offset_distance,
-                                                                         const bool extrapolate_front,
-                                                                         const bool extrapolate_back)
+                                                                         const double extrapolation_distance_front,
+                                                                         const double normal_offset_distance_front,
+                                                                         const double extrapolation_distance_back,
+                                                                         const double normal_offset_distance_back)
   : spline_degree_(spline_degree)
-  , extrapolation_distance_(extrapolation_distance)
-  , normal_offset_distance_(normal_offset_distance)
-  , extrapolate_front_(extrapolate_front)
-  , extrapolate_back_(extrapolate_back)
+  , extrapolation_distance_front_(std::abs(extrapolation_distance_front))
+  , normal_offset_distance_front_(normal_offset_distance_front)
+  , extrapolation_distance_back_(std::abs(extrapolation_distance_back))
+  , normal_offset_distance_back_(normal_offset_distance_back)
 {
 }
 
@@ -137,20 +137,26 @@ ToolPaths SplineExtrapolationToolPathModifier::modify(ToolPaths tool_paths) cons
       Eigen::Spline3d spline = Eigen::SplineFitting<Eigen::Spline3d>::Interpolate(points, spline_degree_);
 
       // Create an extrapolation point at the front of the segment
-      if (extrapolate_front_)
+      if (extrapolation_distance_front_ > std::numeric_limits<double>::epsilon())
       {
         const auto& ref_z = segment.front().matrix().col(2).head<3>();
-        Eigen::Isometry3d front = extrapolate(spline, -extrapolation_distance_, ref_z);
-        front *= Eigen::Translation3d(0.0, 0.0, normal_offset_distance_);
+        Eigen::Isometry3d front = extrapolate(spline, -extrapolation_distance_front_, ref_z);
+
+        if (normal_offset_distance_front_ > std::numeric_limits<double>::epsilon())
+          front *= Eigen::Translation3d(0.0, 0.0, normal_offset_distance_front_);
+
         segment.insert(segment.begin(), front);
       }
 
       // Create an extrapolation point at the back of the segment
-      if (extrapolate_back_)
+      if (extrapolation_distance_back_ > std::numeric_limits<double>::epsilon())
       {
         const auto& ref_z = segment.back().matrix().col(2).head<3>();
-        Eigen::Isometry3d back = extrapolate(spline, extrapolation_distance_, ref_z);
-        back *= Eigen::Translation3d(0.0, 0.0, normal_offset_distance_);
+        Eigen::Isometry3d back = extrapolate(spline, extrapolation_distance_back_, ref_z);
+
+        if (normal_offset_distance_back_ > std::numeric_limits<double>::epsilon())
+          back *= Eigen::Translation3d(0.0, 0.0, normal_offset_distance_back_);
+
         segment.push_back(back);
       }
     }
@@ -169,10 +175,10 @@ Node convert<noether::SplineExtrapolationToolPathModifier>::encode(
 {
   Node node;
   node["spline_degree"] = val.spline_degree_;
-  node["extrapolation_distance"] = val.extrapolation_distance_;
-  node["normal_offset_distance"] = val.normal_offset_distance_;
-  node["extrapolate_front"] = val.extrapolate_front_;
-  node["extrapolate_back"] = val.extrapolate_back_;
+  node["extrapolation_distance_front"] = val.extrapolation_distance_front_;
+  node["normal_offset_distance_front"] = val.normal_offset_distance_front_;
+  node["extrapolation_distance_back"] = val.extrapolation_distance_back_;
+  node["normal_offset_distance_back"] = val.normal_offset_distance_back_;
   return {};
 }
 
@@ -180,10 +186,10 @@ bool convert<noether::SplineExtrapolationToolPathModifier>::decode(const Node& n
                                                                    noether::SplineExtrapolationToolPathModifier& val)
 {
   val.spline_degree_ = YAML::getMember<double>(node, "spline_degree");
-  val.extrapolation_distance_ = YAML::getMember<double>(node, "extrapolation_distance");
-  val.normal_offset_distance_ = YAML::getMember<double>(node, "normal_offset_distance");
-  val.extrapolate_front_ = YAML::getMember<bool>(node, "extrapolate_front");
-  val.extrapolate_back_ = YAML::getMember<bool>(node, "extrapolate_back");
+  val.extrapolation_distance_front_ = YAML::getMember<double>(node, "extrapolation_distance_front");
+  val.normal_offset_distance_front_ = YAML::getMember<double>(node, "normal_offset_distance_front");
+  val.extrapolation_distance_back_ = YAML::getMember<double>(node, "extrapolation_distance_back");
+  val.normal_offset_distance_back_ = YAML::getMember<double>(node, "normal_offset_distance_back");
   return true;
 }
 /** @endcond */
