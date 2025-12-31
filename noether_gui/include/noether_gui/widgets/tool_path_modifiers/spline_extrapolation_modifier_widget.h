@@ -4,7 +4,7 @@
 
 namespace Ui
 {
-class RadiusOfCurvatureExtrapolation;
+class SplineExtrapolation;
 }
 
 namespace noether
@@ -12,16 +12,16 @@ namespace noether
 /**
  * @ingroup gui_widgets_tool_path_modifiers
  */
-struct RadiusOfCurvatureExtrapolationToolPathModifierWidget : public BaseWidget
+struct SplineExtrapolationToolPathModifierWidget : public BaseWidget
 {
 public:
-  RadiusOfCurvatureExtrapolationToolPathModifierWidget(QWidget* parent);
+  SplineExtrapolationToolPathModifierWidget(QWidget* parent);
 
   void configure(const YAML::Node&) override;
   void save(YAML::Node&) const override;
 
 protected:
-  Ui::RadiusOfCurvatureExtrapolation* ui_;
+  Ui::SplineExtrapolation* ui_;
 };
 
 }  // namespace noether

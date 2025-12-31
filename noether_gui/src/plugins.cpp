@@ -33,7 +33,7 @@
 #include <noether_gui/widgets/tool_path_modifiers/offset_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/uniform_spacing_spline_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/uniform_spacing_linear_modifier_widget.h>
-#include <noether_gui/widgets/tool_path_modifiers/radius_of_curvature_extrapolation_modifier_widget.h>
+#include <noether_gui/widgets/tool_path_modifiers/spline_extrapolation_modifier_widget.h>
 // Mesh Modifiers
 #include <noether_gui/widgets/mesh_modifiers/euclidean_clustering_modifier_widget.h>
 #include <noether_gui/widgets/mesh_modifiers/face_subdivision_modifier_widget.h>
@@ -123,8 +123,7 @@ EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(ConcatenateModifierWidget, Concat
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(OffsetModifierWidget, Offset)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(UniformSpacingSplineModifierWidget, UniformSpacingSpline)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(UniformSpacingLinearModifierWidget, UniformSpacingLinear)
-EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(RadiusOfCurvatureExtrapolationToolPathModifierWidget,
-                                               RadiusOfCurvatureExtrapolation)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(SplineExtrapolationToolPathModifierWidget, SplineExtrapolation)
 
 }  // namespace noether
 

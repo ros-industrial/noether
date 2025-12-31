@@ -85,7 +85,7 @@ add_library(
   src/tool_path_modifiers/linear_approach_modifier.cpp
   src/tool_path_modifiers/linear_departure_modifier.cpp
   src/tool_path_modifiers/minimum_segment_length_modifier.cpp
-  src/tool_path_modifiers/radius_of_curvature_extrapolation_modifier.cpp
+  src/tool_path_modifiers/spline_extrapolation_modifier.cpp
   src/tool_path_modifiers/tool_drag_orientation_modifier.cpp
   src/tool_path_modifiers/uniform_orientation_modifier.cpp
   src/tool_path_modifiers/offset_modifier.cpp

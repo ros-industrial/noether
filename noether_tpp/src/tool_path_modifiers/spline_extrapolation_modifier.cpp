@@ -1,4 +1,4 @@
-#include <noether_tpp/tool_path_modifiers/radius_of_curvature_extrapolation_modifier.h>
+#include <noether_tpp/tool_path_modifiers/spline_extrapolation_modifier.h>
 #include <noether_tpp/serialization.h>
 
 #include <unsupported/Eigen/Splines>
@@ -106,12 +106,11 @@ Eigen::Isometry3d extrapolate(const Eigen::Spline3d& spline, const double dist, 
 
 namespace noether
 {
-RadiusOfCurvatureExtrapolationToolPathModifier::RadiusOfCurvatureExtrapolationToolPathModifier(
-    const double spline_degree,
-    const double extrapolation_distance,
-    const double normal_offset_distance,
-    const bool extrapolate_front,
-    const bool extrapolate_back)
+SplineExtrapolationToolPathModifier::SplineExtrapolationToolPathModifier(const double spline_degree,
+                                                                         const double extrapolation_distance,
+                                                                         const double normal_offset_distance,
+                                                                         const bool extrapolate_front,
+                                                                         const bool extrapolate_back)
   : spline_degree_(spline_degree)
   , extrapolation_distance_(extrapolation_distance)
   , normal_offset_distance_(normal_offset_distance)
@@ -120,7 +119,7 @@ RadiusOfCurvatureExtrapolationToolPathModifier::RadiusOfCurvatureExtrapolationTo
 {
 }
 
-ToolPaths RadiusOfCurvatureExtrapolationToolPathModifier::modify(ToolPaths tool_paths) const
+ToolPaths SplineExtrapolationToolPathModifier::modify(ToolPaths tool_paths) const
 {
   for (ToolPath& tool_path : tool_paths)
   {
@@ -165,8 +164,8 @@ ToolPaths RadiusOfCurvatureExtrapolationToolPathModifier::modify(ToolPaths tool_
 namespace YAML
 {
 /** @cond */
-Node convert<noether::RadiusOfCurvatureExtrapolationToolPathModifier>::encode(
-    const noether::RadiusOfCurvatureExtrapolationToolPathModifier& val)
+Node convert<noether::SplineExtrapolationToolPathModifier>::encode(
+    const noether::SplineExtrapolationToolPathModifier& val)
 {
   Node node;
   node["spline_degree"] = val.spline_degree_;
@@ -177,9 +176,8 @@ Node convert<noether::RadiusOfCurvatureExtrapolationToolPathModifier>::encode(
   return {};
 }
 
-bool convert<noether::RadiusOfCurvatureExtrapolationToolPathModifier>::decode(
-    const Node& node,
-    noether::RadiusOfCurvatureExtrapolationToolPathModifier& val)
+bool convert<noether::SplineExtrapolationToolPathModifier>::decode(const Node& node,
+                                                                   noether::SplineExtrapolationToolPathModifier& val)
 {
   val.spline_degree_ = YAML::getMember<double>(node, "spline_degree");
   val.extrapolation_distance_ = YAML::getMember<double>(node, "extrapolation_distance");
