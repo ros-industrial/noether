@@ -11,10 +11,10 @@ namespace noether
  * @ingroup tool_path_modifiers
  * @brief The UniformSpacingLinearModifier class
  */
-class UniformSpacingLinearModifier : public ToolPathModifier
+class UniformSpacingModifier : public ToolPathModifier
 {
 public:
-  UniformSpacingLinearModifier(const double point_spacing, const long spline_degree = 1);
+  UniformSpacingModifier(const double point_spacing, const long spline_degree);
 
   ToolPaths modify(ToolPaths tool_paths) const override;
 
@@ -22,10 +22,10 @@ protected:
   double point_spacing_;
   long spline_degree_;
 
-  UniformSpacingLinearModifier() = default;
-  DECLARE_YAML_FRIEND_CLASSES(UniformSpacingLinearModifier)
+  UniformSpacingModifier() = default;
+  DECLARE_YAML_FRIEND_CLASSES(UniformSpacingModifier)
 };
 
 }  // namespace noether
 
-FWD_DECLARE_YAML_CONVERT(noether::UniformSpacingLinearModifier)
+FWD_DECLARE_YAML_CONVERT(noether::UniformSpacingModifier)

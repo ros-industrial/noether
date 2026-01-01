@@ -1,4 +1,4 @@
-#include <noether_tpp/tool_path_modifiers/uniform_spacing_linear_modifier.h>
+#include <noether_tpp/tool_path_modifiers/uniform_spacing_modifier.h>
 #include <noether_tpp/utils.h>
 #include <noether_tpp/serialization.h>
 
@@ -118,12 +118,12 @@ noether::ToolPathSegment sample(const noether::ToolPathSegment& segment,
 
 namespace noether
 {
-UniformSpacingLinearModifier::UniformSpacingLinearModifier(const double point_spacing, const long spline_degree)
+UniformSpacingModifier::UniformSpacingModifier(const double point_spacing, const long spline_degree)
   : ToolPathModifier(), point_spacing_(point_spacing), spline_degree_(spline_degree)
 {
 }
 
-ToolPaths UniformSpacingLinearModifier::modify(ToolPaths tool_paths) const
+ToolPaths UniformSpacingModifier::modify(ToolPaths tool_paths) const
 {
   ToolPaths output;
   output.reserve(tool_paths.size());
@@ -152,7 +152,7 @@ ToolPaths UniformSpacingLinearModifier::modify(ToolPaths tool_paths) const
 namespace YAML
 {
 /** @cond */
-Node convert<noether::UniformSpacingLinearModifier>::encode(const noether::UniformSpacingLinearModifier& val)
+Node convert<noether::UniformSpacingModifier>::encode(const noether::UniformSpacingModifier& val)
 {
   Node node;
   node["point_spacing"] = val.point_spacing_;
@@ -160,14 +160,10 @@ Node convert<noether::UniformSpacingLinearModifier>::encode(const noether::Unifo
   return node;
 }
 
-bool convert<noether::UniformSpacingLinearModifier>::decode(const Node& node,
-                                                            noether::UniformSpacingLinearModifier& val)
+bool convert<noether::UniformSpacingModifier>::decode(const Node& node, noether::UniformSpacingModifier& val)
 {
   val.point_spacing_ = getMember<double>(node, "point_spacing");
-  if (node["spline_degree"])
-    val.spline_degree_ = getMember<long>(node, "spline_degree");
-  else
-    val.spline_degree_ = 1;
+  val.spline_degree_ = getMember<long>(node, "spline_degree");
   return true;
 }
 /** @endcond */
