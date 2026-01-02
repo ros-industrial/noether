@@ -53,8 +53,9 @@ add_library(
   ${PROJECT_NAME} SHARED
   # Core
   src/core/tool_path_planner_pipeline.cpp
-  src/utils.cpp
   src/plugin_interface.cpp
+  src/splines.cpp
+  src/utils.cpp
   # Mesh Modifiers
   src/mesh_modifiers/subset_extraction/subset_extractor.cpp
   src/mesh_modifiers/subset_extraction/extruded_polygon_subset_extractor.cpp
