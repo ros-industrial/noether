@@ -16,6 +16,7 @@ void UniformSpacingModifierWidget::configure(const YAML::Node& config)
 {
   ui_->point_spacing->setValue(YAML::getMember<double>(config, "point_spacing"));
   ui_->spline_degree->setValue(YAML::getMember<int>(config, "spline_degree"));
+  ui_->include_endpoints->setChecked(YAML::getMember<bool>(config, "include_endpoints"));
 }
 
 void UniformSpacingModifierWidget::save(YAML::Node& config) const
@@ -23,6 +24,7 @@ void UniformSpacingModifierWidget::save(YAML::Node& config) const
   config["name"] = "UniformSpacing";
   config["point_spacing"] = ui_->point_spacing->value();
   config["spline_degree"] = ui_->spline_degree->value();
+  config["include_endpoints"] = ui_->include_endpoints->isChecked();
 }
 
 }  // namespace noether

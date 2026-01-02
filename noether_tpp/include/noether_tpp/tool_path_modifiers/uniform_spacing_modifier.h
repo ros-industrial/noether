@@ -14,13 +14,16 @@ namespace noether
 class UniformSpacingModifier : public ToolPathModifier
 {
 public:
-  UniformSpacingModifier(const double point_spacing, const long spline_degree);
+  UniformSpacingModifier(const double point_spacing, const long spline_degree, const bool include_endpoints);
 
   ToolPaths modify(ToolPaths tool_paths) const override;
 
 protected:
   double point_spacing_;
   long spline_degree_;
+  bool include_endpoints_;
+
+  ToolPathSegment resample(const ToolPathSegment&) const;
 
   UniformSpacingModifier() = default;
   DECLARE_YAML_FRIEND_CLASSES(UniformSpacingModifier)
