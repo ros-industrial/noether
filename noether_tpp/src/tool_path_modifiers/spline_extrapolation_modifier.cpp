@@ -38,9 +38,9 @@ ToolPaths SplineExtrapolationToolPathModifier::modify(ToolPaths tool_paths) cons
       // Create an extrapolation point at the front of the segment
       if (extrapolation_distance_front_ > std::numeric_limits<double>::epsilon())
       {
-        const double t = computeSplineParameterAtDistance(spline, -extrapolation_distance_front_);
+        const double u = computeSplineParameterAtDistance(spline, -extrapolation_distance_front_);
         const auto& ref_z = segment.front().matrix().col(2).head<3>();
-        Eigen::Isometry3d front = sample(spline, t, ref_z);
+        Eigen::Isometry3d front = sample(spline, u, ref_z);
 
         if (normal_offset_distance_front_ > std::numeric_limits<double>::epsilon())
           front *= Eigen::Translation3d(0.0, 0.0, normal_offset_distance_front_);
@@ -51,9 +51,9 @@ ToolPaths SplineExtrapolationToolPathModifier::modify(ToolPaths tool_paths) cons
       // Create an extrapolation point at the back of the segment
       if (extrapolation_distance_back_ > std::numeric_limits<double>::epsilon())
       {
-        const double t = computeSplineParameterAtDistance(spline, spline_length + extrapolation_distance_back_);
+        const double u = computeSplineParameterAtDistance(spline, spline_length + extrapolation_distance_back_);
         const auto& ref_z = segment.back().matrix().col(2).head<3>();
-        Eigen::Isometry3d back = sample(spline, t, ref_z);
+        Eigen::Isometry3d back = sample(spline, u, ref_z);
 
         if (normal_offset_distance_back_ > std::numeric_limits<double>::epsilon())
           back *= Eigen::Translation3d(0.0, 0.0, normal_offset_distance_back_);
