@@ -29,18 +29,18 @@ noether::ToolPathSegment UniformSpacingModifier::resample(const noether::ToolPat
   const Eigen::Spline3d spline = Eigen::SplineFitting<Eigen::Spline3d>::Interpolate(points, spline_degree_);
 
   // Compute the length of the spline and estimate the number of new samples
-  std::vector<double> t = computeEquidistantKnots(spline, point_spacing_, include_endpoints_);
+  std::vector<double> u = computeEquidistantKnots(spline, point_spacing_, include_endpoints_);
 
   // Allocate the output segment
   noether::ToolPathSegment output;
-  output.reserve(t.size());
+  output.reserve(u.size());
 
   // Use the first waypoint z-axis as the reference normal
   Eigen::Vector3d ref_z = segment.front().matrix().col(2).head<3>();
 
-  for (std::size_t i = 0; i < t.size(); ++i)
+  for (std::size_t i = 0; i < u.size(); ++i)
   {
-    Eigen::Isometry3d pose = sample(spline, t[i], ref_z);
+    Eigen::Isometry3d pose = sample(spline, u[i], ref_z);
     output.push_back(pose);
 
     // Update the reference z-axis for the next waypoint

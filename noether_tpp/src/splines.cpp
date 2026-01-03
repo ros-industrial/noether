@@ -35,10 +35,10 @@ simpsonComposite38(const std::function<Eigen::ArrayXd(double)>& f, const double 
   return dist.matrix().norm();
 }
 
-Eigen::Isometry3d sample(const Eigen::Spline3d& spline, const double t, const Eigen::Vector3d& ref_z)
+Eigen::Isometry3d sample(const Eigen::Spline3d& spline, const double u, const Eigen::Vector3d& ref_z)
 {
   // Evaluate the spline and its first derivative at the given spline parameter
-  const Eigen::MatrixXd s = spline.derivatives(t, 1);
+  const Eigen::MatrixXd s = spline.derivatives(u, 1);
 
   Eigen::Isometry3d pose;
 
@@ -136,11 +136,11 @@ std::tuple<double, double, double> estimateSplineParameterAtDistance(const Eigen
   // Handle the nominal interpolation case
   const auto idx_end = std::distance(knot_distances.begin(), d_end);
   auto d_begin = d_end - 1;
-  const double t_end = knots(idx_end);
-  const double t_begin = knots(idx_end - 1);
-  const double dt = ((dist - *d_begin) / (*d_end - *d_begin)) * (t_end - t_begin);
+  const double u_end = knots(idx_end);
+  const double u_begin = knots(idx_end - 1);
+  const double du = ((dist - *d_begin) / (*d_end - *d_begin)) * (u_end - u_begin);
 
-  return std::make_tuple(*d_begin, t_begin, dt);
+  return std::make_tuple(*d_begin, u_begin, du);
 }
 
 /**
@@ -153,26 +153,26 @@ double computeSplineParameterAtDistance(const Eigen::Spline3d::KnotVectorType& k
                                         const double tol)
 {
   double s0;  // Spline distance at closest knot
-  double t;   // Closest knot
-  double dt;  // Estimated knot offset to desired distance
-  std::tie(s0, t, dt) = estimateSplineParameterAtDistance(knots, knot_distances, dist);
+  double u;   // Closest knot
+  double du;  // Estimated knot offset to desired distance
+  std::tie(s0, u, du) = estimateSplineParameterAtDistance(knots, knot_distances, dist);
 
-  // Iteratively refine dt until the computed distance equals the desired distance (within
+  // Iteratively refine du until the computed distance equals the desired distance (within
   // the specified tolerance)
   double s = s0;
-  double dt_prev = dt;
+  double du_prev = du;
   while (std::abs(s - dist) > tol)
   {
     // Compute the offset distance using Simpson's 3/8 rule to integrate the spline derivative
-    double ds = std::copysign(simpsonComposite38(s_dot, t, t + dt), dist);
+    double ds = std::copysign(simpsonComposite38(s_dot, u, u + du), dist);
     s = s0 + ds;
 
-    // Scale the dt estimate based on the ratio of desired remaining distance to computed distance
-    dt_prev = dt;
-    dt *= (dist - s0) / ds;
+    // Scale the du estimate based on the ratio of desired remaining distance to computed distance
+    du_prev = du;
+    du *= (dist - s0) / ds;
   }
 
-  return t + dt_prev;
+  return u + du_prev;
 }
 
 double computeSplineParameterAtDistance(const Eigen::Spline3d& spline, const double dist, const double tol)
@@ -191,7 +191,7 @@ std::vector<double>
 computeEquidistantKnots(const Eigen::Spline3d& spline, const double spacing, bool include_endpoints, const double tol)
 {
   // Allocate the output vector of spline parameters
-  std::vector<double> t;
+  std::vector<double> u;
 
   // Compute the computeLength of the spline
   double l = computeLength(spline);
@@ -215,17 +215,17 @@ computeEquidistantKnots(const Eigen::Spline3d& spline, const double spacing, boo
   // Iteratively add spline parameter values until the total spline length is reached
   while (s < l)
   {
-    t.push_back(computeSplineParameterAtDistance(spline.knots(), knot_distances, s_dot, s, tol));
+    u.push_back(computeSplineParameterAtDistance(spline.knots(), knot_distances, s_dot, s, tol));
     s += spacing;
   }
 
   if (include_endpoints)
   {
-    t.insert(t.begin(), 0.0);
-    t.push_back(1.0);
+    u.insert(u.begin(), 0.0);
+    u.push_back(1.0);
   }
 
-  return t;
+  return u;
 }
 
 }  // namespace noether
