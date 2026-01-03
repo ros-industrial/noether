@@ -62,7 +62,7 @@ std::vector<double> computeSpanLengths(const Eigen::Spline3d& spline)
   // Create a function for evaluating the first derivative of the spline (i.e., its velocity)
   // This function will be integrated using Simpson's rule to compute the distance along the spline (i.e., integral of
   // spline velocity)
-  std::function<Eigen::Vector3d(const double)> f = [&spline](double u) { return spline.derivatives(u, 1).col(1); };
+  std::function<Eigen::Vector3d(const double)> s_dot = [&spline](double u) { return spline.derivatives(u, 1).col(1); };
 
   // Iterate over the polynomial defining each segment of the spline
   std::vector<double> span_lengths;
@@ -71,7 +71,7 @@ std::vector<double> computeSpanLengths(const Eigen::Spline3d& spline)
   {
     double a = spline.knots()(i);
     double b = spline.knots()(i + 1);
-    span_lengths.push_back(simpsonComposite38(f, a, b));
+    span_lengths.push_back(simpsonComposite38(s_dot, a, b));
   }
   return span_lengths;
 }
@@ -102,15 +102,12 @@ double computeLength(const Eigen::Spline3d& spline)
  * @details Returns the 1) distance and 2) value of the closest knot to the desired distance value and 3) a knot offset
  * value from the closest knot that approximates the location of the desired distance. The estimated spline parameter at
  * the input distance is the knot value plus the offset.
- * @param spline
- * @param dist Desired distance (m) along the spline
  * @return Tuple of [Closest knot distance, closest knot value, approximate knot offset to desired distance]
  */
-std::tuple<double, double, double> estimateSplineParameterAtDistance(const Eigen::Spline3d& spline, const double dist)
+std::tuple<double, double, double> estimateSplineParameterAtDistance(const Eigen::Spline3d::KnotVectorType& knots,
+                                                                     const std::vector<double>& knot_distances,
+                                                                     const double dist)
 {
-  // Compute the knot distances of the spline
-  const std::vector<double> knot_distances = computeKnotDistances(spline);
-
   // Check if the distance corresponds to the end of one of the knots
   {
     auto d_it = std::find_if(knot_distances.begin(), knot_distances.end(), [dist](const double v) {
@@ -119,7 +116,7 @@ std::tuple<double, double, double> estimateSplineParameterAtDistance(const Eigen
     if (d_it != knot_distances.end())
     {
       const auto knot_idx = std::distance(knot_distances.begin(), d_it);
-      return std::make_tuple(*d_it, spline.knots()(knot_idx), 0.0);
+      return std::make_tuple(*d_it, knots(knot_idx), 0.0);
     }
   }
 
@@ -139,24 +136,26 @@ std::tuple<double, double, double> estimateSplineParameterAtDistance(const Eigen
   // Handle the nominal interpolation case
   const auto idx_end = std::distance(knot_distances.begin(), d_end);
   auto d_begin = d_end - 1;
-  const double t_end = spline.knots()(idx_end);
-  const double t_begin = spline.knots()(idx_end - 1);
+  const double t_end = knots(idx_end);
+  const double t_begin = knots(idx_end - 1);
   const double dt = ((dist - *d_begin) / (*d_end - *d_begin)) * (t_end - t_begin);
 
   return std::make_tuple(*d_begin, t_begin, dt);
 }
 
-double computeSplineParameterAtDistance(const Eigen::Spline3d& spline, const double dist, const double tol)
+/**
+ * @brief Helper function for computSplineParameterAtDistance that avoids recomputing knot distances
+ */
+double computeSplineParameterAtDistance(const Eigen::Spline3d::KnotVectorType& knots,
+                                        const std::vector<double>& knot_distances,
+                                        std::function<Eigen::Array3d(const double)> s_dot,
+                                        const double dist,
+                                        const double tol)
 {
   double s0;  // Spline distance at closest knot
   double t;   // Closest knot
   double dt;  // Estimated knot offset to desired distance
-  std::tie(s0, t, dt) = estimateSplineParameterAtDistance(spline, dist);
-
-  // Create a function for evaluating the first derivative of the spline (i.e., its velocity)
-  // This function will be integrated using Simpson's rule to compute the distance along the spline (i.e., integral of
-  // spline velocity)
-  std::function<Eigen::Array3d(const double)> f = [&spline](double u) { return spline.derivatives(u, 1).col(1); };
+  std::tie(s0, t, dt) = estimateSplineParameterAtDistance(knots, knot_distances, dist);
 
   // Iteratively refine dt until the computed distance equals the desired distance (within
   // the specified tolerance)
@@ -165,7 +164,7 @@ double computeSplineParameterAtDistance(const Eigen::Spline3d& spline, const dou
   while (std::abs(s - dist) > tol)
   {
     // Compute the offset distance using Simpson's 3/8 rule to integrate the spline derivative
-    double ds = std::copysign(simpsonComposite38(f, t, t + dt), dist);
+    double ds = std::copysign(simpsonComposite38(s_dot, t, t + dt), dist);
     s = s0 + ds;
 
     // Scale the dt estimate based on the ratio of desired remaining distance to computed distance
@@ -174,6 +173,18 @@ double computeSplineParameterAtDistance(const Eigen::Spline3d& spline, const dou
   }
 
   return t + dt_prev;
+}
+
+double computeSplineParameterAtDistance(const Eigen::Spline3d& spline, const double dist, const double tol)
+{
+  const std::vector<double> knot_distances = computeKnotDistances(spline);
+
+  // Create a function for evaluating the first derivative of the spline (i.e., its velocity)
+  // This function will be integrated using Simpson's rule to compute the distance along the spline (i.e., integral of
+  // spline velocity)
+  std::function<Eigen::Vector3d(const double)> s_dot = [&spline](double u) { return spline.derivatives(u, 1).col(1); };
+
+  return computeSplineParameterAtDistance(spline.knots(), knot_distances, s_dot, dist, tol);
 }
 
 std::vector<double>
@@ -198,10 +209,13 @@ computeEquidistantKnots(const Eigen::Spline3d& spline, const double spacing, boo
     s = remainder / 2.0;
   }
 
+  const std::vector<double> knot_distances = computeKnotDistances(spline);
+  std::function<Eigen::Vector3d(const double)> s_dot = [&spline](double u) { return spline.derivatives(u, 1).col(1); };
+
   // Iteratively add spline parameter values until the total spline length is reached
   while (s < l)
   {
-    t.push_back(computeSplineParameterAtDistance(spline, s, tol));
+    t.push_back(computeSplineParameterAtDistance(spline.knots(), knot_distances, s_dot, s, tol));
     s += spacing;
   }
 
