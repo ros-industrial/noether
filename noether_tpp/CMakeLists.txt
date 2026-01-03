@@ -53,8 +53,9 @@ add_library(
   ${PROJECT_NAME} SHARED
   # Core
   src/core/tool_path_planner_pipeline.cpp
-  src/utils.cpp
   src/plugin_interface.cpp
+  src/splines.cpp
+  src/utils.cpp
   # Mesh Modifiers
   src/mesh_modifiers/subset_extraction/subset_extractor.cpp
   src/mesh_modifiers/subset_extraction/extruded_polygon_subset_extractor.cpp
@@ -83,11 +84,11 @@ add_library(
   src/tool_path_modifiers/standard_edge_paths_organization_modifier.cpp
   src/tool_path_modifiers/linear_approach_modifier.cpp
   src/tool_path_modifiers/linear_departure_modifier.cpp
+  src/tool_path_modifiers/spline_extrapolation_modifier.cpp
   src/tool_path_modifiers/tool_drag_orientation_modifier.cpp
   src/tool_path_modifiers/uniform_orientation_modifier.cpp
   src/tool_path_modifiers/offset_modifier.cpp
-  src/tool_path_modifiers/uniform_spacing_spline_modifier.cpp
-  src/tool_path_modifiers/uniform_spacing_linear_modifier.cpp
+  src/tool_path_modifiers/uniform_spacing_modifier.cpp
   # Tool Path Planners
   src/tool_path_planners/multi_tool_path_planner.cpp
   src/tool_path_planners/edge/edge_planner.cpp
