@@ -26,6 +26,7 @@
 #include <noether_gui/widgets/tool_path_modifiers/tool_drag_orientation_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/biased_tool_drag_orientation_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/uniform_orientation_modifier_widget.h>
+#include <noether_gui/widgets/tool_path_modifiers/join_close_segments_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/linear_approach_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/linear_departure_modifier_widget.h>
 #include <noether_gui/widgets/tool_path_modifiers/offset_modifier_widget.h>
@@ -112,6 +113,7 @@ EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(BiasedToolDragOrientationToolPath
                                                BiasedToolDragOrientation)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(CircularLeadInToolPathModifierWidget, CircularLeadIn)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(CircularLeadOutToolPathModifierWidget, CircularLeadOut)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(JoinCloseSegmentsToolPathModifierWidget, JoinCloseSegments)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(LinearApproachToolPathModifierWidget, LinearApproach)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(LinearDepartureToolPathModifierWidget, LinearDeparture)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(ConcatenateModifierWidget, Concatenate)

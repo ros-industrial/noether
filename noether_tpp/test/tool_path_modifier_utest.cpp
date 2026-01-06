@@ -31,6 +31,8 @@ std::string config_str = R"(
     x: 1.0
     y: 0.0
     z: 0.0
+- name: JoinCloseSegments
+  distance: 1.0
 - &linear_approach
   name: LinearApproach
   offset: &linear_offset

@@ -35,6 +35,7 @@
 #include <noether_tpp/tool_path_modifiers/concatenate_modifier.h>
 #include <noether_tpp/tool_path_modifiers/direction_of_travel_orientation_modifier.h>
 #include <noether_tpp/tool_path_modifiers/fixed_orientation_modifier.h>
+#include <noether_tpp/tool_path_modifiers/join_close_segments_modifier.h>
 #include <noether_tpp/tool_path_modifiers/linear_approach_modifier.h>
 #include <noether_tpp/tool_path_modifiers/linear_departure_modifier.h>
 #include <noether_tpp/tool_path_modifiers/moving_average_orientation_smoothing_modifier.h>
@@ -152,6 +153,7 @@ EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(CircularLeadOutModifier, CircularLeadOut
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(ConcatenateModifier, Concatenate)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(DirectionOfTravelOrientationModifier, DirectionOfTravelOrientation)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(FixedOrientationModifier, FixedOrientation)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(JoinCloseSegmentsToolPathModifier, JoinCloseSegments)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(LinearApproachModifier, LinearApproach)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(LinearDepartureModifier, LinearDeparture)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(MovingAverageOrientationSmoothingModifier, MovingAverageOrientationSmoothing)
