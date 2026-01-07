@@ -431,6 +431,10 @@ PlaneSlicerRasterPlanner::PlaneSlicerRasterPlanner(DirectionGenerator::ConstPtr 
 {
 }
 
+void PlaneSlicerRasterPlanner::setPointSpacing(const double point_spacing) { point_spacing_ = point_spacing; }
+
+void PlaneSlicerRasterPlanner::setMinHoleSize(const double min_hole_size) { min_hole_size_ = min_hole_size; };
+
 void PlaneSlicerRasterPlanner::setMinSegmentSize(const double min_segment_size)
 {
   min_segment_size_ = min_segment_size;
