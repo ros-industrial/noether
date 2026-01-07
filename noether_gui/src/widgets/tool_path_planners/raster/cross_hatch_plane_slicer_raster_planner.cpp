@@ -1,9 +1,10 @@
 #include <noether_gui/widgets/tool_path_planners/raster/cross_hatch_plane_slicer_raster_planner_widget.h>
 #include <noether_gui/widgets/angle_double_spin_box.h>
-#include "ui_raster_planner_widget.h"
 
 #include <noether_tpp/serialization.h>
-#include <QDoubleSpinBox>
+#include <QFormLayout>
+#include <QGroupBox>
+#include <QLabel>
 
 namespace noether
 {
@@ -12,11 +13,13 @@ CrossHatchPlaneSlicerRasterPlannerWidget::CrossHatchPlaneSlicerRasterPlannerWidg
     QWidget* parent)
   : PlaneSlicerRasterPlannerWidget(factory, parent), cross_hatch_angle_(new AngleDoubleSpinBox(this))
 {
-  // Search radius
+  auto widget = new QGroupBox(this);
+  auto form_layout = new QFormLayout(widget);
   cross_hatch_angle_->setMinimum(0.0);
   cross_hatch_angle_->setValue(M_PI_2);
   cross_hatch_angle_->setDecimals(3);
-  ui_->form_layout->addRow(new QLabel("Cross Hatch Angle", this), cross_hatch_angle_);
+  form_layout->addRow(new QLabel("Cross Hatch Angle", this), cross_hatch_angle_);
+  layout()->addWidget(widget);
 }
 
 void CrossHatchPlaneSlicerRasterPlannerWidget::configure(const YAML::Node& config)

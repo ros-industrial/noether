@@ -4,6 +4,11 @@
 
 class QCheckBox;
 
+namespace Ui
+{
+class PlaneSlicerRasterPlanner;
+}
+
 namespace noether
 {
 class DistanceDoubleSpinBox;
@@ -20,9 +25,7 @@ public:
   void save(YAML::Node&) const override;
 
 protected:
-  DistanceDoubleSpinBox* search_radius_;
-  DistanceDoubleSpinBox* min_segment_size_;
-  QCheckBox* bidirectional_;
+  Ui::PlaneSlicerRasterPlanner* ui_plane_slicer_;
 };
 
 }  // namespace noether
