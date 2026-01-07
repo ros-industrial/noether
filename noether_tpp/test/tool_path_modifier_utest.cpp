@@ -69,6 +69,12 @@ std::string config_str = R"(
   modifiers:
     - *linear_approach
     - *linear_departure
+- name: SplineExtrapolation
+  spline_degree: 2
+  extrapolation_distance_front: 0.5
+  normal_offset_distance_front: 0.0
+  extrapolation_distance_back: 0.5
+  normal_offset_distance_back: 0.0
 )";
 
 using namespace noether;
