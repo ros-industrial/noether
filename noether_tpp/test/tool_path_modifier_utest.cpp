@@ -61,10 +61,18 @@ std::string config_str = R"(
   angle_offset: *angle_offset
   tool_radius: *tool_radius
 - name: UniformOrientation
-- name: UniformSpacingLinear
-  point_spacing: 0.025
-- name: UniformSpacingSpline
-  point_spacing: 0.025
+- name: UniformSpacing
+  spline_degree: 1
+  point_spacing: 0.5
+  include_endpoints: false
+- name: UniformSpacing
+  spline_degree: 2
+  point_spacing: 0.5
+  include_endpoints: true
+- name: UniformSpacing
+  spline_degree: 3
+  point_spacing: 0.5
+  include_endpoints: false
 - name: CompoundToolPathModifier
   modifiers:
     - *linear_approach

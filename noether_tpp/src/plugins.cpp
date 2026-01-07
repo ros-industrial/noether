@@ -47,8 +47,7 @@
 #include <noether_tpp/tool_path_modifiers/standard_edge_paths_organization_modifier.h>
 #include <noether_tpp/tool_path_modifiers/tool_drag_orientation_modifier.h>
 #include <noether_tpp/tool_path_modifiers/uniform_orientation_modifier.h>
-#include <noether_tpp/tool_path_modifiers/uniform_spacing_linear_modifier.h>
-#include <noether_tpp/tool_path_modifiers/uniform_spacing_spline_modifier.h>
+#include <noether_tpp/tool_path_modifiers/uniform_spacing_modifier.h>
 
 namespace noether
 {
@@ -166,8 +165,7 @@ EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(SnakeOrganizationModifier, SnakeOrganiza
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(StandardEdgePathsOrganizationModifier, StandardEdgePathsOrganization)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(ToolDragOrientationToolPathModifier, ToolDragOrientation)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(UniformOrientationModifier, UniformOrientation)
-EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(UniformSpacingLinearModifier, UniformSpacingLinear)
-EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(UniformSpacingSplineModifier, UniformSpacingSpline)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(UniformSpacingModifier, UniformSpacing)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(SplineExtrapolationToolPathModifier, SplineExtrapolation)
 
 struct Plugin_CompoundToolPathModifier : public Plugin<ToolPathModifier>
