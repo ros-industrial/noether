@@ -9,8 +9,6 @@
 static const std::string DIRECTION_GENERATOR_KEY = "direction_generator";
 static const std::string ORIGIN_GENERATOR_KEY = "origin_generator";
 static const std::string LINE_SPACING_KEY = "line_spacing";
-static const std::string POINT_SPACING_KEY = "point_spacing";
-static const std::string MIN_HOLE_SIZE_KEY = "min_hole_size";
 
 namespace noether
 {
@@ -73,8 +71,6 @@ RasterPlannerWidget::RasterPlannerWidget(std::shared_ptr<const WidgetFactory> fa
 void RasterPlannerWidget::configure(const YAML::Node& config)
 {
   ui_->double_spin_box_line_spacing->setValue(YAML::getMember<double>(config, LINE_SPACING_KEY));
-  ui_->double_spin_box_point_spacing->setValue(YAML::getMember<double>(config, POINT_SPACING_KEY));
-  ui_->double_spin_box_minimum_hole_size->setValue(YAML::getMember<double>(config, MIN_HOLE_SIZE_KEY));
 
   // Direction generator
   {
@@ -136,8 +132,6 @@ void RasterPlannerWidget::save(YAML::Node& config) const
   }
 
   config[LINE_SPACING_KEY] = ui_->double_spin_box_line_spacing->value();
-  config[POINT_SPACING_KEY] = ui_->double_spin_box_point_spacing->value();
-  config[MIN_HOLE_SIZE_KEY] = ui_->double_spin_box_minimum_hole_size->value();
 }
 
 BaseWidget* RasterPlannerWidget::getDirectionGeneratorWidget() const

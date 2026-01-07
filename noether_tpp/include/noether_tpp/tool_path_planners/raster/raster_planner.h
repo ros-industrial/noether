@@ -70,9 +70,7 @@ public:
 
   ToolPaths plan(const pcl::PolygonMesh& mesh) const override final;
 
-  void setPointSpacing(const double point_spacing);
   void setLineSpacing(const double line_spacing);
-  void setMinHoleSize(const double min_hole_size);
 
 protected:
   /**
@@ -83,13 +81,8 @@ protected:
   DirectionGenerator::ConstPtr dir_gen_;
   OriginGenerator::ConstPtr origin_gen_;
 
-  /** @brief Distance between waypoints on the same raster line (m) */
-  double point_spacing_;
   /** @brief Distance between raster lines */
   double line_spacing_;
-  /** @brief Minimum size of hole in a mesh for which the planner should split a raster line that
-   * crosses over the hole into multiple segments */
-  double min_hole_size_;
 };
 
 }  // namespace noether
