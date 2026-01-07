@@ -35,10 +35,6 @@ class PlaneSlicerRasterPlanner : public RasterPlanner
 public:
   PlaneSlicerRasterPlanner(DirectionGenerator::ConstPtr dir_gen, OriginGenerator::ConstPtr origin_gen);
 
-  void setPointSpacing(const double point_spacing);
-  void setMinHoleSize(const double min_hole_size);
-  void setSearchRadius(const double search_radius);
-  void setMinSegmentSize(const double min_segment_size);
   void generateRastersBidirectionally(const bool bidirectional);
 
 protected:
@@ -49,17 +45,9 @@ protected:
    */
   ToolPaths planImpl(const pcl::PolygonMesh& mesh) const;
 
-  /** @brief Distance between waypoints on the same raster line (m) */
-  double point_spacing_;
-  /** @brief Minimum size of hole in a mesh for which the planner should split a raster line that
-   * crosses over the hole into multiple segments */
-  double min_hole_size_;
   /** @brief Flag indicating whether rasters should be generated in the direction of both the cut normal and its
    * negation */
   bool bidirectional_ = true;
-
-  /** @brief Minimum length of valid segment (m) */
-  double min_segment_size_;
 };
 
 }  // namespace noether

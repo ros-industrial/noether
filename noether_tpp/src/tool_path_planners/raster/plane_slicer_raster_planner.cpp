@@ -1,6 +1,5 @@
 #include <noether_tpp/tool_path_planners/raster/plane_slicer_raster_planner.h>
 #include <noether_tpp/utils.h>
-#include <noether_tpp/tool_path_modifiers/uniform_spacing_linear_modifier.h>
 
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -365,9 +364,7 @@ void joinContiguousSegments(vtkSmartPointer<vtkPolyData> polydata)
  * @param reference_direction Reference segemnt direction (e.g., raster cut direction)
  * @param max_segment_separation Distance (m) below which adjacent unconnected segments should be joined
  */
-void processPolyLines(vtkSmartPointer<vtkPolyData> polydata,
-                      const Eigen::Vector3d& reference_direction,
-                      const double max_segment_separation)
+void processPolyLines(vtkSmartPointer<vtkPolyData> polydata, const Eigen::Vector3d& reference_direction)
 {
   // Ensure that all of the segments are pointing the same direction (relative to the reference direction)
   unifySegmentDirection(polydata, reference_direction);
@@ -513,15 +510,6 @@ PlaneSlicerRasterPlanner::PlaneSlicerRasterPlanner(DirectionGenerator::ConstPtr 
 {
 }
 
-void PlaneSlicerRasterPlanner::setPointSpacing(const double point_spacing) { point_spacing_ = point_spacing; }
-
-void PlaneSlicerRasterPlanner::setMinHoleSize(const double min_hole_size) { min_hole_size_ = min_hole_size; };
-
-void PlaneSlicerRasterPlanner::setMinSegmentSize(const double min_segment_size)
-{
-  min_segment_size_ = min_segment_size;
-}
-
 void PlaneSlicerRasterPlanner::generateRastersBidirectionally(const bool bidirectional)
 {
   bidirectional_ = bidirectional;
@@ -632,16 +620,14 @@ ToolPaths PlaneSlicerRasterPlanner::planImpl(const pcl::PolygonMesh& mesh) const
     // Process the tool path lines to ensure proper segment ordering, direction, and connectivity
     vtkNew<vtkPolyData> processed_output;
     processed_output->DeepCopy(stripper->GetOutput());
-    processPolyLines(processed_output, cut_direction, min_hole_size_);
+    processPolyLines(processed_output, cut_direction);
 
     auto tool_path = convertToPoses(processed_output);
     if (!tool_path.empty())
       tool_paths.push_back(tool_path);
   }
 
-  // Add a linear uniform sampling tool path modifier to ensure the point spacing requirement is met
-  UniformSpacingLinearModifier modifier(point_spacing_);
-  return modifier.modify(tool_paths);
+  return tool_paths;
 }
 
 }  // namespace noether
