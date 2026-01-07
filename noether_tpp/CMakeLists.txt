@@ -81,6 +81,7 @@ add_library(
   src/tool_path_modifiers/raster_organization_modifier.cpp
   src/tool_path_modifiers/snake_organization_modifier.cpp
   src/tool_path_modifiers/standard_edge_paths_organization_modifier.cpp
+  src/tool_path_modifiers/join_close_segments_modifier.cpp
   src/tool_path_modifiers/linear_approach_modifier.cpp
   src/tool_path_modifiers/linear_departure_modifier.cpp
   src/tool_path_modifiers/tool_drag_orientation_modifier.cpp
