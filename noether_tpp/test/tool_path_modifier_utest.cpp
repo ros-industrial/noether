@@ -44,6 +44,8 @@ std::string config_str = R"(
   name: LinearDeparture
   offset: *linear_offset
   n_points: *n_points
+- name: MinimumSegmentLength
+  minimum_length: 1.0
 - name: MovingAverageOrientationSmoothing
   window_size: 3
 - name: Offset
