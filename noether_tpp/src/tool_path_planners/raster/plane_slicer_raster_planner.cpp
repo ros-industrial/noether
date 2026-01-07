@@ -211,9 +211,11 @@ vtkSmartPointer<vtkIdList> concatenateUnique(vtkSmartPointer<vtkIdList> l1, vtkS
 {
   vtkNew<vtkIdList> output;
   output->DeepCopy(l1);
+  const std::size_t l = output->GetNumberOfIds();
   for (std::size_t i = 0; i < l2->GetNumberOfIds(); ++i)
   {
-    output->InsertUniqueId(l2->GetId(i));
+    std::size_t idx = output->InsertUniqueId(l2->GetId(i));
+    std::size_t foo = idx * 1;
   }
   return output;
 }
@@ -357,71 +359,6 @@ void joinContiguousSegments(vtkSmartPointer<vtkPolyData> polydata)
 }
 
 /**
- * @brief Joins segments whose start and end vertices are within a specified Cartesian distance of one another
- * @param polydata VTK Polydata output from a VTKCutter/VTKStripper pipeline and modified by the
- * `topologicalSortSegments`, `unifySegmentDirection`, and `JoinContiguousSegments` functions.
- * @param max_separation_distance Distance (m) below which two adjacent unconnected segments should be joined
- */
-void joinCloseSegments(vtkSmartPointer<vtkPolyData> polydata, const double max_separation_distance)
-{
-  vtkSmartPointer<vtkCellArray> segments = polydata->GetLines();
-  vtkSmartPointer<vtkPoints> points = polydata->GetPoints();
-
-  vtkNew<vtkCellArray> output;
-
-  // Create a stack from the input segments (in reverse order, such that the first segment is at the top of the stack)
-  std::stack<vtkSmartPointer<vtkIdList>> stack;
-  for (std::size_t i = segments->GetNumberOfCells(); i-- > 0;)
-  {
-    vtkNew<vtkIdList> point_ids;
-    segments->GetCellAtId(i, point_ids);
-    stack.push(point_ids);
-  }
-
-  while (!stack.empty())
-  {
-    // Get the first segment
-    vtkSmartPointer<vtkIdList> s1 = stack.top();
-    stack.pop();
-
-    if (stack.empty())
-    {
-      output->InsertNextCell(s1);
-      continue;
-    }
-
-    // Get the second segment
-    vtkSmartPointer<vtkIdList> s2 = stack.top();
-    stack.pop();
-
-    // Get the last point in segment 1
-    const Eigen::Vector3d s1_end =
-        Eigen::Map<const Eigen::Vector3d>(points->GetPoint(s1->GetId(s1->GetNumberOfIds() - 1)));
-
-    // Get the first point in segment 2
-    const Eigen::Vector3d s2_begin = Eigen::Map<const Eigen::Vector3d>(points->GetPoint(s2->GetId(0)));
-
-    // Compute the distance between the end of segment 1 and beginning of segment 2
-    const double d = (s2_begin - s1_end).norm();
-
-    if (d < max_separation_distance)
-    {
-      // Add segment 2 to segment 1 and push it onto the stack
-      stack.push(concatenateUnique(s1, s2));
-    }
-    else
-    {
-      // Add segment 1 to the output and return segment 2 to the stack
-      output->InsertNextCell(s1);
-      stack.push(s2);
-    }
-  }
-
-  // Overwrite the lines in the polydata with the result
-  polydata->SetLines(output);
-}
-
-/**
  * @brief Processes the polylines in the output of a VTKCutter/VTKStripper pipeline such that contiguous segments are
  * joined in the correct order, all segments have a consistent direction, and close segments are joined together.
  * @param polydata VTK Polydata output from a VTKCutter/VTKStripper pipeline
@@ -441,9 +378,6 @@ void processPolyLines(vtkSmartPointer<vtkPolyData> polydata,
 
   // Join the contiguous segments
   joinContiguousSegments(polydata);
-
-  // Join segments whose endpoints are within a specific distance of each other
-  joinCloseSegments(polydata, max_segment_separation);
 }
 
 Eigen::Isometry3d createTransform(const Eigen::Vector3d& position,
