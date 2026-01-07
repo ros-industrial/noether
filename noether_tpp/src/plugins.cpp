@@ -38,6 +38,7 @@
 #include <noether_tpp/tool_path_modifiers/join_close_segments_modifier.h>
 #include <noether_tpp/tool_path_modifiers/linear_approach_modifier.h>
 #include <noether_tpp/tool_path_modifiers/linear_departure_modifier.h>
+#include <noether_tpp/tool_path_modifiers/minimum_segment_length_modifier.h>
 #include <noether_tpp/tool_path_modifiers/moving_average_orientation_smoothing_modifier.h>
 #include <noether_tpp/tool_path_modifiers/offset_modifier.h>
 #include <noether_tpp/tool_path_modifiers/raster_organization_modifier.h>
@@ -156,6 +157,7 @@ EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(FixedOrientationModifier, FixedOrientati
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(JoinCloseSegmentsToolPathModifier, JoinCloseSegments)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(LinearApproachModifier, LinearApproach)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(LinearDepartureModifier, LinearDeparture)
+EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(MinimumSegmentLengthToolPathModifier, MinimumSegmentLength)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(MovingAverageOrientationSmoothingModifier, MovingAverageOrientationSmoothing)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(OffsetModifier, Offset)
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(RasterOrganizationModifier, RasterOrganization)
