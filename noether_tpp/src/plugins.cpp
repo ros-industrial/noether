@@ -26,6 +26,7 @@
 
 // Tool Path Planners
 #include <noether_tpp/tool_path_planners/multi_tool_path_planner.h>
+#include <noether_tpp/tool_path_planners/raster/plane_slicer_legacy_raster_planner.h>
 
 // Tool Path Modifiers
 #include <noether_tpp/tool_path_modifiers/biased_tool_drag_orientation_modifier.h>
@@ -146,6 +147,36 @@ struct Plugin_MultiToolPathPlanner : public Plugin<ToolPathPlanner>
   }
 };
 EXPORT_TOOL_PATH_PLANNER_PLUGIN(noether::Plugin_MultiToolPathPlanner, Multi)
+
+struct Plugin_PlaneSlicerLegacyRasterPlanner : public Plugin<ToolPathPlanner>
+{
+  std::unique_ptr<ToolPathPlanner> create(const YAML::Node& config,
+                                          std::shared_ptr<const Factory> factory) const override final
+  {
+    std::unique_ptr<DirectionGenerator> dir_gen;
+    {
+      auto dir_gen_config = YAML::getMember<YAML::Node>(config, "direction_generator");
+      dir_gen = factory->createDirectionGenerator(dir_gen_config);
+    }
+
+    std::unique_ptr<OriginGenerator> origin_gen;
+    {
+      auto origin_gen_config = YAML::getMember<YAML::Node>(config, "origin_generator");
+      origin_gen = factory->createOriginGenerator(origin_gen_config);
+    }
+
+    auto tpp = std::make_unique<PlaneSlicerLegacyRasterPlanner>(std::move(dir_gen),
+                                                                std::move(origin_gen),
+                                                                YAML::getMember<double>(config, "point_spacing"),
+                                                                YAML::getMember<double>(config, "min_segment_size"),
+                                                                YAML::getMember<double>(config, "min_hole_size"));
+    tpp->setLineSpacing(YAML::getMember<double>(config, "line_spacing"));
+    tpp->generateRastersBidirectionally(YAML::getMember<bool>(config, "bidirectional"));
+
+    return tpp;
+  }
+};
+EXPORT_TOOL_PATH_PLANNER_PLUGIN(noether::Plugin_PlaneSlicerLegacyRasterPlanner, PlaneSlicerLegacy)
 
 // Tool Path Modifiers
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_PLUGIN(BiasedToolDragOrientationToolPathModifier, BiasedToolDragOrientation)
