@@ -2,8 +2,8 @@
 Changelog for package noether_gui
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.16.0 (2026-01-08)
+-------------------
 * Added a new plane slicer raster planner called `PlaneSlicerLegacy` that mimics the previous behavior of the plane slicer raster planner, including control over point spacing, min segment size, and min hole size (`#365 <https://github.com/marip8/noether/issues/365>`_)
 * Revised the implementation of the plane slice planner to fix numerous issues (`#350 <https://github.com/marip8/noether/issues/350>`_).
 As a part of this process, the following parameters were removed:
