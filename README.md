@@ -2,13 +2,12 @@
 
 [![support level: consortium](https://img.shields.io/badge/support%20level-consortium-brightgreen.png)](http://rosindustrial.org/news/2016/10/7/better-supporting-a-growing-ros-industrial-software-platform)
 
-## Build Status
-
-Platform             | CI Status
----------------------|:---------
-Ubuntu Jammy         | [![Build Status](https://github.com/ros-industrial/noether/workflows/Ubuntu/badge.svg)](https://github.com/ros-industrial/noether/actions)
-Ubuntu Noble         | [![Build Status](https://github.com/ros-industrial/noether/workflows/Ubuntu/badge.svg)](https://github.com/ros-industrial/noether/actions)
-Lint  (Clang-Format) | [![Build Status](https://github.com/ros-industrial/noether/workflows/Clang-Format/badge.svg)](https://github.com/ros-industrial/ros-industrial/actions)
+Build
+:---------|
+[![Ubuntu [Jammy, Noble]](https://github.com/ros-industrial/noether/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/ros-industrial/noether/actions/workflows/ubuntu.yml)
+[![Docker](https://github.com/ros-industrial/noether/actions/workflows/docker.yml/badge.svg)](https://github.com/ros-industrial/noether/actions/workflows/docker.yml)
+[![Clang-Format](https://github.com/ros-industrial/noether/actions/workflows/clang_format.yml/badge.svg)](https://github.com/ros-industrial/noether/actions/workflows/clang_format.yml)
+[![CMake-Format](https://github.com/ros-industrial/noether/actions/workflows/cmake_format.yml/badge.svg)](https://github.com/ros-industrial/noether/actions/workflows/cmake_format.yml)
 
 ## Description
 This repository provides software for performing tool path planning on arbitrary mesh surfaces.
