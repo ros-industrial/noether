@@ -47,6 +47,7 @@ add_library(
   src/widgets/tool_path_planners/raster/origin_generators/centroid_origin_generator_widget.cpp
   # Plane Slicer Tool Path Planner
   src/widgets/tool_path_planners/raster/plane_slicer_raster_planner_widget.cpp
+  src/widgets/tool_path_planners/raster/plane_slicer_legacy_raster_planner_widget.cpp
   src/widgets/tool_path_planners/raster/cross_hatch_plane_slicer_raster_planner.cpp
   # Half Edge Planner
   src/widgets/tool_path_planners/edge/boundary_edge_planner_widget.cpp

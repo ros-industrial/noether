@@ -104,6 +104,7 @@ add_library(
   src/tool_path_planners/raster/direction_generators/principal_axis_direction_generator.cpp
   src/tool_path_planners/raster/direction_generators/pca_rotated_direction_generator.cpp
   src/tool_path_planners/raster/plane_slicer_raster_planner.cpp
+  src/tool_path_planners/raster/plane_slicer_legacy_raster_planner.cpp
 )
 
 if(${CMAKE_VERSION} VERSION_GREATER 3.15)

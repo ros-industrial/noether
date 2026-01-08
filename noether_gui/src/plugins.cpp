@@ -12,6 +12,7 @@
 #include <noether_gui/widgets/tool_path_planners/raster/origin_generators/centroid_origin_generator_widget.h>
 // Tool path planners
 #include <noether_gui/widgets/tool_path_planners/raster/raster_planner_widget.h>
+#include <noether_gui/widgets/tool_path_planners/raster/plane_slicer_legacy_raster_planner_widget.h>
 #include <noether_gui/widgets/tool_path_planners/raster/cross_hatch_plane_slicer_raster_planner_widget.h>
 // Tool Path Modifiers
 #include <noether_gui/widgets/tool_path_modifiers/circular_lead_in_modifier_widget.h>
@@ -98,6 +99,35 @@ struct Plugin_CrossHatchPlaneSlicerRasterPlannerWidget : WidgetPlugin
   }
 };
 EXPORT_TOOL_PATH_PLANNER_WIDGET_PLUGIN(noether::Plugin_CrossHatchPlaneSlicerRasterPlannerWidget, CrossHatchPlaneSlicer)
+
+// For a complex plugin that cannot be configured through YAML serialization alone, implement a custom plugin class.
+struct Plugin_PlaneSlicerLegacyRasterPlannerWidget : WidgetPlugin
+{
+  BaseWidget* create(const YAML::Node& config,
+                     std::shared_ptr<const WidgetFactory> factory,
+                     QWidget* parent = nullptr) const override final
+  {
+    auto widget = new PlaneSlicerLegacyRasterPlannerWidget(factory, parent);
+
+    // Attempt to configure the widget
+    if (!config.IsNull())
+    {
+      try
+      {
+        widget->configure(config);
+      }
+      catch (const std::exception&)
+      {
+        // Delete the widget to prevent it from showing up in the GUI outside of the appropriate layout
+        widget->deleteLater();
+        throw;
+      }
+    }
+
+    return widget;
+  }
+};
+EXPORT_TOOL_PATH_PLANNER_WIDGET_PLUGIN(Plugin_PlaneSlicerLegacyRasterPlannerWidget, PlaneSlicerLegacy)
 
 // Tool Path Modifiers
 EXPORT_SIMPLE_TOOL_PATH_MODIFIER_WIDGET_PLUGIN(StandardEdgePathsOrganizationModifierWidget,
