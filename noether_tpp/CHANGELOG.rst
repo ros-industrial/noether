@@ -2,6 +2,22 @@
 Changelog for package noether_tpp
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Added a new plane slicer raster planner called `PlaneSlicerLegacy` that mimics the previous behavior of the plane slicer raster planner, including control over point spacing, min segment size, and min hole size (`#365 <https://github.com/marip8/noether/issues/365>`_)
+* Revised the implementation of the plane slice planner to fix numerous issues (`#350 <https://github.com/marip8/noether/issues/350>`_).
+As a part of this process, the following parameters were removed:
+  * `search_radius`: vertex normals are now expected to be provided in the mesh via a mesh modifier like `NormalsFromMeshFaces`
+  * `min_hole_size`: Joining tool path segments over holes below some minimum diameter (size) should be done with the `JoinCloseSegments` tool path modifier
+  * `min_segment_length`: Pruning tool path segments with less than the required length should be done with the `MinimumSegmentLength` tool path modifier
+  * `point_spacing`: The planner creates waypoints at the intersection of the cutting planes with each mesh edge they cross. Tool path resampling for uniform waypoint spacing should be done with the `UniformSpacing` tool path modifier.
+The functionality of these parameters are now provided by mesh and tool path modifiers.
+* Merged `UniformSpacingLinear` and `UniformSpacingSpline` tool path modifiers into single tool path modifier called `UniformSpacing` which uses B-splines of specifiable degree to interpolate tool paths (`#361 <https://github.com/marip8/noether/issues/361>`_)
+* Added a tool path modifier for extrapolating tool paths using B-splines (`#360 <https://github.com/marip8/noether/issues/360>`_)
+* Removed point spacing and minimum hole size from the definition of the raster planner base class (`#364 <https://github.com/marip8/noether/issues/364>`_)
+* Added tool path modifier for pruning segments with less than the minimum required length (`#363 <https://github.com/marip8/noether/issues/363>`_)
+* Added tool path modifier for joining close segments (`#362 <https://github.com/marip8/noether/issues/362>`_)
+
 0.15.4 (2025-12-26)
 -------------------
 * Made RANSAC model refinement optional (`#359 <https://github.com/marip8/noether/issues/359>`_)
