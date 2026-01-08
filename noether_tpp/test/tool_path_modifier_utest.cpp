@@ -365,7 +365,7 @@ TEST(ToolPathModifierTests, OrganizationModifiersTest)
   const unsigned n_segments = 2;
   const unsigned n_waypoints = 10;
   const ToolPaths tool_paths = createRasterGridToolPath(n_paths, n_segments, n_waypoints);
-  const ToolPaths shuffled_tool_paths = shuffle(tool_paths, true);
+  const ToolPaths shuffled_tool_paths = shuffle(tool_paths, false);
 
   // Create a raster pattern from the original tool paths
   RasterOrganizationModifier raster;

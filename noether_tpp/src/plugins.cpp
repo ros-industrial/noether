@@ -237,10 +237,6 @@ struct Plugin_PlaneSlicerRasterPlanner : public Plugin<ToolPathPlanner>
 
     auto tpp = std::make_unique<PlaneSlicerRasterPlanner>(std::move(dir_gen), std::move(origin_gen));
     tpp->setLineSpacing(YAML::getMember<double>(config, "line_spacing"));
-    tpp->setMinHoleSize(YAML::getMember<double>(config, "min_hole_size"));
-    tpp->setPointSpacing(YAML::getMember<double>(config, "point_spacing"));
-    tpp->setMinSegmentSize(YAML::getMember<double>(config, "min_segment_size"));
-    tpp->setSearchRadius(YAML::getMember<double>(config, "search_radius"));
     tpp->generateRastersBidirectionally(YAML::getMember<bool>(config, "bidirectional"));
 
     return tpp;
