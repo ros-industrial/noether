@@ -15,8 +15,34 @@ find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(boost_plugin_loader REQUIRED)
 find_package(noether_tpp REQUIRED)
 find_package(PCL REQUIRED COMPONENTS io surface)
-find_package(Qt5 REQUIRED COMPONENTS Widgets)
 find_package(yaml-cpp REQUIRED)
+
+# Find Qt; first check if another package has already found Qt and utilize the same version
+if(Qt5_FOUND)
+  find_package(Qt5 REQUIRED COMPONENTS Widgets)
+  set(QT_PACKAGE "Qt5 REQUIRED COMPONENTS Widgets")
+elseif(Qt6_FOUND)
+  find_package(
+    Qt6
+    REQUIRED
+    COMPONNENTS
+    Widgets
+  )
+  set(QT_PACKAGE "Qt6 REQUIRED COMPONENTS Widgets")
+else()
+  # Otherwise, attempt to find Qt6 first and fall back to Qt5 otherwise
+  find_package(
+    Qt6
+    COMPONENTS Widgets
+    QUIET
+  )
+  if(NOT Qt6_FOUND)
+    find_package(Qt5 REQUIRED COMPONENTS Widgets)
+    set(QT_PACKAGE "Qt5 REQUIRED COMPONENTS Widgets")
+  else()
+    set(QT_PACKAGE "Qt6 REQUIRED COMPONENTS Widgets")
+  endif()
+endif()
 
 option(NOETHER_ENABLE_CLANG_TIDY "Enables compilation with clang-tidy" OFF)
 
@@ -90,7 +116,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE "$<BUILD_INTERFACE:${CMAKE_CU
 target_link_libraries(
   ${PROJECT_NAME}
   PUBLIC noether::noether_tpp
-         Qt5::Widgets
+         Qt::Widgets
          ${PCL_LIBRARIES}
          boost_plugin_loader::boost_plugin_loader
          Eigen3::Eigen
@@ -114,7 +140,7 @@ target_clang_tidy(${PROJECT_NAME} ENABLE ${NOETHER_ENABLE_CLANG_TIDY})
 
 # Plugin Implementation Library
 add_library(${PROJECT_NAME}_plugins SHARED src/plugins.cpp)
-target_link_libraries(${PROJECT_NAME}_plugins PUBLIC ${PROJECT_NAME} Qt5::Widgets yaml-cpp)
+target_link_libraries(${PROJECT_NAME}_plugins PUBLIC ${PROJECT_NAME} Qt::Widgets yaml-cpp)
 target_compile_definitions(${PROJECT_NAME}_plugins PRIVATE NOETHER_GUI_PLUGINS="${PROJECT_NAME}_plugins")
 target_cxx_version(
   ${PROJECT_NAME}_plugins
@@ -141,7 +167,7 @@ configure_package(
     boost_plugin_loader
     noether_tpp
     "PCL REQUIRED COMPONENTS io surface"
-    "Qt5 REQUIRED COMPONENTS Widgets"
+    ${QT_PACKAGE}
     yaml-cpp
 )
 

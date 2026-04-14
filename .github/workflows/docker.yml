@@ -1,4 +1,4 @@
-name: Docker [Jammy, Noble]
+name: Docker [Jammy, Noble, Resolute]
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [jammy, noble]
+        os: [jammy, noble, resolute]
     env:
       REGISTRY: ghcr.io
       IMAGE_NAME: ${{ github.repository }}

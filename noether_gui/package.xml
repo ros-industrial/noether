@@ -10,6 +10,7 @@
 
   <build_depend>ros_industrial_cmake_boilerplate</build_depend>
   <depend>libqt5-widgets</depend>
+  <depend>qt6-base-dev</depend>
   <depend>noether_tpp</depend>
   <depend>boost_plugin_loader</depend>
   <depend>yaml-cpp</depend>
